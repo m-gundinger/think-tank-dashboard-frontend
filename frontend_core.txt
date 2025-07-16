@@ -8932,6 +8932,15 @@ export function NotificationBell() {
   const markAllReadMutation = useMarkAllNotificationsAsRead();
   const unreadCount = data?.unreadCount ?? 0;
 
+  console.log(
+    "LOG: NotificationBell rendering. Unread count:",
+    unreadCount,
+    "Is loading:",
+    isLoading,
+    "Data:",
+    data
+  );
+
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -8985,10 +8994,10 @@ export function NotificationBell() {
     </Popover>
   );
 }
-
 // FILE: src/features/notifications/components/NotificationItem.tsx
 import { useMarkNotificationAsRead } from "../api/useMarkNotificationAsRead";
 import { cn } from "@/lib/utils";
+import { RichTextOutput } from "@/components/ui/RichTextOutput"; // Import the component
 
 export function NotificationItem({ notification }: { notification: any }) {
   const markAsReadMutation = useMarkNotificationAsRead();
@@ -9011,7 +9020,11 @@ export function NotificationItem({ notification }: { notification: any }) {
         <span className="mt-1 block h-2 w-2 rounded-full bg-blue-500" />
       )}
       <div className={cn("grid gap-1", notification.isRead && "pl-5")}>
-        <p className="text-sm font-medium">{notification.message}</p>
+        {/* Replace the <p> tag with the RichTextOutput component */}
+        <RichTextOutput
+          html={notification.message}
+          className="text-sm font-medium"
+        />
         <p className="text-muted-foreground text-sm">
           {new Date(notification.createdAt).toLocaleString()}
         </p>
@@ -9019,7 +9032,6 @@ export function NotificationItem({ notification }: { notification: any }) {
     </div>
   );
 }
-
 // FILE: src/features/notifications/components/NotificationPreferencesForm.tsx
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10715,6 +10727,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
 import { useDeleteProject } from "../api/useDeleteProject";
+import { getIcon } from "@/lib/icons";
 
 interface ProjectCardProps {
   project: any;
@@ -10741,14 +10754,18 @@ export function ProjectCard({ project, onEdit }: ProjectCardProps) {
   };
 
   const projectUrl = `/workspaces/${project.workspaceId}/projects/${project.id}`;
+  const Icon = getIcon(project.icon);
 
   return (
     <Link to={projectUrl}>
       <Card className="hover:border-primary flex h-full flex-col transition-colors">
         <CardHeader className="flex flex-row items-start justify-between">
-          <div>
-            <CardTitle>{project.name}</CardTitle>
-            <CardDescription>{project.description}</CardDescription>
+          <div className="flex items-center gap-3">
+            <Icon className="h-6 w-6 text-gray-400" />
+            <div className="flex-1">
+              <CardTitle>{project.name}</CardTitle>
+              <CardDescription>{project.description}</CardDescription>
+            </div>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -10789,7 +10806,6 @@ export function ProjectCard({ project, onEdit }: ProjectCardProps) {
     </Link>
   );
 }
-
 // FILE: src/features/projects/components/ProjectList.tsx
 import { useGetProjects } from "../api/useGetProjects";
 import { ProjectCard } from "./ProjectCard";
@@ -17072,26 +17088,76 @@ export function useNotificationSocket() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    if (!socket) return;
+    if (!socket) {
+      console.log(
+        "LOG: useNotificationSocket - No socket instance, skipping listener setup."
+      );
+      return;
+    }
 
-    const handleNewNotification = (event: any) => {
-      console.log("New notification received:", event.payload);
+    console.log(
+      "LOG: useNotificationSocket - Setting up 'NEW_NOTIFICATION' listener."
+    );
+    const handleNewNotification = (event: { payload: any }) => {
+      const newNotification = event.payload;
+      console.log(
+        "LOG: useNotificationSocket - 'NEW_NOTIFICATION' event received",
+        event
+      );
 
-      toast(event.payload.message, {
-        description: `Severity: ${event.payload.severity}`,
+      toast.info(newNotification.message, {
+        description: `Severity: ${newNotification.severity}`,
       });
 
-      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.setQueryData<any>(
+        ["notifications"],
+        (oldData: { data: any; total: number; unreadCount: any }) => {
+          console.log(
+            "LOG: useNotificationSocket - Updating query cache for ['notifications']. Old data:",
+            oldData
+          );
+
+          if (!oldData) {
+            const newData = {
+              data: [newNotification],
+              total: 1,
+              unreadCount: 1,
+              page: 1,
+              limit: 10,
+              totalPages: 1,
+            };
+            console.log(
+              "LOG: useNotificationSocket - No old data found, creating new cache entry:",
+              newData
+            );
+            return newData;
+          }
+
+          const newData = {
+            ...oldData,
+            data: [newNotification, ...(oldData.data || [])],
+            total: oldData.total + 1,
+            unreadCount: (oldData.unreadCount ?? 0) + 1,
+          };
+          console.log(
+            "LOG: useNotificationSocket - Optimistically updated cache:",
+            newData
+          );
+          return newData;
+        }
+      );
     };
 
     socket.on("NEW_NOTIFICATION", handleNewNotification);
 
     return () => {
+      console.log(
+        "LOG: useNotificationSocket - Cleaning up 'NEW_NOTIFICATION' listener."
+      );
       socket.off("NEW_NOTIFICATION", handleNewNotification);
     };
   }, [socket, queryClient]);
 }
-
 // FILE: src/hooks/usePresence.ts
 import { useEffect } from "react";
 import { useSocket } from "./useSocket";
@@ -17197,28 +17263,38 @@ export function useSocket() {
   useEffect(() => {
     if (!accessToken) {
       if (socket) {
+        console.log("LOG: No access token, disconnecting socket.");
         socket.disconnect();
         setSocket(null);
       }
       return;
     }
 
+    console.log("LOG: Access token found, creating new socket connection.");
     const newSocket = io("http://localhost:3000", {
       auth: {
         token: accessToken,
       },
     });
 
+    newSocket.on("connect", () => {
+      console.log("LOG: Socket connected successfully with ID:", newSocket.id);
+    });
+
+    newSocket.on("disconnect", (reason) => {
+      console.log("LOG: Socket disconnected. Reason:", reason);
+    });
+
     setSocket(newSocket);
 
     return () => {
+      console.log("LOG: Cleaning up socket connection.");
       newSocket.disconnect();
     };
   }, [accessToken]);
 
   return socket;
 }
-
 // FILE: src/hooks/useSocketSubscription.ts
 import { useEffect } from "react";
 import { useSocket } from "./useSocket";
@@ -17340,6 +17416,10 @@ import {
   FileText,
   User,
   type LucideIcon,
+  Book,
+  FlaskConical,
+  BarChart,
+  Target,
 } from "lucide-react";
 
 export const ICONS: Record<string, LucideIcon> = {
@@ -17347,13 +17427,19 @@ export const ICONS: Record<string, LucideIcon> = {
   Task: CheckSquare,
   Publication: FileText,
   User: User,
+  Book,
+  FlaskConical,
+  BarChart,
+  Target,
   Default: FileText,
 };
 
-export function getIcon(typeName: string) {
+export function getIcon(typeName: string | null | undefined): LucideIcon {
+  if (!typeName) {
+    return ICONS.Default;
+  }
   return ICONS[typeName] || ICONS.Default;
 }
-
 // FILE: src/lib/utils.ts
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"

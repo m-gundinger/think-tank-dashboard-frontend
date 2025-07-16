@@ -78,7 +78,7 @@ export function TaskDetailSidebar({ task, workspaceId, projectId }: any) {
               <Button
                 variant={"outline"}
                 className={cn(
-                  "w-full justify-start text-left font-normal",
+                  "flex-grow justify-start text-left font-normal",
                   !task.dueDate && "text-muted-foreground"
                 )}
               >
@@ -107,7 +107,7 @@ export function TaskDetailSidebar({ task, workspaceId, projectId }: any) {
             <Button
               variant="ghost"
               size="icon"
-              className="h-9 w-9"
+              className="h-9 w-9 flex-shrink-0"
               onClick={() => handleUpdate("dueDate", null)}
             >
               <X className="h-4 w-4" />
