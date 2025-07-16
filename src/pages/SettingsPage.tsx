@@ -1,0 +1,35 @@
+import { NavLink, Outlet } from "react-router-dom";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+const settingsNavItems = [
+  { to: "/settings/integrations", label: "Integrations" },
+  { to: "/settings/security", label: "Security" },
+];
+
+export function SettingsPage() {
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
+        <p className="text-muted-foreground">
+          Manage your account settings and integrations.
+        </p>
+      </div>
+
+      <Tabs defaultValue={location.pathname} className="space-y-4">
+        <TabsList>
+          {settingsNavItems.map((item) => (
+            <NavLink to={item.to} key={item.to}>
+              {({ isActive }) => (
+                <TabsTrigger value={item.to} disabled={isActive}>
+                  {item.label}
+                </TabsTrigger>
+              )}
+            </NavLink>
+          ))}
+        </TabsList>
+        <Outlet />
+      </Tabs>
+    </div>
+  );
+}
