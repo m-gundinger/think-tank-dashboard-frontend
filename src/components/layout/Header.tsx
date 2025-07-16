@@ -15,7 +15,6 @@ import { Link } from "react-router-dom";
 import { SearchDialog } from "@/features/search/components/SearchDialog";
 import { NotificationBell } from "@/features/notifications/components/NotificationBell";
 import { useState } from "react";
-import { Breadcrumbs } from "./Breadcrumbs";
 
 export function Header() {
   const { data: user, isLoading } = useGetProfile();
@@ -29,9 +28,7 @@ export function Header() {
   return (
     <>
       <header className="flex h-16 items-center border-b bg-white px-6">
-        <div className="flex-1">
-          <Breadcrumbs />
-        </div>
+        <div className="flex-1"></div>
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"

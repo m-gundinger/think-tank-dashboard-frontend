@@ -8,21 +8,72 @@ export function useNotificationSocket() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    if (!socket) return;
+    if (!socket) {
+      console.log(
+        "LOG: useNotificationSocket - No socket instance, skipping listener setup."
+      );
+      return;
+    }
 
-    const handleNewNotification = (event: any) => {
-      console.log("New notification received:", event.payload);
+    console.log(
+      "LOG: useNotificationSocket - Setting up 'NEW_NOTIFICATION' listener."
+    );
+    const handleNewNotification = (event: { payload: any }) => {
+      const newNotification = event.payload;
+      console.log(
+        "LOG: useNotificationSocket - 'NEW_NOTIFICATION' event received",
+        event
+      );
 
-      toast(event.payload.message, {
-        description: `Severity: ${event.payload.severity}`,
+      toast.info(newNotification.message, {
+        description: `Severity: ${newNotification.severity}`,
       });
 
-      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.setQueryData<any>(
+        ["notifications"],
+        (oldData: { data: any; total: number; unreadCount: any }) => {
+          console.log(
+            "LOG: useNotificationSocket - Updating query cache for ['notifications']. Old data:",
+            oldData
+          );
+
+          if (!oldData) {
+            const newData = {
+              data: [newNotification],
+              total: 1,
+              unreadCount: 1,
+              page: 1,
+              limit: 10,
+              totalPages: 1,
+            };
+            console.log(
+              "LOG: useNotificationSocket - No old data found, creating new cache entry:",
+              newData
+            );
+            return newData;
+          }
+
+          const newData = {
+            ...oldData,
+            data: [newNotification, ...(oldData.data || [])],
+            total: oldData.total + 1,
+            unreadCount: (oldData.unreadCount ?? 0) + 1,
+          };
+          console.log(
+            "LOG: useNotificationSocket - Optimistically updated cache:",
+            newData
+          );
+          return newData;
+        }
+      );
     };
 
     socket.on("NEW_NOTIFICATION", handleNewNotification);
 
     return () => {
+      console.log(
+        "LOG: useNotificationSocket - Cleaning up 'NEW_NOTIFICATION' listener."
+      );
       socket.off("NEW_NOTIFICATION", handleNewNotification);
     };
   }, [socket, queryClient]);

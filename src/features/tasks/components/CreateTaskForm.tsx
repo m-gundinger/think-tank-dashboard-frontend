@@ -17,12 +17,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { useCreateTask } from "../api/useCreateTask";
 import { useGetEpics } from "@/features/epics/api/useGetEpics";
 import { AxiosError } from "axios";
 import { TaskStatus, TaskPriority } from "@/types";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 const taskSchema = z.object({
   title: z.string().min(1, "Title is required."),
@@ -32,6 +41,7 @@ const taskSchema = z.object({
   epicId: z.string().nullable().optional(),
   parentId: z.string().nullable().optional(),
   boardColumnId: z.string().uuid().optional().nullable(),
+  dueDate: z.date().optional().nullable(),
 });
 type TaskFormValues = z.infer<typeof taskSchema>;
 
@@ -53,6 +63,7 @@ export function CreateTaskForm({
     workspaceId,
     projectId
   );
+
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskSchema),
     defaultValues: {
@@ -63,8 +74,10 @@ export function CreateTaskForm({
       epicId: null,
       parentId: parentId,
       boardColumnId: null,
+      dueDate: null,
     },
   });
+
   async function onSubmit(values: TaskFormValues) {
     const submitData: Partial<TaskFormValues> = { ...values };
     if (!submitData.boardColumnId) delete submitData.boardColumnId;
@@ -168,39 +181,79 @@ export function CreateTaskForm({
             )}
           />
         </div>
-        <FormField
-          control={form.control}
-          name="epicId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Epic (Optional)</FormLabel>
-              <Select
-                onValueChange={(value) => field.onChange(value || null)}
-                value={field.value ?? ""}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select an epic" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {isLoadingEpics ? (
-                    <div className="text-muted-foreground p-2 text-sm">
-                      Loading epics...
-                    </div>
-                  ) : (
-                    epicsData?.data?.map((epic: any) => (
-                      <SelectItem key={epic.id} value={epic.id}>
-                        {epic.name}
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="epicId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Epic (Optional)</FormLabel>
+                <Select
+                  onValueChange={(value) => field.onChange(value || null)}
+                  value={field.value ?? ""}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select an epic" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {isLoadingEpics ? (
+                      <div className="text-muted-foreground p-2 text-sm">
+                        Loading epics...
+                      </div>
+                    ) : (
+                      epicsData?.data?.map((epic: any) => (
+                        <SelectItem key={epic.id} value={epic.id}>
+                          {epic.name}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="dueDate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Due Date (Optional)</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value ? (
+                          format(field.value, "PPP")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value || undefined}
+                      onSelect={field.onChange}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         {errorMessage && (
           <div className="text-sm font-medium text-red-500">{errorMessage}</div>

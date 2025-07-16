@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
 import { useDeleteProject } from "../api/useDeleteProject";
+import { getIcon } from "@/lib/icons";
 
 interface ProjectCardProps {
   project: any;
@@ -41,14 +42,18 @@ export function ProjectCard({ project, onEdit }: ProjectCardProps) {
   };
 
   const projectUrl = `/workspaces/${project.workspaceId}/projects/${project.id}`;
+  const Icon = getIcon(project.icon);
 
   return (
     <Link to={projectUrl}>
       <Card className="hover:border-primary flex h-full flex-col transition-colors">
         <CardHeader className="flex flex-row items-start justify-between">
-          <div>
-            <CardTitle>{project.name}</CardTitle>
-            <CardDescription>{project.description}</CardDescription>
+          <div className="flex items-center gap-3">
+            <Icon className="h-6 w-6 text-gray-400" />
+            <div className="flex-1">
+              <CardTitle>{project.name}</CardTitle>
+              <CardDescription>{project.description}</CardDescription>
+            </div>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

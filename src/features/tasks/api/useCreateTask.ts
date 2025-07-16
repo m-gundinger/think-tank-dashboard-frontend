@@ -22,7 +22,11 @@ export function useCreateTask(workspaceId: string, projectId: string) {
     onSuccess: (newTask) => {
       toast.success(`Task "${newTask.title}" created.`);
 
-      queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
+      // Invalidate all queries starting with this key, which will include
+      // all view data, lists, etc. for this project's tasks.
+      queryClient.invalidateQueries({
+        queryKey: ["projects", projectId, "tasks"],
+      });
 
       if (newTask.parentId) {
         queryClient.invalidateQueries({

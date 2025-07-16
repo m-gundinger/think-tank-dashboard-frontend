@@ -21,12 +21,15 @@ export function useUpdateTask(
   taskId: string
 ) {
   const queryClient = useQueryClient();
-
   return useMutation<any, AxiosError, any>({
     mutationFn: (taskData) =>
       updateTask({ workspaceId, projectId, taskId, taskData }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
+      // Invalidate the new hierarchical key for all project tasks
+      queryClient.invalidateQueries({
+        queryKey: ["projects", projectId, "tasks"],
+      });
+      // Also invalidate the specific task detail query, which is good practice
       queryClient.invalidateQueries({ queryKey: ["task", taskId] });
     },
   });

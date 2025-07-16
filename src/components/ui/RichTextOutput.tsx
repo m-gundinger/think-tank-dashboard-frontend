@@ -1,35 +1,17 @@
-import sanitizeHtml from "sanitize-html";
-import { cn } from "@/lib/utils";
+import DOMPurify from "dompurify";
 
 interface RichTextOutputProps {
   html: string;
   className?: string;
 }
 
-const sanitizeConfig = {
-  allowedTags: [
-    "p",
-    "b",
-    "i",
-    "em",
-    "strong",
-    "ul",
-    "ol",
-    "li",
-    "br",
-    "h1",
-    "h2",
-    "h3",
-  ],
-  allowedAttributes: {},
-};
-
 export function RichTextOutput({ html, className }: RichTextOutputProps) {
-  const sanitizedHtml = sanitizeHtml(html, sanitizeConfig);
+  // Sanitize the HTML on the client-side as a security measure
+  const sanitizedHtml = DOMPurify.sanitize(html);
 
   return (
     <div
-      className={cn("prose prose-sm dark:prose-invert max-w-none", className)}
+      className={className}
       dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
     />
   );

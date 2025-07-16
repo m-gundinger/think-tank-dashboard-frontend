@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TaskList } from "@/features/tasks/components/TaskList";
-import { KanbanBoard } from "@/features/kanban/components/KanbanBoard";
+import { KanbanBoard } from "@/features/views/components/KanbanBoard";
 import { DashboardList } from "@/features/dashboards/components/DashboardList";
 import { EpicList } from "@/features/epics/components/EpicList";
 import { ActiveUsers } from "@/components/layout/ActiveUsers";

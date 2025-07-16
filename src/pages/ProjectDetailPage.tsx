@@ -1,13 +1,13 @@
 import { useParams, useSearchParams } from "react-router-dom";
 import { useEffect, useMemo } from "react";
 import { TaskDetailModal } from "@/features/tasks/components/TaskDetailModal";
-import { useGetProjectViews } from "@/features/kanban/api/useGetProjectViews";
+import { useGetProjectViews } from "@/features/views/api/useGetProjectViews";
 import { useProjectSocket } from "@/hooks/useProjectSocket";
 import { usePresence } from "@/hooks/usePresence";
 import { ErrorState } from "@/components/ui/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProjectDetailView } from "./ProjectDetailView";
-import { useGetViewData } from "@/features/kanban/api/useGetViewData";
+import { useGetViewData } from "@/features/views/api/useGetViewData";
 import { View } from "@/types";
 
 export function ProjectDetailPage() {
@@ -15,7 +15,6 @@ export function ProjectDetailPage() {
     workspaceId: string;
     projectId: string;
   }>();
-
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTabId = searchParams.get("view");
   const selectedTaskId = searchParams.get("taskId");

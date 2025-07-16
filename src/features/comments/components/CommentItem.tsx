@@ -12,6 +12,7 @@ import { useUpdateComment } from "../api/useUpdateComment";
 import { useDeleteComment } from "../api/useDeleteComment";
 import { EditableField } from "@/components/ui/EditableField";
 import { toast } from "sonner";
+import { RichTextOutput } from "@/components/ui/RichTextOutput";
 
 interface CommentItemProps {
   comment: any;
@@ -111,10 +112,13 @@ export function CommentItem({
             <EditableField
               initialValue={comment.content}
               onSave={handleSave}
-              as="textarea"
+              as="richtext"
             />
           ) : (
-            <p className="whitespace-pre-wrap">{comment.content}</p>
+            <RichTextOutput
+              html={comment.content}
+              className="prose prose-sm max-w-none"
+            />
           )}
         </div>
       </div>

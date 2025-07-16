@@ -23,7 +23,7 @@ export function useGetViewData(
   options: { enabled?: boolean } = { enabled: true }
 ) {
   return useQuery({
-    queryKey: ["viewData", viewId, query],
+    queryKey: ["projects", projectId, "tasks", "view", viewId, query],
     queryFn: () => getViewData(workspaceId, projectId, viewId!, query),
     enabled: !!workspaceId && !!projectId && !!viewId && options.enabled,
   });

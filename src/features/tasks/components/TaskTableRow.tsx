@@ -21,6 +21,7 @@ import { useDeleteTask } from "../api/useDeleteTask";
 import { TaskStatus, TaskPriority } from "@/types";
 import { toast } from "sonner";
 import React from "react";
+import { format } from "date-fns";
 
 interface TaskTableRowProps {
   task: any;
@@ -105,7 +106,7 @@ export function TaskTableRow({
           </Select>
         </TableCell>
         <TableCell>
-          {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : "None"}
+          {task.dueDate ? format(new Date(task.dueDate), "PPP") : "None"}
         </TableCell>
         <TableCell onClick={(e) => e.stopPropagation()}>
           <DropdownMenu>

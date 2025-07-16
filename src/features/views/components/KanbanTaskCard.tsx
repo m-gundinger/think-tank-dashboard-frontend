@@ -1,4 +1,4 @@
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
@@ -10,10 +10,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Edit, Copy, Trash2 } from "lucide-react";
+import { MoreHorizontal, Edit, Copy, Trash2, Calendar } from "lucide-react";
 import { useDeleteTask } from "@/features/tasks/api/useDeleteTask";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
+import { format } from "date-fns";
 
 export function KanbanTaskCard({ task, onTaskSelect }: any) {
   const { workspaceId, projectId } = useParams<{
@@ -22,7 +23,6 @@ export function KanbanTaskCard({ task, onTaskSelect }: any) {
   }>();
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: task.id, data: { type: "Task", task } });
-
   const deleteTaskMutation = useDeleteTask(workspaceId!, projectId!);
 
   const style = {
@@ -57,7 +57,7 @@ export function KanbanTaskCard({ task, onTaskSelect }: any) {
       onClick={() => onTaskSelect(task.id)}
     >
       <Card className="mb-2 cursor-grab active:cursor-grabbing">
-        <CardHeader className="flex-row items-start justify-between p-3">
+        <CardHeader className="flex-row items-start justify-between p-3 pb-2">
           <CardTitle className="text-sm font-normal">{task.title}</CardTitle>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -88,6 +88,14 @@ export function KanbanTaskCard({ task, onTaskSelect }: any) {
             </DropdownMenuContent>
           </DropdownMenu>
         </CardHeader>
+        {task.dueDate && (
+          <CardContent className="px-3 pb-2">
+            <div className="text-muted-foreground flex items-center text-xs">
+              <Calendar className="mr-1 h-3.5 w-3.5" />
+              <span>{format(new Date(task.dueDate), "PP")}</span>
+            </div>
+          </CardContent>
+        )}
       </Card>
     </div>
   );

@@ -11,11 +11,24 @@ import {
 } from "@/components/ui/select";
 import { useUpdateTask } from "../api/useUpdateTask";
 import { TaskStatus, TaskPriority } from "@/types";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { Calendar as CalendarIcon, X } from "lucide-react";
+import { format } from "date-fns";
+import { Calendar } from "@/components/ui/calendar";
 
 export function TaskDetailSidebar({ task, workspaceId, projectId }: any) {
   const updateTaskMutation = useUpdateTask(workspaceId, projectId, task.id);
 
-  const handleUpdate = (field: "status" | "priority", value: string) => {
+  const handleUpdate = (
+    field: "status" | "priority" | "dueDate",
+    value: string | null
+  ) => {
     updateTaskMutation.mutate({ [field]: value });
   };
 
@@ -56,6 +69,51 @@ export function TaskDetailSidebar({ task, workspaceId, projectId }: any) {
             ))}
           </SelectContent>
         </Select>
+      </div>
+      <div>
+        <h3 className="mb-2 text-sm font-semibold">Due Date</h3>
+        <div className="flex items-center gap-1">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant={"outline"}
+                className={cn(
+                  "w-full justify-start text-left font-normal",
+                  !task.dueDate && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {task.dueDate ? (
+                  format(new Date(task.dueDate), "PPP")
+                ) : (
+                  <span>Pick a date</span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="flex w-auto flex-col space-y-2 p-2">
+              <div className="rounded-t-md border p-1 text-center text-sm">
+                Selected date
+              </div>
+              <Calendar
+                mode="single"
+                selected={task.dueDate ? new Date(task.dueDate) : undefined}
+                onSelect={(date) =>
+                  handleUpdate("dueDate", date?.toISOString() ?? null)
+                }
+              />
+            </PopoverContent>
+          </Popover>
+          {task.dueDate && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9"
+              onClick={() => handleUpdate("dueDate", null)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
       </div>
       <TaskAssignees
         task={task}

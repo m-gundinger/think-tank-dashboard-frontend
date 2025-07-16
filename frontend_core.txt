@@ -199,121 +199,6 @@ export function ActiveUsers() {
   );
 }
 
-// FILE: src/components/layout/Breadcrumbs.tsx
-import React from "react";
-import { Link, useLocation, useParams } from "react-router-dom";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { useGetWorkspace } from "@/features/workspaces/api/useGetWorkspace";
-import { useGetProject } from "@/features/projects/api/useGetProject";
-import { Skeleton } from "../ui/skeleton";
-
-const STATIC_LABELS: Record<string, string> = {
-  workspaces: "Workspaces",
-  projects: "Projects",
-  teams: "Teams",
-  publications: "Publications",
-  settings: "Settings",
-  profile: "Profile",
-  admin: "Admin",
-  users: "Users",
-  roles: "Roles",
-  permissions: "Permissions",
-  announcements: "Announcements",
-  workflows: "Workflows",
-  access: "Access Control",
-  "custom-fields": "Custom Fields",
-  security: "Security",
-  integrations: "Integrations",
-};
-
-const BreadcrumbSkeleton = () => <Skeleton className="h-5 w-32 rounded-md" />;
-
-export function Breadcrumbs() {
-  const location = useLocation();
-  const params = useParams();
-  const { workspaceId, projectId } = params;
-
-  const { data: workspace, isLoading: isLoadingWorkspace } = useGetWorkspace(
-    workspaceId!
-  );
-  const { data: project, isLoading: isLoadingProject } = useGetProject(
-    workspaceId!,
-    projectId!
-  );
-
-  const pathnames = location.pathname.split("/").filter(Boolean);
-  const crumbs: { label: React.ReactNode; href: string }[] = [];
-
-  for (let i = 0; i < pathnames.length; i++) {
-    const segment = pathnames[i];
-    const href = `/${pathnames.slice(0, i + 1).join("/")}`;
-
-    if (segment === "workspaces") {
-      if (workspaceId && workspace) {
-        crumbs.push({
-          label: `Workspaces (${workspace.name})`,
-          href: `/workspaces/${workspaceId}/projects`,
-        });
-        i++;
-      } else if (workspaceId && isLoadingWorkspace) {
-        crumbs.push({ label: <BreadcrumbSkeleton />, href: "#" });
-        i++;
-      } else {
-        crumbs.push({ label: "Workspaces", href: "/workspaces" });
-      }
-    } else if (segment === "projects") {
-      if (projectId && project) {
-        crumbs.push({
-          label: `Projects (${project.name})`,
-          href: `/workspaces/${workspaceId}/projects/${projectId}`,
-        });
-        i++;
-      } else if (projectId && isLoadingProject) {
-        crumbs.push({ label: <BreadcrumbSkeleton />, href: "#" });
-        i++;
-      } else {
-        crumbs.push({
-          label: "Projects",
-          href: `/workspaces/${workspaceId}/projects`,
-        });
-      }
-    } else if (STATIC_LABELS[segment]) {
-      crumbs.push({ label: STATIC_LABELS[segment], href });
-    }
-  }
-
-  return (
-    <Breadcrumb>
-      <BreadcrumbList>
-        {crumbs.map((crumb, index) => {
-          const isLastCrumb = index === crumbs.length - 1;
-          return (
-            <React.Fragment key={index}>
-              <BreadcrumbItem>
-                {isLastCrumb ? (
-                  <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
-                ) : (
-                  <BreadcrumbLink asChild>
-                    <Link to={crumb.href}>{crumb.label}</Link>
-                  </BreadcrumbLink>
-                )}
-              </BreadcrumbItem>
-              {!isLastCrumb && <BreadcrumbSeparator />}
-            </React.Fragment>
-          );
-        })}
-      </BreadcrumbList>
-    </Breadcrumb>
-  );
-}
-
 // FILE: src/components/layout/Header.tsx
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -332,7 +217,6 @@ import { Link } from "react-router-dom";
 import { SearchDialog } from "@/features/search/components/SearchDialog";
 import { NotificationBell } from "@/features/notifications/components/NotificationBell";
 import { useState } from "react";
-import { Breadcrumbs } from "./Breadcrumbs";
 
 export function Header() {
   const { data: user, isLoading } = useGetProfile();
@@ -346,9 +230,7 @@ export function Header() {
   return (
     <>
       <header className="flex h-16 items-center border-b bg-white px-6">
-        <div className="flex-1">
-          <Breadcrumbs />
-        </div>
+        <div className="flex-1"></div>
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
@@ -6164,6 +6046,7 @@ import { useUpdateComment } from "../api/useUpdateComment";
 import { useDeleteComment } from "../api/useDeleteComment";
 import { EditableField } from "@/components/ui/EditableField";
 import { toast } from "sonner";
+import { RichTextOutput } from "@/components/ui/RichTextOutput";
 
 interface CommentItemProps {
   comment: any;
@@ -6263,17 +6146,19 @@ export function CommentItem({
             <EditableField
               initialValue={comment.content}
               onSave={handleSave}
-              as="textarea"
+              as="richtext"
             />
           ) : (
-            <p className="whitespace-pre-wrap">{comment.content}</p>
+            <RichTextOutput
+              html={comment.content}
+              className="prose prose-sm max-w-none"
+            />
           )}
         </div>
       </div>
     </div>
   );
 }
-
 // FILE: src/features/comments/components/CommentSection.tsx
 import { Button } from "@/components/ui/button";
 import { useAddComment } from "../api/useAddComment";
@@ -6359,6 +6244,61 @@ export function CommentSection({ workspaceId, projectId, taskId }: any) {
   );
 }
 
+// FILE: src/features/crm/api/useCreatePerson.ts
+import api from "@/lib/api";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { AxiosError } from "axios";
+import { toast } from "sonner";
+
+async function createPerson(personData: any): Promise<any> {
+  const { data } = await api.post("/people", personData);
+  return data;
+}
+
+export function useCreatePerson() {
+  const queryClient = useQueryClient();
+  return useMutation<any, AxiosError, any>({
+    mutationFn: createPerson,
+    onSuccess: () => {
+      toast.success("Person created successfully.");
+      queryClient.invalidateQueries({ queryKey: ["people"] });
+    },
+    onError: (error: any) => {
+      toast.error("Failed to create person", {
+        description:
+          error.response?.data?.message || "An unexpected error occurred.",
+      });
+    },
+  });
+}
+
+// FILE: src/features/crm/api/useDeletePerson.ts
+import api from "@/lib/api";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { AxiosError } from "axios";
+import { toast } from "sonner";
+
+async function deletePerson(personId: string): Promise<void> {
+  await api.delete(`/people/${personId}`);
+}
+
+export function useDeletePerson() {
+  const queryClient = useQueryClient();
+  return useMutation<void, AxiosError, string>({
+    mutationFn: deletePerson,
+    onSuccess: () => {
+      toast.success("Person deleted successfully.");
+      queryClient.invalidateQueries({ queryKey: ["people"] });
+    },
+    onError: (error: any) => {
+      toast.error("Failed to delete person", {
+        description:
+          error.response?.data?.message || "An unexpected error occurred.",
+      });
+    },
+  });
+}
+
 // FILE: src/features/crm/api/useGetPeople.ts
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
@@ -6390,6 +6330,186 @@ export function useGetPerson(personId: string) {
     queryKey: ["person", personId],
     queryFn: () => getPerson(personId),
   });
+}
+
+// FILE: src/features/crm/api/useUpdatePerson.ts
+import api from "@/lib/api";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { AxiosError } from "axios";
+import { toast } from "sonner";
+
+interface UpdateParams {
+  personId: string;
+  data: any;
+}
+
+async function updatePerson({ personId, data }: UpdateParams): Promise<any> {
+  const response = await api.put(`/people/${personId}`, data);
+  return response.data;
+}
+
+export function useUpdatePerson() {
+  const queryClient = useQueryClient();
+  return useMutation<any, AxiosError, UpdateParams>({
+    mutationFn: updatePerson,
+    onSuccess: (data) => {
+      toast.success("Person updated successfully.");
+      queryClient.invalidateQueries({ queryKey: ["people"] });
+      queryClient.setQueryData(["person", data.id], data);
+    },
+    onError: (error: any) => {
+      toast.error("Failed to update person", {
+        description:
+          error.response?.data?.message || "An unexpected error occurred.",
+      });
+    },
+  });
+}
+
+// FILE: src/features/crm/components/CreatePersonDialog.tsx
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { CreatePersonForm } from "./CreatePersonForm";
+import { useState } from "react";
+import { PlusCircle } from "lucide-react";
+
+export function CreatePersonDialog() {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button>
+          <PlusCircle className="mr-2 h-4 w-4" />
+          New Person
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Create New Person</DialogTitle>
+          <DialogDescription>
+            Add a new person to the CRM. This won't create a system user
+            account.
+          </DialogDescription>
+        </DialogHeader>
+        <CreatePersonForm onSuccess={() => setIsOpen(false)} />
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// FILE: src/features/crm/components/CreatePersonForm.tsx
+import { useForm } from "react-hook-form";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { useCreatePerson } from "../api/useCreatePerson";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+const createPersonSchema = z.object({
+  firstName: z.string().min(1, "First name is required."),
+  lastName: z.string().min(1, "Last name is required."),
+  email: z
+    .string()
+    .email("A valid email is required.")
+    .optional()
+    .or(z.literal("")),
+});
+
+type CreatePersonFormValues = z.infer<typeof createPersonSchema>;
+
+interface CreatePersonFormProps {
+  onSuccess?: () => void;
+}
+
+export function CreatePersonForm({ onSuccess }: CreatePersonFormProps) {
+  const createMutation = useCreatePerson();
+
+  const form = useForm<CreatePersonFormValues>({
+    resolver: zodResolver(createPersonSchema),
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+    },
+  });
+
+  async function onSubmit(values: CreatePersonFormValues) {
+    await createMutation.mutateAsync(values, {
+      onSuccess: () => {
+        form.reset();
+        onSuccess?.();
+      },
+    });
+  }
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="firstName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>First Name</FormLabel>
+              <FormControl>
+                <Input placeholder="John" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="lastName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Last Name</FormLabel>
+              <FormControl>
+                <Input placeholder="Doe" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email Address (Optional)</FormLabel>
+              <FormControl>
+                <Input placeholder="name@example.com" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={createMutation.isPending}
+        >
+          {createMutation.isPending ? "Creating..." : "Create Person"}
+        </Button>
+      </form>
+    </Form>
+  );
 }
 
 // FILE: src/features/crm/components/PersonCard.tsx
@@ -6570,10 +6690,14 @@ import {
   SheetHeader,
   SheetTitle,
   SheetDescription,
+  SheetFooter,
 } from "@/components/ui/sheet";
 import { useGetPerson } from "../api/useGetPerson";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PersonDetailContent } from "./PersonDetailContent";
+import { Button } from "@/components/ui/button";
+import { Trash2, Edit } from "lucide-react";
+import { useDeletePerson } from "../api/useDeletePerson";
 
 interface PersonDetailPanelProps {
   personId: string | null;
@@ -6601,10 +6725,21 @@ export function PersonDetailPanel({
   onOpenChange,
 }: PersonDetailPanelProps) {
   const { data: person, isLoading } = useGetPerson(personId!);
+  const deleteMutation = useDeletePerson();
+
+  const handleDelete = () => {
+    if (window.confirm(`Are you sure you want to delete ${person.name}?`)) {
+      deleteMutation.mutate(person.id, {
+        onSuccess: () => {
+          onOpenChange(false);
+        },
+      });
+    }
+  };
 
   return (
     <Sheet open={!!personId} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-lg">
+      <SheetContent className="flex w-full flex-col sm:max-w-lg">
         {isLoading ? (
           <PanelSkeleton />
         ) : person ? (
@@ -6613,9 +6748,24 @@ export function PersonDetailPanel({
               <SheetTitle>{`${person.firstName} ${person.lastName}`}</SheetTitle>
               <SheetDescription>{person.email}</SheetDescription>
             </SheetHeader>
-            <div className="h-[calc(100vh-8rem)] overflow-y-auto py-4 pr-4">
+            <div className="h-[calc(100vh-8rem)] flex-1 overflow-y-auto py-4 pr-4">
               <PersonDetailContent person={person} />
             </div>
+            <SheetFooter className="mt-auto border-t pt-4">
+              <div className="flex w-full justify-end gap-2">
+                <Button variant="outline">
+                  <Edit className="mr-2 h-4 w-4" /> Edit
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={handleDelete}
+                  disabled={deleteMutation.isPending}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  {deleteMutation.isPending ? "Deleting..." : "Delete"}
+                </Button>
+              </div>
+            </SheetFooter>
           </>
         ) : (
           <div className="p-6">Could not load person details.</div>
@@ -8458,558 +8608,6 @@ export function EpicList({ workspaceId, projectId }: any) {
   );
 }
 
-// FILE: src/features/kanban/api/useCreateView.ts
-import api from "@/lib/api";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { AxiosError } from "axios";
-import { toast } from "sonner";
-
-interface CreateViewParams {
-  workspaceId: string;
-  projectId: string;
-  viewData: any;
-}
-
-async function createView({
-  workspaceId,
-  projectId,
-  viewData,
-}: CreateViewParams): Promise<any> {
-  const payload = {
-    ...viewData,
-    projectId: projectId,
-  };
-  const { data } = await api.post(
-    `/workspaces/${workspaceId}/projects/${projectId}/views`,
-    payload
-  );
-
-  return data;
-}
-
-export function useCreateView(workspaceId: string) {
-  const queryClient = useQueryClient();
-  return useMutation<any, AxiosError, { projectId: string; viewData: any }>({
-    mutationFn: ({ projectId, viewData }) =>
-      createView({ workspaceId, projectId, viewData }),
-    onSuccess: (_, variables) => {
-      toast.success("New view created successfully.");
-      queryClient.invalidateQueries({
-        queryKey: ["views", variables.projectId],
-      });
-    },
-    onError: (error: any) => {
-      toast.error("Failed to create view", {
-        description:
-          error.response?.data?.message || "An unexpected error occurred.",
-      });
-    },
-  });
-}
-
-// FILE: src/features/kanban/api/useDeleteView.ts
-import api from "@/lib/api";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { AxiosError } from "axios";
-import { toast } from "sonner";
-
-interface DeleteViewParams {
-  workspaceId: string;
-  projectId: string;
-  viewId: string;
-}
-
-async function deleteView({
-  workspaceId,
-  projectId,
-  viewId,
-}: DeleteViewParams): Promise<void> {
-  await api.delete(
-    `/workspaces/${workspaceId}/projects/${projectId}/views/${viewId}`
-  );
-}
-
-export function useDeleteView(workspaceId: string, projectId: string) {
-  const queryClient = useQueryClient();
-  return useMutation<void, AxiosError, string>({
-    mutationFn: (viewId) => deleteView({ workspaceId, projectId, viewId }),
-    onSuccess: () => {
-      toast.success("View deleted successfully.");
-      queryClient.invalidateQueries({ queryKey: ["views", projectId] });
-    },
-    onError: (error: any) => {
-      toast.error("Failed to delete view", {
-        description:
-          error.response?.data?.message || "An unexpected error occurred.",
-      });
-    },
-  });
-}
-
-// FILE: src/features/kanban/api/useGetProjectViews.ts
-import api from "@/lib/api";
-import { useQuery } from "@tanstack/react-query";
-
-async function getProjectViews(
-  workspaceId: string,
-  projectId: string
-): Promise<any> {
-  const { data } = await api.get(
-    `/workspaces/${workspaceId}/projects/${projectId}/views`
-  );
-  return data;
-}
-
-export function useGetProjectViews(workspaceId: string, projectId: string) {
-  return useQuery({
-    queryKey: ["views", projectId],
-    queryFn: () => getProjectViews(workspaceId, projectId),
-    enabled: !!workspaceId && !!projectId,
-  });
-}
-
-// FILE: src/features/kanban/api/useGetView.ts
-import api from "@/lib/api";
-import { useQuery } from "@tanstack/react-query";
-
-async function getView(
-  workspaceId: string,
-  projectId: string,
-  viewId: string
-): Promise<any> {
-  const { data } = await api.get(
-    `/workspaces/${workspaceId}/projects/${projectId}/views/${viewId}`
-  );
-  return data;
-}
-
-export function useGetView(
-  workspaceId: string,
-  projectId: string,
-  viewId: string | null
-) {
-  return useQuery({
-    queryKey: ["view", viewId],
-    queryFn: () => getView(workspaceId, projectId, viewId!),
-    enabled: !!workspaceId && !!projectId && !!viewId,
-  });
-}
-
-// FILE: src/features/kanban/api/useGetViewData.ts
-import api from "@/lib/api";
-import { useQuery } from "@tanstack/react-query";
-import { ListTasksQuery } from "@/features/tasks/task.types";
-
-async function getViewData(
-  workspaceId: string,
-  projectId: string,
-  viewId: string,
-  query: ListTasksQuery
-): Promise<any> {
-  const { data } = await api.get(
-    `/workspaces/${workspaceId}/projects/${projectId}/views/${viewId}/data`,
-    { params: query }
-  );
-  return data;
-}
-
-export function useGetViewData(
-  workspaceId: string,
-  projectId: string,
-  viewId: string | null,
-  query: ListTasksQuery,
-  options: { enabled?: boolean } = { enabled: true }
-) {
-  return useQuery({
-    queryKey: ["viewData", viewId, query],
-    queryFn: () => getViewData(workspaceId, projectId, viewId!, query),
-    enabled: !!workspaceId && !!projectId && !!viewId && options.enabled,
-  });
-}
-
-// FILE: src/features/kanban/api/useUpdateView.ts
-import api from "@/lib/api";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { AxiosError } from "axios";
-import { toast } from "sonner";
-
-interface UpdateViewParams {
-  workspaceId: string;
-  projectId: string;
-  viewId: string;
-  viewData: any;
-}
-
-async function updateView({
-  workspaceId,
-  projectId,
-  viewId,
-  viewData,
-}: UpdateViewParams): Promise<any> {
-  const { data } = await api.put(
-    `/workspaces/${workspaceId}/projects/${projectId}/views/${viewId}`,
-    viewData
-  );
-  return data;
-}
-
-export function useUpdateView(workspaceId: string, projectId: string) {
-  const queryClient = useQueryClient();
-  return useMutation<any, AxiosError, { viewId: string; viewData: any }>({
-    mutationFn: ({ viewId, viewData }) =>
-      updateView({ workspaceId, projectId, viewId, viewData }),
-    onSuccess: (_, variables) => {
-      toast.success("View updated successfully.");
-      queryClient.invalidateQueries({ queryKey: ["views", projectId] });
-      queryClient.invalidateQueries({ queryKey: ["view", variables.viewId] });
-    },
-    onError: (error: any) => {
-      toast.error("Failed to update view", {
-        description:
-          error.response?.data?.message || "An unexpected error occurred.",
-      });
-    },
-  });
-}
-
-// FILE: src/features/kanban/components/KanbanBoard.tsx
-import {
-  DndContext,
-  DragEndEvent,
-  DragOverlay,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragStartEvent,
-} from "@dnd-kit/core";
-import { KanbanColumn } from "./KanbanColumn";
-import { useMoveTask } from "@/features/tasks/api/useMoveTask";
-import { Task } from "@/features/tasks/task.types";
-import { TaskStatus, View, ViewColumn } from "@/types";
-import { createPortal } from "react-dom";
-import { KanbanTaskCard } from "./KanbanTaskCard";
-import { useMemo, useState } from "react";
-import { EmptyState } from "@/components/ui/empty-state";
-import { Kanban } from "lucide-react";
-
-interface KanbanBoardProps {
-  workspaceId: string;
-  projectId: string;
-  views: View[];
-  tasks: Task[];
-  onTaskSelect: (taskId: string) => void;
-}
-
-function mapStatusToColumnName(status: TaskStatus): string {
-  switch (status) {
-    case TaskStatus.TODO:
-      return "To Do";
-    case TaskStatus.IN_PROGRESS:
-      return "In Progress";
-    case TaskStatus.IN_REVIEW:
-      return "In Review";
-    case TaskStatus.DONE:
-      return "Done";
-    default:
-      return "";
-  }
-}
-
-const getDisplayableTasks = (tasks: Task[]): Task[] => {
-  const displayable: Task[] = [];
-  if (!tasks) return displayable;
-  for (const task of tasks) {
-    if (!task.subtasks || task.subtasks.length === 0) {
-      displayable.push(task);
-    } else {
-      const hasUndoneSubtasks = task.subtasks.some(
-        (sub) => sub.status !== TaskStatus.DONE
-      );
-      if (hasUndoneSubtasks) {
-        displayable.push(...getDisplayableTasks(task.subtasks));
-      } else {
-        displayable.push(task);
-      }
-    }
-  }
-  return displayable;
-};
-
-const flattenTasks = (tasksToFlatten: Task[]): Task[] => {
-  let flat: Task[] = [];
-  if (!tasksToFlatten) return flat;
-  for (const task of tasksToFlatten) {
-    flat.push(task);
-    if (task.subtasks) {
-      flat.push(...flattenTasks(task.subtasks));
-    }
-  }
-  return flat;
-};
-
-function mapColumnNameToStatus(columnName: string): TaskStatus | null {
-  const normalizedName = columnName.trim().toUpperCase().replace(/\s+/g, "_");
-  if (normalizedName === "TO_DO") return TaskStatus.TODO;
-  if (Object.values(TaskStatus).includes(normalizedName as TaskStatus)) {
-    return normalizedName as TaskStatus;
-  }
-  return null;
-}
-
-export function KanbanBoard({
-  workspaceId,
-  projectId,
-  views,
-  tasks,
-  onTaskSelect,
-}: KanbanBoardProps) {
-  const moveTaskMutation = useMoveTask();
-  const [activeTask, setActiveTask] = useState<Task | null>(null);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 10,
-      },
-    })
-  );
-
-  const displayableTasks = useMemo(() => getDisplayableTasks(tasks), [tasks]);
-
-  const columns = useMemo(() => {
-    const kanbanView = views.find((v) => v.type === "KANBAN");
-    return kanbanView?.columns || [];
-  }, [views]);
-
-  const tasksByColumn = useMemo(() => {
-    const grouped = columns.reduce(
-      (acc: Record<string, Task[]>, col: ViewColumn) => {
-        acc[col.id] = [];
-        return acc;
-      },
-      {} as Record<string, Task[]>
-    );
-
-    displayableTasks.forEach((task) => {
-      let targetColumnId = task.boardColumnId;
-
-      if (!targetColumnId) {
-        const expectedColumnName = mapStatusToColumnName(task.status);
-        const fallbackColumn = columns.find(
-          (c: ViewColumn) =>
-            c.name.toUpperCase() === expectedColumnName.toUpperCase()
-        );
-        if (fallbackColumn) {
-          targetColumnId = fallbackColumn.id;
-        }
-      }
-
-      if (targetColumnId && grouped[targetColumnId]) {
-        grouped[targetColumnId].push(task);
-      }
-    });
-
-    return grouped;
-  }, [columns, displayableTasks]);
-
-  const onDragStart = (event: DragStartEvent) => {
-    const allTasksFlat = flattenTasks(tasks);
-    const task = allTasksFlat.find((t) => t.id === event.active.id);
-    if (task) setActiveTask(task);
-  };
-
-  const onDragEnd = (event: DragEndEvent) => {
-    setActiveTask(null);
-    const { active, over } = event;
-    if (!over) return;
-    const allTasksFlat = flattenTasks(tasks);
-    const draggedTask = allTasksFlat.find((t) => t.id === active.id);
-    const targetColumnId =
-      over.data.current?.sortable?.containerId || over.id.toString();
-    const targetColumn = columns.find((col: any) => col.id === targetColumnId);
-
-    if (draggedTask && targetColumnId && targetColumn) {
-      const newStatus = mapColumnNameToStatus(targetColumn.name);
-      moveTaskMutation.mutate({
-        workspaceId,
-        projectId,
-        taskId: active.id as string,
-        targetColumnId: targetColumnId,
-        newStatus: newStatus,
-        orderInColumn: 0,
-      });
-    }
-  };
-
-  if (columns.length === 0) {
-    return (
-      <EmptyState
-        icon={<Kanban />}
-        title="Kanban Board Not Configured"
-        description="This Kanban view has no columns. Please edit the view in project settings."
-      />
-    );
-  }
-
-  return (
-    <DndContext
-      sensors={sensors}
-      onDragStart={onDragStart}
-      onDragEnd={onDragEnd}
-    >
-      <div className="flex h-full gap-4 overflow-x-auto p-1">
-        {columns.map((col: ViewColumn) => (
-          <KanbanColumn
-            key={col.id}
-            column={col}
-            tasks={tasksByColumn[col.id] || []}
-            onTaskSelect={onTaskSelect}
-          />
-        ))}
-      </div>
-      {createPortal(
-        <DragOverlay>
-          {activeTask ? (
-            <KanbanTaskCard task={activeTask} onTaskSelect={() => {}} />
-          ) : null}
-        </DragOverlay>,
-        document.body
-      )}
-    </DndContext>
-  );
-}
-
-// FILE: src/features/kanban/components/KanbanColumn.tsx
-import { SortableContext } from "@dnd-kit/sortable";
-import { KanbanTaskCard } from "./KanbanTaskCard";
-import { useMemo } from "react";
-import { useDroppable } from "@dnd-kit/core";
-
-export function KanbanColumn({ column, tasks, onTaskSelect }: any) {
-  const { setNodeRef } = useDroppable({
-    id: column.id,
-    data: { type: "Column", column },
-  });
-  const tasksIds = useMemo(() => {
-    return tasks.map((task: any) => task.id);
-  }, [tasks]);
-  return (
-    <div
-      ref={setNodeRef}
-      className="flex w-72 shrink-0 flex-col rounded-lg bg-gray-100/60 p-2"
-    >
-      <h3 className="p-2 font-semibold text-gray-700">{column.name}</h3>
-      <div className="flex-grow space-y-2">
-        <SortableContext items={tasksIds}>
-          {tasks.map((task: any) => (
-            <KanbanTaskCard
-              key={task.id}
-              task={task}
-              onTaskSelect={onTaskSelect}
-            />
-          ))}
-        </SortableContext>
-      </div>
-    </div>
-  );
-}
-
-// FILE: src/features/kanban/components/KanbanTaskCard.tsx
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Edit, Copy, Trash2 } from "lucide-react";
-import { useDeleteTask } from "@/features/tasks/api/useDeleteTask";
-import { useParams } from "react-router-dom";
-import { toast } from "sonner";
-
-export function KanbanTaskCard({ task, onTaskSelect }: any) {
-  const { workspaceId, projectId } = useParams<{
-    workspaceId: string;
-    projectId: string;
-  }>();
-  const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id: task.id, data: { type: "Task", task } });
-
-  const deleteTaskMutation = useDeleteTask(workspaceId!, projectId!);
-
-  const style = {
-    transition,
-    transform: CSS.Transform.toString(transform),
-  };
-
-  const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (window.confirm(`Delete task "${task.title}"?`)) {
-      deleteTaskMutation.mutate(task.id);
-    }
-  };
-
-  const handleCopyId = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    navigator.clipboard.writeText(task.id);
-    toast.success("Task ID copied to clipboard.");
-  };
-
-  const handleEdit = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onTaskSelect(task.id);
-  };
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      onClick={() => onTaskSelect(task.id)}
-    >
-      <Card className="mb-2 cursor-grab active:cursor-grabbing">
-        <CardHeader className="flex-row items-start justify-between p-3">
-          <CardTitle className="text-sm font-normal">{task.title}</CardTitle>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 shrink-0"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent onClick={(e) => e.stopPropagation()}>
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem onClick={handleEdit}>
-                <Edit className="mr-2 h-4 w-4" />
-                <span>Edit Task</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleCopyId}>
-                <Copy className="mr-2 h-4 w-4" />
-                <span>Copy Task ID</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-red-500" onClick={handleDelete}>
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </CardHeader>
-      </Card>
-    </div>
-  );
-}
-
 // FILE: src/features/notifications/api/useBroadcastNotification.ts
 import api from "@/lib/api";
 import { useMutation } from "@tanstack/react-query";
@@ -10683,7 +10281,7 @@ import { useCreateProject } from "../api/useCreateProject";
 import { AxiosError } from "axios";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useCreateView } from "@/features/kanban/api/useCreateView";
+import { useCreateView } from "@/features/views/api/useCreateView";
 import { toast } from "sonner";
 
 const projectSchema = z.object({
@@ -10703,10 +10301,12 @@ export function CreateProjectForm({
 }: CreateProjectFormProps) {
   const createProjectMutation = useCreateProject(workspaceId);
   const createViewMutation = useCreateView(workspaceId);
+
   const form = useForm<ProjectFormValues>({
     resolver: zodResolver(projectSchema),
     defaultValues: { name: "", description: "" },
   });
+
   async function onSubmit(values: ProjectFormValues) {
     createProjectMutation.mutate(values, {
       onSuccess: async (newProject) => {
@@ -10718,11 +10318,11 @@ export function CreateProjectForm({
           viewData: { name: "List", type: "LIST" },
           projectId: newProject.id,
         });
+
         const kanbanPromise = createViewMutation.mutateAsync({
           viewData: {
             name: "Kanban",
             type: "KANBAN",
-
             columns: [
               { name: "To Do" },
               { name: "In Progress" },
@@ -10744,6 +10344,7 @@ export function CreateProjectForm({
   const errorMessage = (
     createProjectMutation.error as AxiosError<{ message?: string }>
   )?.response?.data?.message;
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -10790,7 +10391,6 @@ export function CreateProjectForm({
     </Form>
   );
 }
-
 // FILE: src/features/projects/components/EditProjectDialog.tsx
 import {
   Dialog,
@@ -12377,7 +11977,11 @@ export function useCreateTask(workspaceId: string, projectId: string) {
     onSuccess: (newTask) => {
       toast.success(`Task "${newTask.title}" created.`);
 
-      queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
+      // Invalidate all queries starting with this key, which will include
+      // all view data, lists, etc. for this project's tasks.
+      queryClient.invalidateQueries({
+        queryKey: ["projects", projectId, "tasks"],
+      });
 
       if (newTask.parentId) {
         queryClient.invalidateQueries({
@@ -12393,7 +11997,6 @@ export function useCreateTask(workspaceId: string, projectId: string) {
     },
   });
 }
-
 // FILE: src/features/tasks/api/useDeleteTask.ts
 import api from "@/lib/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -12480,7 +12083,6 @@ export function useGetTasks(
 // FILE: src/features/tasks/api/useMoveTask.ts
 import api from "@/lib/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Task } from "@/features/tasks/task.types";
 import { TaskStatus } from "@/types";
 import { AxiosError } from "axios";
 import { toast } from "sonner";
@@ -12494,16 +12096,13 @@ interface MoveTaskParams {
   newStatus?: TaskStatus | null;
 }
 
-interface MoveTaskContext {
-  previousTasksData?: any;
-}
-
 async function moveTask(params: MoveTaskParams): Promise<any> {
   const { data } = await api.patch(
     `/workspaces/${params.workspaceId}/projects/${params.projectId}/tasks/${params.taskId}/move`,
     {
       targetColumnId: params.targetColumnId,
       orderInColumn: params.orderInColumn,
+      newStatus: params.newStatus,
     }
   );
   return data;
@@ -12511,51 +12110,24 @@ async function moveTask(params: MoveTaskParams): Promise<any> {
 
 export function useMoveTask() {
   const queryClient = useQueryClient();
-
-  return useMutation<any, AxiosError, MoveTaskParams, MoveTaskContext>({
+  return useMutation<any, AxiosError, MoveTaskParams>({
     mutationFn: moveTask,
-
-    onMutate: async (movedTask) => {
-      const queryKey = ["tasks", movedTask.projectId, {}];
-      await queryClient.cancelQueries({ queryKey });
-
-      const previousTasksData = queryClient.getQueryData<any>(queryKey);
-
-      queryClient.setQueryData<any>(queryKey, (oldData: any | undefined) => {
-        if (!oldData || !oldData.data) return oldData;
-        const updatedTasks = oldData.data.map((task: Task) =>
-          task.id === movedTask.taskId
-            ? {
-                ...task,
-                boardColumnId: movedTask.targetColumnId,
-                status: movedTask.newStatus || task.status,
-              }
-            : task
-        );
-        return { ...oldData, data: updatedTasks };
-      });
-
-      return { previousTasksData };
+    onSuccess: () => {
+      // The onSettled block is sufficient for invalidation.
+      // We could add optimistic updates back here later if needed.
     },
-
-    onError: (_err, variables, context) => {
-      if (context?.previousTasksData) {
-        queryClient.setQueryData(
-          ["tasks", variables.projectId, {}],
-          context.previousTasksData
-        );
-      }
+    onError: () => {
       toast.error("Failed to move task.");
     },
-
+    // onSettled always runs after a mutation, on either success or error.
+    // This is the most reliable place to refetch data.
     onSettled: (_data, _error, variables) => {
       queryClient.invalidateQueries({
-        queryKey: ["tasks", variables.projectId],
+        queryKey: ["projects", variables.projectId, "tasks"],
       });
     },
   });
 }
-
 // FILE: src/features/tasks/api/useRemoveTaskLink.ts
 import api from "@/lib/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -12651,17 +12223,19 @@ export function useUpdateTask(
   taskId: string
 ) {
   const queryClient = useQueryClient();
-
   return useMutation<any, AxiosError, any>({
     mutationFn: (taskData) =>
       updateTask({ workspaceId, projectId, taskId, taskData }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
+      // Invalidate the new hierarchical key for all project tasks
+      queryClient.invalidateQueries({
+        queryKey: ["projects", projectId, "tasks"],
+      });
+      // Also invalidate the specific task detail query, which is good practice
       queryClient.invalidateQueries({ queryKey: ["task", taskId] });
     },
   });
 }
-
 // FILE: src/features/tasks/api/useUpdateTaskCustomValues.ts
 import api from "@/lib/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -12809,12 +12383,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { useCreateTask } from "../api/useCreateTask";
 import { useGetEpics } from "@/features/epics/api/useGetEpics";
 import { AxiosError } from "axios";
 import { TaskStatus, TaskPriority } from "@/types";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 const taskSchema = z.object({
   title: z.string().min(1, "Title is required."),
@@ -12824,6 +12407,7 @@ const taskSchema = z.object({
   epicId: z.string().nullable().optional(),
   parentId: z.string().nullable().optional(),
   boardColumnId: z.string().uuid().optional().nullable(),
+  dueDate: z.date().optional().nullable(),
 });
 type TaskFormValues = z.infer<typeof taskSchema>;
 
@@ -12845,6 +12429,7 @@ export function CreateTaskForm({
     workspaceId,
     projectId
   );
+
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskSchema),
     defaultValues: {
@@ -12855,8 +12440,10 @@ export function CreateTaskForm({
       epicId: null,
       parentId: parentId,
       boardColumnId: null,
+      dueDate: null,
     },
   });
+
   async function onSubmit(values: TaskFormValues) {
     const submitData: Partial<TaskFormValues> = { ...values };
     if (!submitData.boardColumnId) delete submitData.boardColumnId;
@@ -12960,39 +12547,79 @@ export function CreateTaskForm({
             )}
           />
         </div>
-        <FormField
-          control={form.control}
-          name="epicId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Epic (Optional)</FormLabel>
-              <Select
-                onValueChange={(value) => field.onChange(value || null)}
-                value={field.value ?? ""}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select an epic" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {isLoadingEpics ? (
-                    <div className="text-muted-foreground p-2 text-sm">
-                      Loading epics...
-                    </div>
-                  ) : (
-                    epicsData?.data?.map((epic: any) => (
-                      <SelectItem key={epic.id} value={epic.id}>
-                        {epic.name}
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="epicId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Epic (Optional)</FormLabel>
+                <Select
+                  onValueChange={(value) => field.onChange(value || null)}
+                  value={field.value ?? ""}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select an epic" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {isLoadingEpics ? (
+                      <div className="text-muted-foreground p-2 text-sm">
+                        Loading epics...
+                      </div>
+                    ) : (
+                      epicsData?.data?.map((epic: any) => (
+                        <SelectItem key={epic.id} value={epic.id}>
+                          {epic.name}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="dueDate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Due Date (Optional)</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value ? (
+                          format(field.value, "PPP")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value || undefined}
+                      onSelect={field.onChange}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         {errorMessage && (
           <div className="text-sm font-medium text-red-500">{errorMessage}</div>
@@ -13009,7 +12636,6 @@ export function CreateTaskForm({
     </Form>
   );
 }
-
 // FILE: src/features/tasks/components/SubtaskItem.tsx
 import { Badge } from "@/components/ui/badge";
 import { CheckSquare, Square } from "lucide-react";
@@ -13392,6 +13018,14 @@ import {
   TaskDetailSidebarSkeleton,
 } from "./TaskDetailSidebar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { CornerUpLeft } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface TaskDetailModalProps {
   workspaceId: string;
@@ -13441,7 +13075,26 @@ export function TaskDetailModal({
     }
     return (
       <>
-        <DialogTitle className="pr-6">
+        <DialogTitle className="flex items-center gap-2 pr-6">
+          {task.parentId && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 flex-shrink-0"
+                    onClick={() => onTaskSelect(task.parentId)}
+                  >
+                    <CornerUpLeft className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Go to parent task</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
           <EditableField
             initialValue={task.title}
             onSave={(newTitle) => handleSave("title", newTitle)}
@@ -13478,7 +13131,6 @@ export function TaskDetailModal({
     </Dialog>
   );
 }
-
 // FILE: src/features/tasks/components/TaskDetailSidebar.tsx
 import { TaskAssignees } from "./TaskAssignees";
 import { TimeLogSection } from "@/features/timelogs/components/TimeLogSection";
@@ -13493,11 +13145,24 @@ import {
 } from "@/components/ui/select";
 import { useUpdateTask } from "../api/useUpdateTask";
 import { TaskStatus, TaskPriority } from "@/types";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { Calendar as CalendarIcon, X } from "lucide-react";
+import { format } from "date-fns";
+import { Calendar } from "@/components/ui/calendar";
 
 export function TaskDetailSidebar({ task, workspaceId, projectId }: any) {
   const updateTaskMutation = useUpdateTask(workspaceId, projectId, task.id);
 
-  const handleUpdate = (field: "status" | "priority", value: string) => {
+  const handleUpdate = (
+    field: "status" | "priority" | "dueDate",
+    value: string | null
+  ) => {
     updateTaskMutation.mutate({ [field]: value });
   };
 
@@ -13538,6 +13203,51 @@ export function TaskDetailSidebar({ task, workspaceId, projectId }: any) {
             ))}
           </SelectContent>
         </Select>
+      </div>
+      <div>
+        <h3 className="mb-2 text-sm font-semibold">Due Date</h3>
+        <div className="flex items-center gap-1">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant={"outline"}
+                className={cn(
+                  "w-full justify-start text-left font-normal",
+                  !task.dueDate && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {task.dueDate ? (
+                  format(new Date(task.dueDate), "PPP")
+                ) : (
+                  <span>Pick a date</span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="flex w-auto flex-col space-y-2 p-2">
+              <div className="rounded-t-md border p-1 text-center text-sm">
+                Selected date
+              </div>
+              <Calendar
+                mode="single"
+                selected={task.dueDate ? new Date(task.dueDate) : undefined}
+                onSelect={(date) =>
+                  handleUpdate("dueDate", date?.toISOString() ?? null)
+                }
+              />
+            </PopoverContent>
+          </Popover>
+          {task.dueDate && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9"
+              onClick={() => handleUpdate("dueDate", null)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
       </div>
       <TaskAssignees
         task={task}
@@ -13588,7 +13298,6 @@ export function TaskDetailSidebarSkeleton() {
     </div>
   );
 }
-
 // FILE: src/features/tasks/components/TaskLinks.tsx
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -13850,6 +13559,7 @@ import { useDeleteTask } from "../api/useDeleteTask";
 import { TaskStatus, TaskPriority } from "@/types";
 import { toast } from "sonner";
 import React from "react";
+import { format } from "date-fns";
 
 interface TaskTableRowProps {
   task: any;
@@ -13934,7 +13644,7 @@ export function TaskTableRow({
           </Select>
         </TableCell>
         <TableCell>
-          {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : "None"}
+          {task.dueDate ? format(new Date(task.dueDate), "PPP") : "None"}
         </TableCell>
         <TableCell onClick={(e) => e.stopPropagation()}>
           <DropdownMenu>
@@ -13976,7 +13686,6 @@ export function TaskTableRow({
     </React.Fragment>
   );
 }
-
 // FILE: src/features/tasks/task.types.ts
 import {
   TaskStatus,
@@ -15192,6 +14901,572 @@ export function TimeLogSection({ workspaceId, projectId, taskId }: any) {
           </p>
         )}
       </div>
+    </div>
+  );
+}
+
+// FILE: src/features/views/api/useCreateView.ts
+import api from "@/lib/api";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { AxiosError } from "axios";
+import { toast } from "sonner";
+
+interface CreateViewParams {
+  workspaceId: string;
+  projectId: string;
+  viewData: any;
+}
+
+async function createView({
+  workspaceId,
+  projectId,
+  viewData,
+}: CreateViewParams): Promise<any> {
+  const payload = {
+    ...viewData,
+    projectId: projectId,
+  };
+  const { data } = await api.post(
+    `/workspaces/${workspaceId}/projects/${projectId}/views`,
+    payload
+  );
+
+  return data;
+}
+
+export function useCreateView(workspaceId: string) {
+  const queryClient = useQueryClient();
+  return useMutation<any, AxiosError, { projectId: string; viewData: any }>({
+    mutationFn: ({ projectId, viewData }) =>
+      createView({ workspaceId, projectId, viewData }),
+    onSuccess: (_, variables) => {
+      toast.success("New view created successfully.");
+      queryClient.invalidateQueries({
+        queryKey: ["views", variables.projectId],
+      });
+    },
+    onError: (error: any) => {
+      toast.error("Failed to create view", {
+        description:
+          error.response?.data?.message || "An unexpected error occurred.",
+      });
+    },
+  });
+}
+
+// FILE: src/features/views/api/useDeleteView.ts
+import api from "@/lib/api";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { AxiosError } from "axios";
+import { toast } from "sonner";
+
+interface DeleteViewParams {
+  workspaceId: string;
+  projectId: string;
+  viewId: string;
+}
+
+async function deleteView({
+  workspaceId,
+  projectId,
+  viewId,
+}: DeleteViewParams): Promise<void> {
+  await api.delete(
+    `/workspaces/${workspaceId}/projects/${projectId}/views/${viewId}`
+  );
+}
+
+export function useDeleteView(workspaceId: string, projectId: string) {
+  const queryClient = useQueryClient();
+  return useMutation<void, AxiosError, string>({
+    mutationFn: (viewId) => deleteView({ workspaceId, projectId, viewId }),
+    onSuccess: () => {
+      toast.success("View deleted successfully.");
+      queryClient.invalidateQueries({ queryKey: ["views", projectId] });
+    },
+    onError: (error: any) => {
+      toast.error("Failed to delete view", {
+        description:
+          error.response?.data?.message || "An unexpected error occurred.",
+      });
+    },
+  });
+}
+
+// FILE: src/features/views/api/useGetProjectViews.ts
+import api from "@/lib/api";
+import { useQuery } from "@tanstack/react-query";
+
+async function getProjectViews(
+  workspaceId: string,
+  projectId: string
+): Promise<any> {
+  const { data } = await api.get(
+    `/workspaces/${workspaceId}/projects/${projectId}/views`
+  );
+  return data;
+}
+
+export function useGetProjectViews(workspaceId: string, projectId: string) {
+  return useQuery({
+    queryKey: ["views", projectId],
+    queryFn: () => getProjectViews(workspaceId, projectId),
+    enabled: !!workspaceId && !!projectId,
+  });
+}
+// FILE: src/features/views/api/useGetView.ts
+import api from "@/lib/api";
+import { useQuery } from "@tanstack/react-query";
+
+async function getView(
+  workspaceId: string,
+  projectId: string,
+  viewId: string
+): Promise<any> {
+  const { data } = await api.get(
+    `/workspaces/${workspaceId}/projects/${projectId}/views/${viewId}`
+  );
+  return data;
+}
+
+export function useGetView(
+  workspaceId: string,
+  projectId: string,
+  viewId: string | null
+) {
+  return useQuery({
+    queryKey: ["view", viewId],
+    queryFn: () => getView(workspaceId, projectId, viewId!),
+    enabled: !!workspaceId && !!projectId && !!viewId,
+  });
+}
+// FILE: src/features/views/api/useGetViewData.ts
+import api from "@/lib/api";
+import { useQuery } from "@tanstack/react-query";
+import { ListTasksQuery } from "@/features/tasks/task.types";
+
+async function getViewData(
+  workspaceId: string,
+  projectId: string,
+  viewId: string,
+  query: ListTasksQuery
+): Promise<any> {
+  const { data } = await api.get(
+    `/workspaces/${workspaceId}/projects/${projectId}/views/${viewId}/data`,
+    { params: query }
+  );
+  return data;
+}
+
+export function useGetViewData(
+  workspaceId: string,
+  projectId: string,
+  viewId: string | null,
+  query: ListTasksQuery,
+  options: { enabled?: boolean } = { enabled: true }
+) {
+  return useQuery({
+    queryKey: ["projects", projectId, "tasks", "view", viewId, query],
+    queryFn: () => getViewData(workspaceId, projectId, viewId!, query),
+    enabled: !!workspaceId && !!projectId && !!viewId && options.enabled,
+  });
+}
+// FILE: src/features/views/api/useUpdateView.ts
+import api from "@/lib/api";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { AxiosError } from "axios";
+import { toast } from "sonner";
+
+interface UpdateViewParams {
+  workspaceId: string;
+  projectId: string;
+  viewId: string;
+  viewData: any;
+}
+
+async function updateView({
+  workspaceId,
+  projectId,
+  viewId,
+  viewData,
+}: UpdateViewParams): Promise<any> {
+  const { data } = await api.put(
+    `/workspaces/${workspaceId}/projects/${projectId}/views/${viewId}`,
+    viewData
+  );
+  return data;
+}
+
+export function useUpdateView(workspaceId: string, projectId: string) {
+  const queryClient = useQueryClient();
+  return useMutation<any, AxiosError, { viewId: string; viewData: any }>({
+    mutationFn: ({ viewId, viewData }) =>
+      updateView({ workspaceId, projectId, viewId, viewData }),
+    onSuccess: (_, variables) => {
+      toast.success("View updated successfully.");
+      queryClient.invalidateQueries({ queryKey: ["views", projectId] });
+      queryClient.invalidateQueries({ queryKey: ["view", variables.viewId] });
+    },
+    onError: (error: any) => {
+      toast.error("Failed to update view", {
+        description:
+          error.response?.data?.message || "An unexpected error occurred.",
+      });
+    },
+  });
+}
+
+// FILE: src/features/views/components/KanbanBoard.tsx
+import {
+  DndContext,
+  DragEndEvent,
+  DragOverlay,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragStartEvent,
+} from "@dnd-kit/core";
+import { KanbanColumn } from "./KanbanColumn";
+import { useMoveTask } from "@/features/tasks/api/useMoveTask";
+import { Task } from "@/features/tasks/task.types";
+import { TaskStatus, View, ViewColumn } from "@/types";
+import { createPortal } from "react-dom";
+import { KanbanTaskCard } from "./KanbanTaskCard";
+import { useMemo, useState } from "react";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Kanban } from "lucide-react";
+
+interface KanbanBoardProps {
+  workspaceId: string;
+  projectId: string;
+  views: View[];
+  tasks: Task[];
+  onTaskSelect: (taskId: string) => void;
+}
+
+function mapStatusToColumnName(status: TaskStatus): string {
+  switch (status) {
+    case TaskStatus.TODO:
+      return "To Do";
+    case TaskStatus.IN_PROGRESS:
+      return "In Progress";
+    case TaskStatus.IN_REVIEW:
+      return "In Review";
+    case TaskStatus.DONE:
+      return "Done";
+    default:
+      return "";
+  }
+}
+
+// This function now correctly handles parent and sub-task visibility.
+const getDisplayableTasks = (tasks: Task[]): Task[] => {
+  const displayable: Task[] = [];
+  if (!tasks) return displayable;
+
+  for (const task of tasks) {
+    // If a task has no subtasks, it's always displayable.
+    if (!task.subtasks || task.subtasks.length === 0) {
+      displayable.push(task);
+    } else {
+      // If a task has subtasks, check if they are all done.
+      const allSubtasksDone = task.subtasks.every(
+        (sub) => sub.status === TaskStatus.DONE
+      );
+
+      // If all subtasks are done, display the parent task itself.
+      if (allSubtasksDone) {
+        displayable.push(task);
+      } else {
+        // Otherwise, don't show the parent, but recursively find
+        // and show its individual (non-done) subtasks.
+        displayable.push(...getDisplayableTasks(task.subtasks));
+      }
+    }
+  }
+  return displayable;
+};
+
+const flattenTasks = (tasksToFlatten: Task[]): Task[] => {
+  let flat: Task[] = [];
+  if (!tasksToFlatten) return flat;
+  for (const task of tasksToFlatten) {
+    flat.push(task);
+    if (task.subtasks) {
+      flat.push(...flattenTasks(task.subtasks));
+    }
+  }
+  return flat;
+};
+
+function mapColumnNameToStatus(columnName: string): TaskStatus | null {
+  const normalizedName = columnName.trim().toUpperCase().replace(/\s+/g, "_");
+  if (normalizedName === "TO_DO") return TaskStatus.TODO;
+  if (Object.values(TaskStatus).includes(normalizedName as TaskStatus)) {
+    return normalizedName as TaskStatus;
+  }
+  return null;
+}
+
+export function KanbanBoard({
+  workspaceId,
+  projectId,
+  views,
+  tasks,
+  onTaskSelect,
+}: KanbanBoardProps) {
+  const moveTaskMutation = useMoveTask();
+  const [activeTask, setActiveTask] = useState<Task | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 10,
+      },
+    })
+  );
+
+  const displayableTasks = useMemo(() => getDisplayableTasks(tasks), [tasks]);
+
+  const columns = useMemo(() => {
+    const kanbanView = views.find((v) => v.type === "KANBAN");
+    return kanbanView?.columns || [];
+  }, [views]);
+
+  const tasksByColumn = useMemo(() => {
+    const grouped = columns.reduce(
+      (acc: Record<string, Task[]>, col: ViewColumn) => {
+        acc[col.id] = [];
+        return acc;
+      },
+      {} as Record<string, Task[]>
+    );
+
+    displayableTasks.forEach((task) => {
+      let targetColumnId = task.boardColumnId;
+
+      if (!targetColumnId) {
+        const expectedColumnName = mapStatusToColumnName(task.status);
+        const fallbackColumn = columns.find(
+          (c: ViewColumn) =>
+            c.name.toUpperCase() === expectedColumnName.toUpperCase()
+        );
+        if (fallbackColumn) {
+          targetColumnId = fallbackColumn.id;
+        }
+      }
+
+      if (targetColumnId && grouped[targetColumnId]) {
+        grouped[targetColumnId].push(task);
+      }
+    });
+
+    return grouped;
+  }, [columns, displayableTasks]);
+
+  const onDragStart = (event: DragStartEvent) => {
+    const allTasksFlat = flattenTasks(tasks);
+    const task = allTasksFlat.find((t) => t.id === event.active.id);
+    if (task) setActiveTask(task);
+  };
+
+  const onDragEnd = (event: DragEndEvent) => {
+    setActiveTask(null);
+    const { active, over } = event;
+    if (!over) return;
+    const allTasksFlat = flattenTasks(tasks);
+    const draggedTask = allTasksFlat.find((t) => t.id === active.id);
+    const targetColumnId =
+      over.data.current?.sortable?.containerId || over.id.toString();
+    const targetColumn = columns.find((col: any) => col.id === targetColumnId);
+    if (draggedTask && targetColumnId && targetColumn) {
+      const newStatus = mapColumnNameToStatus(targetColumn.name);
+      moveTaskMutation.mutate({
+        workspaceId,
+        projectId,
+        taskId: active.id as string,
+        targetColumnId: targetColumnId,
+        newStatus: newStatus,
+        orderInColumn: 0,
+      });
+    }
+  };
+
+  if (columns.length === 0) {
+    return (
+      <EmptyState
+        icon={<Kanban />}
+        title="Kanban Board Not Configured"
+        description="This Kanban view has no columns. Please edit the view in project settings."
+      />
+    );
+  }
+
+  return (
+    <DndContext
+      sensors={sensors}
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+    >
+      <div className="flex h-full gap-4 overflow-x-auto p-1">
+        {columns.map((col: ViewColumn) => (
+          <KanbanColumn
+            key={col.id}
+            column={col}
+            tasks={tasksByColumn[col.id] || []}
+            onTaskSelect={onTaskSelect}
+          />
+        ))}
+      </div>
+      {createPortal(
+        <DragOverlay>
+          {activeTask ? (
+            <KanbanTaskCard task={activeTask} onTaskSelect={() => {}} />
+          ) : null}
+        </DragOverlay>,
+        document.body
+      )}
+    </DndContext>
+  );
+}
+
+// FILE: src/features/views/components/KanbanColumn.tsx
+import { SortableContext } from "@dnd-kit/sortable";
+import { KanbanTaskCard } from "./KanbanTaskCard";
+import { useMemo } from "react";
+import { useDroppable } from "@dnd-kit/core";
+
+export function KanbanColumn({ column, tasks, onTaskSelect }: any) {
+  const { setNodeRef } = useDroppable({
+    id: column.id,
+    data: { type: "Column", column },
+  });
+
+  const tasksIds = useMemo(() => {
+    return tasks.map((task: any) => task.id);
+  }, [tasks]);
+
+  return (
+    <div
+      ref={setNodeRef}
+      className="flex w-72 shrink-0 flex-col rounded-lg bg-gray-100/60 p-2"
+    >
+      <h3 className="p-2 font-semibold text-gray-700">{column.name}</h3>
+      <div className="flex-grow space-y-2">
+        <SortableContext items={tasksIds}>
+          {tasks.map((task: any) => (
+            <KanbanTaskCard
+              key={task.id}
+              task={task}
+              onTaskSelect={onTaskSelect}
+            />
+          ))}
+        </SortableContext>
+      </div>
+    </div>
+  );
+}
+
+// FILE: src/features/views/components/KanbanTaskCard.tsx
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { MoreHorizontal, Edit, Copy, Trash2, Calendar } from "lucide-react";
+import { useDeleteTask } from "@/features/tasks/api/useDeleteTask";
+import { useParams } from "react-router-dom";
+import { toast } from "sonner";
+import { format } from "date-fns";
+
+export function KanbanTaskCard({ task, onTaskSelect }: any) {
+  const { workspaceId, projectId } = useParams<{
+    workspaceId: string;
+    projectId: string;
+  }>();
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({ id: task.id, data: { type: "Task", task } });
+  const deleteTaskMutation = useDeleteTask(workspaceId!, projectId!);
+
+  const style = {
+    transition,
+    transform: CSS.Transform.toString(transform),
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (window.confirm(`Delete task "${task.title}"?`)) {
+      deleteTaskMutation.mutate(task.id);
+    }
+  };
+
+  const handleCopyId = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(task.id);
+    toast.success("Task ID copied to clipboard.");
+  };
+
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onTaskSelect(task.id);
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      onClick={() => onTaskSelect(task.id)}
+    >
+      <Card className="mb-2 cursor-grab active:cursor-grabbing">
+        <CardHeader className="flex-row items-start justify-between p-3 pb-2">
+          <CardTitle className="text-sm font-normal">{task.title}</CardTitle>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 shrink-0"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent onClick={(e) => e.stopPropagation()}>
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem onClick={handleEdit}>
+                <Edit className="mr-2 h-4 w-4" />
+                <span>Edit Task</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleCopyId}>
+                <Copy className="mr-2 h-4 w-4" />
+                <span>Copy Task ID</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="text-red-500" onClick={handleDelete}>
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </CardHeader>
+        {task.dueDate && (
+          <CardContent className="px-3 pb-2">
+            <div className="text-muted-foreground flex items-center text-xs">
+              <Calendar className="mr-1 h-3.5 w-3.5" />
+              <span>{format(new Date(task.dueDate), "PP")}</span>
+            </div>
+          </CardContent>
+        )}
+      </Card>
     </div>
   );
 }
@@ -17356,7 +17631,7 @@ export function WorkflowListPage() {
 // FILE: src/pages/CrmPage.tsx
 import { useState } from "react";
 import { PersonList } from "@/features/crm/components/PersonList";
-import { CreateUserDialog } from "@/features/admin/users/components/CreateUserDialog";
+import { CreatePersonDialog } from "@/features/crm/components/CreatePersonDialog";
 import { PersonDetailPanel } from "@/features/crm/components/PersonDetailPanel";
 
 export function CrmPage() {
@@ -17371,7 +17646,7 @@ export function CrmPage() {
             Manage all people in your organization.
           </p>
         </div>
-        <CreateUserDialog />
+        <CreatePersonDialog />
       </div>
 
       <PersonList onPersonSelect={setSelectedPersonId} />
@@ -17700,13 +17975,13 @@ export function ProjectCustomFieldsPage() {
 import { useParams, useSearchParams } from "react-router-dom";
 import { useEffect, useMemo } from "react";
 import { TaskDetailModal } from "@/features/tasks/components/TaskDetailModal";
-import { useGetProjectViews } from "@/features/kanban/api/useGetProjectViews";
+import { useGetProjectViews } from "@/features/views/api/useGetProjectViews";
 import { useProjectSocket } from "@/hooks/useProjectSocket";
 import { usePresence } from "@/hooks/usePresence";
 import { ErrorState } from "@/components/ui/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProjectDetailView } from "./ProjectDetailView";
-import { useGetViewData } from "@/features/kanban/api/useGetViewData";
+import { useGetViewData } from "@/features/views/api/useGetViewData";
 import { View } from "@/types";
 
 export function ProjectDetailPage() {
@@ -17714,7 +17989,6 @@ export function ProjectDetailPage() {
     workspaceId: string;
     projectId: string;
   }>();
-
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTabId = searchParams.get("view");
   const selectedTaskId = searchParams.get("taskId");
@@ -17832,12 +18106,11 @@ export function ProjectDetailPage() {
     </>
   );
 }
-
 // FILE: src/pages/ProjectDetailView.tsx
 import { Link } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TaskList } from "@/features/tasks/components/TaskList";
-import { KanbanBoard } from "@/features/kanban/components/KanbanBoard";
+import { KanbanBoard } from "@/features/views/components/KanbanBoard";
 import { DashboardList } from "@/features/dashboards/components/DashboardList";
 import { EpicList } from "@/features/epics/components/EpicList";
 import { ActiveUsers } from "@/components/layout/ActiveUsers";
@@ -17955,7 +18228,6 @@ export function ProjectDetailView({
     </Tabs>
   );
 }
-
 // FILE: src/pages/ProjectGeneralSettingsPage.tsx
 import { useParams } from "react-router-dom";
 import { useGetProject } from "@/features/projects/api/useGetProject";

@@ -13,6 +13,14 @@ import {
   TaskDetailSidebarSkeleton,
 } from "./TaskDetailSidebar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { CornerUpLeft } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface TaskDetailModalProps {
   workspaceId: string;
@@ -62,7 +70,26 @@ export function TaskDetailModal({
     }
     return (
       <>
-        <DialogTitle className="pr-6">
+        <DialogTitle className="flex items-center gap-2 pr-6">
+          {task.parentId && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 flex-shrink-0"
+                    onClick={() => onTaskSelect(task.parentId)}
+                  >
+                    <CornerUpLeft className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Go to parent task</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
           <EditableField
             initialValue={task.title}
             onSave={(newTitle) => handleSave("title", newTitle)}

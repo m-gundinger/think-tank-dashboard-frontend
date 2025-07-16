@@ -13,7 +13,7 @@ import { useCreateProject } from "../api/useCreateProject";
 import { AxiosError } from "axios";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useCreateView } from "@/features/kanban/api/useCreateView";
+import { useCreateView } from "@/features/views/api/useCreateView";
 import { toast } from "sonner";
 
 const projectSchema = z.object({
@@ -33,10 +33,12 @@ export function CreateProjectForm({
 }: CreateProjectFormProps) {
   const createProjectMutation = useCreateProject(workspaceId);
   const createViewMutation = useCreateView(workspaceId);
+
   const form = useForm<ProjectFormValues>({
     resolver: zodResolver(projectSchema),
     defaultValues: { name: "", description: "" },
   });
+
   async function onSubmit(values: ProjectFormValues) {
     createProjectMutation.mutate(values, {
       onSuccess: async (newProject) => {
@@ -48,11 +50,11 @@ export function CreateProjectForm({
           viewData: { name: "List", type: "LIST" },
           projectId: newProject.id,
         });
+
         const kanbanPromise = createViewMutation.mutateAsync({
           viewData: {
             name: "Kanban",
             type: "KANBAN",
-
             columns: [
               { name: "To Do" },
               { name: "In Progress" },
@@ -74,6 +76,7 @@ export function CreateProjectForm({
   const errorMessage = (
     createProjectMutation.error as AxiosError<{ message?: string }>
   )?.response?.data?.message;
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
