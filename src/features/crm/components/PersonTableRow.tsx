@@ -1,16 +1,35 @@
+// FILE: src/features/crm/components/PersonTableRow.tsx
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface PersonTableRowProps {
   person: any;
-  onSelect: () => void;
+  onRowClick: () => void;
+  isSelected: boolean;
+  onSelectChange: (id: string, checked: boolean) => void;
 }
 
-export function PersonTableRow({ person, onSelect }: PersonTableRowProps) {
+export function PersonTableRow({
+  person,
+  onRowClick,
+  isSelected,
+  onSelectChange,
+}: PersonTableRowProps) {
   return (
-    <TableRow onClick={onSelect} className="cursor-pointer">
+    <TableRow
+      onClick={onRowClick}
+      className="cursor-pointer"
+      data-state={isSelected && "selected"}
+    >
+      <TableCell onClick={(e) => e.stopPropagation()} className="w-[50px]">
+        <Checkbox
+          checked={isSelected}
+          onCheckedChange={(checked) => onSelectChange(person.id, !!checked)}
+        />
+      </TableCell>
       <TableCell>
         <div className="flex items-center gap-3">
           <Avatar className="h-9 w-9">

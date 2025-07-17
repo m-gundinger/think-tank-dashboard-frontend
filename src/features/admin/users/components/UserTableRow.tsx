@@ -1,4 +1,6 @@
+// FILE: src/features/admin/users/components/UserTableRow.tsx
 import { TableCell, TableRow } from "@/components/ui/table";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,13 +17,21 @@ import { useSetUserStatus } from "../api/useSetUserStatus";
 import { useHardDeleteUser } from "../api/useHardDeleteUser";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface UserTableRowProps {
   user: any;
   onEdit: (userId: string) => void;
+  isSelected: boolean;
+  onSelect: (id: string, checked: boolean) => void;
 }
 
-export function UserTableRow({ user, onEdit }: UserTableRowProps) {
+export function UserTableRow({
+  user,
+  onEdit,
+  isSelected,
+  onSelect,
+}: UserTableRowProps) {
   const deleteUserMutation = useDeleteUser();
   const setUserStatusMutation = useSetUserStatus();
   const hardDeleteUserMutation = useHardDeleteUser();
@@ -38,18 +48,28 @@ export function UserTableRow({ user, onEdit }: UserTableRowProps) {
       }
     }
   };
-
   const handleStatusChange = (isActive: boolean) => {
     setUserStatusMutation.mutate({ userId: user.id, isActive });
   };
-
   return (
     <TableRow>
+      <TableCell>
+        <Checkbox
+          checked={isSelected}
+          onCheckedChange={(checked) => onSelect(user.id, !!checked)}
+        />
+      </TableCell>
       <TableCell className="font-medium">
         <div className="flex items-center gap-3">
+          <Avatar className="h-9 w-9">
+            <AvatarImage
+              src={user.avatarUrl}
+              alt={`${user.firstName} ${user.lastName}`}
+            />
+            <AvatarFallback>{user.firstName?.charAt(0)}</AvatarFallback>
+          </Avatar>
           <div className="flex flex-col">
             <span className="font-semibold">{user.name}</span>
-            <span className="text-muted-foreground text-sm">{user.id}</span>
           </div>
         </div>
       </TableCell>
@@ -79,7 +99,9 @@ export function UserTableRow({ user, onEdit }: UserTableRowProps) {
           </Badge>
         ))}
       </TableCell>
-      <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
+      <TableCell>
+        {new Date(user.createdAt).toLocaleDateString("en-US")}
+      </TableCell>
       <TableCell>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

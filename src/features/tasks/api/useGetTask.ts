@@ -1,25 +1,29 @@
+// FILE: src/features/tasks/api/useGetTask.ts
+
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 
 async function getTask(
-  workspaceId: string,
-  projectId: string,
-  taskId: string
+  taskId: string,
+  workspaceId?: string,
+  projectId?: string
 ): Promise<any> {
-  const { data } = await api.get(
-    `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}`
-  );
+  const url =
+    projectId && workspaceId
+      ? `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}`
+      : `/tasks/${taskId}`;
+  const { data } = await api.get(url);
   return data;
 }
 
 export function useGetTask(
-  workspaceId: string,
-  projectId: string,
-  taskId: string
+  taskId: string | null,
+  workspaceId?: string,
+  projectId?: string
 ) {
   return useQuery({
     queryKey: ["task", taskId],
-    queryFn: () => getTask(workspaceId, projectId, taskId),
-    enabled: !!workspaceId && !!projectId && !!taskId,
+    queryFn: () => getTask(taskId!, workspaceId, projectId),
+    enabled: !!taskId,
   });
 }

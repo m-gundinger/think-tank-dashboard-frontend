@@ -1,3 +1,4 @@
+// FILE: src/features/admin/workflows/components/WorkflowRunList.tsx
 import { useState } from "react";
 import {
   Table,
@@ -12,23 +13,19 @@ import { useGetWorkflowRuns } from "../api/useGetWorkflowRuns";
 import { WorkflowRunDetail } from "./WorkflowRunDetail";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-
 const statusColors: Record<string, string> = {
   SUCCESS: "bg-green-100 text-green-800",
   FAILED: "bg-red-100 text-red-800",
   RUNNING: "bg-blue-100 text-blue-800",
 };
-
 export function WorkflowRunList({ workflowId }: { workflowId: string }) {
   const [selectedRun, setSelectedRun] = useState<any | null>(null);
   const { data, isLoading, isError } = useGetWorkflowRuns(workflowId, {
     page: 1,
     limit: 50,
   });
-
   if (isLoading) return <div>Loading run history...</div>;
   if (isError) return <div>Error loading run history.</div>;
-
   return (
     <>
       <div className="rounded-md border">
@@ -60,11 +57,11 @@ export function WorkflowRunList({ workflowId }: { workflowId: string }) {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    {new Date(run.startedAt).toLocaleString()}
+                    {new Date(run.startedAt).toLocaleString("en-US")}
                   </TableCell>
                   <TableCell>
                     {run.completedAt
-                      ? new Date(run.completedAt).toLocaleString()
+                      ? new Date(run.completedAt).toLocaleString("en-US")
                       : "N/A"}
                   </TableCell>
                   <TableCell className="text-right">

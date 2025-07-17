@@ -1,3 +1,4 @@
+// FILE: src/features/admin/system-status/components/SystemStatusDashboard.tsx
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -17,7 +18,6 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetSystemStatus } from "../api/useGetSystemStatus";
 import { Server, Database, BrainCircuit } from "lucide-react";
-
 const StatusBadge = ({
   status,
 }: {
@@ -31,10 +31,8 @@ const StatusBadge = ({
         : "destructive";
   return <Badge variant={variant}>{status}</Badge>;
 };
-
 export function SystemStatusDashboard() {
   const { data, isLoading, isError, error } = useGetSystemStatus();
-
   if (isLoading) {
     return <Skeleton className="h-64 w-full" />;
   }
@@ -48,7 +46,6 @@ export function SystemStatusDashboard() {
   }
 
   const { status, timestamp, version, metrics, dependencies } = data;
-
   return (
     <div className="space-y-6">
       <Card>
@@ -58,7 +55,7 @@ export function SystemStatusDashboard() {
             <StatusBadge status={status} />
           </CardTitle>
           <CardDescription>
-            Last checked: {new Date(timestamp).toLocaleString()}
+            Last checked: {new Date(timestamp).toLocaleString("en-US")}
           </CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-4 text-sm md:grid-cols-3">

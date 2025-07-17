@@ -45,6 +45,8 @@ export default [
 ];
 
 // FILE: src/App.tsx
+// FILE: src/App.tsx
+
 import { Routes, Route, Navigate } from "react-router-dom";
 import { ProtectedLayout } from "./routes/ProtectedLayout";
 import { WorkspaceLayout } from "./routes/WorkspaceLayout";
@@ -78,6 +80,7 @@ import { ProjectGeneralSettingsPage } from "./pages/ProjectGeneralSettingsPage";
 import { JobMonitoringPage } from "./pages/admin/JobMonitoringPage";
 import { SystemStatusPage } from "./pages/admin/SystemStatusPage";
 import { CrmPage } from "./pages/CrmPage";
+import { MyTasksPage } from "./pages/MyTasksPage"; // Import the new page
 
 function App() {
   return (
@@ -96,16 +99,16 @@ function App() {
         <Route path="/" element={<ProtectedLayout />}>
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
+          <Route path="my-tasks" element={<MyTasksPage />} />{" "}
+          {/* Add the new route */}
           <Route path="workspaces" element={<WorkspacesPage />} />
           <Route path="publications" element={<PublicationsPage />} />
           <Route path="crm" element={<CrmPage />} />
-
           <Route path="workspaces/:workspaceId" element={<WorkspaceLayout />}>
             <Route index element={<Navigate to="projects" replace />} />
             <Route path="projects" element={<ProjectListPage />} />
             <Route path="teams" element={<TeamsPage />} />
           </Route>
-
           <Route
             path="workspaces/:workspaceId/projects/:projectId"
             element={
@@ -133,7 +136,6 @@ function App() {
             <Route path="integrations" element={<IntegrationsPage />} />
             <Route path="security" element={<AccountSettingsPage />} />
           </Route>
-
           <Route path="admin" element={<AdminLayout />}>
             <Route index element={<Navigate to="/admin/users" replace />} />
             <Route path="users" element={<UserListPage />} />
@@ -312,6 +314,8 @@ export function MainContent({ children }: MainContentProps) {
 }
 
 // FILE: src/components/layout/Sidebar.tsx
+// FILE: src/components/layout/Sidebar.tsx
+
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -327,12 +331,14 @@ import {
   Clock,
   Activity,
   Contact,
+  CheckSquare, // Import the new icon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 
 const mainNavItems = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+  { to: "/my-tasks", icon: CheckSquare, label: "My Tasks" },
   { to: "/workspaces", icon: FolderKanban, label: "Workspaces" },
   { to: "/publications", icon: FileText, label: "Publications" },
   { to: "/crm", icon: Contact, label: "CRM" },
@@ -11968,6 +11974,34 @@ export function useAssignUser(
   });
 }
 
+// FILE: src/features/tasks/api/useCreateStandaloneTask.ts
+// FILE: src/features/tasks/api/useCreateStandaloneTask.ts
+import api from "@/lib/api";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { AxiosError } from "axios";
+import { toast } from "sonner";
+
+async function createTask(taskData: any): Promise<any> {
+  const { data } = await api.post(`/tasks`, taskData);
+  return data;
+}
+
+export function useCreateStandaloneTask() {
+  const queryClient = useQueryClient();
+  return useMutation<any, AxiosError, any>({
+    mutationFn: (taskData) => createTask(taskData),
+    onSuccess: (newTask) => {
+      toast.success(`Task "${newTask.title}" created.`);
+      queryClient.invalidateQueries({ queryKey: ["myTasks"] });
+    },
+    onError: (error: any) => {
+      toast.error("Failed to create task", {
+        description:
+          error.response?.data?.message || "An unexpected error occurred.",
+      });
+    },
+  });
+}
 // FILE: src/features/tasks/api/useCreateTask.ts
 import api from "@/lib/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -12013,6 +12047,27 @@ export function useCreateTask(workspaceId: string, projectId: string) {
     },
   });
 }
+// FILE: src/features/tasks/api/useDeleteStandaloneTask.ts
+// FILE: src/features/tasks/api/useDeleteStandaloneTask.ts
+
+import api from "@/lib/api";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { AxiosError } from "axios";
+
+async function deleteTask(taskId: string): Promise<void> {
+  await api.delete(`/tasks/${taskId}`);
+}
+
+export function useDeleteStandaloneTask() {
+  const queryClient = useQueryClient();
+  return useMutation<void, AxiosError, string>({
+    mutationFn: deleteTask,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["myTasks"] });
+    },
+  });
+}
+
 // FILE: src/features/tasks/api/useDeleteTask.ts
 import api from "@/lib/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -12039,30 +12094,52 @@ export function useDeleteTask(workspaceId: string, projectId: string) {
   });
 }
 
+// FILE: src/features/tasks/api/useGetMyTasks.ts
+// FILE: src/features/tasks/api/useGetMyTasks.ts
+import api from "@/lib/api";
+import { useQuery } from "@tanstack/react-query";
+import { ListTasksQuery } from "../task.types";
+
+async function getMyTasks(query: ListTasksQuery): Promise<any> {
+  const { data } = await api.get("/tasks/my-tasks", { params: query });
+  return data;
+}
+
+export function useGetMyTasks(query: ListTasksQuery) {
+  return useQuery({
+    queryKey: ["myTasks", query],
+    queryFn: () => getMyTasks(query),
+  });
+}
+
 // FILE: src/features/tasks/api/useGetTask.ts
+// FILE: src/features/tasks/api/useGetTask.ts
+
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 
 async function getTask(
-  workspaceId: string,
-  projectId: string,
-  taskId: string
+  taskId: string,
+  workspaceId?: string,
+  projectId?: string
 ): Promise<any> {
-  const { data } = await api.get(
-    `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}`
-  );
+  const url =
+    projectId && workspaceId
+      ? `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}`
+      : `/tasks/${taskId}`;
+  const { data } = await api.get(url);
   return data;
 }
 
 export function useGetTask(
-  workspaceId: string,
-  projectId: string,
-  taskId: string
+  taskId: string | null,
+  workspaceId?: string,
+  projectId?: string
 ) {
   return useQuery({
     queryKey: ["task", taskId],
-    queryFn: () => getTask(workspaceId, projectId, taskId),
-    enabled: !!workspaceId && !!projectId && !!taskId,
+    queryFn: () => getTask(taskId!, workspaceId, projectId),
+    enabled: !!taskId,
   });
 }
 
@@ -12215,6 +12292,35 @@ export function useUnassignUser(
   });
 }
 
+// FILE: src/features/tasks/api/useUpdateStandaloneTask.ts
+// FILE: src/features/tasks/api/useUpdateStandaloneTask.ts
+
+import api from "@/lib/api";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { AxiosError } from "axios";
+
+async function updateTask({
+  taskId,
+  taskData,
+}: {
+  taskId: string;
+  taskData: any;
+}): Promise<any> {
+  const { data } = await api.put(`/tasks/${taskId}`, taskData);
+  return data;
+}
+
+export function useUpdateStandaloneTask(taskId: string) {
+  const queryClient = useQueryClient();
+  return useMutation<any, AxiosError, any>({
+    mutationFn: (taskData) => updateTask({ taskId, taskData }),
+    onSuccess: (updatedTask) => {
+      queryClient.invalidateQueries({ queryKey: ["myTasks"] });
+      queryClient.setQueryData(["task", taskId], updatedTask);
+    },
+  });
+}
+
 // FILE: src/features/tasks/api/useUpdateTask.ts
 import api from "@/lib/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -12295,6 +12401,8 @@ export function useUpdateTaskCustomValues(
 }
 
 // FILE: src/features/tasks/components/CreateTaskDialog.tsx
+// FILE: src/features/tasks/components/CreateTaskDialog.tsx
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12309,10 +12417,9 @@ import { useState } from "react";
 import { PlusCircle } from "lucide-react";
 
 interface CreateTaskDialogProps {
-  workspaceId: string;
-  projectId: string;
+  workspaceId?: string;
+  projectId?: string;
   parentId?: string | null;
-
   trigger?: React.ReactNode;
   isOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -12322,7 +12429,6 @@ export function CreateTaskDialog({
   workspaceId,
   projectId,
   parentId,
-
   trigger,
   isOpen: externalIsOpen,
   onOpenChange: externalOnOpenChange,
@@ -12344,7 +12450,7 @@ export function CreateTaskDialog({
           {parentId ? "Create Sub-task" : "Create a new task"}
         </DialogTitle>
         <DialogDescription>
-          Fill in the details below to add a new task to your project.
+          Fill in the details below to add a new task.
         </DialogDescription>
       </DialogHeader>
       <CreateTaskForm
@@ -12380,6 +12486,8 @@ export function CreateTaskDialog({
 }
 
 // FILE: src/features/tasks/components/CreateTaskForm.tsx
+// FILE: src/features/tasks/components/CreateTaskForm.tsx
+
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
@@ -12406,6 +12514,7 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { useCreateTask } from "../api/useCreateTask";
+import { useCreateStandaloneTask } from "../api/useCreateStandaloneTask"; // Import new hook
 import { useGetEpics } from "@/features/epics/api/useGetEpics";
 import { AxiosError } from "axios";
 import { TaskStatus, TaskPriority } from "@/types";
@@ -12428,8 +12537,8 @@ const taskSchema = z.object({
 type TaskFormValues = z.infer<typeof taskSchema>;
 
 interface CreateTaskFormProps {
-  workspaceId: string;
-  projectId: string;
+  workspaceId?: string;
+  projectId?: string;
   parentId?: string | null;
   onSuccess?: () => void;
 }
@@ -12440,12 +12549,16 @@ export function CreateTaskForm({
   parentId = null,
   onSuccess,
 }: CreateTaskFormProps) {
-  const createMutation = useCreateTask(workspaceId, projectId);
-  const { data: epicsData, isLoading: isLoadingEpics } = useGetEpics(
-    workspaceId,
-    projectId
-  );
+  const createTaskInProjectMutation = useCreateTask(workspaceId!, projectId!);
+  const createStandaloneTaskMutation = useCreateStandaloneTask();
+  const createMutation = projectId
+    ? createTaskInProjectMutation
+    : createStandaloneTaskMutation;
 
+  const { data: epicsData, isLoading: isLoadingEpics } = useGetEpics(
+    workspaceId!,
+    projectId!
+  );
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskSchema),
     defaultValues: {
@@ -12459,7 +12572,6 @@ export function CreateTaskForm({
       dueDate: null,
     },
   });
-
   async function onSubmit(values: TaskFormValues) {
     const submitData: Partial<TaskFormValues> = { ...values };
     if (!submitData.boardColumnId) delete submitData.boardColumnId;
@@ -12477,7 +12589,6 @@ export function CreateTaskForm({
   const errorMessage = (
     createMutation.error as AxiosError<{ message?: string }>
   )?.response?.data?.message;
-
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -12523,7 +12634,7 @@ export function CreateTaskForm({
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select a status" />
+                      <SelectValue placeholder="Set status" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -12547,7 +12658,7 @@ export function CreateTaskForm({
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select a priority" />
+                      <SelectValue placeholder="Set priority" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -12564,39 +12675,41 @@ export function CreateTaskForm({
           />
         </div>
         <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="epicId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Epic (Optional)</FormLabel>
-                <Select
-                  onValueChange={(value) => field.onChange(value || null)}
-                  value={field.value ?? ""}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select an epic" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {isLoadingEpics ? (
-                      <div className="text-muted-foreground p-2 text-sm">
-                        Loading epics...
-                      </div>
-                    ) : (
-                      epicsData?.data?.map((epic: any) => (
-                        <SelectItem key={epic.id} value={epic.id}>
-                          {epic.name}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {projectId && (
+            <FormField
+              control={form.control}
+              name="epicId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Epic (Optional)</FormLabel>
+                  <Select
+                    onValueChange={(value) => field.onChange(value || null)}
+                    value={field.value ?? ""}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select an epic" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {isLoadingEpics ? (
+                        <div className="text-muted-foreground p-2 text-sm">
+                          Loading epics...
+                        </div>
+                      ) : (
+                        epicsData?.data?.map((epic: any) => (
+                          <SelectItem key={epic.id} value={epic.id}>
+                            {epic.name}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
           <FormField
             control={form.control}
             name="dueDate"
@@ -12652,6 +12765,155 @@ export function CreateTaskForm({
     </Form>
   );
 }
+
+// FILE: src/features/tasks/components/MyTasksList.tsx
+// FILE: src/features/tasks/components/MyTasksList.tsx
+
+import { useState } from "react";
+import { TaskTableRow } from "./TaskTableRow";
+import { EmptyState } from "@/components/ui/empty-state";
+import { CheckSquare } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Card, CardFooter } from "@/components/ui/card";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { useGetMyTasks } from "../api/useGetMyTasks";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Task } from "../task.types";
+
+interface MyTasksListProps {
+  onTaskSelect: (taskId: string) => void;
+}
+
+const TaskListSkeleton = () => (
+  <div className="space-y-2">
+    {Array.from({ length: 5 }).map((_, i) => (
+      <div
+        key={i}
+        className="flex items-center space-x-4 rounded-md border p-4"
+      >
+        <Skeleton className="h-12 w-full" />
+      </div>
+    ))}
+  </div>
+);
+
+export function MyTasksList({ onTaskSelect }: MyTasksListProps) {
+  const [page, setPage] = useState(1);
+  const { data, isLoading, isError } = useGetMyTasks({
+    page,
+    limit: 15,
+    sortBy: "createdAt",
+    sortOrder: "desc",
+    includeSubtasks: false,
+  });
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage > 0 && newPage <= (data?.totalPages || 1)) {
+      setPage(newPage);
+    }
+  };
+
+  if (isLoading) return <TaskListSkeleton />;
+  if (isError) return <div>Error loading tasks.</div>;
+
+  const renderBody = () => {
+    if (data?.data?.length === 0) {
+      return (
+        <TableRow>
+          <TableCell colSpan={5}>
+            <EmptyState
+              icon={<CheckSquare className="text-primary h-10 w-10" />}
+              title="No tasks here"
+              description="You have no tasks assigned to you or created by you. Create one to get started."
+            />
+          </TableCell>
+        </TableRow>
+      );
+    }
+    return data?.data.map((task: Task) => (
+      <TaskTableRow
+        key={task.id}
+        task={task}
+        onTaskSelect={onTaskSelect}
+        level={0}
+      />
+    ));
+  };
+
+  return (
+    <Card>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Title</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Priority</TableHead>
+            <TableHead>Due Date</TableHead>
+            <TableHead className="w-[50px]">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>{renderBody()}</TableBody>
+      </Table>
+      <CardFooter className="border-t pt-4">
+        {data?.totalPages > 1 && (
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handlePageChange(page - 1);
+                  }}
+                  isActive={page > 1}
+                />
+              </PaginationItem>
+              {[...Array(data.totalPages)].map((_, i) => (
+                <PaginationItem key={i}>
+                  <PaginationLink
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handlePageChange(i + 1);
+                    }}
+                    isActive={page === i + 1}
+                  >
+                    {i + 1}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+              <PaginationItem>
+                <PaginationNext
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handlePageChange(page + 1);
+                  }}
+                  isActive={page < data.totalPages}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        )}
+      </CardFooter>
+    </Card>
+  );
+}
+
 // FILE: src/features/tasks/components/SubtaskItem.tsx
 import { Badge } from "@/components/ui/badge";
 import { CheckSquare, Square } from "lucide-react";
@@ -13019,6 +13281,8 @@ export function TaskDetailBody({
 }
 
 // FILE: src/features/tasks/components/TaskDetailModal.tsx
+// FILE: src/features/tasks/components/TaskDetailModal.tsx
+
 import {
   Dialog,
   DialogContent,
@@ -13044,8 +13308,8 @@ import {
 } from "@/components/ui/tooltip";
 
 interface TaskDetailModalProps {
-  workspaceId: string;
-  projectId: string;
+  workspaceId?: string;
+  projectId?: string;
   taskId: string | null;
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
@@ -13060,11 +13324,7 @@ export function TaskDetailModal({
   onOpenChange,
   onTaskSelect,
 }: TaskDetailModalProps) {
-  const { data: task, isLoading } = useGetTask(
-    workspaceId!,
-    projectId!,
-    taskId!
-  );
+  const { data: task, isLoading } = useGetTask(taskId, workspaceId, projectId);
   const updateTaskMutation = useUpdateTask(workspaceId!, projectId!, taskId!);
 
   const handleSave = (field: "title" | "description", value: string) => {
@@ -13147,6 +13407,7 @@ export function TaskDetailModal({
     </Dialog>
   );
 }
+
 // FILE: src/features/tasks/components/TaskDetailSidebar.tsx
 import { TaskAssignees } from "./TaskAssignees";
 import { TimeLogSection } from "@/features/timelogs/components/TimeLogSection";
@@ -13228,7 +13489,7 @@ export function TaskDetailSidebar({ task, workspaceId, projectId }: any) {
               <Button
                 variant={"outline"}
                 className={cn(
-                  "w-full justify-start text-left font-normal",
+                  "flex-grow justify-start text-left font-normal",
                   !task.dueDate && "text-muted-foreground"
                 )}
               >
@@ -13257,7 +13518,7 @@ export function TaskDetailSidebar({ task, workspaceId, projectId }: any) {
             <Button
               variant="ghost"
               size="icon"
-              className="h-9 w-9"
+              className="h-9 w-9 flex-shrink-0"
               onClick={() => handleUpdate("dueDate", null)}
             >
               <X className="h-4 w-4" />
@@ -13552,6 +13813,8 @@ export function TaskList({
 }
 
 // FILE: src/features/tasks/components/TaskTableRow.tsx
+// FILE: src/features/tasks/components/TaskTableRow.tsx
+
 import { TableCell, TableRow } from "@/components/ui/table";
 import { MoreHorizontal, Edit, Copy, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13572,16 +13835,19 @@ import {
 } from "@/components/ui/select";
 import { useUpdateTask } from "../api/useUpdateTask";
 import { useDeleteTask } from "../api/useDeleteTask";
+import { useUpdateStandaloneTask } from "../api/useUpdateStandaloneTask";
+import { useDeleteStandaloneTask } from "../api/useDeleteStandaloneTask";
 import { TaskStatus, TaskPriority } from "@/types";
 import { toast } from "sonner";
 import React from "react";
 import { format } from "date-fns";
+import { Badge } from "@/components/ui/badge";
 
 interface TaskTableRowProps {
   task: any;
-  workspaceId: string;
-  projectId: string;
   onTaskSelect: (taskId: string) => void;
+  workspaceId?: string;
+  projectId?: string;
   level?: number;
 }
 
@@ -13592,8 +13858,11 @@ export function TaskTableRow({
   onTaskSelect,
   level = 0,
 }: TaskTableRowProps) {
-  const updateTaskMutation = useUpdateTask(workspaceId, projectId, task.id);
-  const deleteTaskMutation = useDeleteTask(workspaceId, projectId);
+  const useUpdateHook = projectId ? useUpdateTask : useUpdateStandaloneTask;
+  const updateTaskMutation = useUpdateHook(workspaceId!, projectId!, task.id);
+
+  const useDeleteHook = projectId ? useDeleteTask : useDeleteStandaloneTask;
+  const deleteTaskMutation = useDeleteHook(workspaceId!, projectId!);
 
   const handleStatusChange = (newStatus: string) => {
     updateTaskMutation.mutate({ status: newStatus });
@@ -13619,6 +13888,11 @@ export function TaskTableRow({
     toast.success("Task ID copied to clipboard.");
   };
 
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onTaskSelect(task.id);
+  };
+
   return (
     <React.Fragment>
       <TableRow
@@ -13627,6 +13901,11 @@ export function TaskTableRow({
       >
         <TableCell className="font-medium">
           <div style={{ paddingLeft: `${level * 24}px` }}>{task.title}</div>
+          {task.projectName && (
+            <Badge variant="outline" className="ml-2">
+              {task.projectName}
+            </Badge>
+          )}
         </TableCell>
         <TableCell onClick={(e) => e.stopPropagation()}>
           <Select onValueChange={handleStatusChange} value={task.status}>
@@ -13672,7 +13951,7 @@ export function TaskTableRow({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => onTaskSelect(task.id)}>
+              <DropdownMenuItem onClick={handleEdit}>
                 <Edit className="mr-2 h-4 w-4" />
                 <span>Edit Task</span>
               </DropdownMenuItem>
@@ -13702,6 +13981,7 @@ export function TaskTableRow({
     </React.Fragment>
   );
 }
+
 // FILE: src/features/tasks/task.types.ts
 import {
   TaskStatus,
@@ -17947,6 +18227,56 @@ export function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-gray-50">
       <LoginForm />
     </div>
+  );
+}
+
+// FILE: src/pages/MyTasksPage.tsx
+// FILE: src/pages/MyTasksPage.tsx
+
+import { MyTasksList } from "@/features/tasks/components/MyTasksList";
+import { CreateTaskDialog } from "@/features/tasks/components/CreateTaskDialog";
+import { TaskDetailModal } from "@/features/tasks/components/TaskDetailModal";
+import { useSearchParams } from "react-router-dom";
+
+export function MyTasksPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selectedTaskId = searchParams.get("taskId");
+
+  const handleTaskSelect = (taskId: string | null) => {
+    setSearchParams((params) => {
+      if (taskId) {
+        params.set("taskId", taskId);
+      } else {
+        params.delete("taskId");
+      }
+      return params;
+    });
+  };
+
+  return (
+    <>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">My Tasks</h1>
+            <p className="text-muted-foreground">
+              All tasks assigned to you or created by you.
+            </p>
+          </div>
+          <CreateTaskDialog />
+        </div>
+        <MyTasksList onTaskSelect={handleTaskSelect} />
+      </div>
+
+      <TaskDetailModal
+        taskId={selectedTaskId}
+        isOpen={!!selectedTaskId}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) handleTaskSelect(null);
+        }}
+        onTaskSelect={handleTaskSelect}
+      />
+    </>
   );
 }
 

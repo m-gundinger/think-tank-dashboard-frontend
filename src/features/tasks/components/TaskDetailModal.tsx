@@ -1,3 +1,5 @@
+// FILE: src/features/tasks/components/TaskDetailModal.tsx
+
 import {
   Dialog,
   DialogContent,
@@ -23,8 +25,8 @@ import {
 } from "@/components/ui/tooltip";
 
 interface TaskDetailModalProps {
-  workspaceId: string;
-  projectId: string;
+  workspaceId?: string;
+  projectId?: string;
   taskId: string | null;
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
@@ -39,11 +41,7 @@ export function TaskDetailModal({
   onOpenChange,
   onTaskSelect,
 }: TaskDetailModalProps) {
-  const { data: task, isLoading } = useGetTask(
-    workspaceId!,
-    projectId!,
-    taskId!
-  );
+  const { data: task, isLoading } = useGetTask(taskId, workspaceId, projectId);
   const updateTaskMutation = useUpdateTask(workspaceId!, projectId!, taskId!);
 
   const handleSave = (field: "title" | "description", value: string) => {

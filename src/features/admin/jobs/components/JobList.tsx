@@ -1,3 +1,4 @@
+// FILE: src/features/admin/jobs/components/JobList.tsx
 import { useState } from "react";
 import { useGetJobs } from "../api/useGetJobs";
 import { useRetryJob, useCancelJob } from "../api/useJobActions";
@@ -38,7 +39,6 @@ const statusVariantMap: Record<
   [JobStatus.FAILED]: "destructive",
   [JobStatus.CANCELLED]: "destructive",
 };
-
 const statusIconMap: Record<JobStatus, React.ElementType> = {
   [JobStatus.PENDING]: Clock,
   [JobStatus.RUNNING]: RefreshCw,
@@ -46,7 +46,6 @@ const statusIconMap: Record<JobStatus, React.ElementType> = {
   [JobStatus.FAILED]: AlertCircle,
   [JobStatus.CANCELLED]: XCircle,
 };
-
 export function JobList() {
   const [page] = useState(1);
   const { data, isLoading, isError } = useGetJobs({ page, limit: 20 });
@@ -55,7 +54,6 @@ export function JobList() {
 
   if (isLoading) return <div>Loading jobs...</div>;
   if (isError) return <div>Error loading jobs.</div>;
-
   return (
     <Table>
       <TableHeader>
@@ -84,7 +82,7 @@ export function JobList() {
                   {job.attempts} / {job.maxAttempts}
                 </TableCell>
                 <TableCell>
-                  {new Date(job.createdAt).toLocaleString()}
+                  {new Date(job.createdAt).toLocaleString("en-US")}
                 </TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>

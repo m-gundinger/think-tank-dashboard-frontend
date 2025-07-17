@@ -1,3 +1,4 @@
+// FILE: src/features/workspaces/components/WorkspaceCard.tsx
 import {
   Card,
   CardContent,
@@ -23,7 +24,6 @@ interface WorkspaceCardProps {
 
 export function WorkspaceCard({ workspace, onEdit }: WorkspaceCardProps) {
   const deleteMutation = useDeleteWorkspace();
-
   const handleDelete = (e: React.MouseEvent) => {
     e.preventDefault();
     if (
@@ -39,7 +39,6 @@ export function WorkspaceCard({ workspace, onEdit }: WorkspaceCardProps) {
     e.preventDefault();
     onEdit(workspace.id);
   };
-
   return (
     <Link to={`/workspaces/${workspace.id}/projects`} key={workspace.id}>
       <Card className="hover:border-primary flex h-full flex-col transition-colors">
@@ -77,7 +76,8 @@ export function WorkspaceCard({ workspace, onEdit }: WorkspaceCardProps) {
         <CardContent className="flex-grow"></CardContent>
         <CardContent>
           <p className="text-muted-foreground text-sm">
-            Created on: {new Date(workspace.createdAt).toLocaleDateString()}
+            Created on:{" "}
+            {new Date(workspace.createdAt).toLocaleDateString("en-US")}
           </p>
         </CardContent>
       </Card>

@@ -1,10 +1,11 @@
+// FILE: src/features/notifications/components/NotificationItem.tsx
 import { useMarkNotificationAsRead } from "../api/useMarkNotificationAsRead";
 import { cn } from "@/lib/utils";
-import { RichTextOutput } from "@/components/ui/RichTextOutput"; // Import the component
+import { RichTextOutput } from "@/components/ui/RichTextOutput";
+// Import the component
 
 export function NotificationItem({ notification }: { notification: any }) {
   const markAsReadMutation = useMarkNotificationAsRead();
-
   const handleClick = () => {
     if (!notification.isRead) {
       markAsReadMutation.mutate(notification.id);
@@ -29,7 +30,7 @@ export function NotificationItem({ notification }: { notification: any }) {
           className="text-sm font-medium"
         />
         <p className="text-muted-foreground text-sm">
-          {new Date(notification.createdAt).toLocaleString()}
+          {new Date(notification.createdAt).toLocaleString("en-US")}
         </p>
       </div>
     </div>

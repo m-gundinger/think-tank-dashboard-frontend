@@ -1,8 +1,8 @@
+// FILE: src/features/activities/components/ProjectActivityLog.tsx
 import { useGetActivities } from "../api/useGetActivities";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Activity, MessageSquarePlus, SquarePlus, Trash2 } from "lucide-react";
-
 const activityIconMap: Record<string, React.ElementType> = {
   TASK_CREATED: SquarePlus,
   TASK_UPDATED: Activity,
@@ -10,7 +10,6 @@ const activityIconMap: Record<string, React.ElementType> = {
   COMMENT_CREATED: MessageSquarePlus,
   DEFAULT: Activity,
 };
-
 function formatActivityDetails(activity: any): string {
   const actorName = activity.actor.name;
   switch (activity.actionType) {
@@ -38,7 +37,6 @@ export function ProjectActivityLog({ workspaceId, projectId }: any) {
       limit: 50,
     }
   );
-
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -53,7 +51,6 @@ export function ProjectActivityLog({ workspaceId, projectId }: any) {
   }
 
   if (isError) return <div>Failed to load project activity.</div>;
-
   return (
     <Card>
       <CardHeader>
@@ -72,7 +69,7 @@ export function ProjectActivityLog({ workspaceId, projectId }: any) {
                 <div className="flex-grow">
                   <p className="text-sm">{formatActivityDetails(activity)}</p>
                   <p className="text-muted-foreground text-xs">
-                    {new Date(activity.createdAt).toLocaleString()}
+                    {new Date(activity.createdAt).toLocaleString("en-US")}
                   </p>
                 </div>
               </div>

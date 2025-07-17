@@ -1,3 +1,4 @@
+// FILE: src/features/admin/jobs/components/JobScheduleList.tsx
 import { useState } from "react";
 import { useGetJobSchedules } from "../api/useGetJobSchedules";
 import {
@@ -15,7 +16,6 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
-
 export function JobScheduleList() {
   const [page] = useState(1);
   const { data, isLoading, isError } = useGetJobSchedules({
@@ -27,7 +27,6 @@ export function JobScheduleList() {
 
   if (isLoading) return <div>Loading schedules...</div>;
   if (isError) return <div>Error loading schedules.</div>;
-
   return (
     <Table>
       <TableHeader>
@@ -53,7 +52,7 @@ export function JobScheduleList() {
               </TableCell>
               <TableCell>
                 {schedule.nextRunAt
-                  ? new Date(schedule.nextRunAt).toLocaleString()
+                  ? new Date(schedule.nextRunAt).toLocaleString("en-US")
                   : "N/A"}
               </TableCell>
               <TableCell>

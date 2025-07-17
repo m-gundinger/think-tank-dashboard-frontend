@@ -1,3 +1,5 @@
+// FILE: src/features/tasks/components/TaskTableRow.tsx
+
 import { TableCell, TableRow } from "@/components/ui/table";
 import { MoreHorizontal, Edit, Copy, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -18,16 +20,19 @@ import {
 } from "@/components/ui/select";
 import { useUpdateTask } from "../api/useUpdateTask";
 import { useDeleteTask } from "../api/useDeleteTask";
+import { useUpdateStandaloneTask } from "../api/useUpdateStandaloneTask";
+import { useDeleteStandaloneTask } from "../api/useDeleteStandaloneTask";
 import { TaskStatus, TaskPriority } from "@/types";
 import { toast } from "sonner";
 import React from "react";
 import { format } from "date-fns";
+import { Badge } from "@/components/ui/badge";
 
 interface TaskTableRowProps {
   task: any;
-  workspaceId: string;
-  projectId: string;
   onTaskSelect: (taskId: string) => void;
+  workspaceId?: string;
+  projectId?: string;
   level?: number;
 }
 
@@ -38,8 +43,11 @@ export function TaskTableRow({
   onTaskSelect,
   level = 0,
 }: TaskTableRowProps) {
-  const updateTaskMutation = useUpdateTask(workspaceId, projectId, task.id);
-  const deleteTaskMutation = useDeleteTask(workspaceId, projectId);
+  const useUpdateHook = projectId ? useUpdateTask : useUpdateStandaloneTask;
+  const updateTaskMutation = useUpdateHook(workspaceId!, projectId!, task.id);
+
+  const useDeleteHook = projectId ? useDeleteTask : useDeleteStandaloneTask;
+  const deleteTaskMutation = useDeleteHook(workspaceId!, projectId!);
 
   const handleStatusChange = (newStatus: string) => {
     updateTaskMutation.mutate({ status: newStatus });
@@ -65,6 +73,11 @@ export function TaskTableRow({
     toast.success("Task ID copied to clipboard.");
   };
 
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onTaskSelect(task.id);
+  };
+
   return (
     <React.Fragment>
       <TableRow
@@ -73,6 +86,11 @@ export function TaskTableRow({
       >
         <TableCell className="font-medium">
           <div style={{ paddingLeft: `${level * 24}px` }}>{task.title}</div>
+          {task.projectName && (
+            <Badge variant="outline" className="ml-2">
+              {task.projectName}
+            </Badge>
+          )}
         </TableCell>
         <TableCell onClick={(e) => e.stopPropagation()}>
           <Select onValueChange={handleStatusChange} value={task.status}>
@@ -118,7 +136,7 @@ export function TaskTableRow({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => onTaskSelect(task.id)}>
+              <DropdownMenuItem onClick={handleEdit}>
                 <Edit className="mr-2 h-4 w-4" />
                 <span>Edit Task</span>
               </DropdownMenuItem>

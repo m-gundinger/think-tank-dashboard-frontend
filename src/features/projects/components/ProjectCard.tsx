@@ -1,3 +1,4 @@
+// FILE: src/features/projects/components/ProjectCard.tsx
 import {
   Card,
   CardContent,
@@ -24,7 +25,6 @@ interface ProjectCardProps {
 
 export function ProjectCard({ project, onEdit }: ProjectCardProps) {
   const deleteMutation = useDeleteProject(project.workspaceId);
-
   const handleDelete = (e: React.MouseEvent) => {
     e.preventDefault();
     if (
@@ -86,7 +86,7 @@ export function ProjectCard({ project, onEdit }: ProjectCardProps) {
           <div className="text-muted-foreground flex justify-between text-sm">
             <span>Status: {project.status}</span>
             <span>
-              Created: {new Date(project.createdAt).toLocaleDateString()}
+              Created: {new Date(project.createdAt).toLocaleDateString("en-US")}
             </span>
           </div>
         </CardContent>

@@ -1,3 +1,5 @@
+// FILE: src/features/tasks/components/CreateTaskDialog.tsx
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,10 +14,9 @@ import { useState } from "react";
 import { PlusCircle } from "lucide-react";
 
 interface CreateTaskDialogProps {
-  workspaceId: string;
-  projectId: string;
+  workspaceId?: string;
+  projectId?: string;
   parentId?: string | null;
-
   trigger?: React.ReactNode;
   isOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -25,7 +26,6 @@ export function CreateTaskDialog({
   workspaceId,
   projectId,
   parentId,
-
   trigger,
   isOpen: externalIsOpen,
   onOpenChange: externalOnOpenChange,
@@ -47,7 +47,7 @@ export function CreateTaskDialog({
           {parentId ? "Create Sub-task" : "Create a new task"}
         </DialogTitle>
         <DialogDescription>
-          Fill in the details below to add a new task to your project.
+          Fill in the details below to add a new task.
         </DialogDescription>
       </DialogHeader>
       <CreateTaskForm

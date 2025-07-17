@@ -1,3 +1,4 @@
+// FILE: src/features/admin/announcements/components/AnnouncementList.tsx
 import { useState } from "react";
 import { useGetAnnouncements } from "../api/useGetAnnouncements";
 import { useDeleteAnnouncement } from "../api/useDeleteAnnouncement";
@@ -28,16 +29,30 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export function AnnouncementList() {
   const [page, setPage] = useState(1);
   const { data, isLoading, isError } = useGetAnnouncements({ page, limit: 10 });
   const deleteMutation = useDeleteAnnouncement();
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const handleDelete = (id: string, title: string) => {
     if (window.confirm(`Delete announcement "${title}"?`)) {
-      deleteMutation.mutate(id);
+      deleteMutation.mutate(id, {
+        onSuccess: () => setSelectedIds([]),
+      });
+    }
+  };
+
+  const handleBulkDelete = () => {
+    if (
+      window.confirm(`Delete ${selectedIds.length} selected announcements?`)
+    ) {
+      deleteMutation.mutate(selectedIds, {
+        onSuccess: () => setSelectedIds([]),
+      });
     }
   };
 
@@ -47,15 +62,51 @@ export function AnnouncementList() {
     }
   };
 
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(data?.data?.map((item: any) => item.id) || []);
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleRowSelect = (id: string, checked: boolean) => {
+    if (checked) {
+      setSelectedIds((prev) => [...prev, id]);
+    } else {
+      setSelectedIds((prev) => prev.filter((prevId) => prevId !== id));
+    }
+  };
+
   if (isLoading) return <div>Loading announcements...</div>;
   if (isError) return <div>Error loading announcements.</div>;
-
   return (
     <>
+      <div className="mb-4 flex items-center gap-2">
+        {selectedIds.length > 0 && (
+          <Button
+            variant="destructive"
+            onClick={handleBulkDelete}
+            disabled={deleteMutation.isPending}
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Delete ({selectedIds.length})
+          </Button>
+        )}
+      </div>
       <Card>
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[50px]">
+                <Checkbox
+                  checked={
+                    data?.data?.length > 0 &&
+                    selectedIds.length === data?.data?.length
+                  }
+                  onCheckedChange={handleSelectAll}
+                />
+              </TableHead>
               <TableHead>Title</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Severity</TableHead>
@@ -68,6 +119,14 @@ export function AnnouncementList() {
             {data?.data?.length > 0 ? (
               data.data.map((item: any) => (
                 <TableRow key={item.id}>
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedIds.includes(item.id)}
+                      onCheckedChange={(checked) =>
+                        handleRowSelect(item.id, !!checked)
+                      }
+                    />
+                  </TableCell>
                   <TableCell className="font-medium">{item.title}</TableCell>
                   <TableCell>
                     <Badge variant="outline">{item.status}</Badge>
@@ -78,7 +137,7 @@ export function AnnouncementList() {
                   <TableCell>{item.isPinned ? "Yes" : "No"}</TableCell>
                   <TableCell>
                     {item.publishedAt
-                      ? new Date(item.publishedAt).toLocaleDateString()
+                      ? new Date(item.publishedAt).toLocaleDateString("en-US")
                       : "N/A"}
                   </TableCell>
                   <TableCell className="text-right">
@@ -105,7 +164,7 @@ export function AnnouncementList() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center">
+                <TableCell colSpan={7} className="h-24 text-center">
                   No announcements found.
                 </TableCell>
               </TableRow>

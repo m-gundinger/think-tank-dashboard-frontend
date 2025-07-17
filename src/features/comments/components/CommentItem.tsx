@@ -1,3 +1,4 @@
+// FILE: src/features/comments/components/CommentItem.tsx
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,6 @@ import { useDeleteComment } from "../api/useDeleteComment";
 import { EditableField } from "@/components/ui/EditableField";
 import { toast } from "sonner";
 import { RichTextOutput } from "@/components/ui/RichTextOutput";
-
 interface CommentItemProps {
   comment: any;
   workspaceId: string;
@@ -38,7 +38,6 @@ export function CommentItem({
     projectId,
     taskId
   );
-
   const handleSave = (newContent: string) => {
     updateCommentMutation.mutate(
       { commentId: comment.id, content: newContent },
@@ -53,7 +52,6 @@ export function CommentItem({
       }
     );
   };
-
   const handleDelete = () => {
     if (window.confirm("Are you sure you want to delete this comment?")) {
       deleteCommentMutation.mutate(comment.id, {
@@ -80,7 +78,7 @@ export function CommentItem({
           <div className="flex items-center gap-2">
             <span className="text-sm font-semibold">{comment.author.name}</span>
             <span className="text-muted-foreground text-xs">
-              {new Date(comment.createdAt).toLocaleString()}
+              {new Date(comment.createdAt).toLocaleString("en-US")}
             </span>
           </div>
           {canEdit && (

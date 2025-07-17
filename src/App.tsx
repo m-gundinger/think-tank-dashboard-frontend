@@ -1,3 +1,5 @@
+// FILE: src/App.tsx
+
 import { Routes, Route, Navigate } from "react-router-dom";
 import { ProtectedLayout } from "./routes/ProtectedLayout";
 import { WorkspaceLayout } from "./routes/WorkspaceLayout";
@@ -31,6 +33,7 @@ import { ProjectGeneralSettingsPage } from "./pages/ProjectGeneralSettingsPage";
 import { JobMonitoringPage } from "./pages/admin/JobMonitoringPage";
 import { SystemStatusPage } from "./pages/admin/SystemStatusPage";
 import { CrmPage } from "./pages/CrmPage";
+import { MyTasksPage } from "./pages/MyTasksPage"; // Import the new page
 
 function App() {
   return (
@@ -49,16 +52,16 @@ function App() {
         <Route path="/" element={<ProtectedLayout />}>
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
+          <Route path="my-tasks" element={<MyTasksPage />} />{" "}
+          {/* Add the new route */}
           <Route path="workspaces" element={<WorkspacesPage />} />
           <Route path="publications" element={<PublicationsPage />} />
           <Route path="crm" element={<CrmPage />} />
-
           <Route path="workspaces/:workspaceId" element={<WorkspaceLayout />}>
             <Route index element={<Navigate to="projects" replace />} />
             <Route path="projects" element={<ProjectListPage />} />
             <Route path="teams" element={<TeamsPage />} />
           </Route>
-
           <Route
             path="workspaces/:workspaceId/projects/:projectId"
             element={
@@ -86,7 +89,6 @@ function App() {
             <Route path="integrations" element={<IntegrationsPage />} />
             <Route path="security" element={<AccountSettingsPage />} />
           </Route>
-
           <Route path="admin" element={<AdminLayout />}>
             <Route index element={<Navigate to="/admin/users" replace />} />
             <Route path="users" element={<UserListPage />} />

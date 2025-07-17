@@ -1,8 +1,13 @@
+// FILE: src/features/admin/permissions/api/useDeletePermission.ts
 import api from "@/lib/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-async function deletePermission(permissionId: string): Promise<void> {
-  await api.delete(`/admin/permissions/${permissionId}`);
+async function deletePermission(ids: string | string[]): Promise<void> {
+  if (Array.isArray(ids)) {
+    await api.delete(`/admin/permissions`, { data: { ids } });
+  } else {
+    await api.delete(`/admin/permissions/${ids}`);
+  }
 }
 
 export function useDeletePermission() {

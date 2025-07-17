@@ -1,3 +1,5 @@
+// FILE: src/components/layout/Sidebar.tsx
+
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -13,12 +15,14 @@ import {
   Clock,
   Activity,
   Contact,
+  CheckSquare, // Import the new icon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 
 const mainNavItems = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+  { to: "/my-tasks", icon: CheckSquare, label: "My Tasks" },
   { to: "/workspaces", icon: FolderKanban, label: "Workspaces" },
   { to: "/publications", icon: FileText, label: "Publications" },
   { to: "/crm", icon: Contact, label: "CRM" },

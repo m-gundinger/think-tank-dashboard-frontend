@@ -1,3 +1,5 @@
+// FILE: src/features/tasks/components/CreateTaskForm.tsx
+
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,6 +26,7 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { useCreateTask } from "../api/useCreateTask";
+import { useCreateStandaloneTask } from "../api/useCreateStandaloneTask"; // Import new hook
 import { useGetEpics } from "@/features/epics/api/useGetEpics";
 import { AxiosError } from "axios";
 import { TaskStatus, TaskPriority } from "@/types";
@@ -46,8 +49,8 @@ const taskSchema = z.object({
 type TaskFormValues = z.infer<typeof taskSchema>;
 
 interface CreateTaskFormProps {
-  workspaceId: string;
-  projectId: string;
+  workspaceId?: string;
+  projectId?: string;
   parentId?: string | null;
   onSuccess?: () => void;
 }
@@ -58,12 +61,16 @@ export function CreateTaskForm({
   parentId = null,
   onSuccess,
 }: CreateTaskFormProps) {
-  const createMutation = useCreateTask(workspaceId, projectId);
-  const { data: epicsData, isLoading: isLoadingEpics } = useGetEpics(
-    workspaceId,
-    projectId
-  );
+  const createTaskInProjectMutation = useCreateTask(workspaceId!, projectId!);
+  const createStandaloneTaskMutation = useCreateStandaloneTask();
+  const createMutation = projectId
+    ? createTaskInProjectMutation
+    : createStandaloneTaskMutation;
 
+  const { data: epicsData, isLoading: isLoadingEpics } = useGetEpics(
+    workspaceId!,
+    projectId!
+  );
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskSchema),
     defaultValues: {
@@ -77,7 +84,6 @@ export function CreateTaskForm({
       dueDate: null,
     },
   });
-
   async function onSubmit(values: TaskFormValues) {
     const submitData: Partial<TaskFormValues> = { ...values };
     if (!submitData.boardColumnId) delete submitData.boardColumnId;
@@ -95,7 +101,6 @@ export function CreateTaskForm({
   const errorMessage = (
     createMutation.error as AxiosError<{ message?: string }>
   )?.response?.data?.message;
-
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -141,7 +146,7 @@ export function CreateTaskForm({
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select a status" />
+                      <SelectValue placeholder="Set status" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -165,7 +170,7 @@ export function CreateTaskForm({
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select a priority" />
+                      <SelectValue placeholder="Set priority" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -182,39 +187,41 @@ export function CreateTaskForm({
           />
         </div>
         <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="epicId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Epic (Optional)</FormLabel>
-                <Select
-                  onValueChange={(value) => field.onChange(value || null)}
-                  value={field.value ?? ""}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select an epic" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {isLoadingEpics ? (
-                      <div className="text-muted-foreground p-2 text-sm">
-                        Loading epics...
-                      </div>
-                    ) : (
-                      epicsData?.data?.map((epic: any) => (
-                        <SelectItem key={epic.id} value={epic.id}>
-                          {epic.name}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {projectId && (
+            <FormField
+              control={form.control}
+              name="epicId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Epic (Optional)</FormLabel>
+                  <Select
+                    onValueChange={(value) => field.onChange(value || null)}
+                    value={field.value ?? ""}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select an epic" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {isLoadingEpics ? (
+                        <div className="text-muted-foreground p-2 text-sm">
+                          Loading epics...
+                        </div>
+                      ) : (
+                        epicsData?.data?.map((epic: any) => (
+                          <SelectItem key={epic.id} value={epic.id}>
+                            {epic.name}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
           <FormField
             control={form.control}
             name="dueDate"

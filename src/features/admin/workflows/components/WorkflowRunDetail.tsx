@@ -1,3 +1,4 @@
+// FILE: src/features/admin/workflows/components/WorkflowRunDetail.tsx
 import {
   Drawer,
   DrawerContent,
@@ -8,7 +9,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-
 interface WorkflowRunDetailProps {
   run: any | null;
   isOpen: boolean;
@@ -20,14 +20,12 @@ const statusColors: Record<string, string> = {
   FAILED: "bg-red-500",
   RUNNING: "bg-blue-500",
 };
-
 export function WorkflowRunDetail({
   run,
   isOpen,
   onOpenChange,
 }: WorkflowRunDetailProps) {
   if (!run) return null;
-
   return (
     <Drawer open={isOpen} onOpenChange={onOpenChange}>
       <DrawerContent>
@@ -40,7 +38,7 @@ export function WorkflowRunDetail({
               </Badge>
             </div>
             <DrawerDescription>
-              Ran at: {new Date(run.startedAt).toLocaleString()}
+              Ran at: {new Date(run.startedAt).toLocaleString("en-US")}
             </DrawerDescription>
           </DrawerHeader>
           <div className="grid grid-cols-2 gap-4 px-4 pb-4">
