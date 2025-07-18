@@ -13,6 +13,8 @@ import { useDeleteComment } from "../api/useDeleteComment";
 import { EditableField } from "@/components/ui/EditableField";
 import { toast } from "sonner";
 import { RichTextOutput } from "@/components/ui/RichTextOutput";
+import { getAbsoluteUrl } from "@/lib/utils";
+
 interface CommentItemProps {
   comment: any;
   workspaceId: string;
@@ -37,6 +39,7 @@ export function CommentItem({
     projectId,
     taskId
   );
+
   const handleSave = (newContent: string) => {
     updateCommentMutation.mutate(
       { commentId: comment.id, content: newContent },
@@ -51,6 +54,7 @@ export function CommentItem({
       }
     );
   };
+
   const handleDelete = () => {
     if (window.confirm("Are you sure you want to delete this comment?")) {
       deleteCommentMutation.mutate(comment.id, {
@@ -69,7 +73,7 @@ export function CommentItem({
   return (
     <div className="flex items-start gap-3">
       <Avatar className="h-8 w-8">
-        <AvatarImage src={comment.author.avatarUrl} />
+        <AvatarImage src={getAbsoluteUrl(comment.author.avatarUrl)} />
         <AvatarFallback>{comment.author.name?.charAt(0)}</AvatarFallback>
       </Avatar>
       <div className="w-full">

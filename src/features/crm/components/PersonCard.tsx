@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { getAbsoluteUrl } from "@/lib/utils";
 
 interface PersonCardProps {
   person: any;
@@ -21,7 +22,10 @@ export function PersonCard({ person, onSelect }: PersonCardProps) {
     >
       <CardHeader className="flex flex-row items-center gap-4">
         <Avatar className="h-12 w-12">
-          <AvatarImage src={person.avatarUrl} alt={person.name} />
+          <AvatarImage
+            src={getAbsoluteUrl(person.avatarUrl)}
+            alt={person.name}
+          />
           <AvatarFallback>{person.name?.charAt(0)}</AvatarFallback>
         </Avatar>
         <div className="flex-1">
