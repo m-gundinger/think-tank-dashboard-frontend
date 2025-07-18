@@ -1,3 +1,4 @@
+// FILE: src/features/crm/components/CreatePersonDialog.tsx
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -7,13 +8,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { CreatePersonForm } from "./CreatePersonForm";
+import { PersonForm } from "./PersonForm";
 import { useState } from "react";
 import { PlusCircle } from "lucide-react";
-
 export function CreatePersonDialog() {
   const [isOpen, setIsOpen] = useState(false);
-
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
@@ -30,7 +29,7 @@ export function CreatePersonDialog() {
             account.
           </DialogDescription>
         </DialogHeader>
-        <CreatePersonForm onSuccess={() => setIsOpen(false)} />
+        <PersonForm onSuccess={() => setIsOpen(false)} />
       </DialogContent>
     </Dialog>
   );

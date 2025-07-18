@@ -89,13 +89,11 @@ export function CreateTaskForm({
       assigneeIds: [],
     },
   });
-
   useEffect(() => {
     if (profileData && form.getValues("assigneeIds").length === 0) {
       form.setValue("assigneeIds", [profileData.id]);
     }
-  }, [profileData, form]);
-
+  }, [profileData, form.getValues, form.setValue]);
   async function onSubmit(values: TaskFormValues) {
     const submitData: Partial<TaskFormValues> = { ...values };
     if (!submitData.boardColumnId) delete submitData.boardColumnId;
@@ -113,7 +111,6 @@ export function CreateTaskForm({
   const errorMessage = (
     createMutation.error as AxiosError<{ message?: string }>
   )?.response?.data?.message;
-
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">

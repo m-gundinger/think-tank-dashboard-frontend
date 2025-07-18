@@ -20,8 +20,9 @@ import { useAssignUser } from "../api/useAssignUser";
 import { useUnassignUser } from "../api/useUnassignUser";
 import { useAssignStandaloneUser } from "../api/useAssignStandaloneUser";
 import { useUnassignStandaloneUser } from "../api/useUnassignStandaloneUser";
-import { cn } from "@/lib/utils";
+import { cn, getAbsoluteUrl } from "@/lib/utils";
 import { useMemo, useState } from "react";
+import { Badge } from "@/components/ui/badge";
 
 export function TaskAssignees({ task, workspaceId, projectId }: any) {
   const [popoverOpen, setPopoverOpen] = useState(false);
@@ -37,6 +38,7 @@ export function TaskAssignees({ task, workspaceId, projectId }: any) {
   const { data: projectMembersData, isLoading: isLoadingProjectMembers } =
     useGetProjectMembers(workspaceId, projectId, { enabled: isProjectTask });
   const { data: allUsersData, isLoading: isLoadingAllUsers } = useGetUsers({
+    limit: 1000,
     enabled: !isProjectTask,
   });
 
@@ -48,6 +50,7 @@ export function TaskAssignees({ task, workspaceId, projectId }: any) {
         projectMembersData?.map((member: any) => ({
           id: member.userId,
           name: member.name,
+          avatarUrl: member.avatarUrl,
         })) || []
       );
     }
@@ -56,6 +59,7 @@ export function TaskAssignees({ task, workspaceId, projectId }: any) {
       allUsersData?.data?.map((user: any) => ({
         id: user.id,
         name: user.name,
+        avatarUrl: user.avatarUrl,
       })) || []
     );
   }, [isProjectTask, projectMembersData, allUsersData]);
@@ -75,15 +79,19 @@ export function TaskAssignees({ task, workspaceId, projectId }: any) {
       <h3 className="mb-2 text-sm font-semibold">Assignees</h3>
       <div className="flex flex-wrap items-center gap-2">
         {task.assignees.map((assignee: any) => (
-          <div
+          <Badge
             key={assignee.id}
+            variant="secondary"
             className="flex items-center gap-2 rounded-full bg-gray-100 py-0.5 pr-2 pl-0.5"
           >
             <Avatar className="h-5 w-5">
-              <AvatarImage src={assignee.avatarUrl} />
+              <AvatarImage
+                src={getAbsoluteUrl(assignee.avatarUrl)}
+                alt={assignee.name}
+              />
               <AvatarFallback>{assignee.name?.charAt(0)}</AvatarFallback>
             </Avatar>
-            <span className="text-sm">{assignee.name}</span>
+            <span className="text-sm font-normal">{assignee.name}</span>
             <Button
               size="icon"
               variant="ghost"
@@ -93,13 +101,13 @@ export function TaskAssignees({ task, workspaceId, projectId }: any) {
             >
               <X className="text-muted-foreground hover:text-primary h-3 w-3" />
             </Button>
-          </div>
+          </Badge>
         ))}
 
         <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
           <PopoverTrigger asChild>
             <Button
-              variant="outline"
+              variant="ghost"
               size="icon"
               className="h-6 w-6"
               disabled={isLoading}
@@ -120,7 +128,18 @@ export function TaskAssignees({ task, workspaceId, projectId }: any) {
                         key={user.id}
                         value={user.name}
                         onSelect={() => handleSelect(user.id)}
+                        className="flex items-center"
                       >
+                        <Avatar className="mr-2 h-5 w-5">
+                          <AvatarImage
+                            src={getAbsoluteUrl(user.avatarUrl)}
+                            alt={user.name}
+                          />
+                          <AvatarFallback>
+                            {user.name?.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="flex-1 truncate">{user.name}</span>
                         <Check
                           className={cn(
                             "mr-2 h-4 w-4",
@@ -129,7 +148,6 @@ export function TaskAssignees({ task, workspaceId, projectId }: any) {
                               : "opacity-0"
                           )}
                         />
-                        {user.name}
                       </CommandItem>
                     ))}
                 </CommandGroup>
