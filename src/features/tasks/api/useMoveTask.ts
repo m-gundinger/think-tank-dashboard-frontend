@@ -29,15 +29,11 @@ export function useMoveTask() {
   const queryClient = useQueryClient();
   return useMutation<any, AxiosError, MoveTaskParams>({
     mutationFn: moveTask,
-    onSuccess: () => {
-      // The onSettled block is sufficient for invalidation.
-      // We could add optimistic updates back here later if needed.
-    },
+    onSuccess: () => {},
     onError: () => {
       toast.error("Failed to move task.");
     },
-    // onSettled always runs after a mutation, on either success or error.
-    // This is the most reliable place to refetch data.
+
     onSettled: (_data, _error, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["projects", variables.projectId, "tasks"],

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -11,7 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useGetProfile } from "../api/useGetProfile";
 import { useUpdateProfile } from "../api/useUpdateProfile";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import {
   Popover,
   PopoverTrigger,
@@ -32,6 +33,8 @@ import { SocialProvider } from "@/types";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { RichTextEditor } from "@/components/ui/RichTextEditor";
+import { MultiSelect } from "@/components/ui/MultiSelect";
+import { useGetSkills } from "@/features/skills/api/useGetSkills";
 
 const socialLinkSchema = z.object({
   provider: z.nativeEnum(SocialProvider),
@@ -39,9 +42,11 @@ const socialLinkSchema = z.object({
 });
 
 const phoneRegex = new RegExp(/^[+]*[(]?[0-9]{1,4}[)]?[-\s./0-9]*$/);
+
 const profileSchema = z.object({
   firstName: z.string().min(1, "First name is required."),
   lastName: z.string().min(1, "Last name is required."),
+  email: z.string().email(),
   biography: z.string().optional().nullable(),
   phoneNumber: z
     .string()
@@ -53,21 +58,43 @@ const profileSchema = z.object({
     .nullable(),
   birthday: z.date().nullable().optional(),
   socialLinks: z.array(socialLinkSchema).optional(),
+  skillIds: z.array(z.string().uuid()).optional(),
 });
+
+const parseServerDate = (
+  dateString: string | null | undefined
+): Date | null => {
+  if (!dateString) return null;
+
+  const date = new Date(dateString);
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+};
+
+const formatDateForServer = (date: Date | null | undefined): string | null => {
+  if (!date) return null;
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}T00:00:00.000Z`;
+};
 
 export function ProfileForm() {
   const { data: profile, isLoading } = useGetProfile();
   const updateProfileMutation = useUpdateProfile();
+  const { data: skillsData, isLoading: isLoadingSkills } = useGetSkills();
 
-  const form = useForm<any>({
+  const form = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
       firstName: "",
       lastName: "",
+      email: "",
       biography: "",
       phoneNumber: "",
       birthday: null,
       socialLinks: [],
+      skillIds: [],
     },
   });
 
@@ -76,31 +103,43 @@ export function ProfileForm() {
     name: "socialLinks",
   });
 
-  useEffect(() => {
-    if (profile) {
-      form.reset({
-        firstName: profile.firstName || "",
-        lastName: profile.lastName || "",
-        biography: profile.biography || "",
-        phoneNumber: profile.phoneNumber || "",
-        birthday: profile.birthday ? new Date(profile.birthday) : null,
-        socialLinks: profile.socialLinks || [],
-      });
-    }
-  }, [profile, form]);
+  const formData = useMemo(() => {
+    if (!profile) return null;
 
-  const onSubmit = (values: any) => {
-    updateProfileMutation.mutate(values);
+    return {
+      firstName: profile.firstName || "",
+      lastName: profile.lastName || "",
+      email: profile.email || "",
+      biography: profile.biography || "",
+      phoneNumber: profile.phoneNumber || "",
+      birthday: parseServerDate(profile.birthday),
+      socialLinks: profile.socialLinks || [],
+      skillIds: profile.skills?.map((s: any) => s.id) || [],
+    };
+  }, [profile]);
+
+  useEffect(() => {
+    if (formData) {
+      form.reset(formData);
+    }
+  }, [formData, form]);
+
+  const onSubmit = (values: z.infer<typeof profileSchema>) => {
+    const { email, birthday, ...submissionData } = values;
+
+    const formattedData = {
+      ...submissionData,
+      birthday: formatDateForServer(birthday),
+    };
+
+    updateProfileMutation.mutate(formattedData);
   };
 
   if (isLoading) return <div>Loading profile...</div>;
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="max-w-2xl space-y-8"
-      >
+      <form onSubmit={form.handleSubmit(onSubmit)} className="w-full space-y-8">
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <FormField
             control={form.control}
@@ -129,6 +168,44 @@ export function ProfileForm() {
             )}
           />
         </div>
+
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email Address</FormLabel>
+              <FormControl>
+                <Input readOnly disabled {...field} />
+              </FormControl>
+              <FormDescription>
+                Your email address cannot be changed from this page.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="biography"
+          render={({ field }) => {
+            return (
+              <FormItem>
+                <FormLabel>Biography</FormLabel>
+                <FormControl>
+                  <RichTextEditor
+                    value={field.value ?? ""}
+                    onChange={(value) => {
+                      field.onChange(value);
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            );
+          }}
+        />
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <FormField
@@ -161,7 +238,7 @@ export function ProfileForm() {
                       <Button
                         variant={"outline"}
                         className={cn(
-                          "w-[240px] pl-3 text-left font-normal",
+                          "w-full pl-3 text-left font-normal",
                           !field.value && "text-muted-foreground"
                         )}
                       >
@@ -177,7 +254,7 @@ export function ProfileForm() {
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
-                      selected={field.value}
+                      selected={field.value || undefined}
                       onSelect={field.onChange}
                       disabled={(date) =>
                         date > new Date() || date < new Date("1900-01-01")
@@ -194,16 +271,18 @@ export function ProfileForm() {
 
         <FormField
           control={form.control}
-          name="biography"
+          name="skillIds"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Biography</FormLabel>
-              <FormControl>
-                <RichTextEditor
-                  value={field.value ?? ""}
-                  onChange={field.onChange}
-                />
-              </FormControl>
+              <FormLabel>Skills</FormLabel>
+              <MultiSelect
+                options={skillsData || []}
+                selected={field.value ?? []}
+                onChange={field.onChange}
+                placeholder={
+                  isLoadingSkills ? "Loading skills..." : "Select skills..."
+                }
+              />
               <FormMessage />
             </FormItem>
           )}

@@ -1,4 +1,3 @@
-// FILE: src/features/admin/permissions/api/useDeletePermission.ts
 import api from "@/lib/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 

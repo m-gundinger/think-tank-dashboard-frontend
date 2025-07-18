@@ -34,7 +34,6 @@ export function LoginForm() {
   });
 
   function onSubmit(values: LoginFormValues) {
-    console.log("LoginForm: Submitting with values:", values);
     loginMutation.mutate(values);
   }
 
@@ -43,7 +42,6 @@ export function LoginForm() {
       return null;
     }
     const error = loginMutation.error as AxiosError<{ message?: string }>;
-    console.log("LoginForm: getErrorMessage received error:", error);
     return error.response?.data?.message || "An unexpected error occurred.";
   };
 

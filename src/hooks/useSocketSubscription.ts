@@ -17,8 +17,6 @@ export function useSocketSubscription(
       return;
     }
 
-    const roomName = `context:${contextType}:${contextId}`;
-    console.log(`Joining room: ${roomName}`);
     socket.emit("join_context", { contextType, contextId });
 
     Object.entries(handlers).forEach(([eventName, handler]) => {
@@ -26,7 +24,6 @@ export function useSocketSubscription(
     });
 
     return () => {
-      console.log(`Leaving room: ${roomName}`);
       socket.emit("leave_context", { contextType, contextId });
 
       Object.keys(handlers).forEach((eventName) => {

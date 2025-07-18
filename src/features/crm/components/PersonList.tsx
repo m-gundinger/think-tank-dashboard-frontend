@@ -1,4 +1,3 @@
-// FILE: src/features/crm/components/PersonList.tsx
 import { useState } from "react";
 import { useGetPeople } from "../api/useGetPeople";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -10,7 +9,6 @@ import { Contact, Trash2 } from "lucide-react";
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,

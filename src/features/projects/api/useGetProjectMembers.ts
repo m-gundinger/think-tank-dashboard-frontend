@@ -11,10 +11,14 @@ async function getProjectMembers(
   return data;
 }
 
-export function useGetProjectMembers(workspaceId: string, projectId: string) {
+export function useGetProjectMembers(
+  workspaceId: string,
+  projectId: string,
+  options: { enabled?: boolean } = { enabled: true }
+) {
   return useQuery({
     queryKey: ["projectMembers", projectId],
     queryFn: () => getProjectMembers(workspaceId, projectId),
-    enabled: !!workspaceId && !!projectId,
+    enabled: !!workspaceId && !!projectId && !!options.enabled,
   });
 }

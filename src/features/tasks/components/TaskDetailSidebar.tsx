@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useUpdateTask } from "../api/useUpdateTask";
+import { useUpdateStandaloneTask } from "../api/useUpdateStandaloneTask";
 import { TaskStatus, TaskPriority } from "@/types";
 import {
   Popover,
@@ -23,7 +24,8 @@ import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 
 export function TaskDetailSidebar({ task, workspaceId, projectId }: any) {
-  const updateTaskMutation = useUpdateTask(workspaceId, projectId, task.id);
+  const useUpdateHook = projectId ? useUpdateTask : useUpdateStandaloneTask;
+  const updateTaskMutation = useUpdateHook(workspaceId, projectId, task.id);
 
   const handleUpdate = (
     field: "status" | "priority" | "dueDate",
@@ -90,10 +92,7 @@ export function TaskDetailSidebar({ task, workspaceId, projectId }: any) {
                 )}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="flex w-auto flex-col space-y-2 p-2">
-              <div className="rounded-t-md border p-1 text-center text-sm">
-                Selected date
-              </div>
+            <PopoverContent className="w-auto p-0">
               <Calendar
                 mode="single"
                 selected={task.dueDate ? new Date(task.dueDate) : undefined}

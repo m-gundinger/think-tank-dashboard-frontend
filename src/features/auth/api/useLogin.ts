@@ -5,10 +5,6 @@ import { AxiosError } from "axios";
 import { useNavigate } from "react-router-dom";
 
 async function login(credentials: any): Promise<any> {
-  console.log(
-    "useLogin: Firing API call to /auth/login with credentials:",
-    credentials
-  );
   const { data } = await api.post("/auth/login", credentials);
   return data;
 }
@@ -19,7 +15,6 @@ export function useLogin() {
   return useMutation<any, AxiosError, any>({
     mutationFn: login,
     onSuccess: (data) => {
-      console.log("useLogin: Login successful, received data:", data);
       setAccessToken(data.accessToken);
       navigate("/dashboard", { replace: true });
     },

@@ -1,3 +1,4 @@
+// FILE: src/features/teams/components/ManageTeamMembers.tsx
 import { useGetUsers } from "@/features/admin/users/api/useGetUsers";
 import { useAddUserToTeam } from "../api/useAddUserToTeam";
 import { useRemoveUserFromTeam } from "../api/useRemoveUserFromTeam";
@@ -18,7 +19,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Check, UserPlus, XIcon } from "lucide-react";
-
+import { getAbsoluteUrl } from "@/lib/utils";
 interface ManageTeamMembersProps {
   team: any;
   workspaceId: string;
@@ -33,10 +34,8 @@ export function ManageTeamMembers({
   const removeUserMutation = useRemoveUserFromTeam(workspaceId, team.id);
 
   const memberIds = new Set(team.members.map((m: any) => m.id));
-
   const availableUsers =
     usersData?.data.filter((user: any) => !memberIds.has(user.id)) || [];
-
   return (
     <div className="space-y-4">
       <div>
@@ -46,7 +45,11 @@ export function ManageTeamMembers({
             team.members.map((member: any) => (
               <Badge key={member.id} variant="secondary" className="pr-1">
                 <Avatar className="mr-2 h-5 w-5">
-                  <AvatarImage src={member.avatarUrl} />
+                  <AvatarImage
+                    src={getAbsoluteUrl(member.avatarUrl)}
+                    alt={member.name}
+                    className="h-full w-full object-cover"
+                  />
                   <AvatarFallback>{member.name?.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <span>{member.name}</span>

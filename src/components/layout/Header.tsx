@@ -1,3 +1,4 @@
+// FILE: src/components/layout/Header.tsx
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,7 +16,7 @@ import { Link } from "react-router-dom";
 import { SearchDialog } from "@/features/search/components/SearchDialog";
 import { NotificationBell } from "@/features/notifications/components/NotificationBell";
 import { useState } from "react";
-
+import { getAbsoluteUrl } from "@/lib/utils";
 export function Header() {
   const { data: user, isLoading } = useGetProfile();
   const logoutMutation = useLogout();
@@ -24,7 +25,6 @@ export function Header() {
   const handleLogout = () => {
     logoutMutation.mutate();
   };
-
   return (
     <>
       <header className="flex h-16 items-center border-b bg-white px-6">
@@ -47,8 +47,9 @@ export function Header() {
                 ) : (
                   <Avatar className="h-8 w-8">
                     <AvatarImage
-                      src={user?.person?.avatarUrl}
+                      src={getAbsoluteUrl(user?.avatarUrl)}
                       alt={user?.name}
+                      className="h-full w-full object-cover"
                     />
                     <AvatarFallback>{user?.name?.charAt(0)}</AvatarFallback>
                   </Avatar>

@@ -1,5 +1,3 @@
-// FILE: src/features/tasks/components/TaskTableRow.tsx
-
 import { TableCell, TableRow } from "@/components/ui/table";
 import { MoreHorizontal, Edit, Copy, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -27,13 +25,15 @@ import { toast } from "sonner";
 import React from "react";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
-
+import { Checkbox } from "@/components/ui/checkbox";
 interface TaskTableRowProps {
   task: any;
   onTaskSelect: (taskId: string) => void;
   workspaceId?: string;
   projectId?: string;
   level?: number;
+  isSelected: boolean;
+  onSelectChange: (id: string, checked: boolean) => void;
 }
 
 export function TaskTableRow({
@@ -42,6 +42,8 @@ export function TaskTableRow({
   projectId,
   onTaskSelect,
   level = 0,
+  isSelected,
+  onSelectChange,
 }: TaskTableRowProps) {
   const useUpdateHook = projectId ? useUpdateTask : useUpdateStandaloneTask;
   const updateTaskMutation = useUpdateHook(workspaceId!, projectId!, task.id);
@@ -77,13 +79,19 @@ export function TaskTableRow({
     e.stopPropagation();
     onTaskSelect(task.id);
   };
-
   return (
     <React.Fragment>
       <TableRow
+        data-state={isSelected && "selected"}
         className="cursor-pointer"
         onClick={() => onTaskSelect(task.id)}
       >
+        <TableCell onClick={(e) => e.stopPropagation()} className="w-[50px]">
+          <Checkbox
+            checked={isSelected}
+            onCheckedChange={(checked) => onSelectChange(task.id, !!checked)}
+          />
+        </TableCell>
         <TableCell className="font-medium">
           <div style={{ paddingLeft: `${level * 24}px` }}>{task.title}</div>
           {task.projectName && (
@@ -161,6 +169,8 @@ export function TaskTableRow({
           projectId={projectId}
           onTaskSelect={onTaskSelect}
           level={level + 1}
+          isSelected={isSelected}
+          onSelectChange={onSelectChange}
         />
       ))}
     </React.Fragment>

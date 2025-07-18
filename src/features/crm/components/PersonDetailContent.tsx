@@ -1,3 +1,4 @@
+// FILE: src/features/crm/components/PersonDetailContent.tsx
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -12,7 +13,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { RichTextOutput } from "@/components/ui/RichTextOutput";
-
+import { getAbsoluteUrl } from "@/lib/utils";
 const socialIcons: Record<string, React.ElementType> = {
   LINKEDIN: Linkedin,
   TWITTER: Twitter,
@@ -20,7 +21,6 @@ const socialIcons: Record<string, React.ElementType> = {
   WEBSITE: Globe,
   OTHER: ExternalLink,
 };
-
 function InfoItem({
   icon: Icon,
   label,
@@ -48,7 +48,11 @@ export function PersonDetailContent({ person }: { person: any }) {
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <Avatar className="h-20 w-20">
-          <AvatarImage src={person.avatarUrl} alt={name} />
+          <AvatarImage
+            src={getAbsoluteUrl(person.avatarUrl)}
+            alt={name}
+            className="h-full w-full object-cover"
+          />
           <AvatarFallback className="text-3xl">
             {name?.charAt(0)}
           </AvatarFallback>

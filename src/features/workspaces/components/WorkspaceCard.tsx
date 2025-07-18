@@ -1,4 +1,3 @@
-// FILE: src/features/workspaces/components/WorkspaceCard.tsx
 import {
   Card,
   CardContent,

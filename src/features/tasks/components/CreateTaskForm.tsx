@@ -1,5 +1,3 @@
-// FILE: src/features/tasks/components/CreateTaskForm.tsx
-
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,8 +24,9 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { useCreateTask } from "../api/useCreateTask";
-import { useCreateStandaloneTask } from "../api/useCreateStandaloneTask"; // Import new hook
+import { useCreateStandaloneTask } from "../api/useCreateStandaloneTask";
 import { useGetEpics } from "@/features/epics/api/useGetEpics";
+import { useGetProfile } from "@/features/profile/api/useGetProfile";
 import { AxiosError } from "axios";
 import { TaskStatus, TaskPriority } from "@/types";
 import { z } from "zod";
@@ -35,6 +34,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { useEffect } from "react";
+import { AssigneeSelector } from "./AssigneeSelector";
 
 const taskSchema = z.object({
   title: z.string().min(1, "Title is required."),
@@ -45,6 +46,9 @@ const taskSchema = z.object({
   parentId: z.string().nullable().optional(),
   boardColumnId: z.string().uuid().optional().nullable(),
   dueDate: z.date().optional().nullable(),
+  assigneeIds: z
+    .array(z.string().uuid())
+    .min(1, "At least one assignee is required."),
 });
 type TaskFormValues = z.infer<typeof taskSchema>;
 
@@ -61,16 +65,16 @@ export function CreateTaskForm({
   parentId = null,
   onSuccess,
 }: CreateTaskFormProps) {
-  const createTaskInProjectMutation = useCreateTask(workspaceId!, projectId!);
-  const createStandaloneTaskMutation = useCreateStandaloneTask();
   const createMutation = projectId
-    ? createTaskInProjectMutation
-    : createStandaloneTaskMutation;
+    ? useCreateTask(workspaceId!, projectId!)
+    : useCreateStandaloneTask();
 
   const { data: epicsData, isLoading: isLoadingEpics } = useGetEpics(
     workspaceId!,
     projectId!
   );
+  const { data: profileData } = useGetProfile();
+
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskSchema),
     defaultValues: {
@@ -82,8 +86,16 @@ export function CreateTaskForm({
       parentId: parentId,
       boardColumnId: null,
       dueDate: null,
+      assigneeIds: [],
     },
   });
+
+  useEffect(() => {
+    if (profileData && form.getValues("assigneeIds").length === 0) {
+      form.setValue("assigneeIds", [profileData.id]);
+    }
+  }, [profileData, form]);
+
   async function onSubmit(values: TaskFormValues) {
     const submitData: Partial<TaskFormValues> = { ...values };
     if (!submitData.boardColumnId) delete submitData.boardColumnId;
@@ -101,6 +113,7 @@ export function CreateTaskForm({
   const errorMessage = (
     createMutation.error as AxiosError<{ message?: string }>
   )?.response?.data?.message;
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -116,6 +129,22 @@ export function CreateTaskForm({
                   {...field}
                 />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="assigneeIds"
+          render={({ field }) => (
+            <FormItem className="flex flex-col">
+              <FormLabel>Assignees</FormLabel>
+              <AssigneeSelector
+                projectId={projectId}
+                workspaceId={workspaceId}
+                selectedIds={field.value}
+                onSelectionChange={field.onChange}
+              />
               <FormMessage />
             </FormItem>
           )}

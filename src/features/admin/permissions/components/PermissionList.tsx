@@ -1,4 +1,3 @@
-// FILE: src/features/admin/permissions/components/PermissionList.tsx
 import { useState } from "react";
 import { useGetPermissions } from "../api/useGetPermissions";
 import { useDeletePermission } from "../api/useDeletePermission";

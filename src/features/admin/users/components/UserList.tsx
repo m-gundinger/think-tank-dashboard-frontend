@@ -1,4 +1,3 @@
-// FILE: src/features/admin/users/components/UserList.tsx
 import { useState } from "react";
 import { useGetUsers } from "../api/useGetUsers";
 import { Card, CardFooter } from "@/components/ui/card";

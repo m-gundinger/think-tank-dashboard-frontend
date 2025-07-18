@@ -1,4 +1,3 @@
-// FILE: src/features/admin/jobs/components/JobScheduleList.tsx
 import { useState } from "react";
 import { useGetJobSchedules } from "../api/useGetJobSchedules";
 import {

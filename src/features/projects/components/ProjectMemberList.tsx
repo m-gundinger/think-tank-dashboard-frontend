@@ -1,3 +1,4 @@
+// FILE: src/features/projects/components/ProjectMemberList.tsx
 import { useGetProjectMembers } from "../api/useGetProjectMembers";
 import { useRemoveProjectMember } from "../api/useRemoveProjectMember";
 import { useGetProjectRoles } from "@/features/project-roles/api/useGetProjectRoles";
@@ -27,7 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
-
+import { getAbsoluteUrl } from "@/lib/utils";
 interface ProjectMemberListProps {
   workspaceId: string;
   projectId: string;
@@ -45,7 +46,6 @@ export function ProjectMemberList({
   );
   const removeMemberMutation = useRemoveProjectMember(workspaceId, projectId);
   const updateMemberMutation = useUpdateProjectMember(workspaceId, projectId);
-
   const handleDelete = (member: any) => {
     if (window.confirm(`Remove ${member.name} from this project?`)) {
       removeMemberMutation.mutate(member.userId);
@@ -55,7 +55,6 @@ export function ProjectMemberList({
   const handleRoleChange = (userId: string, roleId: string) => {
     updateMemberMutation.mutate({ userId, roleId });
   };
-
   if (isLoadingMembers || isLoadingRoles) return <div>Loading members...</div>;
 
   return (
@@ -75,7 +74,11 @@ export function ProjectMemberList({
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={member.avatarUrl} />
+                      <AvatarImage
+                        src={getAbsoluteUrl(member.avatarUrl)}
+                        alt={member.name}
+                        className="h-full w-full object-cover"
+                      />
                       <AvatarFallback>{member.name?.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <span className="font-medium">{member.name}</span>

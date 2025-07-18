@@ -1,5 +1,3 @@
-// FILE: src/App.tsx
-
 import { Routes, Route, Navigate } from "react-router-dom";
 import { ProtectedLayout } from "./routes/ProtectedLayout";
 import { WorkspaceLayout } from "./routes/WorkspaceLayout";
@@ -33,7 +31,7 @@ import { ProjectGeneralSettingsPage } from "./pages/ProjectGeneralSettingsPage";
 import { JobMonitoringPage } from "./pages/admin/JobMonitoringPage";
 import { SystemStatusPage } from "./pages/admin/SystemStatusPage";
 import { CrmPage } from "./pages/CrmPage";
-import { MyTasksPage } from "./pages/MyTasksPage"; // Import the new page
+import { MyTasksPage } from "./pages/MyTasksPage";
 
 function App() {
   return (
@@ -53,7 +51,6 @@ function App() {
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="my-tasks" element={<MyTasksPage />} />{" "}
-          {/* Add the new route */}
           <Route path="workspaces" element={<WorkspacesPage />} />
           <Route path="publications" element={<PublicationsPage />} />
           <Route path="crm" element={<CrmPage />} />

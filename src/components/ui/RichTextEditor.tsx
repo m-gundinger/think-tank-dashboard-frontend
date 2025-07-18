@@ -18,7 +18,7 @@ import { Toggle } from "./toggle";
 import { Separator } from "./separator";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import Picker, { EmojiClickData } from "emoji-picker-react";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 
 interface RichTextEditorProps {
   value: string;
@@ -48,8 +48,8 @@ function EditorToolbar({ editor }: { editor: Editor | null }) {
     editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
   }, [editor]);
 
-  const handleEmojiClick = (emojiData: EmojiClickData) => {
-    editor.chain().focus().insertContent(emojiData.emoji).run();
+  const handleEmojiClick = (emojiClickData: EmojiClickData) => {
+    editor.chain().focus().insertContent(emojiClickData.emoji).run();
   };
 
   return (
@@ -183,6 +183,12 @@ export function RichTextEditor({
       },
     },
   });
+
+  useEffect(() => {
+    if (editor && value !== editor.getHTML()) {
+      editor.commands.setContent(value);
+    }
+  }, [editor, value]);
 
   return (
     <div>

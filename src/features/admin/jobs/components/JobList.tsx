@@ -1,4 +1,3 @@
-// FILE: src/features/admin/jobs/components/JobList.tsx
 import { useState } from "react";
 import { useGetJobs } from "../api/useGetJobs";
 import { useRetryJob, useCancelJob } from "../api/useJobActions";

@@ -20,7 +20,6 @@ export function useAssignUser(
   taskId: string
 ) {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: (userId: string) =>
       assignUser({ workspaceId, projectId, taskId, userId }),

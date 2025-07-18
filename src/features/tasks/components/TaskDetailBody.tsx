@@ -4,7 +4,6 @@ import { SubtaskList } from "./SubtaskList";
 import { useState, useEffect } from "react";
 import { CreateTaskDialog } from "./CreateTaskDialog";
 import { TaskLinks } from "./TaskLinks";
-import { EditableField } from "@/components/ui/EditableField";
 
 export function TaskDetailBody({
   task,

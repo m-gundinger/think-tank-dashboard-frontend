@@ -14,17 +14,61 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useGetProjectMembers } from "@/features/projects/api/useGetProjectMembers";
+import { useGetUsers } from "@/features/admin/users/api/useGetUsers";
 import { Check, UserPlus, X } from "lucide-react";
 import { useAssignUser } from "../api/useAssignUser";
 import { useUnassignUser } from "../api/useUnassignUser";
+import { useAssignStandaloneUser } from "../api/useAssignStandaloneUser";
+import { useUnassignStandaloneUser } from "../api/useUnassignStandaloneUser";
 import { cn } from "@/lib/utils";
+import { useMemo, useState } from "react";
 
 export function TaskAssignees({ task, workspaceId, projectId }: any) {
-  const { data: membersData } = useGetProjectMembers(workspaceId, projectId);
-  const assignUserMutation = useAssignUser(workspaceId, projectId, task.id);
-  const unassignUserMutation = useUnassignUser(workspaceId, projectId, task.id);
+  const [popoverOpen, setPopoverOpen] = useState(false);
+  const isProjectTask = !!(workspaceId && projectId);
+
+  const assignMutation = isProjectTask
+    ? useAssignUser(workspaceId, projectId, task.id)
+    : useAssignStandaloneUser(task.id);
+  const unassignMutation = isProjectTask
+    ? useUnassignUser(workspaceId, projectId, task.id)
+    : useUnassignStandaloneUser(task.id);
+
+  const { data: projectMembersData, isLoading: isLoadingProjectMembers } =
+    useGetProjectMembers(workspaceId, projectId, { enabled: isProjectTask });
+  const { data: allUsersData, isLoading: isLoadingAllUsers } = useGetUsers({
+    enabled: !isProjectTask,
+  });
+
+  const isLoading = isLoadingProjectMembers || isLoadingAllUsers;
+
+  const availableUsers = useMemo(() => {
+    if (isProjectTask) {
+      return (
+        projectMembersData?.map((member: any) => ({
+          id: member.userId,
+          name: member.name,
+        })) || []
+      );
+    }
+
+    return (
+      allUsersData?.data?.map((user: any) => ({
+        id: user.id,
+        name: user.name,
+      })) || []
+    );
+  }, [isProjectTask, projectMembersData, allUsersData]);
 
   const assignedIds = new Set(task.assignees.map((a: any) => a.id));
+
+  const handleSelect = (userId: string) => {
+    assignMutation.mutate(userId, {
+      onSuccess: () => {
+        setPopoverOpen(false);
+      },
+    });
+  };
 
   return (
     <div>
@@ -33,22 +77,33 @@ export function TaskAssignees({ task, workspaceId, projectId }: any) {
         {task.assignees.map((assignee: any) => (
           <div
             key={assignee.id}
-            className="flex items-center gap-2 rounded-full bg-gray-100 pr-2"
+            className="flex items-center gap-2 rounded-full bg-gray-100 py-0.5 pr-2 pl-0.5"
           >
-            <Avatar className="h-6 w-6">
+            <Avatar className="h-5 w-5">
               <AvatarImage src={assignee.avatarUrl} />
               <AvatarFallback>{assignee.name?.charAt(0)}</AvatarFallback>
             </Avatar>
             <span className="text-sm">{assignee.name}</span>
-            <button onClick={() => unassignUserMutation.mutate(assignee.id)}>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="ml-1 h-4 w-4 rounded-full"
+              onClick={() => unassignMutation.mutate(assignee.id)}
+              disabled={unassignMutation.isPending}
+            >
               <X className="text-muted-foreground hover:text-primary h-3 w-3" />
-            </button>
+            </Button>
           </div>
         ))}
 
-        <Popover>
+        <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
           <PopoverTrigger asChild>
-            <Button variant="outline" size="icon" className="h-6 w-6">
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-6 w-6"
+              disabled={isLoading}
+            >
               <UserPlus className="h-4 w-4" />
             </Button>
           </PopoverTrigger>
@@ -56,26 +111,27 @@ export function TaskAssignees({ task, workspaceId, projectId }: any) {
             <Command>
               <CommandInput placeholder="Assign user..." />
               <CommandList>
-                <CommandEmpty>No users found.</CommandEmpty>
+                <CommandEmpty>No available users found.</CommandEmpty>
                 <CommandGroup>
-                  {membersData?.map((member: any) => (
-                    <CommandItem
-                      key={member.userId}
-                      value={member.name}
-                      onSelect={() => assignUserMutation.mutate(member.userId)}
-                      disabled={assignedIds.has(member.userId)}
-                    >
-                      <Check
-                        className={cn(
-                          "mr-2 h-4 w-4",
-                          assignedIds.has(member.userId)
-                            ? "opacity-100"
-                            : "opacity-0"
-                        )}
-                      />
-                      {member.name}
-                    </CommandItem>
-                  ))}
+                  {availableUsers
+                    .filter((user: any) => !assignedIds.has(user.id))
+                    .map((user: any) => (
+                      <CommandItem
+                        key={user.id}
+                        value={user.name}
+                        onSelect={() => handleSelect(user.id)}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            assignedIds.has(user.id)
+                              ? "opacity-100"
+                              : "opacity-0"
+                          )}
+                        />
+                        {user.name}
+                      </CommandItem>
+                    ))}
                 </CommandGroup>
               </CommandList>
             </Command>

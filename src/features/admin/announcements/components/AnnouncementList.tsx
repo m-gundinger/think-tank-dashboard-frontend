@@ -1,4 +1,3 @@
-// FILE: src/features/admin/announcements/components/AnnouncementList.tsx
 import { useState } from "react";
 import { useGetAnnouncements } from "../api/useGetAnnouncements";
 import { useDeleteAnnouncement } from "../api/useDeleteAnnouncement";

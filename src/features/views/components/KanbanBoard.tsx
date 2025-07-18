@@ -40,27 +40,23 @@ function mapStatusToColumnName(status: TaskStatus): string {
   }
 }
 
-// This function now correctly handles parent and sub-task visibility.
+
 const getDisplayableTasks = (tasks: Task[]): Task[] => {
   const displayable: Task[] = [];
   if (!tasks) return displayable;
 
   for (const task of tasks) {
-    // If a task has no subtasks, it's always displayable.
+    
     if (!task.subtasks || task.subtasks.length === 0) {
       displayable.push(task);
     } else {
-      // If a task has subtasks, check if they are all done.
       const allSubtasksDone = task.subtasks.every(
         (sub) => sub.status === TaskStatus.DONE
       );
 
-      // If all subtasks are done, display the parent task itself.
       if (allSubtasksDone) {
         displayable.push(task);
       } else {
-        // Otherwise, don't show the parent, but recursively find
-        // and show its individual (non-done) subtasks.
         displayable.push(...getDisplayableTasks(task.subtasks));
       }
     }

@@ -20,7 +20,6 @@ export function CommentSection({ workspaceId, projectId, taskId }: any) {
   const handleCommentUpdate = useCallback(
     (event: any) => {
       const { action, comment } = event.payload;
-      console.log("Received COMMENT_UPDATED event:", event.payload);
       queryClient.setQueryData(["comments", taskId], (oldData: any) => {
         if (!oldData) return oldData;
         let newComments;

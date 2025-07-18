@@ -45,8 +45,6 @@ export default [
 ];
 
 // FILE: src/App.tsx
-// FILE: src/App.tsx
-
 import { Routes, Route, Navigate } from "react-router-dom";
 import { ProtectedLayout } from "./routes/ProtectedLayout";
 import { WorkspaceLayout } from "./routes/WorkspaceLayout";
@@ -80,7 +78,7 @@ import { ProjectGeneralSettingsPage } from "./pages/ProjectGeneralSettingsPage";
 import { JobMonitoringPage } from "./pages/admin/JobMonitoringPage";
 import { SystemStatusPage } from "./pages/admin/SystemStatusPage";
 import { CrmPage } from "./pages/CrmPage";
-import { MyTasksPage } from "./pages/MyTasksPage"; // Import the new page
+import { MyTasksPage } from "./pages/MyTasksPage";
 
 function App() {
   return (
@@ -100,7 +98,6 @@ function App() {
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="my-tasks" element={<MyTasksPage />} />{" "}
-          {/* Add the new route */}
           <Route path="workspaces" element={<WorkspacesPage />} />
           <Route path="publications" element={<PublicationsPage />} />
           <Route path="crm" element={<CrmPage />} />
@@ -314,8 +311,6 @@ export function MainContent({ children }: MainContentProps) {
 }
 
 // FILE: src/components/layout/Sidebar.tsx
-// FILE: src/components/layout/Sidebar.tsx
-
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -331,7 +326,7 @@ import {
   Clock,
   Activity,
   Contact,
-  CheckSquare, // Import the new icon
+  CheckSquare,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -456,7 +451,6 @@ import { useGetActivities } from "../api/useGetActivities";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Activity, MessageSquarePlus, SquarePlus, Trash2 } from "lucide-react";
-
 const activityIconMap: Record<string, React.ElementType> = {
   TASK_CREATED: SquarePlus,
   TASK_UPDATED: Activity,
@@ -464,7 +458,6 @@ const activityIconMap: Record<string, React.ElementType> = {
   COMMENT_CREATED: MessageSquarePlus,
   DEFAULT: Activity,
 };
-
 function formatActivityDetails(activity: any): string {
   const actorName = activity.actor.name;
   switch (activity.actionType) {
@@ -492,7 +485,6 @@ export function ProjectActivityLog({ workspaceId, projectId }: any) {
       limit: 50,
     }
   );
-
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -507,7 +499,6 @@ export function ProjectActivityLog({ workspaceId, projectId }: any) {
   }
 
   if (isError) return <div>Failed to load project activity.</div>;
-
   return (
     <Card>
       <CardHeader>
@@ -526,7 +517,7 @@ export function ProjectActivityLog({ workspaceId, projectId }: any) {
                 <div className="flex-grow">
                   <p className="text-sm">{formatActivityDetails(activity)}</p>
                   <p className="text-muted-foreground text-xs">
-                    {new Date(activity.createdAt).toLocaleString()}
+                    {new Date(activity.createdAt).toLocaleString("en-US")}
                   </p>
                 </div>
               </div>
@@ -567,13 +558,17 @@ import api from "@/lib/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 
-async function deleteAnnouncement(id: string): Promise<void> {
-  await api.delete(`/announcements/${id}`);
+async function deleteAnnouncement(ids: string | string[]): Promise<void> {
+  if (Array.isArray(ids)) {
+    await api.delete("/announcements", { data: { ids } });
+  } else {
+    await api.delete(`/announcements/${ids}`);
+  }
 }
 
 export function useDeleteAnnouncement() {
   const queryClient = useQueryClient();
-  return useMutation<void, AxiosError, string>({
+  return useMutation<void, AxiosError, string | string[]>({
     mutationFn: deleteAnnouncement,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["announcements"] });
@@ -866,16 +861,30 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export function AnnouncementList() {
   const [page, setPage] = useState(1);
   const { data, isLoading, isError } = useGetAnnouncements({ page, limit: 10 });
   const deleteMutation = useDeleteAnnouncement();
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const handleDelete = (id: string, title: string) => {
     if (window.confirm(`Delete announcement "${title}"?`)) {
-      deleteMutation.mutate(id);
+      deleteMutation.mutate(id, {
+        onSuccess: () => setSelectedIds([]),
+      });
+    }
+  };
+
+  const handleBulkDelete = () => {
+    if (
+      window.confirm(`Delete ${selectedIds.length} selected announcements?`)
+    ) {
+      deleteMutation.mutate(selectedIds, {
+        onSuccess: () => setSelectedIds([]),
+      });
     }
   };
 
@@ -885,15 +894,51 @@ export function AnnouncementList() {
     }
   };
 
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(data?.data?.map((item: any) => item.id) || []);
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleRowSelect = (id: string, checked: boolean) => {
+    if (checked) {
+      setSelectedIds((prev) => [...prev, id]);
+    } else {
+      setSelectedIds((prev) => prev.filter((prevId) => prevId !== id));
+    }
+  };
+
   if (isLoading) return <div>Loading announcements...</div>;
   if (isError) return <div>Error loading announcements.</div>;
-
   return (
     <>
+      <div className="mb-4 flex items-center gap-2">
+        {selectedIds.length > 0 && (
+          <Button
+            variant="destructive"
+            onClick={handleBulkDelete}
+            disabled={deleteMutation.isPending}
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Delete ({selectedIds.length})
+          </Button>
+        )}
+      </div>
       <Card>
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[50px]">
+                <Checkbox
+                  checked={
+                    data?.data?.length > 0 &&
+                    selectedIds.length === data?.data?.length
+                  }
+                  onCheckedChange={handleSelectAll}
+                />
+              </TableHead>
               <TableHead>Title</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Severity</TableHead>
@@ -906,6 +951,14 @@ export function AnnouncementList() {
             {data?.data?.length > 0 ? (
               data.data.map((item: any) => (
                 <TableRow key={item.id}>
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedIds.includes(item.id)}
+                      onCheckedChange={(checked) =>
+                        handleRowSelect(item.id, !!checked)
+                      }
+                    />
+                  </TableCell>
                   <TableCell className="font-medium">{item.title}</TableCell>
                   <TableCell>
                     <Badge variant="outline">{item.status}</Badge>
@@ -916,7 +969,7 @@ export function AnnouncementList() {
                   <TableCell>{item.isPinned ? "Yes" : "No"}</TableCell>
                   <TableCell>
                     {item.publishedAt
-                      ? new Date(item.publishedAt).toLocaleDateString()
+                      ? new Date(item.publishedAt).toLocaleDateString("en-US")
                       : "N/A"}
                   </TableCell>
                   <TableCell className="text-right">
@@ -943,7 +996,7 @@ export function AnnouncementList() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center">
+                <TableCell colSpan={7} className="h-24 text-center">
                   No announcements found.
                 </TableCell>
               </TableRow>
@@ -1615,7 +1668,6 @@ const statusVariantMap: Record<
   [JobStatus.FAILED]: "destructive",
   [JobStatus.CANCELLED]: "destructive",
 };
-
 const statusIconMap: Record<JobStatus, React.ElementType> = {
   [JobStatus.PENDING]: Clock,
   [JobStatus.RUNNING]: RefreshCw,
@@ -1623,7 +1675,6 @@ const statusIconMap: Record<JobStatus, React.ElementType> = {
   [JobStatus.FAILED]: AlertCircle,
   [JobStatus.CANCELLED]: XCircle,
 };
-
 export function JobList() {
   const [page] = useState(1);
   const { data, isLoading, isError } = useGetJobs({ page, limit: 20 });
@@ -1632,7 +1683,6 @@ export function JobList() {
 
   if (isLoading) return <div>Loading jobs...</div>;
   if (isError) return <div>Error loading jobs.</div>;
-
   return (
     <Table>
       <TableHeader>
@@ -1661,7 +1711,7 @@ export function JobList() {
                   {job.attempts} / {job.maxAttempts}
                 </TableCell>
                 <TableCell>
-                  {new Date(job.createdAt).toLocaleString()}
+                  {new Date(job.createdAt).toLocaleString("en-US")}
                 </TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>
@@ -1724,7 +1774,6 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
-
 export function JobScheduleList() {
   const [page] = useState(1);
   const { data, isLoading, isError } = useGetJobSchedules({
@@ -1736,7 +1785,6 @@ export function JobScheduleList() {
 
   if (isLoading) return <div>Loading schedules...</div>;
   if (isError) return <div>Error loading schedules.</div>;
-
   return (
     <Table>
       <TableHeader>
@@ -1762,7 +1810,7 @@ export function JobScheduleList() {
               </TableCell>
               <TableCell>
                 {schedule.nextRunAt
-                  ? new Date(schedule.nextRunAt).toLocaleString()
+                  ? new Date(schedule.nextRunAt).toLocaleString("en-US")
                   : "N/A"}
               </TableCell>
               <TableCell>
@@ -2034,8 +2082,12 @@ export function useCreatePermission() {
 import api from "@/lib/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-async function deletePermission(permissionId: string): Promise<void> {
-  await api.delete(`/admin/permissions/${permissionId}`);
+async function deletePermission(ids: string | string[]): Promise<void> {
+  if (Array.isArray(ids)) {
+    await api.delete(`/admin/permissions`, { data: { ids } });
+  } else {
+    await api.delete(`/admin/permissions/${ids}`);
+  }
 }
 
 export function useDeletePermission() {
@@ -2289,11 +2341,13 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export function PermissionList() {
   const [page, setPage] = useState(1);
   const { data, isLoading, isError } = useGetPermissions({ page, limit: 15 });
   const deleteMutation = useDeletePermission();
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const handleDelete = (permission: any) => {
     if (
@@ -2305,107 +2359,162 @@ export function PermissionList() {
     }
   };
 
+  const handleBulkDelete = () => {
+    if (window.confirm(`Delete ${selectedIds.length} selected permissions?`)) {
+      deleteMutation.mutate(selectedIds, {
+        onSuccess: () => setSelectedIds([]),
+      });
+    }
+  };
+
   const handlePageChange = (newPage: number) => {
     if (newPage > 0 && newPage <= (data?.totalPages || 1)) {
       setPage(newPage);
     }
   };
 
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(data?.data?.map((item: any) => item.id) || []);
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleRowSelect = (id: string, checked: boolean) => {
+    if (checked) {
+      setSelectedIds((prev) => [...prev, id]);
+    } else {
+      setSelectedIds((prev) => prev.filter((prevId) => prevId !== id));
+    }
+  };
+
   if (isLoading) return <div>Loading permissions...</div>;
   if (isError) return <div>Error loading permissions.</div>;
 
+  const isAllSelected =
+    data?.data?.length > 0 && selectedIds.length === data.data.length;
+
   return (
-    <Card>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Action</TableHead>
-            <TableHead>Subject</TableHead>
-            <TableHead>Description</TableHead>
-            <TableHead className="w-[50px]">
-              <span className="sr-only">Actions</span>
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {data?.data?.length > 0 ? (
-            data.data.map((p: any) => (
-              <TableRow key={p.id}>
-                <TableCell className="font-mono">{p.action}</TableCell>
-                <TableCell className="font-mono">{p.subject}</TableCell>
-                <TableCell>{p.description}</TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        className="text-red-600"
-                        onClick={() => handleDelete(p)}
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+    <>
+      <div className="mb-4 flex items-center gap-2">
+        {selectedIds.length > 0 && (
+          <Button
+            variant="destructive"
+            onClick={handleBulkDelete}
+            disabled={deleteMutation.isPending}
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Delete ({selectedIds.length})
+          </Button>
+        )}
+      </div>
+      <Card>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[50px]">
+                <Checkbox
+                  checked={isAllSelected}
+                  onCheckedChange={handleSelectAll}
+                />
+              </TableHead>
+              <TableHead>Action</TableHead>
+              <TableHead>Subject</TableHead>
+              <TableHead>Description</TableHead>
+              <TableHead className="w-[50px]">
+                <span className="sr-only">Actions</span>
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {data?.data?.length > 0 ? (
+              data.data.map((p: any) => (
+                <TableRow key={p.id}>
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedIds.includes(p.id)}
+                      onCheckedChange={(checked) =>
+                        handleRowSelect(p.id, !!checked)
+                      }
+                    />
+                  </TableCell>
+                  <TableCell className="font-mono">{p.action}</TableCell>
+                  <TableCell className="font-mono">{p.subject}</TableCell>
+                  <TableCell>{p.description}</TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          className="text-red-600"
+                          onClick={() => handleDelete(p)}
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={5} className="h-24 text-center">
+                  No permissions found.
                 </TableCell>
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={4} className="h-24 text-center">
-                No permissions found.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-      <CardFooter className="border-t pt-4">
-        {data?.totalPages > 1 && (
-          <Pagination>
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handlePageChange(page - 1);
-                  }}
-                  isActive={page > 1}
-                />
-              </PaginationItem>
-              {[...Array(data.totalPages)].map((_, i) => (
-                <PaginationItem key={i}>
-                  <PaginationLink
+            )}
+          </TableBody>
+        </Table>
+        <CardFooter className="border-t pt-4">
+          {data?.totalPages > 1 && (
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
                     href="#"
                     onClick={(e) => {
                       e.preventDefault();
-                      handlePageChange(i + 1);
+                      handlePageChange(page - 1);
                     }}
-                    isActive={page === i + 1}
-                  >
-                    {i + 1}
-                  </PaginationLink>
+                    isActive={page > 1}
+                  />
                 </PaginationItem>
-              ))}
-              <PaginationItem>
-                <PaginationNext
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handlePageChange(page + 1);
-                  }}
-                  isActive={page < data.totalPages}
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-        )}
-      </CardFooter>
-    </Card>
+                {[...Array(data.totalPages)].map((_, i) => (
+                  <PaginationItem key={i}>
+                    <PaginationLink
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handlePageChange(i + 1);
+                      }}
+                      isActive={page === i + 1}
+                    >
+                      {i + 1}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                <PaginationItem>
+                  <PaginationNext
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handlePageChange(page + 1);
+                    }}
+                    isActive={page < data.totalPages}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          )}
+        </CardFooter>
+      </Card>
+    </>
   );
 }
 
@@ -3071,8 +3180,6 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetSystemStatus } from "../api/useGetSystemStatus";
-import { Server, Database, BrainCircuit } from "lucide-react";
-
 const StatusBadge = ({
   status,
 }: {
@@ -3086,10 +3193,8 @@ const StatusBadge = ({
         : "destructive";
   return <Badge variant={variant}>{status}</Badge>;
 };
-
 export function SystemStatusDashboard() {
   const { data, isLoading, isError, error } = useGetSystemStatus();
-
   if (isLoading) {
     return <Skeleton className="h-64 w-full" />;
   }
@@ -3103,7 +3208,6 @@ export function SystemStatusDashboard() {
   }
 
   const { status, timestamp, version, metrics, dependencies } = data;
-
   return (
     <div className="space-y-6">
       <Card>
@@ -3113,7 +3217,7 @@ export function SystemStatusDashboard() {
             <StatusBadge status={status} />
           </CardTitle>
           <CardDescription>
-            Last checked: {new Date(timestamp).toLocaleString()}
+            Last checked: {new Date(timestamp).toLocaleString("en-US")}
           </CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-4 text-sm md:grid-cols-3">
@@ -3242,18 +3346,30 @@ export function useCreateUser() {
 import api from "@/lib/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
+import { toast } from "sonner";
 
-async function deleteUser(userId: string): Promise<void> {
-  await api.delete(`/admin/users/${userId}`);
+async function deleteUser(userIds: string | string[]): Promise<void> {
+  if (Array.isArray(userIds) && userIds.length > 0) {
+    await api.delete(`/admin/users`, { data: { ids: userIds } });
+  } else if (typeof userIds === "string") {
+    await api.delete(`/admin/users/${userIds}`);
+  }
 }
 
 export function useDeleteUser() {
   const queryClient = useQueryClient();
-
-  return useMutation<void, AxiosError, string>({
+  return useMutation<void, AxiosError, string | string[]>({
     mutationFn: deleteUser,
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
+      const count = Array.isArray(variables) ? variables.length : 1;
+      toast.success(`${count} user(s) successfully deactivated.`);
       queryClient.invalidateQueries({ queryKey: ["users"] });
+    },
+    onError: (error: any) => {
+      toast.error("Failed to deactivate user(s)", {
+        description:
+          error.response?.data?.message || "An unexpected error occurred.",
+      });
     },
   });
 }
@@ -3962,14 +4078,17 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
+import { useDeleteUser } from "../api/useDeleteUser";
 
 export function UserList() {
   const [page, setPage] = useState(1);
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const { data, isLoading, isError } = useGetUsers({ page, limit: 10 });
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
-
-  if (isLoading) return <div>Loading users...</div>;
-  if (isError) return <div>Error loading users.</div>;
+  const deleteMutation = useDeleteUser();
 
   const handlePageChange = (newPage: number) => {
     if (newPage > 0 && newPage <= (data?.totalPages || 1)) {
@@ -3977,12 +4096,62 @@ export function UserList() {
     }
   };
 
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedUserIds(data?.data?.map((user: any) => user.id) || []);
+    } else {
+      setSelectedUserIds([]);
+    }
+  };
+
+  const handleRowSelect = (id: string, checked: boolean) => {
+    if (checked) {
+      setSelectedUserIds((prev) => [...prev, id]);
+    } else {
+      setSelectedUserIds((prev) => prev.filter((prevId) => prevId !== id));
+    }
+  };
+
+  const handleBulkDelete = () => {
+    if (
+      window.confirm(`Deactivate ${selectedUserIds.length} selected users?`)
+    ) {
+      deleteMutation.mutate(selectedUserIds, {
+        onSuccess: () => setSelectedUserIds([]),
+      });
+    }
+  };
+
+  if (isLoading) return <div>Loading users...</div>;
+  if (isError) return <div>Error loading users.</div>;
+
+  const isAllSelected =
+    data?.data?.length > 0 && selectedUserIds.length === data.data.length;
+
   return (
     <>
+      <div className="mb-4 flex items-center gap-2">
+        {selectedUserIds.length > 0 && (
+          <Button
+            variant="destructive"
+            onClick={handleBulkDelete}
+            disabled={deleteMutation.isPending}
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Deactivate ({selectedUserIds.length})
+          </Button>
+        )}
+      </div>
       <Card>
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[50px]">
+                <Checkbox
+                  checked={isAllSelected}
+                  onCheckedChange={handleSelectAll}
+                />
+              </TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Status</TableHead>
@@ -4000,11 +4169,13 @@ export function UserList() {
                   key={user.id}
                   user={user}
                   onEdit={() => setEditingUserId(user.id)}
+                  isSelected={selectedUserIds.includes(user.id)}
+                  onSelect={handleRowSelect}
                 />
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center">
+                <TableCell colSpan={7} className="h-24 text-center">
                   No users found.
                 </TableCell>
               </TableRow>
@@ -4068,6 +4239,7 @@ export function UserList() {
 
 // FILE: src/features/admin/users/components/UserTableRow.tsx
 import { TableCell, TableRow } from "@/components/ui/table";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -4084,13 +4256,21 @@ import { useSetUserStatus } from "../api/useSetUserStatus";
 import { useHardDeleteUser } from "../api/useHardDeleteUser";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface UserTableRowProps {
   user: any;
   onEdit: (userId: string) => void;
+  isSelected: boolean;
+  onSelect: (id: string, checked: boolean) => void;
 }
 
-export function UserTableRow({ user, onEdit }: UserTableRowProps) {
+export function UserTableRow({
+  user,
+  onEdit,
+  isSelected,
+  onSelect,
+}: UserTableRowProps) {
   const deleteUserMutation = useDeleteUser();
   const setUserStatusMutation = useSetUserStatus();
   const hardDeleteUserMutation = useHardDeleteUser();
@@ -4107,18 +4287,28 @@ export function UserTableRow({ user, onEdit }: UserTableRowProps) {
       }
     }
   };
-
   const handleStatusChange = (isActive: boolean) => {
     setUserStatusMutation.mutate({ userId: user.id, isActive });
   };
-
   return (
     <TableRow>
+      <TableCell>
+        <Checkbox
+          checked={isSelected}
+          onCheckedChange={(checked) => onSelect(user.id, !!checked)}
+        />
+      </TableCell>
       <TableCell className="font-medium">
         <div className="flex items-center gap-3">
+          <Avatar className="h-9 w-9">
+            <AvatarImage
+              src={user.avatarUrl}
+              alt={`${user.firstName} ${user.lastName}`}
+            />
+            <AvatarFallback>{user.firstName?.charAt(0)}</AvatarFallback>
+          </Avatar>
           <div className="flex flex-col">
             <span className="font-semibold">{user.name}</span>
-            <span className="text-muted-foreground text-sm">{user.id}</span>
           </div>
         </div>
       </TableCell>
@@ -4148,7 +4338,9 @@ export function UserTableRow({ user, onEdit }: UserTableRowProps) {
           </Badge>
         ))}
       </TableCell>
-      <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
+      <TableCell>
+        {new Date(user.createdAt).toLocaleDateString("en-US")}
+      </TableCell>
       <TableCell>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -4999,7 +5191,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-
 interface WorkflowRunDetailProps {
   run: any | null;
   isOpen: boolean;
@@ -5011,14 +5202,12 @@ const statusColors: Record<string, string> = {
   FAILED: "bg-red-500",
   RUNNING: "bg-blue-500",
 };
-
 export function WorkflowRunDetail({
   run,
   isOpen,
   onOpenChange,
 }: WorkflowRunDetailProps) {
   if (!run) return null;
-
   return (
     <Drawer open={isOpen} onOpenChange={onOpenChange}>
       <DrawerContent>
@@ -5031,7 +5220,7 @@ export function WorkflowRunDetail({
               </Badge>
             </div>
             <DrawerDescription>
-              Ran at: {new Date(run.startedAt).toLocaleString()}
+              Ran at: {new Date(run.startedAt).toLocaleString("en-US")}
             </DrawerDescription>
           </DrawerHeader>
           <div className="grid grid-cols-2 gap-4 px-4 pb-4">
@@ -5073,23 +5262,19 @@ import { useGetWorkflowRuns } from "../api/useGetWorkflowRuns";
 import { WorkflowRunDetail } from "./WorkflowRunDetail";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-
 const statusColors: Record<string, string> = {
   SUCCESS: "bg-green-100 text-green-800",
   FAILED: "bg-red-100 text-red-800",
   RUNNING: "bg-blue-100 text-blue-800",
 };
-
 export function WorkflowRunList({ workflowId }: { workflowId: string }) {
   const [selectedRun, setSelectedRun] = useState<any | null>(null);
   const { data, isLoading, isError } = useGetWorkflowRuns(workflowId, {
     page: 1,
     limit: 50,
   });
-
   if (isLoading) return <div>Loading run history...</div>;
   if (isError) return <div>Error loading run history.</div>;
-
   return (
     <>
       <div className="rounded-md border">
@@ -5121,11 +5306,11 @@ export function WorkflowRunList({ workflowId }: { workflowId: string }) {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    {new Date(run.startedAt).toLocaleString()}
+                    {new Date(run.startedAt).toLocaleString("en-US")}
                   </TableCell>
                   <TableCell>
                     {run.completedAt
-                      ? new Date(run.completedAt).toLocaleString()
+                      ? new Date(run.completedAt).toLocaleString("en-US")
                       : "N/A"}
                   </TableCell>
                   <TableCell className="text-right">
@@ -5332,10 +5517,6 @@ import { AxiosError } from "axios";
 import { useNavigate } from "react-router-dom";
 
 async function login(credentials: any): Promise<any> {
-  console.log(
-    "useLogin: Firing API call to /auth/login with credentials:",
-    credentials
-  );
   const { data } = await api.post("/auth/login", credentials);
   return data;
 }
@@ -5346,7 +5527,6 @@ export function useLogin() {
   return useMutation<any, AxiosError, any>({
     mutationFn: login,
     onSuccess: (data) => {
-      console.log("useLogin: Login successful, received data:", data);
       setAccessToken(data.accessToken);
       navigate("/dashboard", { replace: true });
     },
@@ -5481,6 +5661,26 @@ export function useSetupPassword() {
   });
 }
 
+// FILE: src/features/auth/api/useVerifyResetToken.ts
+import api from "@/lib/api";
+import { useQuery } from "@tanstack/react-query";
+
+async function verifyResetToken(token: string): Promise<{ message: string }> {
+  const { data } = await api.get(`/auth/reset-password/${token}`);
+  return data;
+}
+
+export function useVerifyResetToken(token: string | null) {
+  return useQuery({
+    queryKey: ["verifyResetToken", token],
+    queryFn: () => verifyResetToken(token!),
+    enabled: !!token,
+    retry: false,
+    staleTime: Infinity,
+    gcTime: Infinity,
+  });
+}
+
 // FILE: src/features/auth/components/ForgotPasswordForm.tsx
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -5596,7 +5796,6 @@ export function LoginForm() {
   });
 
   function onSubmit(values: LoginFormValues) {
-    console.log("LoginForm: Submitting with values:", values);
     loginMutation.mutate(values);
   }
 
@@ -5605,7 +5804,6 @@ export function LoginForm() {
       return null;
     }
     const error = loginMutation.error as AxiosError<{ message?: string }>;
-    console.log("LoginForm: getErrorMessage received error:", error);
     return error.response?.data?.message || "An unexpected error occurred.";
   };
 
@@ -5686,8 +5884,10 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useResetPassword } from "../api/useResetPassword";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useEffect } from "react";
+import { useVerifyResetToken } from "../api/useVerifyResetToken";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const resetPasswordSchema = z
   .object({
@@ -5706,6 +5906,13 @@ export function ResetPasswordForm() {
   const resetPasswordMutation = useResetPassword();
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
+
+  const {
+    data: verificationData,
+    isLoading: isVerifying,
+    isError: isVerificationError,
+    error: verificationError,
+  } = useVerifyResetToken(token);
 
   const form = useForm<ResetPasswordFormValues>({
     resolver: zodResolver(resetPasswordSchema),
@@ -5726,10 +5933,27 @@ export function ResetPasswordForm() {
     resetPasswordMutation.mutate(values);
   }
 
-  if (!token) {
+  if (isVerifying) {
     return (
-      <div className="text-center text-red-500">
-        Invalid or missing reset token. Please request a new link.
+      <div className="w-full max-w-sm space-y-4">
+        <Skeleton className="h-8 w-3/4" />
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+      </div>
+    );
+  }
+
+  if (!token || isVerificationError) {
+    return (
+      <div className="w-full max-w-sm text-center">
+        <h2 className="text-destructive text-2xl font-bold">Invalid Token</h2>
+        <p className="text-muted-foreground mt-2">
+          This password reset link is invalid or has expired.
+        </p>
+        <Button asChild className="mt-4">
+          <Link to="/forgot-password">Request a new link</Link>
+        </Button>
       </div>
     );
   }
@@ -6053,7 +6277,6 @@ import { useDeleteComment } from "../api/useDeleteComment";
 import { EditableField } from "@/components/ui/EditableField";
 import { toast } from "sonner";
 import { RichTextOutput } from "@/components/ui/RichTextOutput";
-
 interface CommentItemProps {
   comment: any;
   workspaceId: string;
@@ -6078,7 +6301,6 @@ export function CommentItem({
     projectId,
     taskId
   );
-
   const handleSave = (newContent: string) => {
     updateCommentMutation.mutate(
       { commentId: comment.id, content: newContent },
@@ -6093,7 +6315,6 @@ export function CommentItem({
       }
     );
   };
-
   const handleDelete = () => {
     if (window.confirm("Are you sure you want to delete this comment?")) {
       deleteCommentMutation.mutate(comment.id, {
@@ -6120,7 +6341,7 @@ export function CommentItem({
           <div className="flex items-center gap-2">
             <span className="text-sm font-semibold">{comment.author.name}</span>
             <span className="text-muted-foreground text-xs">
-              {new Date(comment.createdAt).toLocaleString()}
+              {new Date(comment.createdAt).toLocaleString("en-US")}
             </span>
           </div>
           {canEdit && (
@@ -6165,6 +6386,7 @@ export function CommentItem({
     </div>
   );
 }
+
 // FILE: src/features/comments/components/CommentSection.tsx
 import { Button } from "@/components/ui/button";
 import { useAddComment } from "../api/useAddComment";
@@ -6188,7 +6410,6 @@ export function CommentSection({ workspaceId, projectId, taskId }: any) {
   const handleCommentUpdate = useCallback(
     (event: any) => {
       const { action, comment } = event.payload;
-      console.log("Received COMMENT_UPDATED event:", event.payload);
       queryClient.setQueryData(["comments", taskId], (oldData: any) => {
         if (!oldData) return oldData;
         let newComments;
@@ -6284,16 +6505,21 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { toast } from "sonner";
 
-async function deletePerson(personId: string): Promise<void> {
-  await api.delete(`/people/${personId}`);
+async function deletePerson(ids: string | string[]): Promise<void> {
+  if (Array.isArray(ids)) {
+    await api.delete(`/people`, { data: { ids } });
+  } else {
+    await api.delete(`/people/${ids}`);
+  }
 }
 
 export function useDeletePerson() {
   const queryClient = useQueryClient();
-  return useMutation<void, AxiosError, string>({
+  return useMutation<void, AxiosError, string | string[]>({
     mutationFn: deletePerson,
-    onSuccess: () => {
-      toast.success("Person deleted successfully.");
+    onSuccess: (_, variables) => {
+      const count = Array.isArray(variables) ? variables.length : 1;
+      toast.success(`${count} person(s) deleted successfully.`);
       queryClient.invalidateQueries({ queryKey: ["people"] });
     },
     onError: (error: any) => {
@@ -6789,11 +7015,10 @@ import { Input } from "@/components/ui/input";
 import { PersonTableRow } from "./PersonTableRow";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Contact } from "lucide-react";
+import { Contact, Trash2 } from "lucide-react";
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
@@ -6807,6 +7032,9 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { useDeletePerson } from "../api/useDeletePerson";
 
 interface PersonListProps {
   onPersonSelect: (personId: string) => void;
@@ -6819,11 +7047,12 @@ const PersonListSkeleton = () => (
     ))}
   </div>
 );
-
 export function PersonList({ onPersonSelect }: PersonListProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  const deleteMutation = useDeletePerson();
 
   const { data, isLoading, isError } = useGetPeople({
     search: debouncedSearchTerm,
@@ -6837,14 +7066,57 @@ export function PersonList({ onPersonSelect }: PersonListProps) {
     }
   };
 
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(data?.data?.map((item: any) => item.id) || []);
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleRowSelect = (id: string, checked: boolean) => {
+    if (checked) {
+      setSelectedIds((prev) => [...prev, id]);
+    } else {
+      setSelectedIds((prev) => prev.filter((prevId) => prevId !== id));
+    }
+  };
+
+  const handleBulkDelete = () => {
+    if (
+      window.confirm(
+        `Delete ${selectedIds.length} selected people? This may include users and cannot be undone.`
+      )
+    ) {
+      deleteMutation.mutate(selectedIds, {
+        onSuccess: () => setSelectedIds([]),
+      });
+    }
+  };
+
+  const isAllSelected =
+    data?.data?.length > 0 && selectedIds.length === data.data.length;
+
   return (
     <div className="space-y-4">
-      <Input
-        placeholder="Search by name or email..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        className="max-w-sm"
-      />
+      <div className="flex items-center justify-between">
+        <Input
+          placeholder="Search by name or email..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="max-w-sm"
+        />
+        {selectedIds.length > 0 && (
+          <Button
+            variant="destructive"
+            onClick={handleBulkDelete}
+            disabled={deleteMutation.isPending}
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Delete ({selectedIds.length})
+          </Button>
+        )}
+      </div>
 
       {isLoading && <PersonListSkeleton />}
 
@@ -6853,6 +7125,12 @@ export function PersonList({ onPersonSelect }: PersonListProps) {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-[50px]">
+                  <Checkbox
+                    checked={isAllSelected}
+                    onCheckedChange={handleSelectAll}
+                  />
+                </TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Roles</TableHead>
@@ -6864,7 +7142,9 @@ export function PersonList({ onPersonSelect }: PersonListProps) {
                 <PersonTableRow
                   key={person.id}
                   person={person}
-                  onSelect={() => onPersonSelect(person.id)}
+                  onRowClick={() => onPersonSelect(person.id)}
+                  isSelected={selectedIds.includes(person.id)}
+                  onSelectChange={handleRowSelect}
                 />
               ))}
             </TableBody>
@@ -6930,15 +7210,33 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface PersonTableRowProps {
   person: any;
-  onSelect: () => void;
+  onRowClick: () => void;
+  isSelected: boolean;
+  onSelectChange: (id: string, checked: boolean) => void;
 }
 
-export function PersonTableRow({ person, onSelect }: PersonTableRowProps) {
+export function PersonTableRow({
+  person,
+  onRowClick,
+  isSelected,
+  onSelectChange,
+}: PersonTableRowProps) {
   return (
-    <TableRow onClick={onSelect} className="cursor-pointer">
+    <TableRow
+      onClick={onRowClick}
+      className="cursor-pointer"
+      data-state={isSelected && "selected"}
+    >
+      <TableCell onClick={(e) => e.stopPropagation()} className="w-[50px]">
+        <Checkbox
+          checked={isSelected}
+          onCheckedChange={(checked) => onSelectChange(person.id, !!checked)}
+        />
+      </TableCell>
       <TableCell>
         <div className="flex items-center gap-3">
           <Avatar className="h-9 w-9">
@@ -8938,15 +9236,6 @@ export function NotificationBell() {
   const markAllReadMutation = useMarkAllNotificationsAsRead();
   const unreadCount = data?.unreadCount ?? 0;
 
-  console.log(
-    "LOG: NotificationBell rendering. Unread count:",
-    unreadCount,
-    "Is loading:",
-    isLoading,
-    "Data:",
-    data
-  );
-
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -9003,11 +9292,10 @@ export function NotificationBell() {
 // FILE: src/features/notifications/components/NotificationItem.tsx
 import { useMarkNotificationAsRead } from "../api/useMarkNotificationAsRead";
 import { cn } from "@/lib/utils";
-import { RichTextOutput } from "@/components/ui/RichTextOutput"; // Import the component
+import { RichTextOutput } from "@/components/ui/RichTextOutput";
 
 export function NotificationItem({ notification }: { notification: any }) {
   const markAsReadMutation = useMarkNotificationAsRead();
-
   const handleClick = () => {
     if (!notification.isRead) {
       markAsReadMutation.mutate(notification.id);
@@ -9026,18 +9314,18 @@ export function NotificationItem({ notification }: { notification: any }) {
         <span className="mt-1 block h-2 w-2 rounded-full bg-blue-500" />
       )}
       <div className={cn("grid gap-1", notification.isRead && "pl-5")}>
-        {/* Replace the <p> tag with the RichTextOutput component */}
         <RichTextOutput
           html={notification.message}
           className="text-sm font-medium"
         />
         <p className="text-muted-foreground text-sm">
-          {new Date(notification.createdAt).toLocaleString()}
+          {new Date(notification.createdAt).toLocaleString("en-US")}
         </p>
       </div>
     </div>
   );
 }
+
 // FILE: src/features/notifications/components/NotificationPreferencesForm.tsx
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9224,21 +9512,159 @@ export function useGetProfile() {
 // FILE: src/features/profile/api/useUpdateProfile.ts
 import api from "@/lib/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 async function updateProfile(profileData: any): Promise<any> {
-  const { data } = await api.patch("/users/me/profile", profileData);
+  const { data } = await api.put("/users/me/profile", profileData);
+
   return data;
 }
 
 export function useUpdateProfile() {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: updateProfile,
     onSuccess: () => {
+      toast.success("Profile updated successfully!");
       queryClient.invalidateQueries({ queryKey: ["profile"] });
     },
+    onError: (error: any) => {
+      toast.error("Failed to update profile", {
+        description:
+          error.response?.data?.message || "An unexpected error occurred.",
+      });
+    },
   });
+}
+// FILE: src/features/profile/api/useUploadAvatar.ts
+import api from "@/lib/api";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+
+async function uploadAvatar(formData: FormData): Promise<any> {
+  try {
+    const { data } = await api.patch("/users/me/avatar", formData, {
+      headers: {
+        "Content-Type": undefined,
+      },
+    });
+    return data;
+  } catch (error: any) {
+    throw error;
+  }
+}
+
+export function useUploadAvatar() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: uploadAvatar,
+    onSuccess: () => {
+      toast.success("Avatar updated successfully!");
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+    },
+    onError: (error: any) => {
+      toast.error("Failed to upload avatar", {
+        description:
+          error.response?.data?.message ||
+          error.message ||
+          "An unexpected error occurred.",
+      });
+    },
+  });
+}
+
+// FILE: src/features/profile/components/ProfileAvatar.tsx
+import { useState, useRef } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { useUploadAvatar } from "../api/useUploadAvatar";
+import { Camera } from "lucide-react";
+import { toast } from "sonner";
+
+interface ProfileAvatarProps {
+  user: any;
+}
+
+export function ProfileAvatar({ user }: ProfileAvatarProps) {
+  const [preview, setPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadAvatarMutation = useUploadAvatar();
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const allowedTypes = [
+        "image/png",
+        "image/jpeg",
+        "image/jpg",
+        "image/gif",
+      ];
+      if (!allowedTypes.includes(file.type)) {
+        toast.error("Please select a valid image file (PNG, JPEG, or GIF)");
+        return;
+      }
+
+      const maxSize = 5 * 1024 * 1024;
+      if (file.size > maxSize) {
+        toast.error("File size must be less than 5MB");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreview(reader.result as string);
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        uploadAvatarMutation.mutate(formData, {
+          onSuccess: () => {
+            setPreview(null);
+          },
+          onError: () => {
+            setPreview(null);
+          },
+        });
+      };
+
+      reader.onerror = () => {
+        toast.error("Failed to read file");
+      };
+
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const avatarSrc = preview || user?.avatarUrl;
+  return (
+    <div className="relative">
+      <Avatar className="h-32 w-32 cursor-pointer" onClick={handleAvatarClick}>
+        <AvatarImage src={avatarSrc} alt={user?.name} />
+        <AvatarFallback className="text-4xl">
+          {user?.name?.charAt(0)}
+        </AvatarFallback>
+      </Avatar>
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        className="hidden"
+        accept="image/png,image/jpeg,image/jpg,image/gif"
+      />
+      <Button
+        size="icon"
+        className="absolute right-1 bottom-1 h-8 w-8 rounded-full"
+        onClick={handleAvatarClick}
+        disabled={uploadAvatarMutation.isPending}
+      >
+        <Camera className="h-4 w-4" />
+      </Button>
+    </div>
+  );
 }
 
 // FILE: src/features/profile/components/ProfileForm.tsx
@@ -9247,6 +9673,7 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -9255,7 +9682,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useGetProfile } from "../api/useGetProfile";
 import { useUpdateProfile } from "../api/useUpdateProfile";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import {
   Popover,
   PopoverTrigger,
@@ -9276,6 +9703,8 @@ import { SocialProvider } from "@/types";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { RichTextEditor } from "@/components/ui/RichTextEditor";
+import { MultiSelect } from "@/components/ui/MultiSelect";
+import { useGetSkills } from "@/features/skills/api/useGetSkills";
 
 const socialLinkSchema = z.object({
   provider: z.nativeEnum(SocialProvider),
@@ -9283,9 +9712,11 @@ const socialLinkSchema = z.object({
 });
 
 const phoneRegex = new RegExp(/^[+]*[(]?[0-9]{1,4}[)]?[-\s./0-9]*$/);
+
 const profileSchema = z.object({
   firstName: z.string().min(1, "First name is required."),
   lastName: z.string().min(1, "Last name is required."),
+  email: z.string().email(),
   biography: z.string().optional().nullable(),
   phoneNumber: z
     .string()
@@ -9297,21 +9728,43 @@ const profileSchema = z.object({
     .nullable(),
   birthday: z.date().nullable().optional(),
   socialLinks: z.array(socialLinkSchema).optional(),
+  skillIds: z.array(z.string().uuid()).optional(),
 });
+
+const parseServerDate = (
+  dateString: string | null | undefined
+): Date | null => {
+  if (!dateString) return null;
+
+  const date = new Date(dateString);
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+};
+
+const formatDateForServer = (date: Date | null | undefined): string | null => {
+  if (!date) return null;
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}T00:00:00.000Z`;
+};
 
 export function ProfileForm() {
   const { data: profile, isLoading } = useGetProfile();
   const updateProfileMutation = useUpdateProfile();
+  const { data: skillsData, isLoading: isLoadingSkills } = useGetSkills();
 
-  const form = useForm<any>({
+  const form = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
       firstName: "",
       lastName: "",
+      email: "",
       biography: "",
       phoneNumber: "",
       birthday: null,
       socialLinks: [],
+      skillIds: [],
     },
   });
 
@@ -9320,31 +9773,43 @@ export function ProfileForm() {
     name: "socialLinks",
   });
 
-  useEffect(() => {
-    if (profile) {
-      form.reset({
-        firstName: profile.firstName || "",
-        lastName: profile.lastName || "",
-        biography: profile.biography || "",
-        phoneNumber: profile.phoneNumber || "",
-        birthday: profile.birthday ? new Date(profile.birthday) : null,
-        socialLinks: profile.socialLinks || [],
-      });
-    }
-  }, [profile, form]);
+  const formData = useMemo(() => {
+    if (!profile) return null;
 
-  const onSubmit = (values: any) => {
-    updateProfileMutation.mutate(values);
+    return {
+      firstName: profile.firstName || "",
+      lastName: profile.lastName || "",
+      email: profile.email || "",
+      biography: profile.biography || "",
+      phoneNumber: profile.phoneNumber || "",
+      birthday: parseServerDate(profile.birthday),
+      socialLinks: profile.socialLinks || [],
+      skillIds: profile.skills?.map((s: any) => s.id) || [],
+    };
+  }, [profile]);
+
+  useEffect(() => {
+    if (formData) {
+      form.reset(formData);
+    }
+  }, [formData, form]);
+
+  const onSubmit = (values: z.infer<typeof profileSchema>) => {
+    const { email, birthday, ...submissionData } = values;
+
+    const formattedData = {
+      ...submissionData,
+      birthday: formatDateForServer(birthday),
+    };
+
+    updateProfileMutation.mutate(formattedData);
   };
 
   if (isLoading) return <div>Loading profile...</div>;
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="max-w-2xl space-y-8"
-      >
+      <form onSubmit={form.handleSubmit(onSubmit)} className="w-full space-y-8">
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <FormField
             control={form.control}
@@ -9373,6 +9838,44 @@ export function ProfileForm() {
             )}
           />
         </div>
+
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email Address</FormLabel>
+              <FormControl>
+                <Input readOnly disabled {...field} />
+              </FormControl>
+              <FormDescription>
+                Your email address cannot be changed from this page.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="biography"
+          render={({ field }) => {
+            return (
+              <FormItem>
+                <FormLabel>Biography</FormLabel>
+                <FormControl>
+                  <RichTextEditor
+                    value={field.value ?? ""}
+                    onChange={(value) => {
+                      field.onChange(value);
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            );
+          }}
+        />
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <FormField
@@ -9405,7 +9908,7 @@ export function ProfileForm() {
                       <Button
                         variant={"outline"}
                         className={cn(
-                          "w-[240px] pl-3 text-left font-normal",
+                          "w-full pl-3 text-left font-normal",
                           !field.value && "text-muted-foreground"
                         )}
                       >
@@ -9421,7 +9924,7 @@ export function ProfileForm() {
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
-                      selected={field.value}
+                      selected={field.value || undefined}
                       onSelect={field.onChange}
                       disabled={(date) =>
                         date > new Date() || date < new Date("1900-01-01")
@@ -9438,16 +9941,18 @@ export function ProfileForm() {
 
         <FormField
           control={form.control}
-          name="biography"
+          name="skillIds"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Biography</FormLabel>
-              <FormControl>
-                <RichTextEditor
-                  value={field.value ?? ""}
-                  onChange={field.onChange}
-                />
-              </FormControl>
+              <FormLabel>Skills</FormLabel>
+              <MultiSelect
+                options={skillsData || []}
+                selected={field.value ?? []}
+                onChange={field.onChange}
+                placeholder={
+                  isLoadingSkills ? "Loading skills..." : "Select skills..."
+                }
+              />
               <FormMessage />
             </FormItem>
           )}
@@ -9522,6 +10027,63 @@ export function ProfileForm() {
     </Form>
   );
 }
+
+// FILE: src/features/profile/profile.types.ts
+import { z } from "zod";
+
+const BaseProfileUpdateSchema = z.object({
+  firstName: z.string().min(1).optional(),
+  lastName: z.string().min(1).optional(),
+  email: z.string().email().optional(),
+  avatarUrl: z.string().url().optional().nullable(),
+  phoneNumber: z.string().optional().nullable(),
+
+  birthday: z.coerce.date().optional().nullable(),
+  socialLinks: z
+    .array(
+      z.object({
+        provider: z.enum([
+          "GOOGLE",
+          "LINKEDIN",
+          "TWITTER",
+          "FACEBOOK",
+          "NEXTCLOUD",
+          "TELEGRAM",
+          "GITHUB",
+          "WEBSITE",
+          "OTHER",
+        ]),
+        url: z.string().url(),
+      })
+    )
+    .optional(),
+  skillIds: z.array(z.string().uuid()).optional(),
+});
+
+const BiographyUpdateSchema = z.object({
+  biography: z
+    .string()
+    .nullable()
+    .optional()
+    .transform((val) => {
+      const tempDiv = document.createElement("div");
+      tempDiv.innerHTML = val || "";
+      if (!val || tempDiv.textContent?.trim() === "") {
+        return null;
+      }
+      return val;
+    }),
+});
+
+export const UpdateUserProfileDtoSchema = BaseProfileUpdateSchema.merge(
+  BiographyUpdateSchema
+);
+export type UpdateUserProfileDto = z.infer<typeof UpdateUserProfileDtoSchema>;
+
+export const UpdateAvatarDtoSchema = z.object({
+  avatarUrl: z.string().url(),
+});
+export type UpdateAvatarDto = z.infer<typeof UpdateAvatarDtoSchema>;
 
 // FILE: src/features/project-roles/api/useAssignPermissionToProjectRole.ts
 import api from "@/lib/api";
@@ -10108,11 +10670,15 @@ async function getProjectMembers(
   return data;
 }
 
-export function useGetProjectMembers(workspaceId: string, projectId: string) {
+export function useGetProjectMembers(
+  workspaceId: string,
+  projectId: string,
+  options: { enabled?: boolean } = { enabled: true }
+) {
   return useQuery({
     queryKey: ["projectMembers", projectId],
     queryFn: () => getProjectMembers(workspaceId, projectId),
-    enabled: !!workspaceId && !!projectId,
+    enabled: !!workspaceId && !!projectId && !!options.enabled,
   });
 }
 
@@ -10742,7 +11308,6 @@ interface ProjectCardProps {
 
 export function ProjectCard({ project, onEdit }: ProjectCardProps) {
   const deleteMutation = useDeleteProject(project.workspaceId);
-
   const handleDelete = (e: React.MouseEvent) => {
     e.preventDefault();
     if (
@@ -10804,7 +11369,7 @@ export function ProjectCard({ project, onEdit }: ProjectCardProps) {
           <div className="text-muted-foreground flex justify-between text-sm">
             <span>Status: {project.status}</span>
             <span>
-              Created: {new Date(project.createdAt).toLocaleDateString()}
+              Created: {new Date(project.createdAt).toLocaleDateString("en-US")}
             </span>
           </div>
         </CardContent>
@@ -10812,6 +11377,7 @@ export function ProjectCard({ project, onEdit }: ProjectCardProps) {
     </Link>
   );
 }
+
 // FILE: src/features/projects/components/ProjectList.tsx
 import { useGetProjects } from "../api/useGetProjects";
 import { ProjectCard } from "./ProjectCard";
@@ -11901,6 +12467,23 @@ export function ChangePasswordForm() {
   );
 }
 
+// FILE: src/features/skills/api/useGetSkills.ts
+import api from "@/lib/api";
+import { useQuery } from "@tanstack/react-query";
+
+async function getSkills(): Promise<any[]> {
+  const { data } = await api.get("/skills");
+  return data;
+}
+
+export function useGetSkills() {
+  return useQuery({
+    queryKey: ["skills"],
+    queryFn: getSkills,
+    staleTime: Infinity,
+  });
+}
+
 // FILE: src/features/tasks/api/useAddTaskLink.ts
 import api from "@/lib/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -11941,6 +12524,32 @@ export function useAddTaskLink(
   });
 }
 
+// FILE: src/features/tasks/api/useAssignStandaloneUser.ts
+import api from "@/lib/api";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+
+async function assignStandaloneUser({
+  taskId,
+  userId,
+}: {
+  taskId: string;
+  userId: string;
+}): Promise<any> {
+  const { data } = await api.post(`/tasks/${taskId}/assignees`, { userId });
+  return data;
+}
+
+export function useAssignStandaloneUser(taskId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (userId: string) => assignStandaloneUser({ taskId, userId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["task", taskId] });
+      queryClient.invalidateQueries({ queryKey: ["myTasks"] });
+    },
+  });
+}
+
 // FILE: src/features/tasks/api/useAssignUser.ts
 import api from "@/lib/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -11964,7 +12573,6 @@ export function useAssignUser(
   taskId: string
 ) {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: (userId: string) =>
       assignUser({ workspaceId, projectId, taskId, userId }),
@@ -11974,7 +12582,6 @@ export function useAssignUser(
   });
 }
 
-// FILE: src/features/tasks/api/useCreateStandaloneTask.ts
 // FILE: src/features/tasks/api/useCreateStandaloneTask.ts
 import api from "@/lib/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -12002,6 +12609,7 @@ export function useCreateStandaloneTask() {
     },
   });
 }
+
 // FILE: src/features/tasks/api/useCreateTask.ts
 import api from "@/lib/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -12027,8 +12635,6 @@ export function useCreateTask(workspaceId: string, projectId: string) {
     onSuccess: (newTask) => {
       toast.success(`Task "${newTask.title}" created.`);
 
-      // Invalidate all queries starting with this key, which will include
-      // all view data, lists, etc. for this project's tasks.
       queryClient.invalidateQueries({
         queryKey: ["projects", projectId, "tasks"],
       });
@@ -12048,22 +12654,33 @@ export function useCreateTask(workspaceId: string, projectId: string) {
   });
 }
 // FILE: src/features/tasks/api/useDeleteStandaloneTask.ts
-// FILE: src/features/tasks/api/useDeleteStandaloneTask.ts
-
 import api from "@/lib/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
+import { toast } from "sonner";
 
-async function deleteTask(taskId: string): Promise<void> {
-  await api.delete(`/tasks/${taskId}`);
+async function deleteTask(taskIds: string | string[]): Promise<void> {
+  if (Array.isArray(taskIds)) {
+    await api.delete(`/tasks`, { data: { ids: taskIds } });
+  } else {
+    await api.delete(`/tasks/${taskIds}`);
+  }
 }
 
 export function useDeleteStandaloneTask() {
   const queryClient = useQueryClient();
-  return useMutation<void, AxiosError, string>({
+  return useMutation<void, AxiosError, string | string[]>({
     mutationFn: deleteTask,
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
+      const count = Array.isArray(variables) ? variables.length : 1;
+      toast.success(`${count} task(s) deleted.`);
       queryClient.invalidateQueries({ queryKey: ["myTasks"] });
+    },
+    onError: (error: any) => {
+      toast.error("Failed to delete task(s)", {
+        description:
+          error.response?.data?.message || "An unexpected error occurred.",
+      });
     },
   });
 }
@@ -12095,11 +12712,9 @@ export function useDeleteTask(workspaceId: string, projectId: string) {
 }
 
 // FILE: src/features/tasks/api/useGetMyTasks.ts
-// FILE: src/features/tasks/api/useGetMyTasks.ts
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import { ListTasksQuery } from "../task.types";
-
 async function getMyTasks(query: ListTasksQuery): Promise<any> {
   const { data } = await api.get("/tasks/my-tasks", { params: query });
   return data;
@@ -12113,8 +12728,6 @@ export function useGetMyTasks(query: ListTasksQuery) {
 }
 
 // FILE: src/features/tasks/api/useGetTask.ts
-// FILE: src/features/tasks/api/useGetTask.ts
-
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 
@@ -12205,15 +12818,11 @@ export function useMoveTask() {
   const queryClient = useQueryClient();
   return useMutation<any, AxiosError, MoveTaskParams>({
     mutationFn: moveTask,
-    onSuccess: () => {
-      // The onSettled block is sufficient for invalidation.
-      // We could add optimistic updates back here later if needed.
-    },
+    onSuccess: () => {},
     onError: () => {
       toast.error("Failed to move task.");
     },
-    // onSettled always runs after a mutation, on either success or error.
-    // This is the most reliable place to refetch data.
+
     onSettled: (_data, _error, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["projects", variables.projectId, "tasks"],
@@ -12260,6 +12869,31 @@ export function useRemoveTaskLink(
   });
 }
 
+// FILE: src/features/tasks/api/useUnassignStandaloneUser.ts
+import api from "@/lib/api";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+
+async function unassignStandaloneUser({
+  taskId,
+  userId,
+}: {
+  taskId: string;
+  userId: string;
+}): Promise<void> {
+  await api.delete(`/tasks/${taskId}/assignees/${userId}`);
+}
+
+export function useUnassignStandaloneUser(taskId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (userId: string) => unassignStandaloneUser({ taskId, userId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["task", taskId] });
+      queryClient.invalidateQueries({ queryKey: ["myTasks"] });
+    },
+  });
+}
+
 // FILE: src/features/tasks/api/useUnassignUser.ts
 import api from "@/lib/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -12293,8 +12927,6 @@ export function useUnassignUser(
 }
 
 // FILE: src/features/tasks/api/useUpdateStandaloneTask.ts
-// FILE: src/features/tasks/api/useUpdateStandaloneTask.ts
-
 import api from "@/lib/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
@@ -12349,11 +12981,11 @@ export function useUpdateTask(
     mutationFn: (taskData) =>
       updateTask({ workspaceId, projectId, taskId, taskData }),
     onSuccess: () => {
-      // Invalidate the new hierarchical key for all project tasks
+      
       queryClient.invalidateQueries({
         queryKey: ["projects", projectId, "tasks"],
       });
-      // Also invalidate the specific task detail query, which is good practice
+      
       queryClient.invalidateQueries({ queryKey: ["task", taskId] });
     },
   });
@@ -12400,9 +13032,142 @@ export function useUpdateTaskCustomValues(
   });
 }
 
-// FILE: src/features/tasks/components/CreateTaskDialog.tsx
-// FILE: src/features/tasks/components/CreateTaskDialog.tsx
+// FILE: src/features/tasks/components/AssigneeSelector.tsx
+import { useMemo } from "react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { useGetProjectMembers } from "@/features/projects/api/useGetProjectMembers";
+import { useGetUsers } from "@/features/admin/users/api/useGetUsers";
+import { FormControl } from "@/components/ui/form";
 
+interface AssigneeSelectorProps {
+  projectId?: string | null;
+  workspaceId?: string;
+  selectedIds: string[];
+  onSelectionChange: (newIds: string[]) => void;
+}
+
+type SelectableUser = {
+  id: string;
+  name: string;
+};
+
+export function AssigneeSelector({
+  projectId,
+  workspaceId,
+  selectedIds,
+  onSelectionChange,
+}: AssigneeSelectorProps) {
+  const { data: projectMembersData, isLoading: isLoadingProjectMembers } =
+    useGetProjectMembers(workspaceId!, projectId!, { enabled: !!projectId });
+  const { data: allUsersData, isLoading: isLoadingAllUsers } = useGetUsers({
+    enabled: !projectId,
+  });
+
+  const isLoading = isLoadingProjectMembers || isLoadingAllUsers;
+
+  const availableUsers: SelectableUser[] = useMemo(() => {
+    if (projectId) {
+      return (
+        projectMembersData?.map((member: any) => ({
+          id: member.userId,
+          name: member.name,
+        })) || []
+      );
+    }
+
+    return (
+      allUsersData?.data?.map((user: any) => ({
+        id: user.id,
+        name: user.name,
+      })) || []
+    );
+  }, [projectId, projectMembersData, allUsersData]);
+
+  const selectedUsers =
+    availableUsers.filter((user) => selectedIds.includes(user.id)) || [];
+
+  const handleSelect = (userId: string) => {
+    const isSelected = selectedIds.includes(userId);
+    const newSelectedIds = isSelected
+      ? selectedIds.filter((id) => id !== userId)
+      : [...selectedIds, userId];
+    onSelectionChange(newSelectedIds);
+  };
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <FormControl>
+          <Button
+            variant="outline"
+            role="combobox"
+            className={cn(
+              "h-auto w-full justify-between",
+              !selectedIds.length && "text-muted-foreground"
+            )}
+            disabled={isLoading}
+          >
+            <div className="flex flex-wrap items-center gap-1">
+              {selectedUsers.length > 0
+                ? selectedUsers.map((user: SelectableUser) => (
+                    <Badge variant="secondary" key={user.id}>
+                      {user.name}
+                    </Badge>
+                  ))
+                : "Select assignees..."}
+            </div>
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </FormControl>
+      </PopoverTrigger>
+      <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+        <Command>
+          <CommandInput placeholder="Search users..." />
+          <CommandList>
+            <CommandEmpty>No users found.</CommandEmpty>
+            <CommandGroup>
+              {availableUsers.map((user: SelectableUser) => (
+                <CommandItem
+                  value={user.name}
+                  key={user.id}
+                  onSelect={() => handleSelect(user.id)}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      selectedIds.includes(user.id)
+                        ? "opacity-100"
+                        : "opacity-0"
+                    )}
+                  />
+                  {user.name}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+// FILE: src/features/tasks/components/CreateTaskDialog.tsx
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12486,8 +13251,6 @@ export function CreateTaskDialog({
 }
 
 // FILE: src/features/tasks/components/CreateTaskForm.tsx
-// FILE: src/features/tasks/components/CreateTaskForm.tsx
-
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
@@ -12514,8 +13277,9 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { useCreateTask } from "../api/useCreateTask";
-import { useCreateStandaloneTask } from "../api/useCreateStandaloneTask"; // Import new hook
+import { useCreateStandaloneTask } from "../api/useCreateStandaloneTask";
 import { useGetEpics } from "@/features/epics/api/useGetEpics";
+import { useGetProfile } from "@/features/profile/api/useGetProfile";
 import { AxiosError } from "axios";
 import { TaskStatus, TaskPriority } from "@/types";
 import { z } from "zod";
@@ -12523,6 +13287,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { useEffect } from "react";
+import { AssigneeSelector } from "./AssigneeSelector";
 
 const taskSchema = z.object({
   title: z.string().min(1, "Title is required."),
@@ -12533,6 +13299,9 @@ const taskSchema = z.object({
   parentId: z.string().nullable().optional(),
   boardColumnId: z.string().uuid().optional().nullable(),
   dueDate: z.date().optional().nullable(),
+  assigneeIds: z
+    .array(z.string().uuid())
+    .min(1, "At least one assignee is required."),
 });
 type TaskFormValues = z.infer<typeof taskSchema>;
 
@@ -12549,16 +13318,16 @@ export function CreateTaskForm({
   parentId = null,
   onSuccess,
 }: CreateTaskFormProps) {
-  const createTaskInProjectMutation = useCreateTask(workspaceId!, projectId!);
-  const createStandaloneTaskMutation = useCreateStandaloneTask();
   const createMutation = projectId
-    ? createTaskInProjectMutation
-    : createStandaloneTaskMutation;
+    ? useCreateTask(workspaceId!, projectId!)
+    : useCreateStandaloneTask();
 
   const { data: epicsData, isLoading: isLoadingEpics } = useGetEpics(
     workspaceId!,
     projectId!
   );
+  const { data: profileData } = useGetProfile();
+
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskSchema),
     defaultValues: {
@@ -12570,8 +13339,16 @@ export function CreateTaskForm({
       parentId: parentId,
       boardColumnId: null,
       dueDate: null,
+      assigneeIds: [],
     },
   });
+
+  useEffect(() => {
+    if (profileData && form.getValues("assigneeIds").length === 0) {
+      form.setValue("assigneeIds", [profileData.id]);
+    }
+  }, [profileData, form]);
+
   async function onSubmit(values: TaskFormValues) {
     const submitData: Partial<TaskFormValues> = { ...values };
     if (!submitData.boardColumnId) delete submitData.boardColumnId;
@@ -12589,6 +13366,7 @@ export function CreateTaskForm({
   const errorMessage = (
     createMutation.error as AxiosError<{ message?: string }>
   )?.response?.data?.message;
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -12604,6 +13382,22 @@ export function CreateTaskForm({
                   {...field}
                 />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="assigneeIds"
+          render={({ field }) => (
+            <FormItem className="flex flex-col">
+              <FormLabel>Assignees</FormLabel>
+              <AssigneeSelector
+                projectId={projectId}
+                workspaceId={workspaceId}
+                selectedIds={field.value}
+                onSelectionChange={field.onChange}
+              />
               <FormMessage />
             </FormItem>
           )}
@@ -12767,12 +13561,10 @@ export function CreateTaskForm({
 }
 
 // FILE: src/features/tasks/components/MyTasksList.tsx
-// FILE: src/features/tasks/components/MyTasksList.tsx
-
 import { useState } from "react";
 import { TaskTableRow } from "./TaskTableRow";
 import { EmptyState } from "@/components/ui/empty-state";
-import { CheckSquare } from "lucide-react";
+import { CheckSquare, Trash2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -12791,11 +13583,14 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { useGetMyTasks } from "../api/useGetMyTasks";
+import { useDeleteStandaloneTask } from "../api/useDeleteStandaloneTask";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Task } from "../task.types";
-
+import { Task, ListTasksQuery } from "../task.types";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
 interface MyTasksListProps {
   onTaskSelect: (taskId: string) => void;
+  query: Partial<ListTasksQuery>;
 }
 
 const TaskListSkeleton = () => (
@@ -12810,16 +13605,18 @@ const TaskListSkeleton = () => (
     ))}
   </div>
 );
-
-export function MyTasksList({ onTaskSelect }: MyTasksListProps) {
+export function MyTasksList({ onTaskSelect, query }: MyTasksListProps) {
   const [page, setPage] = useState(1);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const { data, isLoading, isError } = useGetMyTasks({
     page,
     limit: 15,
+    includeSubtasks: true,
     sortBy: "createdAt",
     sortOrder: "desc",
-    includeSubtasks: false,
+    ...query,
   });
+  const deleteMutation = useDeleteStandaloneTask();
 
   const handlePageChange = (newPage: number) => {
     if (newPage > 0 && newPage <= (data?.totalPages || 1)) {
@@ -12827,18 +13624,45 @@ export function MyTasksList({ onTaskSelect }: MyTasksListProps) {
     }
   };
 
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(data?.data?.map((item: any) => item.id) || []);
+    } else {
+      setSelectedIds([]);
+    }
+  };
+  const handleRowSelect = (id: string, checked: boolean) => {
+    if (checked) {
+      setSelectedIds((prev) => [...prev, id]);
+    } else {
+      setSelectedIds((prev) => prev.filter((prevId) => prevId !== id));
+    }
+  };
+  const handleBulkDelete = () => {
+    if (
+      window.confirm(
+        `Delete ${selectedIds.length} selected tasks? This cannot be undone.`
+      )
+    ) {
+      deleteMutation.mutate(selectedIds, {
+        onSuccess: () => setSelectedIds([]),
+      });
+    }
+  };
+
   if (isLoading) return <TaskListSkeleton />;
   if (isError) return <div>Error loading tasks.</div>;
-
+  const isAllSelected =
+    data?.data?.length > 0 && selectedIds.length === data.data.length;
   const renderBody = () => {
     if (data?.data?.length === 0) {
       return (
         <TableRow>
-          <TableCell colSpan={5}>
+          <TableCell colSpan={6}>
             <EmptyState
               icon={<CheckSquare className="text-primary h-10 w-10" />}
               title="No tasks here"
-              description="You have no tasks assigned to you or created by you. Create one to get started."
+              description="No tasks match your current filter. Try selecting a different filter or create a new task."
             />
           </TableCell>
         </TableRow>
@@ -12850,67 +13674,91 @@ export function MyTasksList({ onTaskSelect }: MyTasksListProps) {
         task={task}
         onTaskSelect={onTaskSelect}
         level={0}
+        isSelected={selectedIds.includes(task.id)}
+        onSelectChange={handleRowSelect}
       />
     ));
   };
 
   return (
-    <Card>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Title</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Priority</TableHead>
-            <TableHead>Due Date</TableHead>
-            <TableHead className="w-[50px]">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>{renderBody()}</TableBody>
-      </Table>
-      <CardFooter className="border-t pt-4">
-        {data?.totalPages > 1 && (
-          <Pagination>
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handlePageChange(page - 1);
-                  }}
-                  isActive={page > 1}
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          {selectedIds.length > 0 && (
+            <Button
+              variant="destructive"
+              onClick={handleBulkDelete}
+              disabled={deleteMutation.isPending}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete ({selectedIds.length})
+            </Button>
+          )}
+        </div>
+      </div>
+      <Card>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[50px]">
+                <Checkbox
+                  checked={isAllSelected}
+                  onCheckedChange={handleSelectAll}
                 />
-              </PaginationItem>
-              {[...Array(data.totalPages)].map((_, i) => (
-                <PaginationItem key={i}>
-                  <PaginationLink
+              </TableHead>
+              <TableHead>Title</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Priority</TableHead>
+              <TableHead>Due Date</TableHead>
+              <TableHead className="w-[50px]">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>{renderBody()}</TableBody>
+        </Table>
+        <CardFooter className="border-t pt-4">
+          {data?.totalPages > 1 && (
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
                     href="#"
                     onClick={(e) => {
                       e.preventDefault();
-                      handlePageChange(i + 1);
+                      handlePageChange(page - 1);
                     }}
-                    isActive={page === i + 1}
-                  >
-                    {i + 1}
-                  </PaginationLink>
+                    isActive={page > 1}
+                  />
                 </PaginationItem>
-              ))}
-              <PaginationItem>
-                <PaginationNext
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handlePageChange(page + 1);
-                  }}
-                  isActive={page < data.totalPages}
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-        )}
-      </CardFooter>
-    </Card>
+                {[...Array(data.totalPages)].map((_, i) => (
+                  <PaginationItem key={i}>
+                    <PaginationLink
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handlePageChange(i + 1);
+                      }}
+                      isActive={page === i + 1}
+                    >
+                      {i + 1}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                <PaginationItem>
+                  <PaginationNext
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handlePageChange(page + 1);
+                    }}
+                    isActive={page < data.totalPages}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          )}
+        </CardFooter>
+      </Card>
+    </div>
   );
 }
 
@@ -13008,17 +13856,61 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useGetProjectMembers } from "@/features/projects/api/useGetProjectMembers";
+import { useGetUsers } from "@/features/admin/users/api/useGetUsers";
 import { Check, UserPlus, X } from "lucide-react";
 import { useAssignUser } from "../api/useAssignUser";
 import { useUnassignUser } from "../api/useUnassignUser";
+import { useAssignStandaloneUser } from "../api/useAssignStandaloneUser";
+import { useUnassignStandaloneUser } from "../api/useUnassignStandaloneUser";
 import { cn } from "@/lib/utils";
+import { useMemo, useState } from "react";
 
 export function TaskAssignees({ task, workspaceId, projectId }: any) {
-  const { data: membersData } = useGetProjectMembers(workspaceId, projectId);
-  const assignUserMutation = useAssignUser(workspaceId, projectId, task.id);
-  const unassignUserMutation = useUnassignUser(workspaceId, projectId, task.id);
+  const [popoverOpen, setPopoverOpen] = useState(false);
+  const isProjectTask = !!(workspaceId && projectId);
+
+  const assignMutation = isProjectTask
+    ? useAssignUser(workspaceId, projectId, task.id)
+    : useAssignStandaloneUser(task.id);
+  const unassignMutation = isProjectTask
+    ? useUnassignUser(workspaceId, projectId, task.id)
+    : useUnassignStandaloneUser(task.id);
+
+  const { data: projectMembersData, isLoading: isLoadingProjectMembers } =
+    useGetProjectMembers(workspaceId, projectId, { enabled: isProjectTask });
+  const { data: allUsersData, isLoading: isLoadingAllUsers } = useGetUsers({
+    enabled: !isProjectTask,
+  });
+
+  const isLoading = isLoadingProjectMembers || isLoadingAllUsers;
+
+  const availableUsers = useMemo(() => {
+    if (isProjectTask) {
+      return (
+        projectMembersData?.map((member: any) => ({
+          id: member.userId,
+          name: member.name,
+        })) || []
+      );
+    }
+
+    return (
+      allUsersData?.data?.map((user: any) => ({
+        id: user.id,
+        name: user.name,
+      })) || []
+    );
+  }, [isProjectTask, projectMembersData, allUsersData]);
 
   const assignedIds = new Set(task.assignees.map((a: any) => a.id));
+
+  const handleSelect = (userId: string) => {
+    assignMutation.mutate(userId, {
+      onSuccess: () => {
+        setPopoverOpen(false);
+      },
+    });
+  };
 
   return (
     <div>
@@ -13027,22 +13919,33 @@ export function TaskAssignees({ task, workspaceId, projectId }: any) {
         {task.assignees.map((assignee: any) => (
           <div
             key={assignee.id}
-            className="flex items-center gap-2 rounded-full bg-gray-100 pr-2"
+            className="flex items-center gap-2 rounded-full bg-gray-100 py-0.5 pr-2 pl-0.5"
           >
-            <Avatar className="h-6 w-6">
+            <Avatar className="h-5 w-5">
               <AvatarImage src={assignee.avatarUrl} />
               <AvatarFallback>{assignee.name?.charAt(0)}</AvatarFallback>
             </Avatar>
             <span className="text-sm">{assignee.name}</span>
-            <button onClick={() => unassignUserMutation.mutate(assignee.id)}>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="ml-1 h-4 w-4 rounded-full"
+              onClick={() => unassignMutation.mutate(assignee.id)}
+              disabled={unassignMutation.isPending}
+            >
               <X className="text-muted-foreground hover:text-primary h-3 w-3" />
-            </button>
+            </Button>
           </div>
         ))}
 
-        <Popover>
+        <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
           <PopoverTrigger asChild>
-            <Button variant="outline" size="icon" className="h-6 w-6">
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-6 w-6"
+              disabled={isLoading}
+            >
               <UserPlus className="h-4 w-4" />
             </Button>
           </PopoverTrigger>
@@ -13050,26 +13953,27 @@ export function TaskAssignees({ task, workspaceId, projectId }: any) {
             <Command>
               <CommandInput placeholder="Assign user..." />
               <CommandList>
-                <CommandEmpty>No users found.</CommandEmpty>
+                <CommandEmpty>No available users found.</CommandEmpty>
                 <CommandGroup>
-                  {membersData?.map((member: any) => (
-                    <CommandItem
-                      key={member.userId}
-                      value={member.name}
-                      onSelect={() => assignUserMutation.mutate(member.userId)}
-                      disabled={assignedIds.has(member.userId)}
-                    >
-                      <Check
-                        className={cn(
-                          "mr-2 h-4 w-4",
-                          assignedIds.has(member.userId)
-                            ? "opacity-100"
-                            : "opacity-0"
-                        )}
-                      />
-                      {member.name}
-                    </CommandItem>
-                  ))}
+                  {availableUsers
+                    .filter((user: any) => !assignedIds.has(user.id))
+                    .map((user: any) => (
+                      <CommandItem
+                        key={user.id}
+                        value={user.name}
+                        onSelect={() => handleSelect(user.id)}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            assignedIds.has(user.id)
+                              ? "opacity-100"
+                              : "opacity-0"
+                          )}
+                        />
+                        {user.name}
+                      </CommandItem>
+                    ))}
                 </CommandGroup>
               </CommandList>
             </Command>
@@ -13227,7 +14131,6 @@ import { SubtaskList } from "./SubtaskList";
 import { useState, useEffect } from "react";
 import { CreateTaskDialog } from "./CreateTaskDialog";
 import { TaskLinks } from "./TaskLinks";
-import { EditableField } from "@/components/ui/EditableField";
 
 export function TaskDetailBody({
   task,
@@ -13281,8 +14184,6 @@ export function TaskDetailBody({
 }
 
 // FILE: src/features/tasks/components/TaskDetailModal.tsx
-// FILE: src/features/tasks/components/TaskDetailModal.tsx
-
 import {
   Dialog,
   DialogContent,
@@ -13292,6 +14193,7 @@ import {
 import { EditableField } from "@/components/ui/EditableField";
 import { useGetTask } from "../api/useGetTask";
 import { useUpdateTask } from "../api/useUpdateTask";
+import { useUpdateStandaloneTask } from "../api/useUpdateStandaloneTask";
 import { TaskDetailBody } from "./TaskDetailBody";
 import {
   TaskDetailSidebar,
@@ -13325,7 +14227,8 @@ export function TaskDetailModal({
   onTaskSelect,
 }: TaskDetailModalProps) {
   const { data: task, isLoading } = useGetTask(taskId, workspaceId, projectId);
-  const updateTaskMutation = useUpdateTask(workspaceId!, projectId!, taskId!);
+  const useUpdateHook = projectId ? useUpdateTask : useUpdateStandaloneTask;
+  const updateTaskMutation = useUpdateHook(workspaceId!, projectId!, taskId!);
 
   const handleSave = (field: "title" | "description", value: string) => {
     updateTaskMutation.mutate({ [field]: value });
@@ -13421,6 +14324,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useUpdateTask } from "../api/useUpdateTask";
+import { useUpdateStandaloneTask } from "../api/useUpdateStandaloneTask";
 import { TaskStatus, TaskPriority } from "@/types";
 import {
   Popover,
@@ -13434,7 +14338,8 @@ import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 
 export function TaskDetailSidebar({ task, workspaceId, projectId }: any) {
-  const updateTaskMutation = useUpdateTask(workspaceId, projectId, task.id);
+  const useUpdateHook = projectId ? useUpdateTask : useUpdateStandaloneTask;
+  const updateTaskMutation = useUpdateHook(workspaceId, projectId, task.id);
 
   const handleUpdate = (
     field: "status" | "priority" | "dueDate",
@@ -13501,10 +14406,7 @@ export function TaskDetailSidebar({ task, workspaceId, projectId }: any) {
                 )}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="flex w-auto flex-col space-y-2 p-2">
-              <div className="rounded-t-md border p-1 text-center text-sm">
-                Selected date
-              </div>
+            <PopoverContent className="w-auto p-0">
               <Calendar
                 mode="single"
                 selected={task.dueDate ? new Date(task.dueDate) : undefined}
@@ -13575,6 +14477,7 @@ export function TaskDetailSidebarSkeleton() {
     </div>
   );
 }
+
 // FILE: src/features/tasks/components/TaskLinks.tsx
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -13687,7 +14590,7 @@ import { Card, CardFooter } from "@/components/ui/card";
 import { TaskTableRow } from "./TaskTableRow";
 import { EmptyState } from "@/components/ui/empty-state";
 import { CreateTaskDialog } from "./CreateTaskDialog";
-import { CheckSquare } from "lucide-react";
+import { CheckSquare, Trash2 } from "lucide-react";
 import {
   Pagination,
   PaginationContent,
@@ -13697,6 +14600,9 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { Task } from "../task.types";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { useDeleteTask } from "../api/useDeleteTask";
 
 export function TaskList({
   workspaceId,
@@ -13710,21 +14616,55 @@ export function TaskList({
   onTaskSelect: (taskId: string) => void;
 }) {
   const [page, setPage] = useState(1);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const deleteMutation = useDeleteTask(workspaceId, projectId);
+
   const limit = 15;
   const totalPages = Math.ceil(tasks.length / limit);
   const paginatedTasks = tasks.slice((page - 1) * limit, page * limit);
-
   const handlePageChange = (newPage: number) => {
     if (newPage > 0 && newPage <= totalPages) {
       setPage(newPage);
     }
   };
 
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(paginatedTasks.map((item: any) => item.id) || []);
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleRowSelect = (id: string, checked: boolean) => {
+    if (checked) {
+      setSelectedIds((prev) => [...prev, id]);
+    } else {
+      setSelectedIds((prev) => prev.filter((prevId) => prevId !== id));
+    }
+  };
+
+  const handleBulkDelete = () => {
+    if (
+      window.confirm(
+        `Delete ${selectedIds.length} selected tasks? This cannot be undone.`
+      )
+    ) {
+      // @ts-ignore
+      deleteMutation.mutate(selectedIds, {
+        onSuccess: () => setSelectedIds([]),
+      });
+    }
+  };
+
+  const isAllSelected =
+    paginatedTasks.length > 0 && selectedIds.length === paginatedTasks.length;
+
   const renderBody = () => {
     if (tasks.length === 0) {
       return (
         <TableRow>
-          <TableCell colSpan={5}>
+          <TableCell colSpan={6}>
             <EmptyState
               icon={<CheckSquare className="text-primary h-10 w-10" />}
               title="No tasks yet"
@@ -13748,73 +14688,93 @@ export function TaskList({
         projectId={projectId}
         onTaskSelect={onTaskSelect}
         level={0}
+        isSelected={selectedIds.includes(task.id)}
+        onSelectChange={handleRowSelect}
       />
     ));
   };
 
   return (
-    <Card>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Title</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Priority</TableHead>
-            <TableHead>Due Date</TableHead>
-            <TableHead className="w-[50px]">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>{renderBody()}</TableBody>
-      </Table>
-      <CardFooter className="border-t pt-4">
-        {totalPages > 1 && (
-          <Pagination>
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handlePageChange(page - 1);
-                  }}
-                  isActive={page > 1}
+    <>
+      {selectedIds.length > 0 && (
+        <div className="mb-4 flex items-center gap-2">
+          <Button
+            variant="destructive"
+            onClick={handleBulkDelete}
+            disabled={deleteMutation.isPending}
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Delete ({selectedIds.length})
+          </Button>
+        </div>
+      )}
+      <Card>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[50px]">
+                <Checkbox
+                  checked={isAllSelected}
+                  onCheckedChange={handleSelectAll}
                 />
-              </PaginationItem>
-              {[...Array(totalPages)].map((_, i) => (
-                <PaginationItem key={i}>
-                  <PaginationLink
+              </TableHead>
+              <TableHead>Title</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Priority</TableHead>
+              <TableHead>Due Date</TableHead>
+              <TableHead className="w-[50px]">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>{renderBody()}</TableBody>
+        </Table>
+        <CardFooter className="border-t pt-4">
+          {totalPages > 1 && (
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
                     href="#"
                     onClick={(e) => {
                       e.preventDefault();
-                      handlePageChange(i + 1);
+                      handlePageChange(page - 1);
                     }}
-                    isActive={page === i + 1}
-                  >
-                    {i + 1}
-                  </PaginationLink>
+                    isActive={page > 1}
+                  />
                 </PaginationItem>
-              ))}
-              <PaginationItem>
-                <PaginationNext
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handlePageChange(page + 1);
-                  }}
-                  isActive={page < totalPages}
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-        )}
-      </CardFooter>
-    </Card>
+                {[...Array(totalPages)].map((_, i) => (
+                  <PaginationItem key={i}>
+                    <PaginationLink
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handlePageChange(i + 1);
+                      }}
+                      isActive={page === i + 1}
+                    >
+                      {i + 1}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                <PaginationItem>
+                  <PaginationNext
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handlePageChange(page + 1);
+                    }}
+                    isActive={page < totalPages}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          )}
+        </CardFooter>
+      </Card>
+    </>
   );
 }
 
 // FILE: src/features/tasks/components/TaskTableRow.tsx
-// FILE: src/features/tasks/components/TaskTableRow.tsx
-
 import { TableCell, TableRow } from "@/components/ui/table";
 import { MoreHorizontal, Edit, Copy, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13842,13 +14802,15 @@ import { toast } from "sonner";
 import React from "react";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
-
+import { Checkbox } from "@/components/ui/checkbox";
 interface TaskTableRowProps {
   task: any;
   onTaskSelect: (taskId: string) => void;
   workspaceId?: string;
   projectId?: string;
   level?: number;
+  isSelected: boolean;
+  onSelectChange: (id: string, checked: boolean) => void;
 }
 
 export function TaskTableRow({
@@ -13857,6 +14819,8 @@ export function TaskTableRow({
   projectId,
   onTaskSelect,
   level = 0,
+  isSelected,
+  onSelectChange,
 }: TaskTableRowProps) {
   const useUpdateHook = projectId ? useUpdateTask : useUpdateStandaloneTask;
   const updateTaskMutation = useUpdateHook(workspaceId!, projectId!, task.id);
@@ -13892,13 +14856,19 @@ export function TaskTableRow({
     e.stopPropagation();
     onTaskSelect(task.id);
   };
-
   return (
     <React.Fragment>
       <TableRow
+        data-state={isSelected && "selected"}
         className="cursor-pointer"
         onClick={() => onTaskSelect(task.id)}
       >
+        <TableCell onClick={(e) => e.stopPropagation()} className="w-[50px]">
+          <Checkbox
+            checked={isSelected}
+            onCheckedChange={(checked) => onSelectChange(task.id, !!checked)}
+          />
+        </TableCell>
         <TableCell className="font-medium">
           <div style={{ paddingLeft: `${level * 24}px` }}>{task.title}</div>
           {task.projectName && (
@@ -13976,6 +14946,8 @@ export function TaskTableRow({
           projectId={projectId}
           onTaskSelect={onTaskSelect}
           level={level + 1}
+          isSelected={isSelected}
+          onSelectChange={onSelectChange}
         />
       ))}
     </React.Fragment>
@@ -14086,6 +15058,7 @@ const BaseTaskSchema = z.object({
 export type Task = z.infer<typeof BaseTaskSchema> & {
   subtasks: Task[];
 };
+
 export const TaskSchema: z.ZodType<Task> = BaseTaskSchema.extend({
   subtasks: z.lazy(() => z.array(TaskSchema)),
 });
@@ -14104,6 +15077,7 @@ export const CreateTaskDtoSchema = z.object({
   epicId: z.string().uuid().optional().nullable(),
   boardColumnId: z.string().uuid().optional(),
   parentId: z.string().uuid().optional().nullable(),
+  assigneeIds: z.array(z.string().uuid()).optional(),
 });
 export type CreateTaskDto = z.infer<typeof CreateTaskDtoSchema>;
 
@@ -14166,6 +15140,8 @@ export const ListTasksQuerySchema = createPaginationSchema().extend({
     ])
     .default("orderInColumn"),
   sortOrder: z.enum(["asc", "desc"]).default("asc"),
+  taskOrigin: z.enum(["project", "standalone"]).optional(),
+  userRole: z.enum(["creator", "assignee"]).optional(),
 });
 export type ListTasksQuery = z.infer<typeof ListTasksQuerySchema>;
 
@@ -15455,27 +16431,23 @@ function mapStatusToColumnName(status: TaskStatus): string {
   }
 }
 
-// This function now correctly handles parent and sub-task visibility.
+
 const getDisplayableTasks = (tasks: Task[]): Task[] => {
   const displayable: Task[] = [];
   if (!tasks) return displayable;
 
   for (const task of tasks) {
-    // If a task has no subtasks, it's always displayable.
+    
     if (!task.subtasks || task.subtasks.length === 0) {
       displayable.push(task);
     } else {
-      // If a task has subtasks, check if they are all done.
       const allSubtasksDone = task.subtasks.every(
         (sub) => sub.status === TaskStatus.DONE
       );
 
-      // If all subtasks are done, display the parent task itself.
       if (allSubtasksDone) {
         displayable.push(task);
       } else {
-        // Otherwise, don't show the parent, but recursively find
-        // and show its individual (non-done) subtasks.
         displayable.push(...getDisplayableTasks(task.subtasks));
       }
     }
@@ -17195,7 +18167,6 @@ interface WorkspaceCardProps {
 
 export function WorkspaceCard({ workspace, onEdit }: WorkspaceCardProps) {
   const deleteMutation = useDeleteWorkspace();
-
   const handleDelete = (e: React.MouseEvent) => {
     e.preventDefault();
     if (
@@ -17211,7 +18182,6 @@ export function WorkspaceCard({ workspace, onEdit }: WorkspaceCardProps) {
     e.preventDefault();
     onEdit(workspace.id);
   };
-
   return (
     <Link to={`/workspaces/${workspace.id}/projects`} key={workspace.id}>
       <Card className="hover:border-primary flex h-full flex-col transition-colors">
@@ -17249,7 +18219,8 @@ export function WorkspaceCard({ workspace, onEdit }: WorkspaceCardProps) {
         <CardContent className="flex-grow"></CardContent>
         <CardContent>
           <p className="text-muted-foreground text-sm">
-            Created on: {new Date(workspace.createdAt).toLocaleDateString()}
+            Created on:{" "}
+            {new Date(workspace.createdAt).toLocaleDateString("en-US")}
           </p>
         </CardContent>
       </Card>
@@ -17369,21 +18340,11 @@ export function useNotificationSocket() {
 
   useEffect(() => {
     if (!socket) {
-      console.log(
-        "LOG: useNotificationSocket - No socket instance, skipping listener setup."
-      );
       return;
     }
 
-    console.log(
-      "LOG: useNotificationSocket - Setting up 'NEW_NOTIFICATION' listener."
-    );
     const handleNewNotification = (event: { payload: any }) => {
       const newNotification = event.payload;
-      console.log(
-        "LOG: useNotificationSocket - 'NEW_NOTIFICATION' event received",
-        event
-      );
 
       toast.info(newNotification.message, {
         description: `Severity: ${newNotification.severity}`,
@@ -17392,11 +18353,6 @@ export function useNotificationSocket() {
       queryClient.setQueryData<any>(
         ["notifications"],
         (oldData: { data: any; total: number; unreadCount: any }) => {
-          console.log(
-            "LOG: useNotificationSocket - Updating query cache for ['notifications']. Old data:",
-            oldData
-          );
-
           if (!oldData) {
             const newData = {
               data: [newNotification],
@@ -17406,10 +18362,6 @@ export function useNotificationSocket() {
               limit: 10,
               totalPages: 1,
             };
-            console.log(
-              "LOG: useNotificationSocket - No old data found, creating new cache entry:",
-              newData
-            );
             return newData;
           }
 
@@ -17419,10 +18371,6 @@ export function useNotificationSocket() {
             total: oldData.total + 1,
             unreadCount: (oldData.unreadCount ?? 0) + 1,
           };
-          console.log(
-            "LOG: useNotificationSocket - Optimistically updated cache:",
-            newData
-          );
           return newData;
         }
       );
@@ -17431,9 +18379,6 @@ export function useNotificationSocket() {
     socket.on("NEW_NOTIFICATION", handleNewNotification);
 
     return () => {
-      console.log(
-        "LOG: useNotificationSocket - Cleaning up 'NEW_NOTIFICATION' listener."
-      );
       socket.off("NEW_NOTIFICATION", handleNewNotification);
     };
   }, [socket, queryClient]);
@@ -17453,9 +18398,6 @@ export function usePresence(contextType: string, contextId: string) {
       return;
     }
 
-    const roomName = `context:${contextType}:${contextId}`;
-    console.log(`Subscribing to presence in room: ${roomName}`);
-
     socket.emit("join_context", { contextType, contextId }, (response: any) => {
       if (response.success) {
         setMembers(response.data.members);
@@ -17474,7 +18416,6 @@ export function usePresence(contextType: string, contextId: string) {
     socket.on("USER_LEFT_CONTEXT", onUserLeft);
 
     return () => {
-      console.log(`Leaving presence in room: ${roomName}`);
       socket.emit("leave_context", { contextType, contextId });
       socket.off("USER_JOINED_CONTEXT", onUserJoined);
       socket.off("USER_LEFT_CONTEXT", onUserLeft);
@@ -17500,7 +18441,6 @@ export function useProjectSocket(projectId: string) {
     }
 
     const handleContextUpdate = (event: any) => {
-      console.log("CONTEXT_ITEM_UPDATED received:", event);
       const { entityType, data } = event.payload;
 
       toast.info(`Real-time update: ${entityType} was modified.`);
@@ -17543,32 +18483,21 @@ export function useSocket() {
   useEffect(() => {
     if (!accessToken) {
       if (socket) {
-        console.log("LOG: No access token, disconnecting socket.");
         socket.disconnect();
         setSocket(null);
       }
       return;
     }
 
-    console.log("LOG: Access token found, creating new socket connection.");
     const newSocket = io("http://localhost:3000", {
       auth: {
         token: accessToken,
       },
     });
 
-    newSocket.on("connect", () => {
-      console.log("LOG: Socket connected successfully with ID:", newSocket.id);
-    });
-
-    newSocket.on("disconnect", (reason) => {
-      console.log("LOG: Socket disconnected. Reason:", reason);
-    });
-
     setSocket(newSocket);
 
     return () => {
-      console.log("LOG: Cleaning up socket connection.");
       newSocket.disconnect();
     };
   }, [accessToken]);
@@ -17595,8 +18524,6 @@ export function useSocketSubscription(
       return;
     }
 
-    const roomName = `context:${contextType}:${contextId}`;
-    console.log(`Joining room: ${roomName}`);
     socket.emit("join_context", { contextType, contextId });
 
     Object.entries(handlers).forEach(([eventName, handler]) => {
@@ -17604,7 +18531,6 @@ export function useSocketSubscription(
     });
 
     return () => {
-      console.log(`Leaving room: ${roomName}`);
       socket.emit("leave_context", { contextType, contextId });
 
       Object.keys(handlers).forEach((eventName) => {
@@ -18231,16 +19157,27 @@ export function LoginPage() {
 }
 
 // FILE: src/pages/MyTasksPage.tsx
-// FILE: src/pages/MyTasksPage.tsx
-
 import { MyTasksList } from "@/features/tasks/components/MyTasksList";
 import { CreateTaskDialog } from "@/features/tasks/components/CreateTaskDialog";
 import { TaskDetailModal } from "@/features/tasks/components/TaskDetailModal";
 import { useSearchParams } from "react-router-dom";
+import { useState } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { ListTasksQuery } from "@/features/tasks/task.types";
 
 export function MyTasksPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedTaskId = searchParams.get("taskId");
+
+  const [filter, setFilter] = useState("all_assigned");
+  const [sortBy, setSortBy] = useState("priority");
 
   const handleTaskSelect = (taskId: string | null) => {
     setSearchParams((params) => {
@@ -18253,6 +19190,31 @@ export function MyTasksPage() {
     });
   };
 
+  const getFilterParams = (): Partial<
+    Pick<ListTasksQuery, "userRole" | "taskOrigin">
+  > => {
+    switch (filter) {
+      case "created_standalone":
+        return { userRole: "creator", taskOrigin: "standalone" };
+      case "created_project":
+        return { userRole: "creator", taskOrigin: "project" };
+      case "assigned_standalone":
+        return { userRole: "assignee", taskOrigin: "standalone" };
+      case "assigned_project":
+        return { userRole: "assignee", taskOrigin: "project" };
+      case "all_assigned":
+        return { userRole: "assignee" };
+      default:
+        return {};
+    }
+  };
+
+  const queryParams: Partial<ListTasksQuery> = {
+    ...getFilterParams(),
+    sortBy: sortBy as ListTasksQuery["sortBy"],
+    sortOrder: "desc",
+  };
+
   return (
     <>
       <div className="space-y-6">
@@ -18263,9 +19225,52 @@ export function MyTasksPage() {
               All tasks assigned to you or created by you.
             </p>
           </div>
-          <CreateTaskDialog />
+          <div className="flex items-center gap-4">
+            <div className="grid w-full max-w-sm items-center gap-1.5">
+              <Label htmlFor="filter">Filter by</Label>
+              <Select value={filter} onValueChange={setFilter}>
+                <SelectTrigger id="filter" className="w-[240px]">
+                  <SelectValue placeholder="Filter tasks" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All My Tasks</SelectItem>
+                  <SelectItem value="all_assigned">
+                    All Assigned to Me (Default)
+                  </SelectItem>
+                  <SelectItem value="assigned_project">
+                    Assigned to Me (from Projects)
+                  </SelectItem>
+                  <SelectItem value="assigned_standalone">
+                    Assigned to Me (Standalone)
+                  </SelectItem>
+                  <SelectItem value="created_project">
+                    Created by Me (in Projects)
+                  </SelectItem>
+                  <SelectItem value="created_standalone">
+                    Created by Me (Standalone)
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid w-full max-w-sm items-center gap-1.5">
+              <Label htmlFor="sort">Sort by</Label>
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger id="sort" className="w-[180px]">
+                  <SelectValue placeholder="Sort tasks" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="priority">Priority</SelectItem>
+                  <SelectItem value="dueDate">Due Date</SelectItem>
+                  <SelectItem value="createdAt">Creation Date</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="self-end">
+              <CreateTaskDialog />
+            </div>
+          </div>
         </div>
-        <MyTasksList onTaskSelect={handleTaskSelect} />
+        <MyTasksList onTaskSelect={handleTaskSelect} query={queryParams} />
       </div>
 
       <TaskDetailModal
@@ -18282,15 +19287,69 @@ export function MyTasksPage() {
 
 // FILE: src/pages/ProfilePage.tsx
 import { ProfileForm } from "@/features/profile/components/ProfileForm";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useGetProfile } from "@/features/profile/api/useGetProfile";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ProfileAvatar } from "@/features/profile/components/ProfileAvatar";
 
 export function ProfilePage() {
+  const { data: profile, isLoading } = useGetProfile();
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">My Profile</h1>
-        <p className="text-muted-foreground">Update your personal details.</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">My Profile</h1>
+          <p className="text-muted-foreground">
+            View and manage your personal details, publications, and activity.
+          </p>
+        </div>
       </div>
-      <ProfileForm />
+
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+        <div className="lg:col-span-1">
+          <Card>
+            <CardContent className="flex flex-col items-center pt-8">
+              {isLoading || !profile ? (
+                <Skeleton className="h-32 w-32 rounded-full" />
+              ) : (
+                <ProfileAvatar user={profile} />
+              )}
+              <h2 className="mt-4 text-2xl font-semibold">
+                {isLoading ? <Skeleton className="h-8 w-40" /> : profile?.name}
+              </h2>
+              <p className="text-muted-foreground">
+                {isLoading ? (
+                  <Skeleton className="h-4 w-48" />
+                ) : (
+                  profile?.roles.join(", ")
+                )}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="lg:col-span-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Personal Information</CardTitle>
+              <CardDescription>
+                Update your personal details. This information is visible to
+                other users in the system.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ProfileForm />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }
@@ -19269,7 +20328,7 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 
-// https://vite.dev/config/
+
 export default defineConfig({
   plugins: [tailwindcss(), react()],
   resolve: {

@@ -1,8 +1,6 @@
-// FILE: src/features/notifications/components/NotificationItem.tsx
 import { useMarkNotificationAsRead } from "../api/useMarkNotificationAsRead";
 import { cn } from "@/lib/utils";
 import { RichTextOutput } from "@/components/ui/RichTextOutput";
-// Import the component
 
 export function NotificationItem({ notification }: { notification: any }) {
   const markAsReadMutation = useMarkNotificationAsRead();
@@ -24,7 +22,6 @@ export function NotificationItem({ notification }: { notification: any }) {
         <span className="mt-1 block h-2 w-2 rounded-full bg-blue-500" />
       )}
       <div className={cn("grid gap-1", notification.isRead && "pl-5")}>
-        {/* Replace the <p> tag with the RichTextOutput component */}
         <RichTextOutput
           html={notification.message}
           className="text-sm font-medium"

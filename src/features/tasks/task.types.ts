@@ -101,6 +101,7 @@ const BaseTaskSchema = z.object({
 export type Task = z.infer<typeof BaseTaskSchema> & {
   subtasks: Task[];
 };
+
 export const TaskSchema: z.ZodType<Task> = BaseTaskSchema.extend({
   subtasks: z.lazy(() => z.array(TaskSchema)),
 });
@@ -119,6 +120,7 @@ export const CreateTaskDtoSchema = z.object({
   epicId: z.string().uuid().optional().nullable(),
   boardColumnId: z.string().uuid().optional(),
   parentId: z.string().uuid().optional().nullable(),
+  assigneeIds: z.array(z.string().uuid()).optional(),
 });
 export type CreateTaskDto = z.infer<typeof CreateTaskDtoSchema>;
 
@@ -181,6 +183,8 @@ export const ListTasksQuerySchema = createPaginationSchema().extend({
     ])
     .default("orderInColumn"),
   sortOrder: z.enum(["asc", "desc"]).default("asc"),
+  taskOrigin: z.enum(["project", "standalone"]).optional(),
+  userRole: z.enum(["creator", "assignee"]).optional(),
 });
 export type ListTasksQuery = z.infer<typeof ListTasksQuerySchema>;
 

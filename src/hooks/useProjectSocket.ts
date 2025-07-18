@@ -13,7 +13,6 @@ export function useProjectSocket(projectId: string) {
     }
 
     const handleContextUpdate = (event: any) => {
-      console.log("CONTEXT_ITEM_UPDATED received:", event);
       const { entityType, data } = event.payload;
 
       toast.info(`Real-time update: ${entityType} was modified.`);

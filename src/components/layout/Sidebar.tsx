@@ -1,5 +1,3 @@
-// FILE: src/components/layout/Sidebar.tsx
-
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -15,7 +13,7 @@ import {
   Clock,
   Activity,
   Contact,
-  CheckSquare, // Import the new icon
+  CheckSquare,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";

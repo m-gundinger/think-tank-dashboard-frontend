@@ -12,8 +12,10 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useResetPassword } from "../api/useResetPassword";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useEffect } from "react";
+import { useVerifyResetToken } from "../api/useVerifyResetToken";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const resetPasswordSchema = z
   .object({
@@ -32,6 +34,13 @@ export function ResetPasswordForm() {
   const resetPasswordMutation = useResetPassword();
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
+
+  const {
+    data: verificationData,
+    isLoading: isVerifying,
+    isError: isVerificationError,
+    error: verificationError,
+  } = useVerifyResetToken(token);
 
   const form = useForm<ResetPasswordFormValues>({
     resolver: zodResolver(resetPasswordSchema),
@@ -52,10 +61,27 @@ export function ResetPasswordForm() {
     resetPasswordMutation.mutate(values);
   }
 
-  if (!token) {
+  if (isVerifying) {
     return (
-      <div className="text-center text-red-500">
-        Invalid or missing reset token. Please request a new link.
+      <div className="w-full max-w-sm space-y-4">
+        <Skeleton className="h-8 w-3/4" />
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+      </div>
+    );
+  }
+
+  if (!token || isVerificationError) {
+    return (
+      <div className="w-full max-w-sm text-center">
+        <h2 className="text-destructive text-2xl font-bold">Invalid Token</h2>
+        <p className="text-muted-foreground mt-2">
+          This password reset link is invalid or has expired.
+        </p>
+        <Button asChild className="mt-4">
+          <Link to="/forgot-password">Request a new link</Link>
+        </Button>
       </div>
     );
   }

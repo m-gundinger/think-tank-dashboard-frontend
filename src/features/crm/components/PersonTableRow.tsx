@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
+import { getAbsoluteUrl } from "@/lib/utils";
 
 interface PersonTableRowProps {
   person: any;
@@ -34,8 +35,9 @@ export function PersonTableRow({
         <div className="flex items-center gap-3">
           <Avatar className="h-9 w-9">
             <AvatarImage
-              src={person.avatarUrl}
+              src={getAbsoluteUrl(person.avatarUrl)}
               alt={`${person.firstName} ${person.lastName}`}
+              className="h-full w-full object-cover"
             />
             <AvatarFallback>{person.firstName?.charAt(0)}</AvatarFallback>
           </Avatar>

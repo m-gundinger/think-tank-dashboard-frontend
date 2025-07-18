@@ -1,3 +1,4 @@
+// FILE: src/components/layout/ActiveUsers.tsx
 import { usePresenceStore } from "@/store/presence";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -6,6 +7,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { getAbsoluteUrl } from "@/lib/utils";
 
 interface Member {
   socketId: string;
@@ -19,7 +21,6 @@ export function ActiveUsers() {
   const members = usePresenceStore(
     (state: { members: Member[] }) => state.members
   );
-
   return (
     <TooltipProvider>
       <div className="flex items-center -space-x-2">
@@ -28,8 +29,9 @@ export function ActiveUsers() {
             <TooltipTrigger asChild>
               <Avatar className="h-7 w-7 border-2 border-white">
                 <AvatarImage
-                  src={member.user.avatarUrl}
+                  src={getAbsoluteUrl(member.user.avatarUrl)}
                   alt={member.user.name}
+                  className="h-full w-full object-cover"
                 />
                 <AvatarFallback>{member.user.name?.charAt(0)}</AvatarFallback>
               </Avatar>

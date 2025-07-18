@@ -1,4 +1,3 @@
-// FILE: src/features/projects/components/ProjectCard.tsx
 import {
   Card,
   CardContent,

@@ -1,3 +1,4 @@
+// FILE: src/features/teams/components/TeamCard.tsx
 import {
   Card,
   CardContent,
@@ -15,10 +16,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useDeleteTeam } from "../api/useDeleteTeam";
+import { getAbsoluteUrl } from "@/lib/utils";
 
 export function TeamCard({ team, onEdit }: { team: any; onEdit: () => void }) {
   const deleteMutation = useDeleteTeam(team.workspaceId);
-
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (
@@ -70,7 +71,11 @@ export function TeamCard({ team, onEdit }: { team: any; onEdit: () => void }) {
           <div className="flex items-center -space-x-2">
             {team.members.map((member: any) => (
               <Avatar key={member.id} className="h-7 w-7 border-2 border-white">
-                <AvatarImage src={member.avatarUrl} alt={member.name} />
+                <AvatarImage
+                  src={getAbsoluteUrl(member.avatarUrl)}
+                  alt={member.name}
+                  className="h-full w-full object-cover"
+                />
                 <AvatarFallback>{member.name?.charAt(0)}</AvatarFallback>
               </Avatar>
             ))}

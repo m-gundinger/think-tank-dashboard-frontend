@@ -1,5 +1,3 @@
-// FILE: src/features/tasks/components/TaskDetailModal.tsx
-
 import {
   Dialog,
   DialogContent,
@@ -9,6 +7,7 @@ import {
 import { EditableField } from "@/components/ui/EditableField";
 import { useGetTask } from "../api/useGetTask";
 import { useUpdateTask } from "../api/useUpdateTask";
+import { useUpdateStandaloneTask } from "../api/useUpdateStandaloneTask";
 import { TaskDetailBody } from "./TaskDetailBody";
 import {
   TaskDetailSidebar,
@@ -42,7 +41,8 @@ export function TaskDetailModal({
   onTaskSelect,
 }: TaskDetailModalProps) {
   const { data: task, isLoading } = useGetTask(taskId, workspaceId, projectId);
-  const updateTaskMutation = useUpdateTask(workspaceId!, projectId!, taskId!);
+  const useUpdateHook = projectId ? useUpdateTask : useUpdateStandaloneTask;
+  const updateTaskMutation = useUpdateHook(workspaceId!, projectId!, taskId!);
 
   const handleSave = (field: "title" | "description", value: string) => {
     updateTaskMutation.mutate({ [field]: value });

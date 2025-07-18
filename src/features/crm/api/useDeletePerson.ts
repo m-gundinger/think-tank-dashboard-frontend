@@ -1,4 +1,3 @@
-// FILE: src/features/crm/api/useDeletePerson.ts
 import api from "@/lib/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";

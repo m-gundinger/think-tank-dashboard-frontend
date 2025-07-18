@@ -1,4 +1,3 @@
-// FILE: src/features/activities/components/ProjectActivityLog.tsx
 import { useGetActivities } from "../api/useGetActivities";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";

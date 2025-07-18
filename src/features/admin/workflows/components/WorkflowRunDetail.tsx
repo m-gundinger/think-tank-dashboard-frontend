@@ -1,4 +1,3 @@
-// FILE: src/features/admin/workflows/components/WorkflowRunDetail.tsx
 import {
   Drawer,
   DrawerContent,

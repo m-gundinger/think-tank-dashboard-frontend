@@ -25,11 +25,11 @@ export function useUpdateTask(
     mutationFn: (taskData) =>
       updateTask({ workspaceId, projectId, taskId, taskData }),
     onSuccess: () => {
-      // Invalidate the new hierarchical key for all project tasks
+      
       queryClient.invalidateQueries({
         queryKey: ["projects", projectId, "tasks"],
       });
-      // Also invalidate the specific task detail query, which is good practice
+      
       queryClient.invalidateQueries({ queryKey: ["task", taskId] });
     },
   });

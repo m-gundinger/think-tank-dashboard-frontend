@@ -15,15 +15,6 @@ export function NotificationBell() {
   const markAllReadMutation = useMarkAllNotificationsAsRead();
   const unreadCount = data?.unreadCount ?? 0;
 
-  console.log(
-    "LOG: NotificationBell rendering. Unread count:",
-    unreadCount,
-    "Is loading:",
-    isLoading,
-    "Data:",
-    data
-  );
-
   return (
     <Popover>
       <PopoverTrigger asChild>
