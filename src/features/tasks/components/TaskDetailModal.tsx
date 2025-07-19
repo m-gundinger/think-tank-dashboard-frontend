@@ -41,13 +41,12 @@ export function TaskDetailModal({
   onTaskSelect,
 }: TaskDetailModalProps) {
   const { data: task, isLoading } = useGetTask(taskId, workspaceId, projectId);
-  const useUpdateHook = projectId ? useUpdateTask : useUpdateStandaloneTask;
-  const updateTaskMutation = useUpdateHook(workspaceId!, projectId!, taskId!);
-
+  const updateTaskMutation = projectId
+    ? useUpdateTask(workspaceId!, projectId, taskId!)
+    : useUpdateStandaloneTask(taskId!);
   const handleSave = (field: "title" | "description", value: string) => {
     updateTaskMutation.mutate({ [field]: value });
   };
-
   const renderContent = () => {
     if (isLoading || !task) {
       return (
@@ -89,6 +88,7 @@ export function TaskDetailModal({
             </TooltipProvider>
           )}
           <EditableField
+            key={task.id}
             initialValue={task.title}
             onSave={(newTitle) => handleSave("title", newTitle)}
             className="text-2xl font-bold"

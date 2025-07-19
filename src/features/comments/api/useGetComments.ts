@@ -1,25 +1,26 @@
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
-
 async function getComments(
-  workspaceId: string,
-  projectId: string,
+  workspaceId: string | undefined,
+  projectId: string | undefined,
   taskId: string
 ): Promise<any> {
-  const { data } = await api.get(
-    `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/comments`
-  );
+  const url =
+    projectId && workspaceId
+      ? `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/comments`
+      : `/tasks/${taskId}/comments`;
+  const { data } = await api.get(url);
   return data;
 }
 
 export function useGetComments(
-  workspaceId: string,
-  projectId: string,
+  workspaceId: string | undefined,
+  projectId: string | undefined,
   taskId: string
 ) {
   return useQuery({
     queryKey: ["comments", taskId],
     queryFn: () => getComments(workspaceId, projectId, taskId),
-    enabled: !!workspaceId && !!projectId && !!taskId,
+    enabled: !!taskId,
   });
 }

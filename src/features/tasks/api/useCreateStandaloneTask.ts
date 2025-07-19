@@ -15,6 +15,12 @@ export function useCreateStandaloneTask() {
     onSuccess: (newTask) => {
       toast.success(`Task "${newTask.title}" created.`);
       queryClient.invalidateQueries({ queryKey: ["myTasks"] });
+
+      if (newTask.parentId) {
+        queryClient.invalidateQueries({
+          queryKey: ["task", newTask.parentId],
+        });
+      }
     },
     onError: (error: any) => {
       toast.error("Failed to create task", {

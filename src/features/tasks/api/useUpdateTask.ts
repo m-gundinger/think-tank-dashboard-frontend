@@ -24,13 +24,14 @@ export function useUpdateTask(
   return useMutation<any, AxiosError, any>({
     mutationFn: (taskData) =>
       updateTask({ workspaceId, projectId, taskId, taskData }),
-    onSuccess: () => {
-      
+    onSuccess: (updatedTask) => {
+      // Invalidate list/board queries to trigger a refetch in the background
       queryClient.invalidateQueries({
         queryKey: ["projects", projectId, "tasks"],
       });
-      
-      queryClient.invalidateQueries({ queryKey: ["task", taskId] });
+
+      // Immediately update the cache for the specific task being viewed
+      queryClient.setQueryData(["task", taskId], updatedTask);
     },
   });
 }

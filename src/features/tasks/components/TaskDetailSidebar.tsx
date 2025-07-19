@@ -22,10 +22,10 @@ import { cn } from "@/lib/utils";
 import { Calendar as CalendarIcon, X } from "lucide-react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
-
 export function TaskDetailSidebar({ task, workspaceId, projectId }: any) {
-  const useUpdateHook = projectId ? useUpdateTask : useUpdateStandaloneTask;
-  const updateTaskMutation = useUpdateHook(workspaceId, projectId, task.id);
+  const updateTaskMutation = projectId
+    ? useUpdateTask(workspaceId!, projectId, task.id)
+    : useUpdateStandaloneTask(task.id);
 
   const handleUpdate = (
     field: "status" | "priority" | "dueDate",

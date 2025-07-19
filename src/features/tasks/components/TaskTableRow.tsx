@@ -115,10 +115,7 @@ export function TaskTableRow({
           </Select>
         </TableCell>
         <TableCell onClick={(e) => e.stopPropagation()}>
-          <Select
-            onValueChange={handlePriorityChange}
-            defaultValue={task.priority}
-          >
+          <Select onValueChange={handlePriorityChange} value={task.priority}>
             <SelectTrigger className="w-[120px]">
               <SelectValue placeholder="Set priority" />
             </SelectTrigger>
