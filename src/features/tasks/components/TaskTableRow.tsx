@@ -1,3 +1,4 @@
+// src/features/tasks/components/TaskTableRow.tsx
 import { TableCell, TableRow } from "@/components/ui/table";
 import { MoreHorizontal, Edit, Copy, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -45,14 +46,31 @@ export function TaskTableRow({
   isSelected,
   onSelectChange,
 }: TaskTableRowProps) {
-  const useUpdateHook = projectId ? useUpdateTask : useUpdateStandaloneTask;
-  const updateTaskMutation = useUpdateHook(workspaceId!, projectId!, task.id);
+  const isProjectTask = !!task.projectId;
 
-  const useDeleteHook = projectId ? useDeleteTask : useDeleteStandaloneTask;
-  const deleteTaskMutation = useDeleteHook(workspaceId!, projectId!);
+  const updateProjectTaskMutation = useUpdateTask(
+    workspaceId!,
+    task.projectId!,
+    task.id
+  );
+  const updateStandaloneTaskMutation = useUpdateStandaloneTask(task.id);
+  const updateTaskMutation = isProjectTask
+    ? updateProjectTaskMutation
+    : updateStandaloneTaskMutation;
+
+  const deleteProjectTaskMutation = useDeleteTask(
+    workspaceId!,
+    task.projectId!
+  );
+  const deleteStandaloneTaskMutation = useDeleteStandaloneTask();
+  const deleteTaskMutation = isProjectTask
+    ? deleteProjectTaskMutation
+    : deleteStandaloneTaskMutation;
 
   const handleStatusChange = (newStatus: string) => {
-    updateTaskMutation.mutate({ status: newStatus });
+    if (newStatus !== task.status) {
+      updateTaskMutation.mutate({ status: newStatus });
+    }
   };
   const handlePriorityChange = (newPriority: string) => {
     if (newPriority !== task.priority) {
