@@ -1,10 +1,11 @@
+// src/features/tasks/task.types.ts
 import {
   TaskStatus,
   TaskPriority,
   TaskLinkType,
   CustomFieldType,
 } from "@/types";
-import { z } from "zod";
+import { z, type ZodType } from "zod";
 import {
   createPaginationSchema,
   createPaginatedResponseSchema,
@@ -19,7 +20,6 @@ export type ProjectIdParams = z.infer<typeof ProjectIdParamsSchema>;
 
 export const TaskIdParamsSchema = createUuidParamSchema("taskId", "Task");
 export type TaskIdParams = z.infer<typeof TaskIdParamsSchema>;
-
 export const TaskLinkIdParamsSchema = TaskIdParamsSchema.extend({
   linkId: z.string().uuid(),
 });
@@ -41,7 +41,6 @@ const TaskAssigneeSchema = z.object({
   name: z.string(),
   avatarUrl: z.string().url().nullable(),
 });
-
 const TaskLinkSchema = z.object({
   id: z.string().uuid(),
   type: z.nativeEnum(TaskLinkType),
@@ -60,7 +59,6 @@ const TaskLinkSchema = z.object({
     })
     .optional(),
 });
-
 const CustomFieldDefinitionForTaskSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
@@ -73,7 +71,6 @@ const TaskCustomFieldSchema = z.object({
   value: z.any(),
   definition: CustomFieldDefinitionForTaskSchema,
 });
-
 const BaseTaskSchema = z.object({
   __typename: z.literal("Task"),
   id: z.string().uuid(),
@@ -81,16 +78,19 @@ const BaseTaskSchema = z.object({
   description: z.string().nullable(),
   status: z.nativeEnum(TaskStatus),
   priority: z.nativeEnum(TaskPriority),
-  projectId: z.string().uuid(),
-  creatorId: z.string().uuid(),
-  startDate: z.date().nullable(),
-  dueDate: z.date().nullable(),
+  projectId: z.string().uuid().nullable(),
+  workspaceId: z.string().uuid().nullable(),
+  projectName: z.string().nullable(),
+  ownerId: z.string().uuid().nullable(),
+  creatorId: z.string().uuid().nullable(),
+  startDate: z.coerce.date().nullable(),
+  dueDate: z.coerce.date().nullable(),
   timeEstimate: z.number().int().nullable(),
   epicId: z.string().uuid().nullable(),
   boardColumnId: z.string().uuid().nullable(),
   orderInColumn: z.number().int().nullable(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
   assignees: z.array(TaskAssigneeSchema),
   links: z.array(TaskLinkSchema),
   linkedToBy: z.array(TaskLinkSchema),
@@ -101,7 +101,6 @@ const BaseTaskSchema = z.object({
 export type Task = z.infer<typeof BaseTaskSchema> & {
   subtasks: Task[];
 };
-
 export const TaskSchema: z.ZodType<Task> = BaseTaskSchema.extend({
   subtasks: z.lazy(() => z.array(TaskSchema)),
 });
@@ -116,7 +115,7 @@ export const CreateTaskDtoSchema = z.object({
   startDate: z.coerce.date().optional().nullable(),
   dueDate: z.coerce.date().optional().nullable(),
   timeEstimate: z.number().int().positive().optional().nullable(),
-  projectId: z.string().uuid(),
+  projectId: z.string().uuid().optional().nullable(),
   epicId: z.string().uuid().optional().nullable(),
   boardColumnId: z.string().uuid().optional(),
   parentId: z.string().uuid().optional().nullable(),
@@ -128,30 +127,25 @@ export const CreateTaskBodySchema = CreateTaskDtoSchema.omit({
   projectId: true,
 });
 export type CreateTaskBody = z.infer<typeof CreateTaskBodySchema>;
-
 export const UpdateTaskDtoSchema = CreateTaskDtoSchema.omit({
   projectId: true,
   parentId: true,
 }).partial();
 export type UpdateTaskDto = z.infer<typeof UpdateTaskDtoSchema>;
-
 export const MoveTaskDtoSchema = z.object({
   targetColumnId: z.string().uuid(),
   orderInColumn: z.number().int(),
 });
 export type MoveTaskDto = z.infer<typeof MoveTaskDtoSchema>;
-
 export const CreateTaskLinkDtoSchema = z.object({
   targetTaskId: z.string().uuid(),
   type: z.nativeEnum(TaskLinkType),
 });
 export type CreateTaskLinkDto = z.infer<typeof CreateTaskLinkDtoSchema>;
-
 export const AssignUserToTaskDtoSchema = z.object({
   userId: z.string().uuid(),
 });
 export type AssignUserToTaskDto = z.infer<typeof AssignUserToTaskDtoSchema>;
-
 export const UpdateTaskCustomValuesDtoSchema = z.object({
   updates: z.array(
     z.object({

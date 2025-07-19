@@ -1,4 +1,4 @@
-// FILE: src/features/teams/components/ManageTeamMembers.tsx
+// src/features/teams/components/ManageTeamMembers.tsx
 import { useGetUsers } from "@/features/admin/users/api/useGetUsers";
 import { useAddUserToTeam } from "../api/useAddUserToTeam";
 import { useRemoveUserFromTeam } from "../api/useRemoveUserFromTeam";
@@ -29,7 +29,9 @@ export function ManageTeamMembers({
   team,
   workspaceId,
 }: ManageTeamMembersProps) {
-  const { data: usersData, isLoading: isLoadingUsers } = useGetUsers({});
+  const { data: usersData, isLoading: isLoadingUsers } = useGetUsers({
+    limit: 1000,
+  });
   const addUserMutation = useAddUserToTeam(workspaceId, team.id);
   const removeUserMutation = useRemoveUserFromTeam(workspaceId, team.id);
 

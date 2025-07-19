@@ -1,3 +1,4 @@
+// src/features/tasks/components/TaskAssignees.tsx
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,25 +24,26 @@ import { useUnassignStandaloneUser } from "../api/useUnassignStandaloneUser";
 import { cn, getAbsoluteUrl } from "@/lib/utils";
 import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
-
-export function TaskAssignees({ task, workspaceId, projectId }: any) {
+export function TaskAssignees({ task }: any) {
   const [popoverOpen, setPopoverOpen] = useState(false);
-  const isProjectTask = !!(workspaceId && projectId);
+
+  const isProjectTask = !!task.projectId;
+  const workspaceId = task.workspaceId;
+  const projectId = task.projectId;
 
   const assignMutation = isProjectTask
-    ? useAssignUser(workspaceId, projectId, task.id)
+    ? useAssignUser(workspaceId!, projectId!, task.id)
     : useAssignStandaloneUser(task.id);
   const unassignMutation = isProjectTask
-    ? useUnassignUser(workspaceId, projectId, task.id)
+    ? useUnassignUser(workspaceId!, projectId!, task.id)
     : useUnassignStandaloneUser(task.id);
 
   const { data: projectMembersData, isLoading: isLoadingProjectMembers } =
-    useGetProjectMembers(workspaceId, projectId, { enabled: isProjectTask });
+    useGetProjectMembers(workspaceId!, projectId!, { enabled: isProjectTask });
   const { data: allUsersData, isLoading: isLoadingAllUsers } = useGetUsers({
     limit: 1000,
     enabled: !isProjectTask,
   });
-
   const isLoading = isLoadingProjectMembers || isLoadingAllUsers;
 
   const availableUsers = useMemo(() => {
@@ -63,7 +65,6 @@ export function TaskAssignees({ task, workspaceId, projectId }: any) {
       })) || []
     );
   }, [isProjectTask, projectMembersData, allUsersData]);
-
   const assignedIds = new Set(task.assignees.map((a: any) => a.id));
 
   const handleSelect = (userId: string) => {
@@ -142,7 +143,7 @@ export function TaskAssignees({ task, workspaceId, projectId }: any) {
                         <span className="flex-1 truncate">{user.name}</span>
                         <Check
                           className={cn(
-                            "mr-2 h-4 w-4",
+                            "ml-auto h-4 w-4",
                             assignedIds.has(user.id)
                               ? "opacity-100"
                               : "opacity-0"
