@@ -1,10 +1,10 @@
+// FILE: src/features/tasks/components/TaskDetailBody.tsx
 import { RichTextEditor } from "@/components/ui/RichTextEditor";
 import { CommentSection } from "@/features/comments/components/CommentSection";
 import { SubtaskList } from "./SubtaskList";
 import { useState, useEffect } from "react";
 import { CreateTaskDialog } from "./CreateTaskDialog";
 import { TaskLinks } from "./TaskLinks";
-
 export function TaskDetailBody({
   task,
   workspaceId,
@@ -18,9 +18,8 @@ export function TaskDetailBody({
   useEffect(() => {
     setDescription(task.description || "");
   }, [task.description]);
-
   return (
-    <div className="col-span-2 space-y-6 overflow-y-auto border-r pr-6">
+    <div className="col-span-2 space-y-6 border-r pr-6">
       <RichTextEditor
         value={description}
         onChange={setDescription}

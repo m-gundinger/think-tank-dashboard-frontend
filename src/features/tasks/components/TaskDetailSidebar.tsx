@@ -1,3 +1,5 @@
+// FILE: src/features/tasks/components/TaskDetailSidebar.tsx
+// src/features/tasks/components/TaskDetailSidebar.tsx
 import { TaskAssignees } from "./TaskAssignees";
 import { TimeLogSection } from "@/features/timelogs/components/TimeLogSection";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -22,6 +24,7 @@ import { cn } from "@/lib/utils";
 import { Calendar as CalendarIcon, X } from "lucide-react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
+import { TaskDocuments } from "./TaskDocuments";
 export function TaskDetailSidebar({ task, workspaceId, projectId }: any) {
   const updateTaskMutation = projectId
     ? useUpdateTask(workspaceId!, projectId, task.id)
@@ -35,7 +38,7 @@ export function TaskDetailSidebar({ task, workspaceId, projectId }: any) {
   };
 
   return (
-    <div className="col-span-1 space-y-6 overflow-y-auto pr-1">
+    <div className="col-span-1 space-y-6 pr-1">
       <div>
         <h3 className="mb-2 text-sm font-semibold">Status</h3>
         <Select
@@ -114,12 +117,13 @@ export function TaskDetailSidebar({ task, workspaceId, projectId }: any) {
           )}
         </div>
       </div>
-      <TaskAssignees
+      <TaskAssignees task={task} />
+      <TaskCustomFields
         task={task}
         workspaceId={workspaceId}
         projectId={projectId}
       />
-      <TaskCustomFields
+      <TaskDocuments
         task={task}
         workspaceId={workspaceId}
         projectId={projectId}

@@ -4,8 +4,9 @@ import {
   TaskPriority,
   TaskLinkType,
   CustomFieldType,
+  DocumentType,
 } from "@/types";
-import { z, type ZodType } from "zod";
+import { z } from "zod";
 import {
   createPaginationSchema,
   createPaginatedResponseSchema,
@@ -20,6 +21,7 @@ export type ProjectIdParams = z.infer<typeof ProjectIdParamsSchema>;
 
 export const TaskIdParamsSchema = createUuidParamSchema("taskId", "Task");
 export type TaskIdParams = z.infer<typeof TaskIdParamsSchema>;
+
 export const TaskLinkIdParamsSchema = TaskIdParamsSchema.extend({
   linkId: z.string().uuid(),
 });
@@ -27,6 +29,12 @@ export interface TaskLinkIdParams {
   taskId: string;
   linkId: string;
 }
+
+export const TaskDocumentParamsSchema = TaskIdParamsSchema.extend({
+  documentId: z.string().uuid(),
+  type: z.nativeEnum(DocumentType),
+});
+export type TaskDocumentParams = z.infer<typeof TaskDocumentParamsSchema>;
 
 export const TaskAssigneeParamsSchema = TaskIdParamsSchema.extend({
   userId: z.string().uuid(),
@@ -71,6 +79,16 @@ const TaskCustomFieldSchema = z.object({
   value: z.any(),
   definition: CustomFieldDefinitionForTaskSchema,
 });
+
+const TaskDocumentSchema = z.object({
+  documentId: z.string().uuid(),
+  type: z.nativeEnum(DocumentType),
+  title: z.string(),
+  url: z.string(),
+  fileType: z.string().nullable(),
+  createdAt: z.coerce.date(),
+});
+
 const BaseTaskSchema = z.object({
   __typename: z.literal("Task"),
   id: z.string().uuid(),
@@ -95,6 +113,7 @@ const BaseTaskSchema = z.object({
   links: z.array(TaskLinkSchema),
   linkedToBy: z.array(TaskLinkSchema),
   customFields: z.array(TaskCustomFieldSchema),
+  documents: z.array(TaskDocumentSchema),
   parentId: z.string().uuid().nullable(),
 });
 

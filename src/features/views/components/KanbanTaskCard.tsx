@@ -1,3 +1,4 @@
+// src/features/views/components/KanbanTaskCard.tsx
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -10,13 +11,28 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Edit, Copy, Trash2, Calendar } from "lucide-react";
+import {
+  MoreHorizontal,
+  Edit,
+  Copy,
+  Trash2,
+  Calendar,
+  CheckSquare,
+} from "lucide-react";
 import { useDeleteTask } from "@/features/tasks/api/useDeleteTask";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { Task } from "@/features/tasks/task.types";
+import { TaskStatus } from "@/types";
 
-export function KanbanTaskCard({ task, onTaskSelect }: any) {
+export function KanbanTaskCard({
+  task,
+  onTaskSelect,
+}: {
+  task: Task;
+  onTaskSelect: (taskId: string) => void;
+}) {
   const { workspaceId, projectId } = useParams<{
     workspaceId: string;
     projectId: string;
@@ -47,6 +63,10 @@ export function KanbanTaskCard({ task, onTaskSelect }: any) {
     e.stopPropagation();
     onTaskSelect(task.id);
   };
+
+  const totalSubtasks = task.subtasks?.length || 0;
+  const completedSubtasks =
+    task.subtasks?.filter((sub) => sub.status === TaskStatus.DONE).length || 0;
 
   return (
     <div
@@ -88,12 +108,24 @@ export function KanbanTaskCard({ task, onTaskSelect }: any) {
             </DropdownMenuContent>
           </DropdownMenu>
         </CardHeader>
-        {task.dueDate && (
-          <CardContent className="px-3 pb-2">
-            <div className="text-muted-foreground flex items-center text-xs">
-              <Calendar className="mr-1 h-3.5 w-3.5" />
-              <span>{format(new Date(task.dueDate), "PP")}</span>
-            </div>
+        {(task.dueDate || totalSubtasks > 0) && (
+          <CardContent className="flex items-center justify-between px-3 pb-2">
+            {task.dueDate ? (
+              <div className="text-muted-foreground flex items-center text-xs">
+                <Calendar className="mr-1 h-3.5 w-3.5" />
+                <span>{format(new Date(task.dueDate), "PP")}</span>
+              </div>
+            ) : (
+              <div />
+            )}
+            {totalSubtasks > 0 && (
+              <div className="text-muted-foreground flex items-center text-xs">
+                <CheckSquare className="mr-1 h-3.5 w-3.5" />
+                <span>
+                  {completedSubtasks}/{totalSubtasks}
+                </span>
+              </div>
+            )}
           </CardContent>
         )}
       </Card>

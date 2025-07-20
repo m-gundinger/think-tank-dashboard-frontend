@@ -1,3 +1,4 @@
+// src/features/tasks/components/MyTasksList.tsx
 import { useState } from "react";
 import { TaskTableRow } from "./TaskTableRow";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -19,55 +20,41 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { useGetMyTasks } from "../api/useGetMyTasks";
 import { useDeleteStandaloneTask } from "../api/useDeleteStandaloneTask";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Task, ListTasksQuery } from "../task.types";
+import { Task } from "../task.types";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
+
 interface MyTasksListProps {
   onTaskSelect: (taskId: string) => void;
-  query: Partial<ListTasksQuery>;
+  tasks: Task[];
+  pagination: {
+    page: number;
+    totalPages: number;
+    handlePageChange: (newPage: number) => void;
+  };
+  isLoading: boolean;
+  isError: boolean;
 }
 
-const TaskListSkeleton = () => (
-  <div className="space-y-2">
-    {Array.from({ length: 5 }).map((_, i) => (
-      <div
-        key={i}
-        className="flex items-center space-x-4 rounded-md border p-4"
-      >
-        <Skeleton className="h-12 w-full" />
-      </div>
-    ))}
-  </div>
-);
-export function MyTasksList({ onTaskSelect, query }: MyTasksListProps) {
-  const [page, setPage] = useState(1);
+export function MyTasksList({
+  onTaskSelect,
+  tasks,
+  pagination,
+  isLoading,
+  isError,
+}: MyTasksListProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const { data, isLoading, isError } = useGetMyTasks({
-    page,
-    limit: 15,
-    includeSubtasks: true,
-    sortBy: "createdAt",
-    sortOrder: "desc",
-    ...query,
-  });
   const deleteMutation = useDeleteStandaloneTask();
-
-  const handlePageChange = (newPage: number) => {
-    if (newPage > 0 && newPage <= (data?.totalPages || 1)) {
-      setPage(newPage);
-    }
-  };
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedIds(data?.data?.map((item: any) => item.id) || []);
+      setSelectedIds(tasks?.map((item: any) => item.id) || []);
     } else {
       setSelectedIds([]);
     }
   };
+
   const handleRowSelect = (id: string, checked: boolean) => {
     if (checked) {
       setSelectedIds((prev) => [...prev, id]);
@@ -75,6 +62,7 @@ export function MyTasksList({ onTaskSelect, query }: MyTasksListProps) {
       setSelectedIds((prev) => prev.filter((prevId) => prevId !== id));
     }
   };
+
   const handleBulkDelete = () => {
     if (
       window.confirm(
@@ -87,12 +75,13 @@ export function MyTasksList({ onTaskSelect, query }: MyTasksListProps) {
     }
   };
 
-  if (isLoading) return <TaskListSkeleton />;
+  if (isLoading) return null; // Parent will show skeleton
   if (isError) return <div>Error loading tasks.</div>;
-  const isAllSelected =
-    data?.data?.length > 0 && selectedIds.length === data.data.length;
+
+  const isAllSelected = tasks.length > 0 && selectedIds.length === tasks.length;
+
   const renderBody = () => {
-    if (data?.data?.length === 0) {
+    if (tasks.length === 0) {
       return (
         <TableRow>
           <TableCell colSpan={6}>
@@ -105,7 +94,7 @@ export function MyTasksList({ onTaskSelect, query }: MyTasksListProps) {
         </TableRow>
       );
     }
-    return data?.data.map((task: Task) => (
+    return tasks.map((task: Task) => (
       <TaskTableRow
         key={task.id}
         task={task}
@@ -153,7 +142,7 @@ export function MyTasksList({ onTaskSelect, query }: MyTasksListProps) {
           <TableBody>{renderBody()}</TableBody>
         </Table>
         <CardFooter className="border-t pt-4">
-          {data?.totalPages > 1 && (
+          {pagination.totalPages > 1 && (
             <Pagination>
               <PaginationContent>
                 <PaginationItem>
@@ -161,20 +150,20 @@ export function MyTasksList({ onTaskSelect, query }: MyTasksListProps) {
                     href="#"
                     onClick={(e) => {
                       e.preventDefault();
-                      handlePageChange(page - 1);
+                      pagination.handlePageChange(pagination.page - 1);
                     }}
-                    isActive={page > 1}
+                    isActive={pagination.page > 1}
                   />
                 </PaginationItem>
-                {[...Array(data.totalPages)].map((_, i) => (
+                {[...Array(pagination.totalPages)].map((_, i) => (
                   <PaginationItem key={i}>
                     <PaginationLink
                       href="#"
                       onClick={(e) => {
                         e.preventDefault();
-                        handlePageChange(i + 1);
+                        pagination.handlePageChange(i + 1);
                       }}
-                      isActive={page === i + 1}
+                      isActive={pagination.page === i + 1}
                     >
                       {i + 1}
                     </PaginationLink>
@@ -185,9 +174,9 @@ export function MyTasksList({ onTaskSelect, query }: MyTasksListProps) {
                     href="#"
                     onClick={(e) => {
                       e.preventDefault();
-                      handlePageChange(page + 1);
+                      pagination.handlePageChange(pagination.page + 1);
                     }}
-                    isActive={page < data.totalPages}
+                    isActive={pagination.page < pagination.totalPages}
                   />
                 </PaginationItem>
               </PaginationContent>

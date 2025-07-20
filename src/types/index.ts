@@ -1,3 +1,4 @@
+// src/types/index.ts
 export enum TaskStatus {
   TODO = "TODO",
   IN_PROGRESS = "IN_PROGRESS",
@@ -72,6 +73,11 @@ export enum CustomFieldType {
   NUMBER = "NUMBER",
   DATE = "DATE",
   SELECT = "SELECT",
+}
+
+export enum DocumentType {
+  INPUT = "INPUT",
+  OUTPUT = "OUTPUT",
 }
 
 export enum NotificationType {

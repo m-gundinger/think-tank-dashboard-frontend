@@ -1,8 +1,9 @@
+// src/pages/MyTasksPage.tsx
 import { MyTasksList } from "@/features/tasks/components/MyTasksList";
 import { CreateTaskDialog } from "@/features/tasks/components/CreateTaskDialog";
 import { TaskDetailModal } from "@/features/tasks/components/TaskDetailModal";
 import { useSearchParams } from "react-router-dom";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Select,
   SelectContent,
@@ -12,48 +13,83 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { ListTasksQuery } from "@/features/tasks/task.types";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useGetMyTasks } from "@/features/tasks/api/useGetMyTasks";
+import { MyTasksKanbanBoard } from "@/features/tasks/components/MyTasksKanbanBoard";
+import { Skeleton } from "@/components/ui/skeleton";
+
+const TaskListSkeleton = () => (
+  <div className="space-y-2 pt-4">
+    {Array.from({ length: 8 }).map((_, i) => (
+      <Skeleton key={i} className="h-12 w-full rounded-lg" />
+    ))}
+  </div>
+);
 
 export function MyTasksPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedTaskId = searchParams.get("taskId");
+  const activeView = searchParams.get("view") || "list";
 
+  const [page, setPage] = useState(1);
   const [filter, setFilter] = useState("all_assigned");
   const [sortBy, setSortBy] = useState("priority");
 
   const handleTaskSelect = (taskId: string | null) => {
-    setSearchParams((params) => {
-      if (taskId) {
-        params.set("taskId", taskId);
-      } else {
-        params.delete("taskId");
-      }
-      return params;
-    });
+    setSearchParams(
+      (params) => {
+        if (taskId) {
+          params.set("taskId", taskId);
+        } else {
+          params.delete("taskId");
+        }
+        return params;
+      },
+      { replace: true }
+    );
   };
 
-  const getFilterParams = (): Partial<
-    Pick<ListTasksQuery, "userRole" | "taskOrigin">
-  > => {
+  const handleViewChange = (view: string) => {
+    setSearchParams(
+      (params) => {
+        params.set("view", view);
+        return params;
+      },
+      { replace: true }
+    );
+  };
+
+  const queryParams: ListTasksQuery = useMemo(() => {
+    const baseQuery = {
+      sortBy: sortBy as ListTasksQuery["sortBy"],
+      sortOrder: "desc" as const,
+      limit: activeView === "kanban" ? 200 : 15,
+      page: page,
+      includeSubtasks: true,
+    };
+
     switch (filter) {
       case "created_standalone":
-        return { userRole: "creator", taskOrigin: "standalone" };
+        return { ...baseQuery, userRole: "creator", taskOrigin: "standalone" };
       case "created_project":
-        return { userRole: "creator", taskOrigin: "project" };
+        return { ...baseQuery, userRole: "creator", taskOrigin: "project" };
       case "assigned_standalone":
-        return { userRole: "assignee", taskOrigin: "standalone" };
+        return { ...baseQuery, userRole: "assignee", taskOrigin: "standalone" };
       case "assigned_project":
-        return { userRole: "assignee", taskOrigin: "project" };
+        return { ...baseQuery, userRole: "assignee", taskOrigin: "project" };
       case "all_assigned":
-        return { userRole: "assignee" };
+        return { ...baseQuery, userRole: "assignee" };
       default:
-        return {};
+        return baseQuery;
     }
-  };
+  }, [filter, sortBy, activeView, page]);
 
-  const queryParams: Partial<ListTasksQuery> = {
-    ...getFilterParams(),
-    sortBy: sortBy as ListTasksQuery["sortBy"],
-    sortOrder: "desc",
+  const { data, isLoading, isError } = useGetMyTasks(queryParams);
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage > 0 && newPage <= (data?.totalPages || 1)) {
+      setPage(newPage);
+    }
   };
 
   return (
@@ -93,25 +129,59 @@ export function MyTasksPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid w-full max-w-sm items-center gap-1.5">
-              <Label htmlFor="sort">Sort by</Label>
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger id="sort" className="w-[180px]">
-                  <SelectValue placeholder="Sort tasks" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="priority">Priority</SelectItem>
-                  <SelectItem value="dueDate">Due Date</SelectItem>
-                  <SelectItem value="createdAt">Creation Date</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {activeView === "list" && (
+              <div className="grid w-full max-w-sm items-center gap-1.5">
+                <Label htmlFor="sort">Sort by</Label>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger id="sort" className="w-[180px]">
+                    <SelectValue placeholder="Sort tasks" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="priority">Priority</SelectItem>
+                    <SelectItem value="dueDate">Due Date</SelectItem>
+                    <SelectItem value="createdAt">Creation Date</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div className="self-end">
               <CreateTaskDialog />
             </div>
           </div>
         </div>
-        <MyTasksList onTaskSelect={handleTaskSelect} query={queryParams} />
+        <Tabs value={activeView} onValueChange={handleViewChange}>
+          <TabsList>
+            <TabsTrigger value="list">List</TabsTrigger>
+            <TabsTrigger value="kanban">Kanban</TabsTrigger>
+          </TabsList>
+          <TabsContent value="list">
+            {isLoading ? (
+              <TaskListSkeleton />
+            ) : (
+              <MyTasksList
+                onTaskSelect={handleTaskSelect}
+                tasks={data?.data || []}
+                isLoading={isLoading}
+                isError={isError}
+                pagination={{
+                  page: data?.page || 1,
+                  totalPages: data?.totalPages || 1,
+                  handlePageChange,
+                }}
+              />
+            )}
+          </TabsContent>
+          <TabsContent value="kanban" className="mt-4">
+            {isLoading ? (
+              <TaskListSkeleton />
+            ) : (
+              <MyTasksKanbanBoard
+                tasks={data?.data || []}
+                onTaskSelect={handleTaskSelect}
+              />
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
 
       <TaskDetailModal

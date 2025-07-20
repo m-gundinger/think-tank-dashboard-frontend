@@ -11340,49 +11340,6 @@ export function useAddProjectMember(workspaceId: string, projectId: string) {
   });
 }
 
-// FILE: src/features/projects/api/useAddTeamToProject.ts
-// src/features/projects/api/useAddTeamToProject.ts
-import api from "@/lib/api";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { AxiosError } from "axios";
-import { toast } from "sonner";
-
-interface AddTeamParams {
-  workspaceId: string;
-  projectId: string;
-  teamId: string;
-  roleId: string;
-}
-
-async function addTeamToProject(params: AddTeamParams): Promise<any> {
-  const { workspaceId, projectId, teamId, roleId } = params;
-  const { data } = await api.post(
-    `/workspaces/${workspaceId}/projects/${projectId}/members/team`,
-    { teamId, roleId }
-  );
-  return data;
-}
-
-export function useAddTeamToProject(workspaceId: string, projectId: string) {
-  const queryClient = useQueryClient();
-  return useMutation<any, AxiosError, { teamId: string; roleId: string }>({
-    mutationFn: ({ teamId, roleId }) =>
-      addTeamToProject({ workspaceId, projectId, teamId, roleId }),
-    onSuccess: (data) => {
-      toast.success(`${data.count} member(s) added to the project.`);
-      queryClient.invalidateQueries({
-        queryKey: ["projectMembers", projectId],
-      });
-    },
-    onError: (error: any) => {
-      toast.error("Failed to add team to project", {
-        description:
-          error.response?.data?.message || "An unexpected error occurred.",
-      });
-    },
-  });
-}
-
 // FILE: src/features/projects/api/useCreateProject.ts
 import api from "@/lib/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -11933,13 +11890,10 @@ export function EditProjectForm({ project, onSuccess }: EditProjectFormProps) {
 }
 
 // FILE: src/features/projects/components/InviteProjectMember.tsx
-// src/features/projects/components/InviteProjectMember.tsx
 import { useState } from "react";
 import { useGetUsers } from "@/features/admin/users/api/useGetUsers";
 import { useGetProjectRoles } from "@/features/project-roles/api/useGetProjectRoles";
 import { useAddProjectMember } from "../api/useAddProjectMember";
-import { useGetTeams } from "@/features/teams/api/useGetTeams";
-import { useAddTeamToProject } from "../api/useAddTeamToProject";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -11970,7 +11924,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface InviteProjectMemberProps {
   workspaceId: string;
@@ -11985,27 +11938,21 @@ export function InviteProjectMember({
 }: InviteProjectMemberProps) {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null);
-  const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
   const [userSearch, setUserSearch] = useState("");
 
   const { data: usersData, isLoading: isLoadingUsers } = useGetUsers({
     search: userSearch,
-    limit: 1000,
   });
   const { data: rolesData, isLoading: isLoadingRoles } = useGetProjectRoles(
     workspaceId,
     projectId
   );
-  const { data: teamsData, isLoading: isLoadingTeams } =
-    useGetTeams(workspaceId);
-
   const addMemberMutation = useAddProjectMember(workspaceId, projectId);
-  const addTeamMutation = useAddTeamToProject(workspaceId, projectId);
 
   const availableUsers =
     usersData?.data.filter((u: any) => !existingMemberIds.includes(u.id)) || [];
 
-  const handleInviteUser = () => {
+  const handleInvite = () => {
     if (selectedUserId && selectedRoleId) {
       addMemberMutation.mutate(
         { userId: selectedUserId, roleId: selectedRoleId },
@@ -12019,154 +11966,79 @@ export function InviteProjectMember({
     }
   };
 
-  const handleInviteTeam = () => {
-    if (selectedTeamId && selectedRoleId) {
-      addTeamMutation.mutate(
-        { teamId: selectedTeamId, roleId: selectedRoleId },
-        {
-          onSuccess: () => {
-            setSelectedTeamId(null);
-          },
-        }
-      );
-    }
-  };
-
   return (
     <Card className="mt-6">
       <CardHeader>
-        <CardTitle>Invite to Project</CardTitle>
+        <CardTitle>Invite New Member</CardTitle>
         <CardDescription>
-          Add individual users or entire teams to this project.
+          Add a new member to this project and assign them a role.
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <Tabs defaultValue="user">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="user">Invite User</TabsTrigger>
-            <TabsTrigger value="team">Invite Team</TabsTrigger>
-          </TabsList>
-          <TabsContent value="user" className="mt-4 space-y-4">
-            <div className="space-y-2">
-              <Label>User</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    className="w-full justify-between"
-                  >
-                    {selectedUserId
-                      ? usersData?.data.find(
-                          (u: any) => u.id === selectedUserId
-                        )?.name
-                      : "Select a user"}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                  <Command>
-                    <CommandInput
-                      placeholder="Search by name or email..."
-                      onValueChange={setUserSearch}
-                    />
-                    <CommandList>
-                      {isLoadingUsers && <CommandItem>Loading...</CommandItem>}
-                      <CommandEmpty>No users found.</CommandEmpty>
-                      <CommandGroup>
-                        {availableUsers.map((user: any) => (
-                          <CommandItem
-                            value={user.name}
-                            key={user.id}
-                            onSelect={() => setSelectedUserId(user.id)}
-                          >
-                            {user.name} ({user.email})
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-            </div>
-            <div className="space-y-2">
-              <Label>Role</Label>
-              <Select
-                onValueChange={setSelectedRoleId}
-                disabled={isLoadingRoles}
+      <CardContent className="flex items-end gap-2">
+        <div className="flex-grow">
+          <Label>User</Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                className="w-full justify-between"
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a role" />
-                </SelectTrigger>
-                <SelectContent>
-                  {rolesData?.data.map((role: any) => (
-                    <SelectItem key={role.id} value={role.id}>
-                      {role.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <Button
-              onClick={handleInviteUser}
-              disabled={
-                !selectedUserId ||
-                !selectedRoleId ||
-                addMemberMutation.isPending
-              }
-              className="w-full"
-            >
-              {addMemberMutation.isPending ? "Inviting..." : "Invite User"}
-            </Button>
-          </TabsContent>
-          <TabsContent value="team" className="mt-4 space-y-4">
-            <div className="space-y-2">
-              <Label>Team</Label>
-              <Select
-                onValueChange={setSelectedTeamId}
-                disabled={isLoadingTeams}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a team" />
-                </SelectTrigger>
-                <SelectContent>
-                  {teamsData?.data.map((team: any) => (
-                    <SelectItem key={team.id} value={team.id}>
-                      {team.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Role</Label>
-              <Select
-                onValueChange={setSelectedRoleId}
-                disabled={isLoadingRoles}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Assign a role to all team members" />
-                </SelectTrigger>
-                <SelectContent>
-                  {rolesData?.data.map((role: any) => (
-                    <SelectItem key={role.id} value={role.id}>
-                      {role.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <Button
-              onClick={handleInviteTeam}
-              disabled={
-                !selectedTeamId || !selectedRoleId || addTeamMutation.isPending
-              }
-              className="w-full"
-            >
-              {addTeamMutation.isPending ? "Adding Team..." : "Invite Team"}
-            </Button>
-          </TabsContent>
-        </Tabs>
+                {selectedUserId
+                  ? usersData?.data.find((u: any) => u.id === selectedUserId)
+                      ?.name
+                  : "Select a user"}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+              <Command>
+                <CommandInput
+                  placeholder="Search by name or email..."
+                  onValueChange={setUserSearch}
+                />
+                <CommandList>
+                  {isLoadingUsers && <CommandItem>Loading...</CommandItem>}
+                  <CommandEmpty>No users found.</CommandEmpty>
+                  <CommandGroup>
+                    {availableUsers.map((user: any) => (
+                      <CommandItem
+                        value={user.name}
+                        key={user.id}
+                        onSelect={() => setSelectedUserId(user.id)}
+                      >
+                        {user.name} ({user.email})
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+        </div>
+        <div className="w-[200px]">
+          <Label>Role</Label>
+          <Select onValueChange={setSelectedRoleId} disabled={isLoadingRoles}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select a role" />
+            </SelectTrigger>
+            <SelectContent>
+              {rolesData?.data.map((role: any) => (
+                <SelectItem key={role.id} value={role.id}>
+                  {role.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <Button
+          onClick={handleInvite}
+          disabled={
+            !selectedUserId || !selectedRoleId || addMemberMutation.isPending
+          }
+        >
+          {addMemberMutation.isPending ? "Inviting..." : "Invite"}
+        </Button>
       </CardContent>
     </Card>
   );
@@ -13476,58 +13348,6 @@ export function useAssignUser(
   });
 }
 
-// FILE: src/features/tasks/api/useAttachDocument.ts
-// src/features/tasks/api/useAttachDocument.ts
-import api from "@/lib/api";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-
-interface AttachDocumentParams {
-  workspaceId?: string;
-  projectId?: string;
-  taskId: string;
-  formData: FormData;
-}
-
-async function attachDocument({
-  workspaceId,
-  projectId,
-  taskId,
-  formData,
-}: AttachDocumentParams): Promise<any> {
-  const url =
-    projectId && workspaceId
-      ? `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/documents`
-      : `/tasks/${taskId}/documents`;
-
-  const { data } = await api.post(url, formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
-  return data;
-}
-
-export function useAttachDocument(
-  workspaceId: string | undefined,
-  projectId: string | undefined,
-  taskId: string
-) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (formData: FormData) =>
-      attachDocument({ workspaceId, projectId, taskId, formData }),
-    onSuccess: () => {
-      toast.success("Document attached successfully.");
-      queryClient.invalidateQueries({ queryKey: ["task", taskId] });
-    },
-    onError: (error: any) => {
-      toast.error("Failed to attach document", {
-        description:
-          error.response?.data?.message || "An unexpected error occurred.",
-      });
-    },
-  });
-}
-
 // FILE: src/features/tasks/api/useCreateStandaloneTask.ts
 import api from "@/lib/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -13662,56 +13482,6 @@ export function useDeleteTask(workspaceId: string, projectId: string) {
   });
 }
 
-// FILE: src/features/tasks/api/useDetachDocument.ts
-// src/features/tasks/api/useDetachDocument.ts
-import api from "@/lib/api";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { DocumentType } from "@/types";
-
-interface DetachDocumentParams {
-  workspaceId?: string;
-  projectId?: string;
-  taskId: string;
-  documentId: string;
-  type: DocumentType;
-}
-
-async function detachDocument({
-  workspaceId,
-  projectId,
-  taskId,
-  documentId,
-  type,
-}: DetachDocumentParams): Promise<void> {
-  const url =
-    projectId && workspaceId
-      ? `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/documents/${documentId}/${type}`
-      : `/tasks/${taskId}/documents/${documentId}/${type}`;
-  await api.delete(url);
-}
-
-export function useDetachDocument(
-  workspaceId: string | undefined,
-  projectId: string | undefined,
-  taskId: string
-) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (params: { documentId: string; type: DocumentType }) =>
-      detachDocument({ workspaceId, projectId, taskId, ...params }),
-    onSuccess: () => {
-      toast.success("Document detached successfully.");
-      queryClient.invalidateQueries({ queryKey: ["task", taskId] });
-    },
-    onError: (error: any) => {
-      toast.error("Failed to detach document", {
-        description:
-          error.response?.data?.message || "An unexpected error occurred.",
-      });
-    },
-  });
-}
 // FILE: src/features/tasks/api/useGetMyTasks.ts
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
@@ -13788,13 +13558,11 @@ export function useGetTasks(
 }
 
 // FILE: src/features/tasks/api/useMoveTask.ts
-// src/features/tasks/api/useMoveTask.ts
 import api from "@/lib/api";
-import { useMutation, useQueryClient, QueryKey } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { TaskStatus } from "@/types";
 import { AxiosError } from "axios";
 import { toast } from "sonner";
-import { Task } from "../task.types";
 
 interface MoveTaskParams {
   workspaceId: string;
@@ -13802,101 +13570,37 @@ interface MoveTaskParams {
   taskId: string;
   targetColumnId: string;
   orderInColumn: number;
-  newStatus: TaskStatus | null;
+  newStatus?: TaskStatus | null;
 }
 
 async function moveTask(params: MoveTaskParams): Promise<any> {
-  const { workspaceId, projectId, taskId, targetColumnId, orderInColumn } =
-    params;
   const { data } = await api.patch(
-    `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/move`,
-    { targetColumnId, orderInColumn }
+    `/workspaces/${params.workspaceId}/projects/${params.projectId}/tasks/${params.taskId}/move`,
+    {
+      targetColumnId: params.targetColumnId,
+      orderInColumn: params.orderInColumn,
+      newStatus: params.newStatus,
+    }
   );
   return data;
 }
 
-const updateTaskInTree = (
-  tasks: Task[],
-  taskId: string,
-  updates: Partial<Task>
-): Task[] => {
-  return tasks.map((task) => {
-    if (task.id === taskId) {
-      return { ...task, ...updates };
-    }
-    if (task.subtasks && task.subtasks.length > 0) {
-      return {
-        ...task,
-        subtasks: updateTaskInTree(task.subtasks, taskId, updates),
-      };
-    }
-    return task;
-  });
-};
-
-type MoveTaskContext =
-  | {
-      previousData: Map<QueryKey, any>;
-    }
-  | undefined;
-
 export function useMoveTask() {
   const queryClient = useQueryClient();
-
-  return useMutation<Task, AxiosError, MoveTaskParams, MoveTaskContext>({
+  return useMutation<any, AxiosError, MoveTaskParams>({
     mutationFn: moveTask,
-    onMutate: async (variables) => {
-      const { projectId, taskId, targetColumnId, orderInColumn, newStatus } =
-        variables;
-      const queryKeyPrefix = ["projects", projectId, "tasks", "view"];
-
-      await queryClient.cancelQueries({
-        queryKey: queryKeyPrefix,
-        exact: false,
-      });
-
-      const queries = queryClient
-        .getQueryCache()
-        .findAll({ queryKey: queryKeyPrefix });
-
-      const previousData = new Map<QueryKey, any>();
-      queries.forEach((query) => {
-        previousData.set(query.queryKey, query.state.data);
-      });
-
-      for (const [queryKey, oldData] of previousData.entries()) {
-        if (!oldData || !oldData.data) continue;
-
-        const originalTask = oldData.data.find((t: Task) => t.id === taskId);
-
-        const updatedData = {
-          ...oldData,
-          data: updateTaskInTree(oldData.data, taskId, {
-            boardColumnId: targetColumnId,
-            orderInColumn,
-            status: newStatus ?? originalTask?.status,
-          }),
-        };
-        queryClient.setQueryData(queryKey, updatedData);
-      }
-
-      return { previousData };
+    onSuccess: () => {},
+    onError: () => {
+      toast.error("Failed to move task.");
     },
-    onError: (_err, _variables, context) => {
-      if (context?.previousData) {
-        context.previousData.forEach((data: any, queryKey: QueryKey) => {
-          queryClient.setQueryData(queryKey, data);
-        });
-        toast.error("Failed to move task. Reverting changes.");
-      }
-    },
+
     onSettled: (_data, _error, variables) => {
-      const queryKeyPrefix = ["projects", variables.projectId, "tasks", "view"];
-      queryClient.invalidateQueries({ queryKey: queryKeyPrefix, exact: false });
+      queryClient.invalidateQueries({
+        queryKey: ["projects", variables.projectId, "tasks"],
+      });
     },
   });
 }
-
 // FILE: src/features/tasks/api/useRemoveTaskLink.ts
 import api from "@/lib/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -13991,97 +13695,6 @@ export function useUnassignUser(
       queryClient.invalidateQueries({ queryKey: ["task", taskId] });
     },
   });
-}
-
-// FILE: src/features/tasks/api/useUpdateMyTask.ts
-import api from "@/lib/api";
-import { useMutation, useQueryClient, QueryKey } from "@tanstack/react-query";
-import { AxiosError } from "axios";
-import { toast } from "sonner";
-import { Task } from "../task.types";
-
-interface UpdateMyTaskParams {
-  taskId: string;
-  workspaceId?: string | null;
-  projectId?: string | null;
-  taskData: Partial<Task>;
-}
-
-async function updateMyTask({
-  taskId,
-  workspaceId,
-  projectId,
-  taskData,
-}: UpdateMyTaskParams): Promise<Task> {
-  const url =
-    workspaceId && projectId
-      ? `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}`
-      : `/tasks/${taskId}`;
-  const { data } = await api.put(url, taskData);
-  return data;
-}
-
-type UpdateMyTaskContext = {
-  previousData: Map<QueryKey, any>;
-};
-
-export function useUpdateMyTask() {
-  const queryClient = useQueryClient();
-
-  return useMutation<Task, AxiosError, UpdateMyTaskParams, UpdateMyTaskContext>(
-    {
-      mutationFn: updateMyTask,
-      onMutate: async (variables) => {
-        const { taskId, taskData } = variables;
-        const queryKeyPrefix = ["myTasks"];
-
-        await queryClient.cancelQueries({
-          queryKey: queryKeyPrefix,
-          exact: false,
-        });
-
-        const queries = queryClient
-          .getQueryCache()
-          .findAll({ queryKey: queryKeyPrefix });
-
-        const previousData = new Map<QueryKey, any>();
-        queries.forEach((query) => {
-          previousData.set(query.queryKey, query.state.data);
-        });
-
-        for (const [queryKey, oldData] of previousData.entries()) {
-          if (!oldData || !oldData.data) continue;
-
-          const updatedData = {
-            ...oldData,
-            data: oldData.data.map((task: Task) =>
-              task.id === taskId ? { ...task, ...taskData } : task
-            ),
-          };
-          queryClient.setQueryData(queryKey, updatedData);
-        }
-
-        return { previousData };
-      },
-      onError: (_err, _variables, context) => {
-        if (context?.previousData) {
-          context.previousData.forEach((data, queryKey) => {
-            queryClient.setQueryData(queryKey, data);
-          });
-          toast.error("Failed to update task. Reverting changes.");
-        }
-      },
-      onSettled: (_data, _error, variables) => {
-        queryClient.invalidateQueries({ queryKey: ["myTasks"] });
-        if (variables.projectId) {
-          queryClient.invalidateQueries({
-            queryKey: ["projects", variables.projectId, "tasks"],
-          });
-        }
-        queryClient.invalidateQueries({ queryKey: ["task", variables.taskId] });
-      },
-    }
-  );
 }
 
 // FILE: src/features/tasks/api/useUpdateStandaloneTask.ts
@@ -14192,7 +13805,6 @@ export function useUpdateTaskCustomValues(
 }
 
 // FILE: src/features/tasks/components/AssigneeSelector.tsx
-// src/features/tasks/components/AssigneeSelector.tsx
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -14216,6 +13828,7 @@ import { useGetUsers } from "@/features/admin/users/api/useGetUsers";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getAbsoluteUrl } from "@/lib/utils";
 import { FormControl } from "@/components/ui/form";
+
 interface AssigneeSelectorProps {
   projectId?: string | null;
   workspaceId?: string;
@@ -14228,6 +13841,7 @@ type SelectableUser = {
   name: string;
   avatarUrl: string | null;
 };
+
 export function AssigneeSelector({
   projectId,
   workspaceId,
@@ -14235,6 +13849,7 @@ export function AssigneeSelector({
   onSelectionChange,
 }: AssigneeSelectorProps) {
   const [popoverOpen, setPopoverOpen] = useState(false);
+
   const { data: projectMembersData, isLoading: isLoadingProjectMembers } =
     useGetProjectMembers(workspaceId!, projectId!, { enabled: !!projectId });
   const { data: allUsersData, isLoading: isLoadingAllUsers } = useGetUsers({
@@ -14261,21 +13876,26 @@ export function AssigneeSelector({
       })) || []
     );
   }, [projectId, projectMembersData, allUsersData]);
+
   const selectedUsers = useMemo(
     () => availableUsers.filter((user) => selectedIds.includes(user.id)) || [],
     [availableUsers, selectedIds]
   );
+
   const unassignedUsers = useMemo(
     () => availableUsers.filter((user) => !selectedIds.includes(user.id)),
     [availableUsers, selectedIds]
   );
+
   const handleSelect = (userId: string) => {
     onSelectionChange([...selectedIds, userId]);
     setPopoverOpen(false);
   };
+
   const handleRemove = (userId: string) => {
     onSelectionChange(selectedIds.filter((id) => id !== userId));
   };
+
   return (
     <FormControl>
       <div className="border-input flex min-h-9 flex-wrap items-center gap-2 rounded-md border p-1">
@@ -14746,129 +14366,7 @@ export function CreateTaskForm({
     </Form>
   );
 }
-// FILE: src/features/tasks/components/MyTasksKanbanBoard.tsx
-import { useState, useMemo } from "react";
-import {
-  DndContext,
-  DragEndEvent,
-  DragOverlay,
-  DragStartEvent,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import { createPortal } from "react-dom";
-import { Task } from "../task.types";
-import { TaskStatus } from "@/types";
-import { KanbanColumn } from "@/features/views/components/KanbanColumn";
-import { KanbanTaskCard } from "@/features/views/components/KanbanTaskCard";
-import { useUpdateMyTask } from "../api/useUpdateMyTask";
-
-interface MyTasksKanbanBoardProps {
-  tasks: Task[];
-  onTaskSelect: (taskId: string) => void;
-}
-
-const KANBAN_COLUMNS = [
-  { id: "col-todo", name: "To Do", status: TaskStatus.TODO },
-  {
-    id: "col-in-progress",
-    name: "In Progress",
-    status: TaskStatus.IN_PROGRESS,
-  },
-  { id: "col-in-review", name: "In Review", status: TaskStatus.IN_REVIEW },
-  { id: "col-done", name: "Done", status: TaskStatus.DONE },
-];
-
-export function MyTasksKanbanBoard({
-  tasks,
-  onTaskSelect,
-}: MyTasksKanbanBoardProps) {
-  const [activeTask, setActiveTask] = useState<Task | null>(null);
-  const updateTaskMutation = useUpdateMyTask();
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 10,
-      },
-    })
-  );
-
-  const tasksByColumn = useMemo(() => {
-    const grouped: Record<string, Task[]> = {};
-    KANBAN_COLUMNS.forEach((col) => (grouped[col.id] = []));
-
-    tasks.forEach((task) => {
-      const column = KANBAN_COLUMNS.find((col) => col.status === task.status);
-      if (column) {
-        grouped[column.id].push(task);
-      }
-    });
-    return grouped;
-  }, [tasks]);
-
-  const onDragStart = (event: DragStartEvent) => {
-    const task = tasks.find((t) => t.id === event.active.id);
-    if (task) setActiveTask(task);
-  };
-
-  const onDragEnd = (event: DragEndEvent) => {
-    setActiveTask(null);
-    const { active, over } = event;
-
-    if (!over || active.id === over.id) return;
-
-    const task = tasks.find((t) => t.id === active.id);
-    if (!task) return;
-
-    const targetColumnId =
-      over.data.current?.sortable?.containerId?.toString() ??
-      over.id.toString();
-    const targetColumn = KANBAN_COLUMNS.find(
-      (col) => col.id === targetColumnId
-    );
-
-    if (targetColumn && task.status !== targetColumn.status) {
-      updateTaskMutation.mutate({
-        taskId: task.id,
-        workspaceId: task.workspaceId,
-        projectId: task.projectId,
-        taskData: { status: targetColumn.status },
-      });
-    }
-  };
-
-  return (
-    <DndContext
-      sensors={sensors}
-      onDragStart={onDragStart}
-      onDragEnd={onDragEnd}
-    >
-      <div className="flex h-full gap-4 overflow-x-auto p-1">
-        {KANBAN_COLUMNS.map((col) => (
-          <KanbanColumn
-            key={col.id}
-            column={col}
-            tasks={tasksByColumn[col.id] || []}
-            onTaskSelect={onTaskSelect}
-          />
-        ))}
-      </div>
-      {createPortal(
-        <DragOverlay>
-          {activeTask ? (
-            <KanbanTaskCard task={activeTask} onTaskSelect={() => {}} />
-          ) : null}
-        </DragOverlay>,
-        document.body
-      )}
-    </DndContext>
-  );
-}
-
 // FILE: src/features/tasks/components/MyTasksList.tsx
-// src/features/tasks/components/MyTasksList.tsx
 import { useState } from "react";
 import { TaskTableRow } from "./TaskTableRow";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -14890,41 +14388,55 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { useGetMyTasks } from "../api/useGetMyTasks";
 import { useDeleteStandaloneTask } from "../api/useDeleteStandaloneTask";
-import { Task } from "../task.types";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Task, ListTasksQuery } from "../task.types";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-
 interface MyTasksListProps {
   onTaskSelect: (taskId: string) => void;
-  tasks: Task[];
-  pagination: {
-    page: number;
-    totalPages: number;
-    handlePageChange: (newPage: number) => void;
-  };
-  isLoading: boolean;
-  isError: boolean;
+  query: Partial<ListTasksQuery>;
 }
 
-export function MyTasksList({
-  onTaskSelect,
-  tasks,
-  pagination,
-  isLoading,
-  isError,
-}: MyTasksListProps) {
+const TaskListSkeleton = () => (
+  <div className="space-y-2">
+    {Array.from({ length: 5 }).map((_, i) => (
+      <div
+        key={i}
+        className="flex items-center space-x-4 rounded-md border p-4"
+      >
+        <Skeleton className="h-12 w-full" />
+      </div>
+    ))}
+  </div>
+);
+export function MyTasksList({ onTaskSelect, query }: MyTasksListProps) {
+  const [page, setPage] = useState(1);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const { data, isLoading, isError } = useGetMyTasks({
+    page,
+    limit: 15,
+    includeSubtasks: true,
+    sortBy: "createdAt",
+    sortOrder: "desc",
+    ...query,
+  });
   const deleteMutation = useDeleteStandaloneTask();
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage > 0 && newPage <= (data?.totalPages || 1)) {
+      setPage(newPage);
+    }
+  };
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedIds(tasks?.map((item: any) => item.id) || []);
+      setSelectedIds(data?.data?.map((item: any) => item.id) || []);
     } else {
       setSelectedIds([]);
     }
   };
-
   const handleRowSelect = (id: string, checked: boolean) => {
     if (checked) {
       setSelectedIds((prev) => [...prev, id]);
@@ -14932,7 +14444,6 @@ export function MyTasksList({
       setSelectedIds((prev) => prev.filter((prevId) => prevId !== id));
     }
   };
-
   const handleBulkDelete = () => {
     if (
       window.confirm(
@@ -14945,13 +14456,12 @@ export function MyTasksList({
     }
   };
 
-  if (isLoading) return null; // Parent will show skeleton
+  if (isLoading) return <TaskListSkeleton />;
   if (isError) return <div>Error loading tasks.</div>;
-
-  const isAllSelected = tasks.length > 0 && selectedIds.length === tasks.length;
-
+  const isAllSelected =
+    data?.data?.length > 0 && selectedIds.length === data.data.length;
   const renderBody = () => {
-    if (tasks.length === 0) {
+    if (data?.data?.length === 0) {
       return (
         <TableRow>
           <TableCell colSpan={6}>
@@ -14964,7 +14474,7 @@ export function MyTasksList({
         </TableRow>
       );
     }
-    return tasks.map((task: Task) => (
+    return data?.data.map((task: Task) => (
       <TaskTableRow
         key={task.id}
         task={task}
@@ -15012,7 +14522,7 @@ export function MyTasksList({
           <TableBody>{renderBody()}</TableBody>
         </Table>
         <CardFooter className="border-t pt-4">
-          {pagination.totalPages > 1 && (
+          {data?.totalPages > 1 && (
             <Pagination>
               <PaginationContent>
                 <PaginationItem>
@@ -15020,20 +14530,20 @@ export function MyTasksList({
                     href="#"
                     onClick={(e) => {
                       e.preventDefault();
-                      pagination.handlePageChange(pagination.page - 1);
+                      handlePageChange(page - 1);
                     }}
-                    isActive={pagination.page > 1}
+                    isActive={page > 1}
                   />
                 </PaginationItem>
-                {[...Array(pagination.totalPages)].map((_, i) => (
+                {[...Array(data.totalPages)].map((_, i) => (
                   <PaginationItem key={i}>
                     <PaginationLink
                       href="#"
                       onClick={(e) => {
                         e.preventDefault();
-                        pagination.handlePageChange(i + 1);
+                        handlePageChange(i + 1);
                       }}
-                      isActive={pagination.page === i + 1}
+                      isActive={page === i + 1}
                     >
                       {i + 1}
                     </PaginationLink>
@@ -15044,9 +14554,9 @@ export function MyTasksList({
                     href="#"
                     onClick={(e) => {
                       e.preventDefault();
-                      pagination.handlePageChange(pagination.page + 1);
+                      handlePageChange(page + 1);
                     }}
-                    isActive={pagination.page < pagination.totalPages}
+                    isActive={page < data.totalPages}
                   />
                 </PaginationItem>
               </PaginationContent>
@@ -15059,66 +14569,32 @@ export function MyTasksList({
 }
 
 // FILE: src/features/tasks/components/SubtaskItem.tsx
-// src/features/tasks/components/SubtaskItem.tsx
 import { Badge } from "@/components/ui/badge";
-import {
-  CheckCircle2,
-  Circle,
-  CircleDashed,
-  CircleSlash,
-  Eye,
-  OctagonAlert,
-} from "lucide-react";
-import { TaskStatus } from "@/types";
-import React from "react";
-import { Task } from "../task.types";
+import { CheckSquare, Square } from "lucide-react";
 
 interface SubtaskItemProps {
-  task: Task;
+  task: any;
   onTaskSelect: (taskId: string) => void;
 }
 
-const statusIconMap: Record<TaskStatus, React.ElementType> = {
-  [TaskStatus.TODO]: Circle,
-  [TaskStatus.IN_PROGRESS]: CircleDashed,
-  [TaskStatus.IN_REVIEW]: Eye,
-  [TaskStatus.DONE]: CheckCircle2,
-  [TaskStatus.BLOCKED]: OctagonAlert,
-  [TaskStatus.CANCELLED]: CircleSlash,
-};
-
-const statusColorMap: Record<TaskStatus, string> = {
-  [TaskStatus.TODO]: "text-gray-500",
-  [TaskStatus.IN_PROGRESS]: "text-blue-500",
-  [TaskStatus.IN_REVIEW]: "text-purple-500",
-  [TaskStatus.DONE]: "text-green-500",
-  [TaskStatus.BLOCKED]: "text-red-500",
-  [TaskStatus.CANCELLED]: "text-gray-400",
-};
-
 export function SubtaskItem({ task, onTaskSelect }: SubtaskItemProps) {
+  const isCompleted = task.status === "DONE";
+
   const handleClick = () => {
     onTaskSelect(task.id);
   };
-  const Icon = statusIconMap[task.status] || Circle;
-  const isStruckThrough =
-    task.status === TaskStatus.CANCELLED || task.status === TaskStatus.DONE;
 
   return (
     <div
       className="hover:bg-accent flex cursor-pointer items-center gap-3 rounded-md p-2"
       onClick={handleClick}
     >
-      <Icon
-        className={`h-4 w-4 flex-shrink-0 ${statusColorMap[task.status]}`}
-      />
-      <span
-        className={`flex-grow truncate text-sm ${
-          isStruckThrough ? "text-muted-foreground line-through" : ""
-        }`}
-      >
-        {task.title}
-      </span>
+      {isCompleted ? (
+        <CheckSquare className="text-muted-foreground h-4 w-4" />
+      ) : (
+        <Square className="text-muted-foreground h-4 w-4" />
+      )}
+      <span className="flex-grow truncate text-sm">{task.title}</span>
       <Badge variant="outline" className="text-xs">
         {task.priority}
       </Badge>
@@ -15170,7 +14646,6 @@ export function SubtaskList({
 }
 
 // FILE: src/features/tasks/components/TaskAssignees.tsx
-// src/features/tasks/components/TaskAssignees.tsx
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -15196,26 +14671,25 @@ import { useUnassignStandaloneUser } from "../api/useUnassignStandaloneUser";
 import { cn, getAbsoluteUrl } from "@/lib/utils";
 import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
-export function TaskAssignees({ task }: any) {
-  const [popoverOpen, setPopoverOpen] = useState(false);
 
-  const isProjectTask = !!task.projectId;
-  const workspaceId = task.workspaceId;
-  const projectId = task.projectId;
+export function TaskAssignees({ task, workspaceId, projectId }: any) {
+  const [popoverOpen, setPopoverOpen] = useState(false);
+  const isProjectTask = !!(workspaceId && projectId);
 
   const assignMutation = isProjectTask
-    ? useAssignUser(workspaceId!, projectId!, task.id)
+    ? useAssignUser(workspaceId, projectId, task.id)
     : useAssignStandaloneUser(task.id);
   const unassignMutation = isProjectTask
-    ? useUnassignUser(workspaceId!, projectId!, task.id)
+    ? useUnassignUser(workspaceId, projectId, task.id)
     : useUnassignStandaloneUser(task.id);
 
   const { data: projectMembersData, isLoading: isLoadingProjectMembers } =
-    useGetProjectMembers(workspaceId!, projectId!, { enabled: isProjectTask });
+    useGetProjectMembers(workspaceId, projectId, { enabled: isProjectTask });
   const { data: allUsersData, isLoading: isLoadingAllUsers } = useGetUsers({
     limit: 1000,
     enabled: !isProjectTask,
   });
+
   const isLoading = isLoadingProjectMembers || isLoadingAllUsers;
 
   const availableUsers = useMemo(() => {
@@ -15237,6 +14711,7 @@ export function TaskAssignees({ task }: any) {
       })) || []
     );
   }, [isProjectTask, projectMembersData, allUsersData]);
+
   const assignedIds = new Set(task.assignees.map((a: any) => a.id));
 
   const handleSelect = (userId: string) => {
@@ -15315,7 +14790,7 @@ export function TaskAssignees({ task }: any) {
                         <span className="flex-1 truncate">{user.name}</span>
                         <Check
                           className={cn(
-                            "ml-auto h-4 w-4",
+                            "mr-2 h-4 w-4",
                             assignedIds.has(user.id)
                               ? "opacity-100"
                               : "opacity-0"
@@ -15332,7 +14807,6 @@ export function TaskAssignees({ task }: any) {
     </div>
   );
 }
-
 // FILE: src/features/tasks/components/TaskCustomFields.tsx
 import { useGetCustomFieldDefinitions } from "@/features/custom-fields/api/useGetCustomFieldDefinitions";
 import { useUpdateTaskCustomValues } from "../api/useUpdateTaskCustomValues";
@@ -15474,13 +14948,13 @@ export function TaskCustomFields({ task, workspaceId, projectId }: any) {
 }
 
 // FILE: src/features/tasks/components/TaskDetailBody.tsx
-// FILE: src/features/tasks/components/TaskDetailBody.tsx
 import { RichTextEditor } from "@/components/ui/RichTextEditor";
 import { CommentSection } from "@/features/comments/components/CommentSection";
 import { SubtaskList } from "./SubtaskList";
 import { useState, useEffect } from "react";
 import { CreateTaskDialog } from "./CreateTaskDialog";
 import { TaskLinks } from "./TaskLinks";
+
 export function TaskDetailBody({
   task,
   workspaceId,
@@ -15494,8 +14968,9 @@ export function TaskDetailBody({
   useEffect(() => {
     setDescription(task.description || "");
   }, [task.description]);
+
   return (
-    <div className="col-span-2 space-y-6 border-r pr-6">
+    <div className="col-span-2 space-y-6 overflow-y-auto border-r pr-6">
       <RichTextEditor
         value={description}
         onChange={setDescription}
@@ -15532,8 +15007,6 @@ export function TaskDetailBody({
 }
 
 // FILE: src/features/tasks/components/TaskDetailModal.tsx
-// FILE: src/features/tasks/components/TaskDetailModal.tsx
-// src/features/tasks/components/TaskDetailModal.tsx
 import {
   Dialog,
   DialogContent,
@@ -15560,6 +15033,8 @@ import {
 } from "@/components/ui/tooltip";
 
 interface TaskDetailModalProps {
+  workspaceId?: string;
+  projectId?: string;
   taskId: string | null;
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
@@ -15567,16 +15042,16 @@ interface TaskDetailModalProps {
 }
 
 export function TaskDetailModal({
+  workspaceId,
+  projectId,
   taskId,
   isOpen,
   onOpenChange,
   onTaskSelect,
 }: TaskDetailModalProps) {
-  const { data: task, isLoading } = useGetTask(taskId);
-  const isProjectTask = !!task?.projectId;
-
-  const updateTaskMutation = isProjectTask
-    ? useUpdateTask(task?.workspaceId, task?.projectId, taskId!)
+  const { data: task, isLoading } = useGetTask(taskId, workspaceId, projectId);
+  const updateTaskMutation = projectId
+    ? useUpdateTask(workspaceId!, projectId, taskId!)
     : useUpdateStandaloneTask(taskId!);
   const handleSave = (field: "title" | "description", value: string) => {
     updateTaskMutation.mutate({ [field]: value });
@@ -15588,15 +15063,13 @@ export function TaskDetailModal({
           <div className="pr-6">
             <Skeleton className="h-8 w-3/4" />
           </div>
-          <div className="flex-1 overflow-y-auto py-4">
-            <div className="grid grid-cols-3 gap-6">
-              <div className="col-span-2 space-y-6 border-r pr-6">
-                <Skeleton className="h-32 w-full" />
-                <Skeleton className="h-4 w-1/4" />
-                <Skeleton className="h-24 w-full" />
-              </div>
-              <TaskDetailSidebarSkeleton />
+          <div className="grid flex-1 grid-cols-3 gap-6 overflow-y-hidden py-4">
+            <div className="col-span-2 space-y-6 overflow-y-auto border-r pr-6">
+              <Skeleton className="h-32 w-full" />
+              <Skeleton className="h-4 w-1/4" />
+              <Skeleton className="h-24 w-full" />
             </div>
+            <TaskDetailSidebarSkeleton />
           </div>
         </>
       );
@@ -15634,21 +15107,19 @@ export function TaskDetailModal({
         <DialogDescription className="text-muted-foreground pr-6 text-xs">
           Task ID: {task.id}
         </DialogDescription>
-        <div className="flex-1 overflow-y-auto py-4">
-          <div className="grid grid-cols-3 gap-6">
-            <TaskDetailBody
-              task={task}
-              workspaceId={task.workspaceId}
-              projectId={task.projectId}
-              onSave={handleSave}
-              onTaskSelect={onTaskSelect}
-            />
-            <TaskDetailSidebar
-              task={task}
-              workspaceId={task.workspaceId}
-              projectId={task.projectId}
-            />
-          </div>
+        <div className="grid flex-1 grid-cols-3 gap-6 overflow-y-hidden py-4">
+          <TaskDetailBody
+            task={task}
+            workspaceId={workspaceId}
+            projectId={projectId}
+            onSave={handleSave}
+            onTaskSelect={onTaskSelect}
+          />
+          <TaskDetailSidebar
+            task={task}
+            workspaceId={workspaceId}
+            projectId={projectId}
+          />
         </div>
       </>
     );
@@ -15662,10 +15133,7 @@ export function TaskDetailModal({
     </Dialog>
   );
 }
-
 // FILE: src/features/tasks/components/TaskDetailSidebar.tsx
-// FILE: src/features/tasks/components/TaskDetailSidebar.tsx
-// src/features/tasks/components/TaskDetailSidebar.tsx
 import { TaskAssignees } from "./TaskAssignees";
 import { TimeLogSection } from "@/features/timelogs/components/TimeLogSection";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -15690,7 +15158,6 @@ import { cn } from "@/lib/utils";
 import { Calendar as CalendarIcon, X } from "lucide-react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
-import { TaskDocuments } from "./TaskDocuments";
 export function TaskDetailSidebar({ task, workspaceId, projectId }: any) {
   const updateTaskMutation = projectId
     ? useUpdateTask(workspaceId!, projectId, task.id)
@@ -15704,7 +15171,7 @@ export function TaskDetailSidebar({ task, workspaceId, projectId }: any) {
   };
 
   return (
-    <div className="col-span-1 space-y-6 pr-1">
+    <div className="col-span-1 space-y-6 overflow-y-auto pr-1">
       <div>
         <h3 className="mb-2 text-sm font-semibold">Status</h3>
         <Select
@@ -15783,13 +15250,12 @@ export function TaskDetailSidebar({ task, workspaceId, projectId }: any) {
           )}
         </div>
       </div>
-      <TaskAssignees task={task} />
-      <TaskCustomFields
+      <TaskAssignees
         task={task}
         workspaceId={workspaceId}
         projectId={projectId}
       />
-      <TaskDocuments
+      <TaskCustomFields
         task={task}
         workspaceId={workspaceId}
         projectId={projectId}
@@ -15833,204 +15299,6 @@ export function TaskDetailSidebarSkeleton() {
     </div>
   );
 }
-
-// FILE: src/features/tasks/components/TaskDocuments.tsx
-// src/features/tasks/components/TaskDocuments.tsx
-import { useMemo, useRef } from "react";
-import { DocumentType } from "@/types";
-import { Task } from "../task.types";
-import { Button } from "@/components/ui/button";
-import { Paperclip, Upload, Trash2, FileText } from "lucide-react";
-import { useAttachDocument } from "../api/useAttachDocument";
-import { useDetachDocument } from "../api/useDetachDocument";
-import { toast } from "sonner";
-import { getAbsoluteUrl } from "@/lib/utils";
-
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-
-function DocumentItem({
-  doc,
-  task,
-  onDetach,
-}: {
-  doc: any;
-  task: Task;
-  onDetach: (documentId: string, type: DocumentType) => void;
-}) {
-  const isPropagated = doc.taskId !== task.id;
-  return (
-    <div className="hover:bg-accent/50 flex items-center justify-between rounded-md p-2 text-sm">
-      <a
-        href={getAbsoluteUrl(doc.url)}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex min-w-0 items-center gap-2"
-      >
-        <FileText className="h-4 w-4 flex-shrink-0" />
-        <span className="truncate" title={doc.title}>
-          {doc.title}
-        </span>
-        {isPropagated && (
-          <span className="text-muted-foreground text-xs">(from subtask)</span>
-        )}
-      </a>
-      {!isPropagated && (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6"
-          onClick={() => onDetach(doc.documentId, doc.type)}
-        >
-          <Trash2 className="h-3 w-3" />
-        </Button>
-      )}
-    </div>
-  );
-}
-
-function DocumentList({
-  title,
-  docs,
-  task,
-  onDetach,
-}: {
-  title: string;
-  docs: any[];
-  task: Task;
-  onDetach: (documentId: string, type: DocumentType) => void;
-}) {
-  return (
-    <div>
-      <h4 className="mb-1 text-xs font-semibold text-gray-500 uppercase">
-        {title} ({docs.length})
-      </h4>
-      <div className="space-y-1 rounded-md border p-1">
-        {docs.length > 0 ? (
-          docs.map((doc: any) => (
-            <DocumentItem
-              key={`${doc.documentId}-${doc.type}`}
-              doc={doc}
-              task={task}
-              onDetach={onDetach}
-            />
-          ))
-        ) : (
-          <p className="text-muted-foreground p-2 text-center text-xs">
-            No documents attached.
-          </p>
-        )}
-      </div>
-    </div>
-  );
-}
-
-export function TaskDocuments({
-  task,
-  workspaceId,
-  projectId,
-}: {
-  task: Task;
-  workspaceId?: string;
-  projectId?: string;
-}) {
-  const attachMutation = useAttachDocument(workspaceId, projectId, task.id);
-  const detachMutation = useDetachDocument(workspaceId, projectId, task.id);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const outputRef = useRef<HTMLInputElement>(null);
-
-  const allDocs = useMemo(() => {
-    const collectedDocs = new Map();
-    function collect(currentTask: Task) {
-      currentTask.documents?.forEach((doc: any) => {
-        const key = `${doc.documentId}-${doc.type}`;
-        if (!collectedDocs.has(key)) {
-          collectedDocs.set(key, { ...doc, taskId: currentTask.id });
-        }
-      });
-      currentTask.subtasks?.forEach(collect);
-    }
-    collect(task);
-    return Array.from(collectedDocs.values());
-  }, [task]);
-
-  const inputDocs = allDocs.filter((d) => d.type === DocumentType.INPUT);
-  const outputDocs = allDocs.filter((d) => d.type === DocumentType.OUTPUT);
-
-  const handleFileChange = (
-    event: React.ChangeEvent<HTMLInputElement>,
-    type: DocumentType
-  ) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > MAX_FILE_SIZE) {
-      toast.error("File size cannot exceed 5MB.");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("type", type);
-    attachMutation.mutate(formData);
-
-    event.target.value = "";
-  };
-
-  const handleDetach = (documentId: string, type: DocumentType) => {
-    detachMutation.mutate({ documentId, type });
-  };
-
-  return (
-    <div className="space-y-4">
-      <input
-        type="file"
-        ref={inputRef}
-        className="hidden"
-        onChange={(e) => handleFileChange(e, DocumentType.INPUT)}
-      />
-      <input
-        type="file"
-        ref={outputRef}
-        className="hidden"
-        onChange={(e) => handleFileChange(e, DocumentType.OUTPUT)}
-      />
-      <h3 className="text-sm font-semibold">Documents</h3>
-      <div className="space-y-4">
-        <DocumentList
-          title="Inputs"
-          docs={inputDocs}
-          task={task}
-          onDetach={handleDetach}
-        />
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-full"
-          onClick={() => inputRef.current?.click()}
-          disabled={attachMutation.isPending}
-        >
-          <Upload className="mr-2 h-4 w-4" /> Attach Input
-        </Button>
-        <DocumentList
-          title="Outputs"
-          docs={outputDocs}
-          task={task}
-          onDetach={handleDetach}
-        />
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-full"
-          onClick={() => outputRef.current?.click()}
-          disabled={attachMutation.isPending}
-        >
-          <Paperclip className="mr-2 h-4 w-4" /> Attach Output
-        </Button>
-      </div>
-    </div>
-  );
-}
-
 // FILE: src/features/tasks/components/TaskLinks.tsx
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -16328,7 +15596,6 @@ export function TaskList({
 }
 
 // FILE: src/features/tasks/components/TaskTableRow.tsx
-// src/features/tasks/components/TaskTableRow.tsx
 import { TableCell, TableRow } from "@/components/ui/table";
 import { MoreHorizontal, Edit, Copy, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16376,31 +15643,14 @@ export function TaskTableRow({
   isSelected,
   onSelectChange,
 }: TaskTableRowProps) {
-  const isProjectTask = !!task.projectId;
+  const useUpdateHook = projectId ? useUpdateTask : useUpdateStandaloneTask;
+  const updateTaskMutation = useUpdateHook(workspaceId!, projectId!, task.id);
 
-  const updateProjectTaskMutation = useUpdateTask(
-    workspaceId!,
-    task.projectId!,
-    task.id
-  );
-  const updateStandaloneTaskMutation = useUpdateStandaloneTask(task.id);
-  const updateTaskMutation = isProjectTask
-    ? updateProjectTaskMutation
-    : updateStandaloneTaskMutation;
-
-  const deleteProjectTaskMutation = useDeleteTask(
-    workspaceId!,
-    task.projectId!
-  );
-  const deleteStandaloneTaskMutation = useDeleteStandaloneTask();
-  const deleteTaskMutation = isProjectTask
-    ? deleteProjectTaskMutation
-    : deleteStandaloneTaskMutation;
+  const useDeleteHook = projectId ? useDeleteTask : useDeleteStandaloneTask;
+  const deleteTaskMutation = useDeleteHook(workspaceId!, projectId!);
 
   const handleStatusChange = (newStatus: string) => {
-    if (newStatus !== task.status) {
-      updateTaskMutation.mutate({ status: newStatus });
-    }
+    updateTaskMutation.mutate({ status: newStatus });
   };
   const handlePriorityChange = (newPriority: string) => {
     if (newPriority !== task.priority) {
@@ -16521,15 +15771,12 @@ export function TaskTableRow({
     </React.Fragment>
   );
 }
-
 // FILE: src/features/tasks/task.types.ts
-// src/features/tasks/task.types.ts
 import {
   TaskStatus,
   TaskPriority,
   TaskLinkType,
   CustomFieldType,
-  DocumentType,
 } from "@/types";
 import { z } from "zod";
 import {
@@ -16555,12 +15802,6 @@ export interface TaskLinkIdParams {
   linkId: string;
 }
 
-export const TaskDocumentParamsSchema = TaskIdParamsSchema.extend({
-  documentId: z.string().uuid(),
-  type: z.nativeEnum(DocumentType),
-});
-export type TaskDocumentParams = z.infer<typeof TaskDocumentParamsSchema>;
-
 export const TaskAssigneeParamsSchema = TaskIdParamsSchema.extend({
   userId: z.string().uuid(),
 });
@@ -16574,6 +15815,7 @@ const TaskAssigneeSchema = z.object({
   name: z.string(),
   avatarUrl: z.string().url().nullable(),
 });
+
 const TaskLinkSchema = z.object({
   id: z.string().uuid(),
   type: z.nativeEnum(TaskLinkType),
@@ -16592,6 +15834,7 @@ const TaskLinkSchema = z.object({
     })
     .optional(),
 });
+
 const CustomFieldDefinitionForTaskSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
@@ -16605,15 +15848,6 @@ const TaskCustomFieldSchema = z.object({
   definition: CustomFieldDefinitionForTaskSchema,
 });
 
-const TaskDocumentSchema = z.object({
-  documentId: z.string().uuid(),
-  type: z.nativeEnum(DocumentType),
-  title: z.string(),
-  url: z.string(),
-  fileType: z.string().nullable(),
-  createdAt: z.coerce.date(),
-});
-
 const BaseTaskSchema = z.object({
   __typename: z.literal("Task"),
   id: z.string().uuid(),
@@ -16621,30 +15855,27 @@ const BaseTaskSchema = z.object({
   description: z.string().nullable(),
   status: z.nativeEnum(TaskStatus),
   priority: z.nativeEnum(TaskPriority),
-  projectId: z.string().uuid().nullable(),
-  workspaceId: z.string().uuid().nullable(),
-  projectName: z.string().nullable(),
-  ownerId: z.string().uuid().nullable(),
-  creatorId: z.string().uuid().nullable(),
-  startDate: z.coerce.date().nullable(),
-  dueDate: z.coerce.date().nullable(),
+  projectId: z.string().uuid(),
+  creatorId: z.string().uuid(),
+  startDate: z.date().nullable(),
+  dueDate: z.date().nullable(),
   timeEstimate: z.number().int().nullable(),
   epicId: z.string().uuid().nullable(),
   boardColumnId: z.string().uuid().nullable(),
   orderInColumn: z.number().int().nullable(),
-  createdAt: z.coerce.date(),
-  updatedAt: z.coerce.date(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
   assignees: z.array(TaskAssigneeSchema),
   links: z.array(TaskLinkSchema),
   linkedToBy: z.array(TaskLinkSchema),
   customFields: z.array(TaskCustomFieldSchema),
-  documents: z.array(TaskDocumentSchema),
   parentId: z.string().uuid().nullable(),
 });
 
 export type Task = z.infer<typeof BaseTaskSchema> & {
   subtasks: Task[];
 };
+
 export const TaskSchema: z.ZodType<Task> = BaseTaskSchema.extend({
   subtasks: z.lazy(() => z.array(TaskSchema)),
 });
@@ -16659,7 +15890,7 @@ export const CreateTaskDtoSchema = z.object({
   startDate: z.coerce.date().optional().nullable(),
   dueDate: z.coerce.date().optional().nullable(),
   timeEstimate: z.number().int().positive().optional().nullable(),
-  projectId: z.string().uuid().optional().nullable(),
+  projectId: z.string().uuid(),
   epicId: z.string().uuid().optional().nullable(),
   boardColumnId: z.string().uuid().optional(),
   parentId: z.string().uuid().optional().nullable(),
@@ -16671,25 +15902,30 @@ export const CreateTaskBodySchema = CreateTaskDtoSchema.omit({
   projectId: true,
 });
 export type CreateTaskBody = z.infer<typeof CreateTaskBodySchema>;
+
 export const UpdateTaskDtoSchema = CreateTaskDtoSchema.omit({
   projectId: true,
   parentId: true,
 }).partial();
 export type UpdateTaskDto = z.infer<typeof UpdateTaskDtoSchema>;
+
 export const MoveTaskDtoSchema = z.object({
   targetColumnId: z.string().uuid(),
   orderInColumn: z.number().int(),
 });
 export type MoveTaskDto = z.infer<typeof MoveTaskDtoSchema>;
+
 export const CreateTaskLinkDtoSchema = z.object({
   targetTaskId: z.string().uuid(),
   type: z.nativeEnum(TaskLinkType),
 });
 export type CreateTaskLinkDto = z.infer<typeof CreateTaskLinkDtoSchema>;
+
 export const AssignUserToTaskDtoSchema = z.object({
   userId: z.string().uuid(),
 });
 export type AssignUserToTaskDto = z.infer<typeof AssignUserToTaskDtoSchema>;
+
 export const UpdateTaskCustomValuesDtoSchema = z.object({
   updates: z.array(
     z.object({
@@ -16732,6 +15968,7 @@ export const PaginatedTasksResponseSchema =
 export type PaginatedTasksResponse = z.infer<
   typeof PaginatedTasksResponseSchema
 >;
+
 // FILE: src/features/teams/api/useAddUserToTeam.ts
 import api from "@/lib/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -17186,7 +16423,7 @@ export function EditTeamForm({
 }
 
 // FILE: src/features/teams/components/ManageTeamMembers.tsx
-// src/features/teams/components/ManageTeamMembers.tsx
+// FILE: src/features/teams/components/ManageTeamMembers.tsx
 import { useGetUsers } from "@/features/admin/users/api/useGetUsers";
 import { useAddUserToTeam } from "../api/useAddUserToTeam";
 import { useRemoveUserFromTeam } from "../api/useRemoveUserFromTeam";
@@ -17217,9 +16454,7 @@ export function ManageTeamMembers({
   team,
   workspaceId,
 }: ManageTeamMembersProps) {
-  const { data: usersData, isLoading: isLoadingUsers } = useGetUsers({
-    limit: 1000,
-  });
+  const { data: usersData, isLoading: isLoadingUsers } = useGetUsers({});
   const addUserMutation = useAddUserToTeam(workspaceId, team.id);
   const removeUserMutation = useRemoveUserFromTeam(workspaceId, team.id);
 
@@ -17979,7 +17214,6 @@ export function useUpdateView(workspaceId: string, projectId: string) {
 }
 
 // FILE: src/features/views/components/KanbanBoard.tsx
-// src/features/views/components/KanbanBoard.tsx
 import {
   DndContext,
   DragEndEvent,
@@ -18007,30 +17241,6 @@ interface KanbanBoardProps {
   onTaskSelect: (taskId: string) => void;
 }
 
-// Flattens a nested task structure into a single array
-const flattenTasks = (tasksToFlatten: Task[]): Task[] => {
-  let flat: Task[] = [];
-  if (!tasksToFlatten) return flat;
-  for (const task of tasksToFlatten) {
-    flat.push(task);
-    if (task.subtasks) {
-      flat.push(...flattenTasks(task.subtasks));
-    }
-  }
-  return flat;
-};
-
-// Converts a column name (e.g., "In Progress") to a TaskStatus enum ("IN_PROGRESS")
-function mapColumnNameToStatus(columnName: string): TaskStatus | null {
-  const normalizedName = columnName.trim().toUpperCase().replace(/\s+/g, "_");
-  if (normalizedName === "TO_DO") return TaskStatus.TODO;
-  if (Object.values(TaskStatus).includes(normalizedName as TaskStatus)) {
-    return normalizedName as TaskStatus;
-  }
-  return null;
-}
-
-// Converts a TaskStatus enum to a display-friendly column name
 function mapStatusToColumnName(status: TaskStatus): string {
   switch (status) {
     case TaskStatus.TODO:
@@ -18044,6 +17254,51 @@ function mapStatusToColumnName(status: TaskStatus): string {
     default:
       return "";
   }
+}
+
+
+const getDisplayableTasks = (tasks: Task[]): Task[] => {
+  const displayable: Task[] = [];
+  if (!tasks) return displayable;
+
+  for (const task of tasks) {
+    
+    if (!task.subtasks || task.subtasks.length === 0) {
+      displayable.push(task);
+    } else {
+      const allSubtasksDone = task.subtasks.every(
+        (sub) => sub.status === TaskStatus.DONE
+      );
+
+      if (allSubtasksDone) {
+        displayable.push(task);
+      } else {
+        displayable.push(...getDisplayableTasks(task.subtasks));
+      }
+    }
+  }
+  return displayable;
+};
+
+const flattenTasks = (tasksToFlatten: Task[]): Task[] => {
+  let flat: Task[] = [];
+  if (!tasksToFlatten) return flat;
+  for (const task of tasksToFlatten) {
+    flat.push(task);
+    if (task.subtasks) {
+      flat.push(...flattenTasks(task.subtasks));
+    }
+  }
+  return flat;
+};
+
+function mapColumnNameToStatus(columnName: string): TaskStatus | null {
+  const normalizedName = columnName.trim().toUpperCase().replace(/\s+/g, "_");
+  if (normalizedName === "TO_DO") return TaskStatus.TODO;
+  if (Object.values(TaskStatus).includes(normalizedName as TaskStatus)) {
+    return normalizedName as TaskStatus;
+  }
+  return null;
 }
 
 export function KanbanBoard({
@@ -18064,11 +17319,7 @@ export function KanbanBoard({
     })
   );
 
-  // Filter for top-level tasks to display on the board
-  const topLevelTasks = useMemo(
-    () => tasks.filter((task) => !task.parentId),
-    [tasks]
-  );
+  const displayableTasks = useMemo(() => getDisplayableTasks(tasks), [tasks]);
 
   const columns = useMemo(() => {
     const kanbanView = views.find((v) => v.type === "KANBAN");
@@ -18084,10 +17335,9 @@ export function KanbanBoard({
       {} as Record<string, Task[]>
     );
 
-    topLevelTasks.forEach((task) => {
+    displayableTasks.forEach((task) => {
       let targetColumnId = task.boardColumnId;
 
-      // Fallback for tasks that might not have a boardColumnId set
       if (!targetColumnId) {
         const expectedColumnName = mapStatusToColumnName(task.status);
         const fallbackColumn = columns.find(
@@ -18104,15 +17354,8 @@ export function KanbanBoard({
       }
     });
 
-    // Sort tasks within each column by their order
-    for (const columnId in grouped) {
-      grouped[columnId].sort(
-        (a, b) => (a.orderInColumn || 0) - (b.orderInColumn || 0)
-      );
-    }
-
     return grouped;
-  }, [columns, topLevelTasks]);
+  }, [columns, displayableTasks]);
 
   const onDragStart = (event: DragStartEvent) => {
     const allTasksFlat = flattenTasks(tasks);
@@ -18123,57 +17366,23 @@ export function KanbanBoard({
   const onDragEnd = (event: DragEndEvent) => {
     setActiveTask(null);
     const { active, over } = event;
-    if (!over || active.id === over.id) {
-      return;
-    }
-
+    if (!over) return;
     const allTasksFlat = flattenTasks(tasks);
     const draggedTask = allTasksFlat.find((t) => t.id === active.id);
-    if (!draggedTask) return;
-
     const targetColumnId =
-      over.data.current?.sortable?.containerId?.toString() ??
-      over.id.toString();
+      over.data.current?.sortable?.containerId || over.id.toString();
     const targetColumn = columns.find((col: any) => col.id === targetColumnId);
-    if (!targetColumn) return;
-
-    const tasksInDestColumn = (tasksByColumn[targetColumnId] || []).sort(
-      (a, b) => (a.orderInColumn || 0) - (b.orderInColumn || 0)
-    );
-    const overIsTask = over.data.current?.type === "Task";
-    let newOrderInColumn: number;
-
-    if (overIsTask) {
-      const overTaskIndex = tasksInDestColumn.findIndex(
-        (t) => t.id === over.id
-      );
-      if (overTaskIndex !== -1) {
-        const overTask = tasksInDestColumn[overTaskIndex];
-        const prevTask = tasksInDestColumn[overTaskIndex - 1];
-        const prevOrder = prevTask?.orderInColumn ?? 0;
-        const overOrder = overTask?.orderInColumn ?? prevOrder + 2000;
-        newOrderInColumn = (prevOrder + overOrder) / 2;
-      } else {
-        // Task is being moved from another column to a non-empty column, but not over a specific task
-        const lastTask = tasksInDestColumn[tasksInDestColumn.length - 1];
-        newOrderInColumn = (lastTask?.orderInColumn || 0) + 1000;
-      }
-    } else {
-      // Dropped on a column, not a task
-      const lastTask = tasksInDestColumn[tasksInDestColumn.length - 1];
-      newOrderInColumn = (lastTask?.orderInColumn || 0) + 1000;
+    if (draggedTask && targetColumnId && targetColumn) {
+      const newStatus = mapColumnNameToStatus(targetColumn.name);
+      moveTaskMutation.mutate({
+        workspaceId,
+        projectId,
+        taskId: active.id as string,
+        targetColumnId: targetColumnId,
+        newStatus: newStatus,
+        orderInColumn: 0,
+      });
     }
-
-    const newStatus = mapColumnNameToStatus(targetColumn.name);
-
-    moveTaskMutation.mutate({
-      workspaceId,
-      projectId,
-      taskId: active.id as string,
-      targetColumnId,
-      newStatus,
-      orderInColumn: newOrderInColumn,
-    });
   };
 
   if (columns.length === 0) {
@@ -18252,7 +17461,6 @@ export function KanbanColumn({ column, tasks, onTaskSelect }: any) {
 }
 
 // FILE: src/features/views/components/KanbanTaskCard.tsx
-// src/features/views/components/KanbanTaskCard.tsx
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -18265,28 +17473,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import {
-  MoreHorizontal,
-  Edit,
-  Copy,
-  Trash2,
-  Calendar,
-  CheckSquare,
-} from "lucide-react";
+import { MoreHorizontal, Edit, Copy, Trash2, Calendar } from "lucide-react";
 import { useDeleteTask } from "@/features/tasks/api/useDeleteTask";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { Task } from "@/features/tasks/task.types";
-import { TaskStatus } from "@/types";
 
-export function KanbanTaskCard({
-  task,
-  onTaskSelect,
-}: {
-  task: Task;
-  onTaskSelect: (taskId: string) => void;
-}) {
+export function KanbanTaskCard({ task, onTaskSelect }: any) {
   const { workspaceId, projectId } = useParams<{
     workspaceId: string;
     projectId: string;
@@ -18317,10 +17510,6 @@ export function KanbanTaskCard({
     e.stopPropagation();
     onTaskSelect(task.id);
   };
-
-  const totalSubtasks = task.subtasks?.length || 0;
-  const completedSubtasks =
-    task.subtasks?.filter((sub) => sub.status === TaskStatus.DONE).length || 0;
 
   return (
     <div
@@ -18362,24 +17551,12 @@ export function KanbanTaskCard({
             </DropdownMenuContent>
           </DropdownMenu>
         </CardHeader>
-        {(task.dueDate || totalSubtasks > 0) && (
-          <CardContent className="flex items-center justify-between px-3 pb-2">
-            {task.dueDate ? (
-              <div className="text-muted-foreground flex items-center text-xs">
-                <Calendar className="mr-1 h-3.5 w-3.5" />
-                <span>{format(new Date(task.dueDate), "PP")}</span>
-              </div>
-            ) : (
-              <div />
-            )}
-            {totalSubtasks > 0 && (
-              <div className="text-muted-foreground flex items-center text-xs">
-                <CheckSquare className="mr-1 h-3.5 w-3.5" />
-                <span>
-                  {completedSubtasks}/{totalSubtasks}
-                </span>
-              </div>
-            )}
+        {task.dueDate && (
+          <CardContent className="px-3 pb-2">
+            <div className="text-muted-foreground flex items-center text-xs">
+              <Calendar className="mr-1 h-3.5 w-3.5" />
+              <span>{format(new Date(task.dueDate), "PP")}</span>
+            </div>
           </CardContent>
         )}
       </Card>
@@ -20823,12 +20000,11 @@ export function LoginPage() {
 }
 
 // FILE: src/pages/MyTasksPage.tsx
-// src/pages/MyTasksPage.tsx
 import { MyTasksList } from "@/features/tasks/components/MyTasksList";
 import { CreateTaskDialog } from "@/features/tasks/components/CreateTaskDialog";
 import { TaskDetailModal } from "@/features/tasks/components/TaskDetailModal";
 import { useSearchParams } from "react-router-dom";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import {
   Select,
   SelectContent,
@@ -20838,83 +20014,48 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { ListTasksQuery } from "@/features/tasks/task.types";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useGetMyTasks } from "@/features/tasks/api/useGetMyTasks";
-import { MyTasksKanbanBoard } from "@/features/tasks/components/MyTasksKanbanBoard";
-import { Skeleton } from "@/components/ui/skeleton";
-
-const TaskListSkeleton = () => (
-  <div className="space-y-2 pt-4">
-    {Array.from({ length: 8 }).map((_, i) => (
-      <Skeleton key={i} className="h-12 w-full rounded-lg" />
-    ))}
-  </div>
-);
 
 export function MyTasksPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedTaskId = searchParams.get("taskId");
-  const activeView = searchParams.get("view") || "list";
 
-  const [page, setPage] = useState(1);
   const [filter, setFilter] = useState("all_assigned");
   const [sortBy, setSortBy] = useState("priority");
 
   const handleTaskSelect = (taskId: string | null) => {
-    setSearchParams(
-      (params) => {
-        if (taskId) {
-          params.set("taskId", taskId);
-        } else {
-          params.delete("taskId");
-        }
-        return params;
-      },
-      { replace: true }
-    );
+    setSearchParams((params) => {
+      if (taskId) {
+        params.set("taskId", taskId);
+      } else {
+        params.delete("taskId");
+      }
+      return params;
+    });
   };
 
-  const handleViewChange = (view: string) => {
-    setSearchParams(
-      (params) => {
-        params.set("view", view);
-        return params;
-      },
-      { replace: true }
-    );
-  };
-
-  const queryParams: ListTasksQuery = useMemo(() => {
-    const baseQuery = {
-      sortBy: sortBy as ListTasksQuery["sortBy"],
-      sortOrder: "desc" as const,
-      limit: activeView === "kanban" ? 200 : 15,
-      page: page,
-      includeSubtasks: true,
-    };
-
+  const getFilterParams = (): Partial<
+    Pick<ListTasksQuery, "userRole" | "taskOrigin">
+  > => {
     switch (filter) {
       case "created_standalone":
-        return { ...baseQuery, userRole: "creator", taskOrigin: "standalone" };
+        return { userRole: "creator", taskOrigin: "standalone" };
       case "created_project":
-        return { ...baseQuery, userRole: "creator", taskOrigin: "project" };
+        return { userRole: "creator", taskOrigin: "project" };
       case "assigned_standalone":
-        return { ...baseQuery, userRole: "assignee", taskOrigin: "standalone" };
+        return { userRole: "assignee", taskOrigin: "standalone" };
       case "assigned_project":
-        return { ...baseQuery, userRole: "assignee", taskOrigin: "project" };
+        return { userRole: "assignee", taskOrigin: "project" };
       case "all_assigned":
-        return { ...baseQuery, userRole: "assignee" };
+        return { userRole: "assignee" };
       default:
-        return baseQuery;
+        return {};
     }
-  }, [filter, sortBy, activeView, page]);
+  };
 
-  const { data, isLoading, isError } = useGetMyTasks(queryParams);
-
-  const handlePageChange = (newPage: number) => {
-    if (newPage > 0 && newPage <= (data?.totalPages || 1)) {
-      setPage(newPage);
-    }
+  const queryParams: Partial<ListTasksQuery> = {
+    ...getFilterParams(),
+    sortBy: sortBy as ListTasksQuery["sortBy"],
+    sortOrder: "desc",
   };
 
   return (
@@ -20954,59 +20095,25 @@ export function MyTasksPage() {
                 </SelectContent>
               </Select>
             </div>
-            {activeView === "list" && (
-              <div className="grid w-full max-w-sm items-center gap-1.5">
-                <Label htmlFor="sort">Sort by</Label>
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger id="sort" className="w-[180px]">
-                    <SelectValue placeholder="Sort tasks" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="priority">Priority</SelectItem>
-                    <SelectItem value="dueDate">Due Date</SelectItem>
-                    <SelectItem value="createdAt">Creation Date</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+            <div className="grid w-full max-w-sm items-center gap-1.5">
+              <Label htmlFor="sort">Sort by</Label>
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger id="sort" className="w-[180px]">
+                  <SelectValue placeholder="Sort tasks" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="priority">Priority</SelectItem>
+                  <SelectItem value="dueDate">Due Date</SelectItem>
+                  <SelectItem value="createdAt">Creation Date</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <div className="self-end">
               <CreateTaskDialog />
             </div>
           </div>
         </div>
-        <Tabs value={activeView} onValueChange={handleViewChange}>
-          <TabsList>
-            <TabsTrigger value="list">List</TabsTrigger>
-            <TabsTrigger value="kanban">Kanban</TabsTrigger>
-          </TabsList>
-          <TabsContent value="list">
-            {isLoading ? (
-              <TaskListSkeleton />
-            ) : (
-              <MyTasksList
-                onTaskSelect={handleTaskSelect}
-                tasks={data?.data || []}
-                isLoading={isLoading}
-                isError={isError}
-                pagination={{
-                  page: data?.page || 1,
-                  totalPages: data?.totalPages || 1,
-                  handlePageChange,
-                }}
-              />
-            )}
-          </TabsContent>
-          <TabsContent value="kanban" className="mt-4">
-            {isLoading ? (
-              <TaskListSkeleton />
-            ) : (
-              <MyTasksKanbanBoard
-                tasks={data?.data || []}
-                onTaskSelect={handleTaskSelect}
-              />
-            )}
-          </TabsContent>
-        </Tabs>
+        <MyTasksList onTaskSelect={handleTaskSelect} query={queryParams} />
       </div>
 
       <TaskDetailModal
@@ -21858,7 +20965,6 @@ export const usePresenceStore = create<PresenceState>((set) => ({
 }));
 
 // FILE: src/types/index.ts
-// src/types/index.ts
 export enum TaskStatus {
   TODO = "TODO",
   IN_PROGRESS = "IN_PROGRESS",
@@ -21933,11 +21039,6 @@ export enum CustomFieldType {
   NUMBER = "NUMBER",
   DATE = "DATE",
   SELECT = "SELECT",
-}
-
-export enum DocumentType {
-  INPUT = "INPUT",
-  OUTPUT = "OUTPUT",
 }
 
 export enum NotificationType {

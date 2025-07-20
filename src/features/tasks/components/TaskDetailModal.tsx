@@ -1,3 +1,5 @@
+// FILE: src/features/tasks/components/TaskDetailModal.tsx
+// src/features/tasks/components/TaskDetailModal.tsx
 import {
   Dialog,
   DialogContent,
@@ -24,8 +26,6 @@ import {
 } from "@/components/ui/tooltip";
 
 interface TaskDetailModalProps {
-  workspaceId?: string;
-  projectId?: string;
   taskId: string | null;
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
@@ -33,16 +33,16 @@ interface TaskDetailModalProps {
 }
 
 export function TaskDetailModal({
-  workspaceId,
-  projectId,
   taskId,
   isOpen,
   onOpenChange,
   onTaskSelect,
 }: TaskDetailModalProps) {
-  const { data: task, isLoading } = useGetTask(taskId, workspaceId, projectId);
-  const updateTaskMutation = projectId
-    ? useUpdateTask(workspaceId!, projectId, taskId!)
+  const { data: task, isLoading } = useGetTask(taskId);
+  const isProjectTask = !!task?.projectId;
+
+  const updateTaskMutation = isProjectTask
+    ? useUpdateTask(task?.workspaceId, task?.projectId, taskId!)
     : useUpdateStandaloneTask(taskId!);
   const handleSave = (field: "title" | "description", value: string) => {
     updateTaskMutation.mutate({ [field]: value });
@@ -54,13 +54,15 @@ export function TaskDetailModal({
           <div className="pr-6">
             <Skeleton className="h-8 w-3/4" />
           </div>
-          <div className="grid flex-1 grid-cols-3 gap-6 overflow-y-hidden py-4">
-            <div className="col-span-2 space-y-6 overflow-y-auto border-r pr-6">
-              <Skeleton className="h-32 w-full" />
-              <Skeleton className="h-4 w-1/4" />
-              <Skeleton className="h-24 w-full" />
+          <div className="flex-1 overflow-y-auto py-4">
+            <div className="grid grid-cols-3 gap-6">
+              <div className="col-span-2 space-y-6 border-r pr-6">
+                <Skeleton className="h-32 w-full" />
+                <Skeleton className="h-4 w-1/4" />
+                <Skeleton className="h-24 w-full" />
+              </div>
+              <TaskDetailSidebarSkeleton />
             </div>
-            <TaskDetailSidebarSkeleton />
           </div>
         </>
       );
@@ -98,19 +100,21 @@ export function TaskDetailModal({
         <DialogDescription className="text-muted-foreground pr-6 text-xs">
           Task ID: {task.id}
         </DialogDescription>
-        <div className="grid flex-1 grid-cols-3 gap-6 overflow-y-hidden py-4">
-          <TaskDetailBody
-            task={task}
-            workspaceId={workspaceId}
-            projectId={projectId}
-            onSave={handleSave}
-            onTaskSelect={onTaskSelect}
-          />
-          <TaskDetailSidebar
-            task={task}
-            workspaceId={workspaceId}
-            projectId={projectId}
-          />
+        <div className="flex-1 overflow-y-auto py-4">
+          <div className="grid grid-cols-3 gap-6">
+            <TaskDetailBody
+              task={task}
+              workspaceId={task.workspaceId}
+              projectId={task.projectId}
+              onSave={handleSave}
+              onTaskSelect={onTaskSelect}
+            />
+            <TaskDetailSidebar
+              task={task}
+              workspaceId={task.workspaceId}
+              projectId={task.projectId}
+            />
+          </div>
         </div>
       </>
     );
