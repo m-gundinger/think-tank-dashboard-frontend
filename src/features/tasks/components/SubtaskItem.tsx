@@ -1,4 +1,3 @@
-// src/features/tasks/components/SubtaskItem.tsx
 import { Badge } from "@/components/ui/badge";
 import {
   CheckCircle2,

@@ -1,12 +1,13 @@
 import { NavLink, Outlet, useLocation, useParams } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useGetWorkspace } from "@/features/workspaces/api/useGetWorkspace";
+import { useApiResource } from "@/hooks/useApiResource";
 import { Skeleton } from "@/components/ui/skeleton";
-
 export function WorkspaceLayout() {
   const { workspaceId } = useParams<{ workspaceId: string }>();
   const location = useLocation();
-  const { data: workspace, isLoading } = useGetWorkspace(workspaceId!);
+  const { data: workspace, isLoading } = useApiResource("workspaces", [
+    "workspaces",
+  ]).useGetOne(workspaceId!);
 
   const currentTab = location.pathname.split("/").pop() || "projects";
 

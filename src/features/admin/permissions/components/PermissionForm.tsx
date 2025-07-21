@@ -1,38 +1,37 @@
-import { useForm } from "react-hook-form";
+import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { useCreatePermission } from "../api/useCreatePermission";
-import { useUpdatePermission } from "../api/useUpdatePermission";
+import { Form } from "@/components/ui/form";
+import { FormInput, FormRichTextEditor } from "@/components/form/FormFields";
+import { useApiResource } from "@/hooks/useApiResource";
 import { useEffect } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { RichTextEditor } from "@/components/ui/RichTextEditor";
+import { descriptionSchema, requiredStringSchema } from "@/lib/schemas";
 
 const permissionSchema = z.object({
-  action: z.string().min(1, "Action is required."),
-  subject: z.string().min(1, "Subject is required."),
-  description: z.string().optional(),
+  action: requiredStringSchema("Action"),
+  subject: requiredStringSchema("Subject"),
+  description: descriptionSchema,
 });
 type PermissionFormValues = z.infer<typeof permissionSchema>;
 
 interface PermissionFormProps {
-  permission?: any;
+  initialData?: any;
   onSuccess?: () => void;
 }
 
-export function PermissionForm({ permission, onSuccess }: PermissionFormProps) {
-  const createMutation = useCreatePermission();
-  const updateMutation = useUpdatePermission(permission?.id);
-  const mutation = permission ? updateMutation : createMutation;
-  const form = useForm<PermissionFormValues>({
+export function PermissionForm({
+  initialData,
+  onSuccess,
+}: PermissionFormProps) {
+  const permissionResource = useApiResource("admin/permissions", [
+    "permissions",
+  ]);
+  const createMutation = permissionResource.useCreate();
+  const updateMutation = permissionResource.useUpdate();
+  const isEditMode = !!initialData;
+  const mutation = isEditMode ? updateMutation : createMutation;
+  const methods = useForm<PermissionFormValues>({
     resolver: zodResolver(permissionSchema),
     defaultValues: {
       action: "",
@@ -40,75 +39,55 @@ export function PermissionForm({ permission, onSuccess }: PermissionFormProps) {
       description: "",
     },
   });
-
   useEffect(() => {
-    if (permission) {
-      form.reset(permission);
+    if (initialData) {
+      methods.reset(initialData);
     }
-  }, [permission, form]);
-
+  }, [initialData, methods]);
   async function onSubmit(values: PermissionFormValues) {
-    await mutation.mutateAsync(values, {
-      onSuccess: () => {
-        form.reset();
-        onSuccess?.();
-      },
-    });
+    if (isEditMode) {
+      await updateMutation.mutate(
+        { id: initialData.id, data: values },
+        { onSuccess }
+      );
+    } else {
+      await createMutation.mutate(values, {
+        onSuccess: () => {
+          methods.reset();
+          onSuccess?.();
+        },
+      });
+    }
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="action"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Action</FormLabel>
-              <FormControl>
-                <Input placeholder="e.g., manage, create, read" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="subject"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Subject</FormLabel>
-              <FormControl>
-                <Input placeholder="e.g., Project, Task, User" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description</FormLabel>
-              <FormControl>
-                <RichTextEditor
-                  value={field.value ?? ""}
-                  onChange={field.onChange}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button type="submit" className="w-full" disabled={mutation.isPending}>
-          {mutation.isPending
-            ? "Saving..."
-            : permission
-              ? "Save Changes"
-              : "Create Permission"}
-        </Button>
-      </form>
-    </Form>
+    <FormProvider {...methods}>
+      <Form {...methods}>
+        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
+          <FormInput
+            name="action"
+            label="Action"
+            placeholder="e.g., manage, create, read"
+          />
+          <FormInput
+            name="subject"
+            label="Subject"
+            placeholder="e.g., Project, Task, User"
+          />
+          <FormRichTextEditor name="description" label="Description" />
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={mutation.isPending}
+          >
+            {mutation.isPending
+              ? "Saving..."
+              : isEditMode
+                ? "Save Changes"
+                : "Create Permission"}
+          </Button>
+        </form>
+      </Form>
+    </FormProvider>
   );
 }

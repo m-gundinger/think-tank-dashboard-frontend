@@ -1,21 +1,8 @@
 import { useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Form } from "@/components/ui/form";
+import { FormInput, FormSelect } from "@/components/form/FormFields";
 import { useCreateWidget } from "../api/useCreateWidget";
 import { StatsCounterConfigFields } from "./config-fields/StatsCounterConfigFields";
 import { TaskListConfigFields } from "./config-fields/TaskListConfigFields";
@@ -37,7 +24,6 @@ const widgetSchema = z.object({
   }),
   dashboardId: z.string().uuid(),
 });
-
 type WidgetFormValues = z.infer<typeof widgetSchema>;
 
 interface CreateWidgetFormProps {
@@ -53,6 +39,7 @@ const configFieldsMap: Record<string, React.FC> = {
   BURNDOWN_CHART: BurndownChartConfigFields,
   TIME_TRACKING_REPORT: TimeTrackingReportConfigFields,
 };
+
 function getDefaultConfig(type: WidgetType) {
   switch (type) {
     case WidgetType.STATS_COUNTER:
@@ -92,6 +79,7 @@ export function CreateWidgetForm({
   });
   const selectedType = methods.watch("type") as string;
   const ConfigFields = configFieldsMap[selectedType];
+
   function handleNext() {
     methods.trigger(["title", "type"]).then((isValid) => {
       if (isValid) {
@@ -111,75 +99,53 @@ export function CreateWidgetForm({
     });
   }
 
+  const widgetTypeOptions = Object.values(WidgetType).map((type) => ({
+    value: type,
+    label: type.replace(/_/g, " "),
+  }));
+
   return (
     <FormProvider {...methods}>
-      <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-6">
-        {step === 1 && (
-          <div className="space-y-4">
-            <FormField
-              control={methods.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Widget Title</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., Open Tasks Counter" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={methods.control}
-              name="type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Widget Type</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a widget type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {Object.values(WidgetType).map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {type.replace(/_/g, " ")}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type="button" onClick={handleNext} className="w-full">
-              Next
-            </Button>
-          </div>
-        )}
-
-        {step === 2 && (
-          <div className="space-y-4">
-            {ConfigFields && <ConfigFields />}
-            <div className="flex justify-between pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setStep(1)}
-              >
-                Back
-              </Button>
-              <Button type="submit" disabled={createMutation.isPending}>
-                {createMutation.isPending ? "Adding..." : "Add Widget"}
+      <Form {...methods}>
+        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-6">
+          {step === 1 && (
+            <div className="space-y-4">
+              <FormInput
+                name="title"
+                label="Widget Title"
+                placeholder="e.g., Open Tasks Counter"
+              />
+              <FormSelect
+                name="type"
+                label="Widget Type"
+                placeholder="Select a widget type"
+                options={widgetTypeOptions}
+              />
+              <Button type="button" onClick={handleNext} className="w-full">
+                Next
               </Button>
             </div>
-          </div>
-        )}
-      </form>
+          )}
+
+          {step === 2 && (
+            <div className="space-y-4">
+              {ConfigFields && <ConfigFields />}
+              <div className="flex justify-between pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setStep(1)}
+                >
+                  Back
+                </Button>
+                <Button type="submit" disabled={createMutation.isPending}>
+                  {createMutation.isPending ? "Adding..." : "Add Widget"}
+                </Button>
+              </div>
+            </div>
+          )}
+        </form>
+      </Form>
     </FormProvider>
   );
 }

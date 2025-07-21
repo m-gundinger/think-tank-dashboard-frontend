@@ -8,13 +8,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
-import { useUpdateComment } from "../api/useUpdateComment";
-import { useDeleteComment } from "../api/useDeleteComment";
+import { useApiMutation } from "@/hooks/useApiMutation";
+import api from "@/lib/api";
 import { EditableField } from "@/components/ui/EditableField";
-import { toast } from "sonner";
 import { RichTextOutput } from "@/components/ui/RichTextOutput";
 import { getAbsoluteUrl } from "@/lib/utils";
-
 interface CommentItemProps {
   comment: any;
   workspaceId: string;
@@ -29,42 +27,36 @@ export function CommentItem({
   taskId,
 }: CommentItemProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const updateCommentMutation = useUpdateComment(
-    workspaceId,
-    projectId,
-    taskId
-  );
-  const deleteCommentMutation = useDeleteComment(
-    workspaceId,
-    projectId,
-    taskId
-  );
-
+  const getUrl = (commentId?: string) => {
+    const base =
+      projectId && workspaceId
+        ? `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/comments`
+        : `/tasks/${taskId}/comments`;
+    return commentId ? `${base}/${commentId}` : base;
+  };
+  const updateCommentMutation = useApiMutation({
+    mutationFn: (data: { commentId: string; content: string }) =>
+      api.put(getUrl(data.commentId), { content: data.content }),
+    successMessage: "Comment updated.",
+    invalidateQueries: [["comments", taskId]],
+  });
+  const deleteCommentMutation = useApiMutation({
+    mutationFn: (commentId: string) => api.delete(getUrl(commentId)),
+    successMessage: "Comment deleted.",
+    invalidateQueries: [["comments", taskId]],
+  });
   const handleSave = (newContent: string) => {
     updateCommentMutation.mutate(
       { commentId: comment.id, content: newContent },
       {
-        onSuccess: () => {
-          setIsEditing(false);
-          toast.success("Comment updated.");
-        },
-        onError: () => {
-          toast.error("Failed to update comment.");
-        },
+        onSuccess: () => setIsEditing(false),
       }
     );
   };
 
   const handleDelete = () => {
     if (window.confirm("Are you sure you want to delete this comment?")) {
-      deleteCommentMutation.mutate(comment.id, {
-        onSuccess: () => {
-          toast.success("Comment deleted.");
-        },
-        onError: () => {
-          toast.error("Failed to delete comment.");
-        },
-      });
+      deleteCommentMutation.mutate(comment.id);
     }
   };
 

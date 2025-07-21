@@ -1,9 +1,5 @@
 import { useState } from "react";
-import { useGetJobSchedules } from "../api/useGetJobSchedules";
-import {
-  useUpdateJobSchedule,
-  useDeleteJobSchedule,
-} from "../api/useJobScheduleActions";
+import { useApiResource } from "@/hooks/useApiResource";
 import {
   Table,
   TableBody,
@@ -16,13 +12,16 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 export function JobScheduleList() {
+  const jobScheduleResource = useApiResource("admin/jobs/schedules", [
+    "jobSchedules",
+  ]);
   const [page] = useState(1);
-  const { data, isLoading, isError } = useGetJobSchedules({
+  const { data, isLoading, isError } = jobScheduleResource.useGetAll({
     page,
     limit: 20,
   });
-  const updateMutation = useUpdateJobSchedule();
-  const deleteMutation = useDeleteJobSchedule();
+  const updateMutation = jobScheduleResource.useUpdate();
+  const deleteMutation = jobScheduleResource.useDelete();
 
   if (isLoading) return <div>Loading schedules...</div>;
   if (isError) return <div>Error loading schedules.</div>;
@@ -39,7 +38,7 @@ export function JobScheduleList() {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {data?.data?.length > 0 ? (
+        {data && data.data && data.data.length > 0 ? (
           data.data.map((schedule: any) => (
             <TableRow key={schedule.id}>
               <TableCell className="font-medium">{schedule.name}</TableCell>
@@ -59,7 +58,7 @@ export function JobScheduleList() {
                   checked={schedule.isActive}
                   onCheckedChange={(isActive) =>
                     updateMutation.mutate({
-                      scheduleId: schedule.id,
+                      id: schedule.id,
                       data: { isActive },
                     })
                   }

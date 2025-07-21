@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { useGetEpics } from "../api/useGetEpics";
-import { useDeleteEpic } from "../api/useDeleteEpic";
+import { useApiResource } from "@/hooks/useApiResource";
 import {
   Card,
   CardContent,
@@ -11,16 +10,19 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Edit, Trash2 } from "lucide-react";
-import { EditEpicDialog } from "./EditEpicDialog";
+import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { CreateEpicForm } from "./CreateEpicForm";
 
 export function EpicList({ workspaceId, projectId }: any) {
-  const { data, isLoading, isError } = useGetEpics(workspaceId, projectId);
-  const deleteMutation = useDeleteEpic(workspaceId, projectId);
+  const epicResource = useApiResource(
+    `/workspaces/${workspaceId}/projects/${projectId}/epics`,
+    ["epics", projectId]
+  );
+  const { data, isLoading, isError } = epicResource.useGetAll();
+  const deleteMutation = epicResource.useDelete();
   const [editingEpicId, setEditingEpicId] = useState<string | null>(null);
-
   if (isLoading) return <div>Loading epics...</div>;
   if (isError) return <div>Error loading epics.</div>;
-
   const handleDelete = (epic: any) => {
     if (
       window.confirm(`Are you sure you want to delete the epic "${epic.name}"?`)
@@ -32,7 +34,7 @@ export function EpicList({ workspaceId, projectId }: any) {
   return (
     <>
       <div className="space-y-4">
-        {data?.data?.length > 0 ? (
+        {data && data.data && data.data.length > 0 ? (
           data.data.map((epic: any) => (
             <Card key={epic.id}>
               <CardHeader>
@@ -80,12 +82,15 @@ export function EpicList({ workspaceId, projectId }: any) {
           <p>No epics found for this project.</p>
         )}
       </div>
-      <EditEpicDialog
+      <ResourceCrudDialog
         isOpen={!!editingEpicId}
-        epicId={editingEpicId}
-        workspaceId={workspaceId}
-        projectId={projectId}
         onOpenChange={(isOpen) => !isOpen && setEditingEpicId(null)}
+        resourceId={editingEpicId}
+        resourcePath={`/workspaces/${workspaceId}/projects/${projectId}/epics`}
+        resourceKey={["epics", projectId]}
+        title="Edit Epic"
+        description="Make changes to your epic's details."
+        form={CreateEpicForm}
       />
     </>
   );

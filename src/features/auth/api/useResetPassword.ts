@@ -1,8 +1,6 @@
 import api from "@/lib/api";
-import { useMutation } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-
+import { useApiMutation } from "@/hooks/useApiMutation";
 interface ResetPasswordData {
   token: string;
   newPassword: string;
@@ -17,19 +15,11 @@ async function resetPassword(
 
 export function useResetPassword() {
   const navigate = useNavigate();
-  return useMutation({
+  return useApiMutation({
     mutationFn: resetPassword,
-    onSuccess: (data) => {
-      toast.success("Password Reset Successfully", {
-        description: data.message,
-      });
+    successMessage: (data) => data.message,
+    onSuccess: () => {
       navigate("/login");
-    },
-    onError: (error: any) => {
-      toast.error("Failed to reset password", {
-        description:
-          error.response?.data?.message || "An unexpected error occurred.",
-      });
     },
   });
 }

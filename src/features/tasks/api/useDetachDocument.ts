@@ -1,7 +1,5 @@
-// src/features/tasks/api/useDetachDocument.ts
 import api from "@/lib/api";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { useApiMutation } from "@/hooks/useApiMutation";
 import { DocumentType } from "@/types";
 
 interface DetachDocumentParams {
@@ -31,19 +29,10 @@ export function useDetachDocument(
   projectId: string | undefined,
   taskId: string
 ) {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useApiMutation({
     mutationFn: (params: { documentId: string; type: DocumentType }) =>
       detachDocument({ workspaceId, projectId, taskId, ...params }),
-    onSuccess: () => {
-      toast.success("Document detached successfully.");
-      queryClient.invalidateQueries({ queryKey: ["task", taskId] });
-    },
-    onError: (error: any) => {
-      toast.error("Failed to detach document", {
-        description:
-          error.response?.data?.message || "An unexpected error occurred.",
-      });
-    },
+    successMessage: "Document detached successfully.",
+    invalidateQueries: [["task", taskId]],
   });
 }

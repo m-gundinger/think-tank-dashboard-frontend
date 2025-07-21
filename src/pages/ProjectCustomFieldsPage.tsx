@@ -1,15 +1,19 @@
-import { CreateCustomFieldDialog } from "@/features/custom-fields/components/CreateCustomFieldDialog";
 import { CustomFieldDefinitionList } from "@/features/custom-fields/components/CustomFieldDefinitionList";
 import { useParams } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { PlusCircle } from "lucide-react";
+import { useState } from "react";
+import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { CustomFieldDefinitionForm } from "@/features/custom-fields/components/CustomFieldDefinitionForm";
 
 export function ProjectCustomFieldsPage() {
   const { workspaceId, projectId } = useParams<{
     workspaceId: string;
     projectId: string;
   }>();
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   if (!workspaceId || !projectId) return <div>Missing URL parameters.</div>;
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -19,9 +23,21 @@ export function ProjectCustomFieldsPage() {
             Add and manage custom data fields for tasks in this project.
           </p>
         </div>
-        <CreateCustomFieldDialog
-          workspaceId={workspaceId}
-          projectId={projectId}
+        <ResourceCrudDialog
+          isOpen={isCreateOpen}
+          onOpenChange={setIsCreateOpen}
+          trigger={
+            <Button onClick={() => setIsCreateOpen(true)}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              New Custom Field
+            </Button>
+          }
+          title="Create New Custom Field"
+          description="This field will be available for all tasks in this project."
+          form={CustomFieldDefinitionForm}
+          formProps={{ workspaceId, projectId }}
+          resourcePath={`/workspaces/${workspaceId}/projects/${projectId}/custom-fields`}
+          resourceKey={["customFieldDefinitions", projectId]}
         />
       </div>
       <CustomFieldDefinitionList

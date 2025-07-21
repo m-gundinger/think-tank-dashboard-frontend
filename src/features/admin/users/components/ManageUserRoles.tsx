@@ -1,6 +1,6 @@
-import { useGetRoles } from "../../roles/api/useGetRoles";
-import { useAssignRoleToUser } from "../api/useAssignRoleToUser";
-import { useRemoveRoleFromUser } from "../api/useRemoveRoleFromUser";
+import { useApiResource } from "@/hooks/useApiResource";
+import { useApiMutation } from "@/hooks/useApiMutation";
+import api from "@/lib/api";
 import {
   Select,
   SelectContent,
@@ -12,21 +12,33 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { XIcon } from "lucide-react";
 import { useState } from "react";
-
 interface ManageUserRolesProps {
   user: any;
 }
 
 export function ManageUserRoles({ user }: ManageUserRolesProps) {
+  const roleResource = useApiResource("admin/roles", ["roles"]);
   const [selectedRole, setSelectedRole] = useState("");
-  const { data: rolesData, isLoading: isLoadingRoles } = useGetRoles();
-  const assignRoleMutation = useAssignRoleToUser(user.id);
-  const removeRoleMutation = useRemoveRoleFromUser(user.id);
+  const { data: rolesData, isLoading: isLoadingRoles } =
+    roleResource.useGetAll();
+
+  const assignRoleMutation = useApiMutation({
+    mutationFn: (roleId: string) =>
+      api.post(`/admin/users/${user.id}/roles`, { roleId }),
+    successMessage: "Role assigned successfully.",
+    invalidateQueries: [["users"], ["user", user.id]],
+  });
+
+  const removeRoleMutation = useApiMutation({
+    mutationFn: (roleId: string) =>
+      api.delete(`/admin/users/${user.id}/roles/${roleId}`),
+    successMessage: "Role removed successfully.",
+    invalidateQueries: [["users"], ["user", user.id]],
+  });
 
   const availableRoles =
     rolesData?.data.filter((role: any) => !user.roles.includes(role.name)) ||
     [];
-
   const handleAssignRole = () => {
     if (selectedRole) {
       assignRoleMutation.mutate(selectedRole, {

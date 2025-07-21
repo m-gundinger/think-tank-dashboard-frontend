@@ -8,11 +8,9 @@ export function KanbanColumn({ column, tasks, onTaskSelect }: any) {
     id: column.id,
     data: { type: "Column", column },
   });
-
   const tasksIds = useMemo(() => {
     return tasks.map((task: any) => task.id);
   }, [tasks]);
-
   return (
     <div
       ref={setNodeRef}

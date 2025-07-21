@@ -1,29 +1,12 @@
-import { useFormContext } from "react-hook-form";
-import {
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { FormInput } from "@/components/form/FormFields";
 
 export function TaskListConfigFields() {
-  const { control } = useFormContext();
-
   return (
-    <FormField
-      control={control}
+    <FormInput
       name="config.limit"
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>Number of Tasks to Show</FormLabel>
-          <FormControl>
-            <Input type="number" placeholder="e.g., 10" {...field} />
-          </FormControl>
-          <FormMessage />
-        </FormItem>
-      )}
+      label="Number of Tasks to Show"
+      type="number"
+      placeholder="e.g., 10"
     />
   );
 }

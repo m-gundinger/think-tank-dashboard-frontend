@@ -1,13 +1,12 @@
-// FILE: src/features/crm/components/PersonDetailPanel.tsx
 import { Sheet, SheetContent, SheetFooter } from "@/components/ui/sheet";
-import { useGetPerson } from "../api/useGetPerson";
+import { useApiResource } from "@/hooks/useApiResource";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PersonDetailContent } from "./PersonDetailContent";
 import { Button } from "@/components/ui/button";
 import { Trash2, Edit } from "lucide-react";
-import { useDeletePerson } from "../api/useDeletePerson";
 import { useState } from "react";
-import { EditPersonDialog } from "./EditPersonDialog";
+import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { PersonForm } from "./PersonForm";
 
 interface PersonDetailPanelProps {
   personId: string | null;
@@ -31,15 +30,14 @@ const PanelSkeleton = () => (
     <Skeleton className="h-12 w-full" />
   </div>
 );
-
 export function PersonDetailPanel({
   personId,
   onOpenChange,
 }: PersonDetailPanelProps) {
+  const personResource = useApiResource("people", ["people"]);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const { data: person, isLoading } = useGetPerson(personId!);
-  const deleteMutation = useDeletePerson();
-
+  const { data: person, isLoading } = personResource.useGetOne(personId);
+  const deleteMutation = personResource.useDelete();
   const handleDelete = () => {
     if (
       person &&
@@ -90,10 +88,15 @@ export function PersonDetailPanel({
           )}
         </SheetContent>
       </Sheet>
-      <EditPersonDialog
-        person={person}
+      <ResourceCrudDialog
         isOpen={isEditDialogOpen}
         onOpenChange={setIsEditDialogOpen}
+        title="Edit Person"
+        description="Make changes to the person's details."
+        form={PersonForm}
+        resourcePath="people"
+        resourceKey={["people"]}
+        resourceId={person?.id}
       />
     </>
   );

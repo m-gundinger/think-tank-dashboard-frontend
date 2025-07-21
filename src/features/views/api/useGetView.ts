@@ -1,6 +1,5 @@
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
-
 async function getView(
   workspaceId: string,
   projectId: string,

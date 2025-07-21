@@ -1,4 +1,3 @@
-// FILE: src/features/profile/components/ProfileAvatar.tsx
 import { useState, useRef } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -14,16 +13,33 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useUpdateProfile } from "../api/useUpdateProfile";
-
+import { useAdminUploadAvatar } from "@/features/admin/users/api/useAdminUploadAvatar";
+import { useApiResource } from "@/hooks/useApiResource";
 interface ProfileAvatarProps {
   user: any;
+  isSelfProfile?: boolean;
 }
 
-export function ProfileAvatar({ user }: ProfileAvatarProps) {
+export function ProfileAvatar({
+  user,
+  isSelfProfile = true,
+}: ProfileAvatarProps) {
   const [preview, setPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const uploadAvatarMutation = useUploadAvatar();
-  const updateProfileMutation = useUpdateProfile();
+
+  const selfUploadMutation = useUploadAvatar();
+  const adminUploadMutation = useAdminUploadAvatar(user.id);
+  const uploadAvatarMutation = isSelfProfile
+    ? selfUploadMutation
+    : adminUploadMutation;
+
+  const selfUpdateMutation = useUpdateProfile();
+  const adminUpdateMutation = useApiResource("admin/users", [
+    "users",
+  ]).useUpdate();
+  const updateProfileMutation = isSelfProfile
+    ? selfUpdateMutation
+    : adminUpdateMutation;
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -38,40 +54,30 @@ export function ProfileAvatar({ user }: ProfileAvatarProps) {
         toast.error("Please select a valid image file (PNG, JPEG, or GIF)");
         return;
       }
-
       const maxSize = 5 * 1024 * 1024;
       if (file.size > maxSize) {
         toast.error("File size must be less than 5MB");
         return;
       }
-
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreview(reader.result as string);
-
         const formData = new FormData();
         formData.append("file", file);
-
         uploadAvatarMutation.mutate(formData, {
-          onSuccess: () => {
-            setPreview(null);
-          },
-          onError: () => {
-            setPreview(null);
-          },
+          onSuccess: () => setPreview(null),
+          onError: () => setPreview(null),
         });
       };
-
-      reader.onerror = () => {
-        toast.error("Failed to read file");
-      };
-
       reader.readAsDataURL(file);
     }
   };
 
   const handleRemoveAvatar = () => {
-    updateProfileMutation.mutate({ avatarUrl: null });
+    const payload = isSelfProfile
+      ? { avatarUrl: null }
+      : { id: user.id, data: { avatarUrl: null } };
+    updateProfileMutation.mutate(payload);
   };
 
   const handleLinkAvatar = () => {
@@ -79,7 +85,10 @@ export function ProfileAvatar({ user }: ProfileAvatarProps) {
     if (url) {
       try {
         new URL(url);
-        updateProfileMutation.mutate({ avatarUrl: url });
+        const payload = isSelfProfile
+          ? { avatarUrl: url }
+          : { id: user.id, data: { avatarUrl: url } };
+        updateProfileMutation.mutate(payload);
       } catch (e) {
         toast.error("Invalid URL provided.");
       }

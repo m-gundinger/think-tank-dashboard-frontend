@@ -1,21 +1,24 @@
-import { CreateProjectRoleDialog } from "@/features/project-roles/components/CreateProjectRoleDialog";
 import { ProjectRoleList } from "@/features/project-roles/components/ProjectRoleList";
 import { InviteProjectMember } from "@/features/projects/components/InviteProjectMember";
 import { ProjectMemberList } from "@/features/projects/components/ProjectMemberList";
 import { useGetProjectMembers } from "@/features/projects/api/useGetProjectMembers";
 import { useParams } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { PlusCircle } from "lucide-react";
+import { useState } from "react";
+import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { CreateProjectRoleForm } from "@/features/project-roles/components/CreateProjectRoleForm";
 
 export function ProjectAccessControlPage() {
   const { workspaceId, projectId } = useParams<{
     workspaceId: string;
     projectId: string;
   }>();
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   if (!workspaceId || !projectId) return <div>Missing URL parameters.</div>;
-
   const { data: membersData } = useGetProjectMembers(workspaceId, projectId);
   const existingMemberIds = membersData?.map((m: any) => m.userId) || [];
-
   return (
     <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
       <div className="space-y-6">
@@ -43,9 +46,21 @@ export function ProjectAccessControlPage() {
               Custom roles and permissions specific to this project.
             </p>
           </div>
-          <CreateProjectRoleDialog
-            workspaceId={workspaceId}
-            projectId={projectId}
+          <ResourceCrudDialog
+            isOpen={isCreateOpen}
+            onOpenChange={setIsCreateOpen}
+            trigger={
+              <Button onClick={() => setIsCreateOpen(true)}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                New Project Role
+              </Button>
+            }
+            title="Create New Project Role"
+            description="This role will only be available within this project."
+            form={CreateProjectRoleForm}
+            formProps={{ workspaceId, projectId }}
+            resourcePath={`/workspaces/${workspaceId}/projects/${projectId}/roles`}
+            resourceKey={["projectRoles", projectId]}
           />
         </div>
         <ProjectRoleList workspaceId={workspaceId} projectId={projectId} />

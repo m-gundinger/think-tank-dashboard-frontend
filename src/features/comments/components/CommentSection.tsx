@@ -1,12 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { useAddComment } from "../api/useAddComment";
+import { useApiMutation } from "@/hooks/useApiMutation";
+import api from "@/lib/api";
 import { useGetComments } from "../api/useGetComments";
 import { useState, useCallback } from "react";
 import { useSocketSubscription } from "@/hooks/useSocketSubscription";
 import { useQueryClient } from "@tanstack/react-query";
 import { CommentItem } from "./CommentItem";
 import { RichTextEditor } from "@/components/ui/RichTextEditor";
-
 export function CommentSection({ workspaceId, projectId, taskId }: any) {
   const queryClient = useQueryClient();
   const { data: commentsData, isLoading } = useGetComments(
@@ -14,9 +14,17 @@ export function CommentSection({ workspaceId, projectId, taskId }: any) {
     projectId,
     taskId
   );
-  const addCommentMutation = useAddComment(workspaceId, projectId, taskId);
-  const [newComment, setNewComment] = useState("");
+  const getUrl = () =>
+    projectId && workspaceId
+      ? `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/comments`
+      : `/tasks/${taskId}/comments`;
 
+  const addCommentMutation = useApiMutation({
+    mutationFn: (content: string) => api.post(getUrl(), { content }),
+    successMessage: "Comment posted.",
+    invalidateQueries: [["comments", taskId]],
+  });
+  const [newComment, setNewComment] = useState("");
   const handleCommentUpdate = useCallback(
     (event: any) => {
       const { action, comment } = event.payload;
@@ -33,11 +41,9 @@ export function CommentSection({ workspaceId, projectId, taskId }: any) {
     },
     [queryClient, taskId]
   );
-
   useSocketSubscription("Project", projectId, {
     COMMENT_UPDATED: handleCommentUpdate,
   });
-
   const isCommentEmpty = () => {
     if (!newComment) return true;
     const cleaned = newComment.replace(/<p><\/p>/g, "").trim();

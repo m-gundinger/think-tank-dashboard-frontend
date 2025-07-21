@@ -1,5 +1,5 @@
 import api from "@/lib/api";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 interface UpdateTimeLogParams {
   workspaceId: string;
@@ -28,12 +28,10 @@ export function useUpdateTimeLog(
   projectId: string,
   taskId: string
 ) {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useApiMutation({
     mutationFn: (data: { timeLogId: string; timeLogData: any }) =>
       updateTimeLog({ workspaceId, projectId, taskId, ...data }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["timeLogs", taskId] });
-    },
+    successMessage: "Time log updated.",
+    invalidateQueries: [["timeLogs", taskId]],
   });
 }

@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { useGetCustomFieldDefinitions } from "../api/useGetCustomFieldDefinitions";
-import { useDeleteCustomFieldDefinition } from "../api/useDeleteCustomFieldDefinition";
+import { useApiResource } from "@/hooks/useApiResource";
 import {
   Table,
   TableBody,
@@ -19,7 +18,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { EditCustomFieldDialog } from "./EditCustomFieldDialog";
+import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { CustomFieldDefinitionForm } from "./CustomFieldDefinitionForm";
 
 interface ListProps {
   workspaceId: string;
@@ -30,13 +30,13 @@ export function CustomFieldDefinitionList({
   workspaceId,
   projectId,
 }: ListProps) {
-  const { data: fieldsData, isLoading } = useGetCustomFieldDefinitions(
-    workspaceId,
-    projectId
+  const customFieldResource = useApiResource(
+    `/workspaces/${workspaceId}/projects/${projectId}/custom-fields`,
+    ["customFieldDefinitions", projectId]
   );
-  const deleteMutation = useDeleteCustomFieldDefinition(workspaceId, projectId);
+  const { data: fieldsData, isLoading } = customFieldResource.useGetAll();
+  const deleteMutation = customFieldResource.useDelete();
   const [editingFieldId, setEditingFieldId] = useState<string | null>(null);
-
   const handleDelete = (field: any) => {
     if (
       window.confirm(`Delete custom field "${field.name}"? This is permanent.`)
@@ -59,7 +59,7 @@ export function CustomFieldDefinitionList({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {fieldsData?.data.length > 0 ? (
+            {fieldsData?.data && fieldsData.data.length > 0 ? (
               fieldsData.data.map((field: any) => (
                 <TableRow key={field.id}>
                   <TableCell className="font-medium">{field.name}</TableCell>
@@ -103,12 +103,16 @@ export function CustomFieldDefinitionList({
           </TableBody>
         </Table>
       </Card>
-      <EditCustomFieldDialog
-        fieldId={editingFieldId}
-        workspaceId={workspaceId}
-        projectId={projectId}
+      <ResourceCrudDialog
         isOpen={!!editingFieldId}
         onOpenChange={(isOpen) => !isOpen && setEditingFieldId(null)}
+        resourceId={editingFieldId}
+        resourcePath={`/workspaces/${workspaceId}/projects/${projectId}/custom-fields`}
+        resourceKey={["customFieldDefinitions", projectId]}
+        title="Edit Custom Field"
+        description="Change the name or options for this custom field. The type cannot be changed after creation."
+        form={CustomFieldDefinitionForm}
+        formProps={{ workspaceId, projectId }}
       />
     </>
   );

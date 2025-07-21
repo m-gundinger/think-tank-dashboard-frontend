@@ -18,8 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ActivityActionType, TaskStatus, WorkflowActionType } from "@/types";
-import { useCreateWorkflow } from "../api/useCreateWorkflow";
-import { useUpdateWorkflow } from "../api/useUpdateWorkflow";
+import { useApiResource } from "@/hooks/useApiResource";
 import { ActionRepeater } from "./ActionRepeater";
 import { PlusCircle } from "lucide-react";
 import { z } from "zod";
@@ -53,7 +52,6 @@ const workflowSchema = z.object({
   enabled: z.boolean(),
   actions: z.array(workflowActionSchema),
 });
-
 type WorkflowFormValues = z.infer<typeof workflowSchema>;
 
 interface WorkflowFormProps {
@@ -62,11 +60,13 @@ interface WorkflowFormProps {
 }
 
 export function WorkflowForm({ initialData, onSuccess }: WorkflowFormProps) {
+  const workflowResource = useApiResource("admin/workflows", ["workflows"]);
   const isEditMode = !!initialData;
-  const createMutation = useCreateWorkflow();
-  const updateMutation = useUpdateWorkflow();
+  const createMutation = workflowResource.useCreate();
+  const updateMutation = workflowResource.useUpdate();
 
   const mutation = isEditMode ? updateMutation : createMutation;
+
   const form = useForm<WorkflowFormValues>({
     resolver: zodResolver(workflowSchema),
     defaultValues: {
@@ -77,6 +77,7 @@ export function WorkflowForm({ initialData, onSuccess }: WorkflowFormProps) {
       actions: [],
     },
   });
+
   useEffect(() => {
     if (isEditMode) {
       form.reset({
@@ -85,10 +86,12 @@ export function WorkflowForm({ initialData, onSuccess }: WorkflowFormProps) {
       });
     }
   }, [initialData, isEditMode, form]);
+
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: "actions",
   });
+
   async function onSubmit(values: WorkflowFormValues) {
     const finalValues = {
       ...values,
@@ -97,9 +100,10 @@ export function WorkflowForm({ initialData, onSuccess }: WorkflowFormProps) {
         order: index,
       })),
     };
+
     if (isEditMode) {
       await updateMutation.mutateAsync(
-        { workflowId: initialData.id, data: finalValues },
+        { id: initialData.id, data: finalValues },
         { onSuccess }
       );
     } else {

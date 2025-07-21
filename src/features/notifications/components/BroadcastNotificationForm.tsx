@@ -42,7 +42,6 @@ export function BroadcastNotificationForm({ onSuccess }: BroadcastFormProps) {
       type: NotificationType.SYSTEM_BROADCAST,
     },
   });
-
   async function onSubmit(values: BroadcastFormValues) {
     await broadcastMutation.mutateAsync(values, {
       onSuccess: () => {

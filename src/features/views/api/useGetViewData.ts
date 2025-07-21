@@ -1,7 +1,6 @@
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import { ListTasksQuery } from "@/features/tasks/task.types";
-
 async function getViewData(
   workspaceId: string,
   projectId: string,

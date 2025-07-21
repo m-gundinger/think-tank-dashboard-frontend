@@ -1,38 +1,28 @@
-import { useForm } from "react-hook-form";
+import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { Form, FormLabel } from "@/components/ui/form";
+import { FormInput } from "@/components/form/FormFields";
 import { useLogin } from "../api/useLogin";
 import { AxiosError } from "axios";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-
 import { Link } from "react-router-dom";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address."),
   password: z.string().min(1, "Password is required."),
 });
-
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
   const loginMutation = useLogin();
-  const form = useForm<LoginFormValues>({
+  const methods = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
       password: "",
     },
   });
-
   function onSubmit(values: LoginFormValues) {
     loginMutation.mutate(values);
   }
@@ -53,56 +43,48 @@ export function LoginForm() {
           Enter your credentials to sign in
         </p>
       </div>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input placeholder="name@example.com" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <div className="flex items-center justify-between">
-                  <FormLabel>Password</FormLabel>
-                  <Link
-                    to="/forgot-password"
-                    className="text-primary text-sm font-medium hover:underline"
-                  >
-                    Forgot Password?
-                  </Link>
-                </div>
-                <FormControl>
-                  <Input type="password" placeholder="••••••••" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          {loginMutation.isError && (
-            <div className="text-sm font-medium text-red-500">
-              {getErrorMessage()}
+      <FormProvider {...methods}>
+        <Form {...methods}>
+          <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
+            <FormInput
+              name="email"
+              label="Email"
+              placeholder="name@example.com"
+            />
+            <div>
+              <div className="flex items-center justify-between">
+                <FormLabel>Password</FormLabel>
+                <Link
+                  to="/forgot-password"
+                  className="text-primary text-sm font-medium hover:underline"
+                >
+                  Forgot Password?
+                </Link>
+              </div>
+              <FormInput
+                name="password"
+                label=""
+                type="password"
+                placeholder="••••••••"
+                className="mt-2"
+              />
             </div>
-          )}
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={loginMutation.isPending}
-          >
-            {loginMutation.isPending ? "Signing in..." : "Sign In"}
-          </Button>
-        </form>
-      </Form>
+
+            {loginMutation.isError && (
+              <div className="text-sm font-medium text-red-500">
+                {getErrorMessage()}
+              </div>
+            )}
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={loginMutation.isPending}
+            >
+              {loginMutation.isPending ? "Signing in..." : "Sign In"}
+            </Button>
+          </form>
+        </Form>
+      </FormProvider>
     </div>
   );
 }

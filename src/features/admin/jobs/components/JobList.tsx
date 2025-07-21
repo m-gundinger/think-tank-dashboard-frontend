@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useGetJobs } from "../api/useGetJobs";
+import { useApiResource } from "@/hooks/useApiResource";
 import { useRetryJob, useCancelJob } from "../api/useJobActions";
 import {
   Table,
@@ -26,7 +26,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { JobStatus } from "@/types";
-import { Job } from "../types";
+import { Job } from "@/lib/schemas";
 
 const statusVariantMap: Record<
   JobStatus,
@@ -46,8 +46,12 @@ const statusIconMap: Record<JobStatus, React.ElementType> = {
   [JobStatus.CANCELLED]: XCircle,
 };
 export function JobList() {
+  const jobResource = useApiResource("admin/jobs", ["jobs"]);
   const [page] = useState(1);
-  const { data, isLoading, isError } = useGetJobs({ page, limit: 20 });
+  const { data, isLoading, isError } = jobResource.useGetAll({
+    page,
+    limit: 20,
+  });
   const retryMutation = useRetryJob();
   const cancelMutation = useCancelJob();
 
@@ -65,7 +69,7 @@ export function JobList() {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {data?.data?.length > 0 ? (
+        {data && data.data && data.data.length > 0 ? (
           data.data.map((job: Job) => {
             const StatusIcon = statusIconMap[job.status];
             return (

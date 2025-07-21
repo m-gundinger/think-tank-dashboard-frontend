@@ -1,7 +1,6 @@
 import api from "@/lib/api";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { AxiosError } from "axios";
-import { toast } from "sonner";
+import { useApiMutation } from "@/hooks/useApiMutation";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface UpdateViewParams {
   workspaceId: string;
@@ -25,19 +24,13 @@ async function updateView({
 
 export function useUpdateView(workspaceId: string, projectId: string) {
   const queryClient = useQueryClient();
-  return useMutation<any, AxiosError, { viewId: string; viewData: any }>({
+  return useApiMutation<any, { viewId: string; viewData: any }>({
     mutationFn: ({ viewId, viewData }) =>
       updateView({ workspaceId, projectId, viewId, viewData }),
-    onSuccess: (_, variables) => {
-      toast.success("View updated successfully.");
+    successMessage: "View updated successfully.",
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["views", projectId] });
       queryClient.invalidateQueries({ queryKey: ["view", variables.viewId] });
-    },
-    onError: (error: any) => {
-      toast.error("Failed to update view", {
-        description:
-          error.response?.data?.message || "An unexpected error occurred.",
-      });
     },
   });
 }

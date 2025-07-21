@@ -6,9 +6,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useGetPermissions } from "@/features/admin/permissions/api/useGetPermissions";
-import { useAssignPermissionToProjectRole } from "../api/useAssignPermissionToProjectRole";
-import { useRevokePermissionFromProjectRole } from "../api/useRevokePermissionFromProjectRole";
+import { useApiResource } from "@/hooks/useApiResource";
+import { useApiMutation } from "@/hooks/useApiMutation";
+import api from "@/lib/api";
 
 interface EditProjectRoleDialogProps {
   role: any | null;
@@ -25,18 +25,26 @@ export function EditProjectRoleDialog({
   isOpen,
   onOpenChange,
 }: EditProjectRoleDialogProps) {
+  const permissionResource = useApiResource("admin/permissions", [
+    "permissions",
+  ]);
   const { data: permissionsData, isLoading: isLoadingPermissions } =
-    useGetPermissions({ limit: 100 });
-  const assignMutation = useAssignPermissionToProjectRole(
-    workspaceId,
-    projectId,
-    role?.id
-  );
-  const revokeMutation = useRevokePermissionFromProjectRole(
-    workspaceId,
-    projectId,
-    role?.id
-  );
+    permissionResource.useGetAll({ limit: 100 });
+  const assignMutation = useApiMutation({
+    mutationFn: (permissionId: string) =>
+      api.post(
+        `/workspaces/${workspaceId}/projects/${projectId}/roles/${role?.id}/permissions`,
+        { permissionId }
+      ),
+    invalidateQueries: [["projectRoles", projectId]],
+  });
+  const revokeMutation = useApiMutation({
+    mutationFn: (permissionId: string) =>
+      api.delete(
+        `/workspaces/${workspaceId}/projects/${projectId}/roles/${role?.id}/permissions/${permissionId}`
+      ),
+    invalidateQueries: [["projectRoles", projectId]],
+  });
   if (!isOpen || !role) return null;
 
   const rolePermissionIds = new Set(role.permissions.map((p: any) => p.id));

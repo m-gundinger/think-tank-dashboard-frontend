@@ -1,6 +1,5 @@
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
-
 async function getTimeLogs(
   workspaceId: string,
   projectId: string,

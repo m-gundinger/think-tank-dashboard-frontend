@@ -9,12 +9,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useCreateProjectRole } from "../api/useCreateProjectRole";
+import { useApiResource } from "@/hooks/useApiResource";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { nameSchema } from "@/lib/schemas";
 
 const projectRoleSchema = z.object({
-  name: z.string().min(2, "Role name must be at least 2 characters."),
+  name: nameSchema("Role"),
 });
 type ProjectRoleFormValues = z.infer<typeof projectRoleSchema>;
 
@@ -29,7 +30,12 @@ export function CreateProjectRoleForm({
   projectId,
   onSuccess,
 }: CreateProjectRoleFormProps) {
-  const createMutation = useCreateProjectRole(workspaceId, projectId);
+  const projectRoleResource = useApiResource(
+    `/workspaces/${workspaceId}/projects/${projectId}/roles`,
+    ["projectRoles", projectId]
+  );
+  const createMutation = projectRoleResource.useCreate();
+
   const form = useForm<ProjectRoleFormValues>({
     resolver: zodResolver(projectRoleSchema),
     defaultValues: { name: "" },

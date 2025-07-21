@@ -1,28 +1,14 @@
-import { useForm } from "react-hook-form";
+import { useForm, FormProvider } from "react-hook-form";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Form } from "@/components/ui/form";
 import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useCreateAnnouncement } from "../api/useCreateAnnouncement";
-import { useUpdateAnnouncement } from "../api/useUpdateAnnouncement";
-import { RichTextEditor } from "@/components/ui/RichTextEditor";
-
+  FormInput,
+  FormRichTextEditor,
+  FormSelect,
+  FormSwitch,
+} from "@/components/form/FormFields";
+import { useApiResource } from "@/hooks/useApiResource";
 interface AnnouncementFormProps {
   initialData?: any;
   onSuccess?: () => void;
@@ -32,13 +18,15 @@ export function AnnouncementForm({
   initialData,
   onSuccess,
 }: AnnouncementFormProps) {
+  const announcementResource = useApiResource("announcements", [
+    "announcements",
+  ]);
   const isEditMode = !!initialData;
-  const createMutation = useCreateAnnouncement();
-  const updateMutation = useUpdateAnnouncement();
+  const createMutation = announcementResource.useCreate();
+  const updateMutation = announcementResource.useUpdate();
 
   const mutation = isEditMode ? updateMutation : createMutation;
-
-  const form = useForm<any>({
+  const methods = useForm<any>({
     defaultValues: {
       title: "",
       content: "",
@@ -47,151 +35,92 @@ export function AnnouncementForm({
       isPinned: false,
     },
   });
-
   useEffect(() => {
     if (isEditMode) {
-      form.reset({
+      methods.reset({
         ...initialData,
         content: initialData.content?.message || "",
       });
     }
-  }, [initialData, isEditMode, form]);
-
+  }, [initialData, isEditMode, methods]);
   async function onSubmit(values: any) {
     const finalValues = {
       ...values,
       content: { message: values.content },
     };
-
     if (isEditMode) {
-      await updateMutation.mutateAsync(
+      await updateMutation.mutate(
         { id: initialData.id, data: finalValues },
         { onSuccess }
       );
     } else {
-      await createMutation.mutateAsync(finalValues, {
+      await createMutation.mutate(finalValues, {
         onSuccess: () => {
-          form.reset();
+          methods.reset();
           onSuccess?.();
         },
       });
     }
   }
 
+  const statusOptions = [
+    { value: "DRAFT", label: "Draft" },
+    { value: "PUBLISHED", label: "Published" },
+    { value: "ARCHIVED", label: "Archived" },
+  ];
+  const severityOptions = [
+    { value: "INFO", label: "Info" },
+    { value: "LOW", label: "Low" },
+    { value: "MEDIUM", label: "Medium" },
+    { value: "HIGH", label: "High" },
+    { value: "CRITICAL", label: "Critical" },
+  ];
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="title"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Title</FormLabel>
-              <FormControl>
-                <Input placeholder="e.g., System Maintenance" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="content"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Content</FormLabel>
-              <FormControl>
-                <RichTextEditor value={field.value} onChange={field.onChange} />
-              </FormControl>
-              <FormDescription>
-                This content will be displayed to users.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="status"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Status</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="DRAFT">Draft</SelectItem>
-                    <SelectItem value="PUBLISHED">Published</SelectItem>
-                    <SelectItem value="ARCHIVED">Archived</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
+    <FormProvider {...methods}>
+      <Form {...methods}>
+        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
+          <FormInput
+            name="title"
+            label="Title"
+            placeholder="e.g., System Maintenance"
           />
-          <FormField
-            control={form.control}
-            name="severity"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Severity</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select severity" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="INFO">Info</SelectItem>
-                    <SelectItem value="LOW">Low</SelectItem>
-                    <SelectItem value="MEDIUM">Medium</SelectItem>
-                    <SelectItem value="HIGH">High</SelectItem>
-                    <SelectItem value="CRITICAL">Critical</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
+          <FormRichTextEditor
+            name="content"
+            label="Content"
+            description="This content will be displayed to users."
           />
-        </div>
-        <FormField
-          control={form.control}
-          name="isPinned"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-              <div className="space-y-0.5">
-                <FormLabel>Pin Announcement</FormLabel>
-                <FormDescription>
-                  Pinned announcements will appear at the top.
-                </FormDescription>
-              </div>
-              <FormControl>
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-        <Button type="submit" className="w-full" disabled={mutation.isPending}>
-          {mutation.isPending
-            ? "Saving..."
-            : isEditMode
-              ? "Save Changes"
-              : "Create Announcement"}
-        </Button>
-      </form>
-    </Form>
+          <div className="grid grid-cols-2 gap-4">
+            <FormSelect
+              name="status"
+              label="Status"
+              placeholder="Select status"
+              options={statusOptions}
+            />
+            <FormSelect
+              name="severity"
+              label="Severity"
+              placeholder="Select severity"
+              options={severityOptions}
+            />
+          </div>
+          <FormSwitch
+            name="isPinned"
+            label="Pin Announcement"
+            description="Pinned announcements will appear at the top."
+          />
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={mutation.isPending}
+          >
+            {mutation.isPending
+              ? "Saving..."
+              : isEditMode
+                ? "Save Changes"
+                : "Create Announcement"}
+          </Button>
+        </form>
+      </Form>
+    </FormProvider>
   );
 }

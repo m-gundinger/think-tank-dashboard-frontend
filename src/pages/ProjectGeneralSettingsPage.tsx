@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
-import { useGetProject } from "@/features/projects/api/useGetProject";
-import { EditProjectForm } from "@/features/projects/components/EditProjectForm";
+import { useApiResource } from "@/hooks/useApiResource";
+import { ProjectForm } from "@/features/projects/components/ProjectForm";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Card,
@@ -15,15 +15,15 @@ export function ProjectGeneralSettingsPage() {
     workspaceId: string;
     projectId: string;
   }>();
-
   if (!workspaceId || !projectId) {
     return <div>Missing URL parameters.</div>;
   }
 
-  const { data: projectData, isLoading } = useGetProject(
-    workspaceId,
-    projectId
+  const projectResource = useApiResource(
+    `/workspaces/${workspaceId}/projects`,
+    ["projects", workspaceId]
   );
+  const { data: projectData, isLoading } = projectResource.useGetOne(projectId);
 
   if (isLoading) {
     return (
@@ -53,7 +53,7 @@ export function ProjectGeneralSettingsPage() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <EditProjectForm project={projectData} />
+        <ProjectForm workspaceId={workspaceId} initialData={projectData} />
       </CardContent>
     </Card>
   );

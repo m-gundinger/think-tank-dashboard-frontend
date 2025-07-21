@@ -1,6 +1,5 @@
 import { CommandGroup, CommandSeparator } from "@/components/ui/command";
 import { SearchResultItem } from "./SearchResultItem";
-
 export function SearchResultGroup({
   heading,
   results,

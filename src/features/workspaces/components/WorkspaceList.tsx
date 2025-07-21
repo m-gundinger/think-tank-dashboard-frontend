@@ -1,13 +1,13 @@
-import { useGetWorkspaces } from "../api/useGetWorkspaces";
+import { useApiResource } from "@/hooks/useApiResource";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ErrorState } from "@/components/ui/error-state";
 import { EmptyState } from "@/components/ui/empty-state";
-import { CreateWorkspaceDialog } from "./CreateWorkspaceDialog";
 import { Blocks } from "lucide-react";
 import { useState } from "react";
-import { EditWorkspaceDialog } from "./EditWorkspaceDialog";
 import { WorkspaceCard } from "./WorkspaceCard";
+import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { WorkspaceForm } from "./WorkspaceForm";
 
 const WorkspaceListSkeleton = () => (
   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -24,9 +24,9 @@ const WorkspaceListSkeleton = () => (
     ))}
   </div>
 );
-
 export function WorkspaceList() {
-  const { data, isLoading, isError, error } = useGetWorkspaces();
+  const workspaceResource = useApiResource("workspaces", ["workspaces"]);
+  const { data, isLoading, isError, error } = workspaceResource.useGetAll();
   const [editingWorkspaceId, setEditingWorkspaceId] = useState<string | null>(
     null
   );
@@ -47,13 +47,16 @@ export function WorkspaceList() {
     );
   }
 
+  const handleEdit = (workspaceId: string) => {
+    setEditingWorkspaceId(workspaceId);
+  };
+
   if (!data || data.data.length === 0) {
     return (
       <EmptyState
         icon={<Blocks className="text-primary h-10 w-10" />}
         title="No Workspaces Found"
-        description="Get started by creating your first workspace to organize your projects."
-        action={<CreateWorkspaceDialog />}
+        description="Get started by creating your first workspace using the button above."
       />
     );
   }
@@ -65,14 +68,21 @@ export function WorkspaceList() {
           <WorkspaceCard
             key={workspace.id}
             workspace={workspace}
-            onEdit={setEditingWorkspaceId}
+            onEdit={handleEdit}
           />
         ))}
       </div>
-      <EditWorkspaceDialog
-        workspaceId={editingWorkspaceId}
+
+      <ResourceCrudDialog
         isOpen={!!editingWorkspaceId}
         onOpenChange={(isOpen) => !isOpen && setEditingWorkspaceId(null)}
+        trigger={<></>}
+        title="Edit Workspace"
+        description="Make changes to your workspace here. Click save when you're done."
+        form={WorkspaceForm}
+        resourcePath="workspaces"
+        resourceKey={["workspaces"]}
+        resourceId={editingWorkspaceId}
       />
     </>
   );

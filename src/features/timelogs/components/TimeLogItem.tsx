@@ -17,7 +17,6 @@ export function TimeLogItem({
   taskId,
 }: TimeLogItemProps) {
   const deleteMutation = useDeleteTimeLog(workspaceId, projectId, taskId);
-
   const handleDelete = () => {
     if (window.confirm("Are you sure you want to delete this time log?")) {
       deleteMutation.mutate(log.id, {

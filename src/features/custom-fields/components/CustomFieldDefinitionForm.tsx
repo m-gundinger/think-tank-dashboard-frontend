@@ -1,26 +1,13 @@
-import { useForm } from "react-hook-form";
+import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
+import { Form } from "@/components/ui/form";
 import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+  FormInput,
+  FormSelect,
+  FormTextarea,
+} from "@/components/form/FormFields";
 import { CustomFieldType } from "@/types";
-import { useCreateCustomFieldDefinition } from "../api/useCreateCustomFieldDefinition";
-import { useUpdateCustomFieldDefinition } from "../api/useUpdateCustomFieldDefinition";
+import { useApiResource } from "@/hooks/useApiResource";
 import { useEffect } from "react";
 
 interface FormProps {
@@ -37,36 +24,37 @@ export function CustomFieldDefinitionForm({
   onSuccess,
 }: FormProps) {
   const isEditMode = !!initialData;
-  const createMutation = useCreateCustomFieldDefinition(workspaceId, projectId);
-  const updateMutation = useUpdateCustomFieldDefinition(workspaceId, projectId);
-
+  const customFieldResource = useApiResource(
+    `/workspaces/${workspaceId}/projects/${projectId}/custom-fields`,
+    ["customFieldDefinitions", projectId]
+  );
+  const createMutation = customFieldResource.useCreate();
+  const updateMutation = customFieldResource.useUpdate();
   const mutation = isEditMode ? updateMutation : createMutation;
-  const form = useForm<any>({
+  const methods = useForm<any>({
     defaultValues: {
       name: "",
       type: CustomFieldType.TEXT,
       options: { values: [] },
     },
   });
-  const selectedType = form.watch("type");
+  const selectedType = methods.watch("type");
 
   useEffect(() => {
     if (isEditMode && initialData) {
-      form.reset({
+      methods.reset({
         ...initialData,
         options: {
           values: initialData.options?.values || [],
         },
       });
     }
-  }, [initialData, isEditMode, form]);
-
+  }, [initialData, isEditMode, methods]);
   const onSubmit = (values: any) => {
     const basePayload: { name: string; type: string; options?: any } = {
       name: values.name,
       type: values.type,
     };
-
     if (values.type === "SELECT") {
       basePayload.options = {
         values:
@@ -81,98 +69,65 @@ export function CustomFieldDefinitionForm({
 
     if (isEditMode) {
       updateMutation.mutate(
-        { customFieldId: initialData.id, data: basePayload },
+        { id: initialData.id, data: basePayload },
         { onSuccess }
       );
     } else {
       createMutation.mutate(basePayload, {
         onSuccess: () => {
-          form.reset();
+          methods.reset();
           onSuccess?.();
         },
       });
     }
   };
 
+  const fieldTypeOptions = Object.values(CustomFieldType).map((type) => ({
+    value: type,
+    label: type,
+  }));
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Field Name</FormLabel>
-              <FormControl>
-                <Input placeholder="e.g., Story Points" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="type"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Field Type</FormLabel>
-              <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-                disabled={isEditMode}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a field type" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {Object.values(CustomFieldType).map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        {selectedType === "SELECT" && (
-          <FormField
-            control={form.control}
-            name="options.values"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Options</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="Enter comma-separated values, e.g., Low, Medium, High"
-                    {...field}
-                    value={
-                      Array.isArray(field.value)
-                        ? field.value.join(", ")
-                        : field.value
-                    }
-                  />
-                </FormControl>
-                <FormDescription>
-                  For 'Select' type fields, provide a comma-separated list of
-                  options.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
+    <FormProvider {...methods}>
+      <Form {...methods}>
+        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
+          <FormInput
+            name="name"
+            label="Field Name"
+            placeholder="e.g., Story Points"
           />
-        )}
-        <Button type="submit" className="w-full" disabled={mutation.isPending}>
-          {mutation.isPending
-            ? "Saving..."
-            : isEditMode
-              ? "Save Changes"
-              : "Create Field"}
-        </Button>
-      </form>
-    </Form>
+          <FormSelect
+            name="type"
+            label="Field Type"
+            placeholder="Select a field type"
+            options={fieldTypeOptions}
+            disabled={isEditMode}
+          />
+
+          {selectedType === "SELECT" && (
+            <FormTextarea
+              name="options.values"
+              label="Options"
+              placeholder="Enter comma-separated values, e.g., Low, Medium, High"
+              value={
+                Array.isArray(methods.watch("options.values"))
+                  ? methods.watch("options.values").join(", ")
+                  : methods.watch("options.values")
+              }
+            />
+          )}
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={mutation.isPending}
+          >
+            {mutation.isPending
+              ? "Saving..."
+              : isEditMode
+                ? "Save Changes"
+                : "Create Field"}
+          </Button>
+        </form>
+      </Form>
+    </FormProvider>
   );
 }

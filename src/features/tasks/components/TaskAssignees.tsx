@@ -1,4 +1,3 @@
-// src/features/tasks/components/TaskAssignees.tsx
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,12 +14,10 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useGetProjectMembers } from "@/features/projects/api/useGetProjectMembers";
-import { useGetUsers } from "@/features/admin/users/api/useGetUsers";
+import { useApiResource } from "@/hooks/useApiResource";
 import { Check, UserPlus, X } from "lucide-react";
-import { useAssignUser } from "../api/useAssignUser";
-import { useUnassignUser } from "../api/useUnassignUser";
-import { useAssignStandaloneUser } from "../api/useAssignStandaloneUser";
-import { useUnassignStandaloneUser } from "../api/useUnassignStandaloneUser";
+import { useApiMutation } from "@/hooks/useApiMutation";
+import api from "@/lib/api";
 import { cn, getAbsoluteUrl } from "@/lib/utils";
 import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -31,16 +28,34 @@ export function TaskAssignees({ task }: any) {
   const workspaceId = task.workspaceId;
   const projectId = task.projectId;
 
-  const assignMutation = isProjectTask
-    ? useAssignUser(workspaceId!, projectId!, task.id)
-    : useAssignStandaloneUser(task.id);
-  const unassignMutation = isProjectTask
-    ? useUnassignUser(workspaceId!, projectId!, task.id)
-    : useUnassignStandaloneUser(task.id);
+  const assignMutation = useApiMutation({
+    mutationFn: (userId: string) => {
+      const url = isProjectTask
+        ? `/workspaces/${workspaceId}/projects/${projectId}/tasks/${task.id}/assignees`
+        : `/tasks/${task.id}/assignees`;
+      return api.post(url, { userId });
+    },
+    successMessage: "User assigned to task.",
+    invalidateQueries: [["task", task.id], ["myTasks"]],
+  });
+
+  const unassignMutation = useApiMutation({
+    mutationFn: (userId: string) => {
+      const url = isProjectTask
+        ? `/workspaces/${workspaceId}/projects/${projectId}/tasks/${task.id}/assignees/${userId}`
+        : `/tasks/${task.id}/assignees/${userId}`;
+      return api.delete(url);
+    },
+    successMessage: "User unassigned from task.",
+    invalidateQueries: [["task", task.id], ["myTasks"]],
+  });
 
   const { data: projectMembersData, isLoading: isLoadingProjectMembers } =
     useGetProjectMembers(workspaceId!, projectId!, { enabled: isProjectTask });
-  const { data: allUsersData, isLoading: isLoadingAllUsers } = useGetUsers({
+  const { data: allUsersData, isLoading: isLoadingAllUsers } = useApiResource(
+    "admin/users",
+    ["users"]
+  ).useGetAll({
     limit: 1000,
     enabled: !isProjectTask,
   });

@@ -36,7 +36,6 @@ const notificationTypes = [
   "COMMENT_MENTION",
   "PROJECT_INVITE",
 ];
-
 const emailFrequencies = ["NONE", "DAILY", "WEEKLY", "IMMEDIATELY"];
 
 const preferencesSchema = z.object({
@@ -49,7 +48,6 @@ const preferencesSchema = z.object({
   ),
   emailDigestFrequency: z.enum(["NONE", "DAILY", "WEEKLY", "IMMEDIATELY"]),
 });
-
 type PreferencesFormValues = z.infer<typeof preferencesSchema>;
 
 export function NotificationPreferencesForm() {
@@ -59,7 +57,6 @@ export function NotificationPreferencesForm() {
   const form = useForm<PreferencesFormValues>({
     resolver: zodResolver(preferencesSchema),
   });
-
   useEffect(() => {
     if (data) {
       form.reset({
@@ -68,7 +65,6 @@ export function NotificationPreferencesForm() {
       });
     }
   }, [data, form]);
-
   function onSubmit(values: PreferencesFormValues) {
     updateMutation.mutate(values);
   }

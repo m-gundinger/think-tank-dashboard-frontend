@@ -1,8 +1,5 @@
-// FILE: src/features/projects/components/ProjectMemberList.tsx
 import { useGetProjectMembers } from "../api/useGetProjectMembers";
-import { useRemoveProjectMember } from "../api/useRemoveProjectMember";
-import { useGetProjectRoles } from "@/features/project-roles/api/useGetProjectRoles";
-import { useUpdateProjectMember } from "../api/useUpdateProjectMember";
+import { useApiResource } from "@/hooks/useApiResource";
 import {
   Table,
   TableBody,
@@ -29,6 +26,9 @@ import {
 } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { getAbsoluteUrl } from "@/lib/utils";
+import { useApiMutation } from "@/hooks/useApiMutation";
+import api from "@/lib/api";
+
 interface ProjectMemberListProps {
   workspaceId: string;
   projectId: string;
@@ -40,12 +40,40 @@ export function ProjectMemberList({
 }: ProjectMemberListProps) {
   const { data: membersData, isLoading: isLoadingMembers } =
     useGetProjectMembers(workspaceId, projectId);
-  const { data: rolesData, isLoading: isLoadingRoles } = useGetProjectRoles(
-    workspaceId,
-    projectId
+  const projectRoleResource = useApiResource(
+    `/workspaces/${workspaceId}/projects/${projectId}/roles`,
+    ["projectRoles", projectId]
   );
-  const removeMemberMutation = useRemoveProjectMember(workspaceId, projectId);
-  const updateMemberMutation = useUpdateProjectMember(workspaceId, projectId);
+  const { data: rolesData, isLoading: isLoadingRoles } =
+    projectRoleResource.useGetAll();
+
+  const invalidateQueries = [["projectMembers", projectId]];
+
+  const removeMemberMutation = useApiMutation<void, string>({
+    mutationFn: async (userId) => {
+      await api.delete(
+        `/workspaces/${workspaceId}/projects/${projectId}/members/${userId}`
+      );
+    },
+    successMessage: "Member removed from project.",
+    invalidateQueries,
+  });
+
+  const updateMemberMutation = useApiMutation<
+    any,
+    { userId: string; roleId: string }
+  >({
+    mutationFn: async ({ userId, roleId }) => {
+      const { data } = await api.patch(
+        `/workspaces/${workspaceId}/projects/${projectId}/members/${userId}`,
+        { roleId }
+      );
+      return data;
+    },
+    successMessage: "Project member's role has been updated.",
+    invalidateQueries,
+  });
+
   const handleDelete = (member: any) => {
     if (window.confirm(`Remove ${member.name} from this project?`)) {
       removeMemberMutation.mutate(member.userId);
@@ -55,6 +83,7 @@ export function ProjectMemberList({
   const handleRoleChange = (userId: string, roleId: string) => {
     updateMemberMutation.mutate({ userId, roleId });
   };
+
   if (isLoadingMembers || isLoadingRoles) return <div>Loading members...</div>;
 
   return (

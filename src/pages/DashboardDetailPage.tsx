@@ -1,40 +1,46 @@
 import { useParams } from "react-router-dom";
 import GridLayout, { Layout } from "react-grid-layout";
-import { useGetDashboard } from "@/features/dashboards/api/useGetDashboard";
+import { useApiResource } from "@/hooks/useApiResource";
 import { WidgetRenderer } from "@/features/widgets/components/WidgetRenderer";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
-import { CreateWidgetDialog } from "@/features/widgets/components/CreateWidgetDialog";
 import { useUpdateWidget } from "@/features/widgets/api/useUpdateWidget";
-
+import { Button } from "@/components/ui/button";
+import { PlusCircle } from "lucide-react";
+import { useState } from "react";
+import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { CreateWidgetForm } from "@/features/widgets/components/CreateWidgetForm";
 export function DashboardDetailPage() {
   const { workspaceId, projectId, dashboardId } = useParams<{
     workspaceId: string;
     projectId: string;
     dashboardId: string;
   }>();
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   if (!workspaceId || !projectId || !dashboardId) {
     return <div>Missing ID parameter.</div>;
   }
 
-  const { data: dashboardData, isLoading } = useGetDashboard(
+  const dashboardResource = useApiResource(
+    `/workspaces/${workspaceId}/projects/${projectId}/dashboards`,
+    ["dashboards", projectId]
+  );
+  const { data: dashboardData, isLoading } =
+    dashboardResource.useGetOne(dashboardId);
+  const updateWidgetMutation = useUpdateWidget(
     workspaceId,
     projectId,
     dashboardId
   );
-
-  const updateWidgetMutation = useUpdateWidget();
-
   const handleLayoutChange = (newLayout: Layout[]) => {
+    if (!dashboardData?.widgets) return;
     const originalLayout = dashboardData.widgets.map((widget: any) => ({
       ...widget.layout,
       i: widget.id,
     }));
-
     for (const newPos of newLayout) {
       const originalPos = originalLayout.find((o: any) => o.i === newPos.i);
-
       if (
         originalPos &&
         (originalPos.x !== newPos.x ||
@@ -43,9 +49,6 @@ export function DashboardDetailPage() {
           originalPos.h !== newPos.h)
       ) {
         updateWidgetMutation.mutate({
-          workspaceId,
-          projectId,
-          dashboardId,
           widgetId: newPos.i,
           widgetData: {
             layout: {
@@ -62,7 +65,6 @@ export function DashboardDetailPage() {
 
   if (isLoading) return <div>Loading Dashboard...</div>;
   if (!dashboardData) return <div>Dashboard not found.</div>;
-
   const layout =
     dashboardData.widgets?.map((widget: any) => ({
       ...widget.layout,
@@ -78,10 +80,21 @@ export function DashboardDetailPage() {
           </h1>
           <p className="text-muted-foreground">{dashboardData.description}</p>
         </div>
-        <CreateWidgetDialog
-          workspaceId={workspaceId}
-          projectId={projectId}
-          dashboardId={dashboardId}
+        <ResourceCrudDialog
+          isOpen={isCreateOpen}
+          onOpenChange={setIsCreateOpen}
+          trigger={
+            <Button onClick={() => setIsCreateOpen(true)}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add Widget
+            </Button>
+          }
+          title="Add a New Widget"
+          description="Select a widget type and configure it to visualize your data."
+          form={CreateWidgetForm}
+          formProps={{ workspaceId, projectId, dashboardId }}
+          resourcePath={`/workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}/widgets`}
+          resourceKey={["dashboard", dashboardId]}
         />
       </div>
 

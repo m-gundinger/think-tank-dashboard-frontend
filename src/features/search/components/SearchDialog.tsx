@@ -8,7 +8,6 @@ import {
 import { useDebounce } from "@/hooks/useDebounce";
 import { useSearch } from "../api/useSearch";
 import { SearchResultGroup } from "./SearchResultGroup";
-
 interface SearchDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
@@ -24,7 +23,6 @@ export function SearchDialog({ isOpen, onOpenChange }: SearchDialogProps) {
       setQuery("");
     }
   }, [isOpen]);
-
   return (
     <CommandDialog open={isOpen} onOpenChange={onOpenChange}>
       <CommandInput

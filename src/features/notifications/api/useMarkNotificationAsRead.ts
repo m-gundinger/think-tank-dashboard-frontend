@@ -1,17 +1,13 @@
 import api from "@/lib/api";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-
+import { useApiMutation } from "@/hooks/useApiMutation";
 async function markAsRead(notificationId: string): Promise<any> {
   const { data } = await api.patch(`/notifications/${notificationId}/read`);
   return data;
 }
 
 export function useMarkNotificationAsRead() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useApiMutation({
     mutationFn: markAsRead,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notifications"] });
-    },
+    invalidateQueries: [["notifications"]],
   });
 }

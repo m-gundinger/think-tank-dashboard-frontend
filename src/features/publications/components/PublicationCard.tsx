@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
-import { useDeletePublication } from "../api/useDeletePublication";
+import { useApiResource } from "@/hooks/useApiResource";
 
 interface PublicationCardProps {
   publication: any;
@@ -29,10 +29,9 @@ const statusVariantMap: Record<
   PUBLISHED: "default",
   ARCHIVED: "outline",
 };
-
 export function PublicationCard({ publication, onEdit }: PublicationCardProps) {
-  const deleteMutation = useDeletePublication();
-
+  const publicationResource = useApiResource("publications", ["publications"]);
+  const deleteMutation = publicationResource.useDelete();
   const handleDelete = () => {
     if (window.confirm(`Delete publication "${publication.title}"?`)) {
       deleteMutation.mutate(publication.id);

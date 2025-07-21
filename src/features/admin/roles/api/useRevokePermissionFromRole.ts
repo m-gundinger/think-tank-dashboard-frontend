@@ -1,5 +1,5 @@
 import api from "@/lib/api";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 async function revokePermission({
   roleId,
@@ -15,14 +15,10 @@ async function revokePermission({
 }
 
 export function useRevokePermissionFromRole(roleId: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
+  return useApiMutation({
     mutationFn: (permissionId: string) =>
       revokePermission({ roleId, permissionId }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["roles"] });
-      queryClient.invalidateQueries({ queryKey: ["role", roleId] });
-    },
+    successMessage: "Permission revoked from role.",
+    invalidateQueries: [["roles"], ["role", roleId]],
   });
 }

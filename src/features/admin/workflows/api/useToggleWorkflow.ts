@@ -1,6 +1,5 @@
 import api from "@/lib/api";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { AxiosError } from "axios";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 interface ToggleParams {
   workflowId: string;
@@ -18,19 +17,8 @@ async function toggleWorkflow({
 }
 
 export function useToggleWorkflow() {
-  const queryClient = useQueryClient();
-  return useMutation<any, AxiosError, ToggleParams>({
+  return useApiMutation<any, ToggleParams>({
     mutationFn: toggleWorkflow,
-    onSuccess: (updatedWorkflow) => {
-      queryClient.setQueryData(["workflows"], (oldData: any) => {
-        if (!oldData) return oldData;
-        return {
-          ...oldData,
-          data: oldData.data.map((w: any) =>
-            w.id === updatedWorkflow.id ? updatedWorkflow : w
-          ),
-        };
-      });
-    },
+    invalidateQueries: [["workflows"]],
   });
 }

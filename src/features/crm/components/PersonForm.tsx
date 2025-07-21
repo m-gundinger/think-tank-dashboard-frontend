@@ -1,24 +1,16 @@
-// FILE: src/features/crm/components/PersonForm.tsx
-import { useForm } from "react-hook-form";
+import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { useCreatePerson } from "../api/useCreatePerson";
-import { useUpdatePerson } from "../api/useUpdatePerson";
+import { Form } from "@/components/ui/form";
+import { FormInput } from "@/components/form/FormFields";
+import { useApiResource } from "@/hooks/useApiResource";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
+import { requiredStringSchema } from "@/lib/schemas";
 
 const personSchema = z.object({
-  firstName: z.string().min(1, "First name is required."),
-  lastName: z.string().min(1, "Last name is required."),
+  firstName: requiredStringSchema("First name"),
+  lastName: requiredStringSchema("Last name"),
   email: z
     .string()
     .email("A valid email is required.")
@@ -33,12 +25,12 @@ interface PersonFormProps {
 }
 
 export function PersonForm({ initialData, onSuccess }: PersonFormProps) {
+  const personResource = useApiResource("people", ["people"]);
   const isEditMode = !!initialData;
-  const createMutation = useCreatePerson();
-  const updateMutation = useUpdatePerson();
+  const createMutation = personResource.useCreate();
+  const updateMutation = personResource.useUpdate();
   const mutation = isEditMode ? updateMutation : createMutation;
-
-  const form = useForm<PersonFormValues>({
+  const methods = useForm<PersonFormValues>({
     resolver: zodResolver(personSchema),
     defaultValues: initialData || {
       firstName: "",
@@ -46,23 +38,21 @@ export function PersonForm({ initialData, onSuccess }: PersonFormProps) {
       email: "",
     },
   });
-
   useEffect(() => {
     if (initialData) {
-      form.reset(initialData);
+      methods.reset(initialData);
     }
-  }, [initialData, form]);
-
+  }, [initialData, methods]);
   async function onSubmit(values: PersonFormValues) {
     if (isEditMode) {
       await updateMutation.mutateAsync(
-        { personId: initialData.id, data: values },
+        { id: initialData.id, data: values },
         { onSuccess }
       );
     } else {
       await createMutation.mutateAsync(values, {
         onSuccess: () => {
-          form.reset();
+          methods.reset();
           onSuccess?.();
         },
       });
@@ -70,55 +60,29 @@ export function PersonForm({ initialData, onSuccess }: PersonFormProps) {
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="firstName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>First Name</FormLabel>
-              <FormControl>
-                <Input placeholder="John" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="lastName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Last Name</FormLabel>
-              <FormControl>
-                <Input placeholder="Doe" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email Address (Optional)</FormLabel>
-              <FormControl>
-                <Input placeholder="name@example.com" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button type="submit" className="w-full" disabled={mutation.isPending}>
-          {mutation.isPending
-            ? "Saving..."
-            : isEditMode
-              ? "Save Changes"
-              : "Create Person"}
-        </Button>
-      </form>
-    </Form>
+    <FormProvider {...methods}>
+      <Form {...methods}>
+        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
+          <FormInput name="firstName" label="First Name" placeholder="John" />
+          <FormInput name="lastName" label="Last Name" placeholder="Doe" />
+          <FormInput
+            name="email"
+            label="Email Address (Optional)"
+            placeholder="name@example.com"
+          />
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={mutation.isPending}
+          >
+            {mutation.isPending
+              ? "Saving..."
+              : isEditMode
+                ? "Save Changes"
+                : "Create Person"}
+          </Button>
+        </form>
+      </Form>
+    </FormProvider>
   );
 }

@@ -1,5 +1,5 @@
 import api from "@/lib/api";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 interface UpdateValuesParams {
   workspaceId: string;
@@ -26,15 +26,12 @@ export function useUpdateTaskCustomValues(
   projectId: string,
   taskId: string
 ) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
+  return useApiMutation({
     mutationFn: (updates: { fieldId: string; value: any }[]) =>
       updateTaskCustomValues({ workspaceId, projectId, taskId, updates }),
-    onSuccess: (updatedTask) => {
-      queryClient.setQueryData(["task", taskId], updatedTask);
-
-      queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
-    },
+    invalidateQueries: [
+      ["task", taskId],
+      ["tasks", projectId],
+    ],
   });
 }

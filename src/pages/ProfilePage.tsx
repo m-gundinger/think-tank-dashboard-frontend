@@ -1,4 +1,4 @@
-import { ProfileForm } from "@/features/profile/components/ProfileForm";
+import { UserForm } from "@/features/admin/users/components/UserForm";
 import {
   Card,
   CardContent,
@@ -9,10 +9,8 @@ import {
 import { useGetProfile } from "@/features/profile/api/useGetProfile";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProfileAvatar } from "@/features/profile/components/ProfileAvatar";
-
 export function ProfilePage() {
   const { data: profile, isLoading } = useGetProfile();
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -31,7 +29,7 @@ export function ProfilePage() {
               {isLoading || !profile ? (
                 <Skeleton className="h-32 w-32 rounded-full" />
               ) : (
-                <ProfileAvatar user={profile} />
+                <ProfileAvatar user={profile} isSelfProfile={true} />
               )}
               <h2 className="mt-4 text-2xl font-semibold">
                 {isLoading ? <Skeleton className="h-8 w-40" /> : profile?.name}
@@ -57,7 +55,15 @@ export function ProfilePage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <ProfileForm />
+              {isLoading ? (
+                <div className="space-y-4">
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-20 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              ) : (
+                <UserForm user={profile} onSuccess={() => {}} isSelfProfile />
+              )}
             </CardContent>
           </Card>
         </div>

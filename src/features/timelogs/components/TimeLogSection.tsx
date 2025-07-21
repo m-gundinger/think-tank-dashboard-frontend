@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { TimeLogItem } from "./TimeLogItem";
-
 export function TimeLogSection({ workspaceId, projectId, taskId }: any) {
   const { data: timeLogsData, isLoading } = useGetTimeLogs(
     workspaceId,
@@ -15,7 +14,6 @@ export function TimeLogSection({ workspaceId, projectId, taskId }: any) {
 
   const [duration, setDuration] = useState("");
   const [description, setDescription] = useState("");
-
   const handleAddTimeLog = () => {
     const durationInMinutes = parseInt(duration, 10);
     if (!isNaN(durationInMinutes) && durationInMinutes > 0) {
@@ -45,7 +43,6 @@ export function TimeLogSection({ workspaceId, projectId, taskId }: any) {
     ) || 0;
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
-
   return (
     <div className="space-y-4">
       <h3 className="text-sm font-semibold">Time Tracking</h3>

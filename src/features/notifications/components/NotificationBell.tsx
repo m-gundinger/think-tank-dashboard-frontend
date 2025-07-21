@@ -9,7 +9,6 @@ import { useGetNotifications } from "../api/useGetNotifications";
 import { NotificationItem } from "./NotificationItem";
 import { useMarkAllNotificationsAsRead } from "../api/useMarkAllNotificationsAsRead";
 import { Skeleton } from "@/components/ui/skeleton";
-
 export function NotificationBell() {
   const { data, isLoading } = useGetNotifications();
   const markAllReadMutation = useMarkAllNotificationsAsRead();
@@ -38,7 +37,7 @@ export function NotificationBell() {
             variant="link"
             size="sm"
             className="h-auto p-0"
-            onClick={() => markAllReadMutation.mutate()}
+            onClick={() => markAllReadMutation.mutate(undefined)}
             disabled={markAllReadMutation.isPending || unreadCount === 0}
           >
             Mark all as read

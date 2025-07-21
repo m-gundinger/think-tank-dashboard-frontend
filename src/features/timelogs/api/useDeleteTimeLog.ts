@@ -1,5 +1,5 @@
 import api from "@/lib/api";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 interface DeleteTimeLogParams {
   workspaceId: string;
@@ -24,12 +24,10 @@ export function useDeleteTimeLog(
   projectId: string,
   taskId: string
 ) {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useApiMutation({
     mutationFn: (timeLogId: string) =>
       deleteTimeLog({ workspaceId, projectId, taskId, timeLogId }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["timeLogs", taskId] });
-    },
+    successMessage: "Time log deleted.",
+    invalidateQueries: [["timeLogs", taskId]],
   });
 }

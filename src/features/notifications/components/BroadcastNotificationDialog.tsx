@@ -10,10 +10,8 @@ import {
 } from "@/components/ui/dialog";
 import { Megaphone } from "lucide-react";
 import { BroadcastNotificationForm } from "./BroadcastNotificationForm";
-
 export function BroadcastNotificationDialog() {
   const [isOpen, setIsOpen] = useState(false);
-
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>

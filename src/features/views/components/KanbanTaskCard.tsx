@@ -1,4 +1,3 @@
-// src/features/views/components/KanbanTaskCard.tsx
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -19,13 +18,12 @@ import {
   Calendar,
   CheckSquare,
 } from "lucide-react";
-import { useDeleteTask } from "@/features/tasks/api/useDeleteTask";
+import { useApiResource } from "@/hooks/useApiResource";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { Task } from "@/features/tasks/task.types";
 import { TaskStatus } from "@/types";
-
 export function KanbanTaskCard({
   task,
   onTaskSelect,
@@ -37,28 +35,28 @@ export function KanbanTaskCard({
     workspaceId: string;
     projectId: string;
   }>();
+
+  const deleteTaskMutation = useApiResource(
+    `/workspaces/${workspaceId}/projects/${projectId}/tasks`,
+    ["tasks", projectId]
+  ).useDelete();
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: task.id, data: { type: "Task", task } });
-  const deleteTaskMutation = useDeleteTask(workspaceId!, projectId!);
-
   const style = {
     transition,
     transform: CSS.Transform.toString(transform),
   };
-
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (window.confirm(`Delete task "${task.title}"?`)) {
       deleteTaskMutation.mutate(task.id);
     }
   };
-
   const handleCopyId = (e: React.MouseEvent) => {
     e.stopPropagation();
     navigator.clipboard.writeText(task.id);
     toast.success("Task ID copied to clipboard.");
   };
-
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
     onTaskSelect(task.id);
@@ -67,7 +65,6 @@ export function KanbanTaskCard({
   const totalSubtasks = task.subtasks?.length || 0;
   const completedSubtasks =
     task.subtasks?.filter((sub) => sub.status === TaskStatus.DONE).length || 0;
-
   return (
     <div
       ref={setNodeRef}

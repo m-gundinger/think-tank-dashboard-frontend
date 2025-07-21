@@ -1,41 +1,20 @@
-import { useForm } from "react-hook-form";
+import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
+import { Form } from "@/components/ui/form";
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { RichTextEditor } from "@/components/ui/RichTextEditor";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { useCreateTask } from "../api/useCreateTask";
-import { useCreateStandaloneTask } from "../api/useCreateStandaloneTask";
-import { useGetEpics } from "@/features/epics/api/useGetEpics";
+  FormInput,
+  FormRichTextEditor,
+  FormSelect,
+  FormDatePicker,
+  FormAssigneeSelector,
+} from "@/components/form/FormFields";
+import { useApiResource } from "@/hooks/useApiResource";
 import { useGetProfile } from "@/features/profile/api/useGetProfile";
 import { AxiosError } from "axios";
 import { TaskStatus, TaskPriority } from "@/types";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
 import { useEffect } from "react";
-import { AssigneeSelector } from "./AssigneeSelector";
 
 const taskSchema = z.object({
   title: z.string().min(1, "Title is required."),
@@ -50,6 +29,7 @@ const taskSchema = z.object({
     .array(z.string().uuid())
     .min(1, "At least one assignee is required."),
 });
+
 type TaskFormValues = z.infer<typeof taskSchema>;
 
 interface CreateTaskFormProps {
@@ -57,6 +37,7 @@ interface CreateTaskFormProps {
   projectId?: string;
   parentId?: string | null;
   onSuccess?: () => void;
+  defaultValues?: Partial<TaskFormValues>;
 }
 
 export function CreateTaskForm({
@@ -64,18 +45,25 @@ export function CreateTaskForm({
   projectId,
   parentId = null,
   onSuccess,
+  defaultValues,
 }: CreateTaskFormProps) {
-  const createMutation = projectId
-    ? useCreateTask(workspaceId!, projectId!)
-    : useCreateStandaloneTask();
-
-  const { data: epicsData, isLoading: isLoadingEpics } = useGetEpics(
-    workspaceId!,
-    projectId!
+  const taskResource = useApiResource(
+    projectId
+      ? `/workspaces/${workspaceId}/projects/${projectId}/tasks`
+      : "/tasks",
+    projectId ? ["tasks", projectId] : ["myTasks"]
   );
+  const epicResource = useApiResource(
+    `/workspaces/${workspaceId}/projects/${projectId}/epics`,
+    ["epics", projectId]
+  );
+
+  const createMutation = taskResource.useCreate();
+  const { data: epicsData, isLoading: isLoadingEpics } =
+    epicResource.useGetAll();
   const { data: profileData } = useGetProfile();
 
-  const form = useForm<TaskFormValues>({
+  const methods = useForm<TaskFormValues>({
     resolver: zodResolver(taskSchema),
     defaultValues: {
       title: "",
@@ -87,22 +75,25 @@ export function CreateTaskForm({
       boardColumnId: null,
       dueDate: null,
       assigneeIds: [],
+      ...defaultValues,
     },
   });
+
   useEffect(() => {
-    if (profileData && form.getValues("assigneeIds").length === 0) {
-      form.setValue("assigneeIds", [profileData.id]);
+    if (profileData && !methods.getValues("assigneeIds")?.length) {
+      methods.setValue("assigneeIds", [profileData.id]);
     }
-  }, [profileData, form.getValues, form.setValue]);
+  }, [profileData, methods]);
+
   async function onSubmit(values: TaskFormValues) {
     const submitData: Partial<TaskFormValues> = { ...values };
     if (!submitData.boardColumnId) delete submitData.boardColumnId;
     if (!submitData.epicId) delete submitData.epicId;
     if (!submitData.parentId) delete submitData.parentId;
 
-    await createMutation.mutateAsync(submitData, {
+    await createMutation.mutate(submitData, {
       onSuccess: () => {
-        form.reset();
+        methods.reset();
         onSuccess?.();
       },
     });
@@ -111,195 +102,78 @@ export function CreateTaskForm({
   const errorMessage = (
     createMutation.error as AxiosError<{ message?: string }>
   )?.response?.data?.message;
+
+  const statusOptions = Object.values(TaskStatus).map((s) => ({
+    value: s,
+    label: s,
+  }));
+  const priorityOptions = Object.values(TaskPriority).map((p) => ({
+    value: p,
+    label: p,
+  }));
+  const epicOptions =
+    epicsData?.data?.map((epic: any) => ({
+      value: epic.id,
+      label: epic.name,
+    })) || [];
+
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="title"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Title</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="e.g. Draft Q3 financial report"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="assigneeIds"
-          render={({ field }) => (
-            <FormItem className="flex flex-col">
-              <FormLabel>Assignees</FormLabel>
-              <AssigneeSelector
-                projectId={projectId}
-                workspaceId={workspaceId}
-                selectedIds={field.value}
-                onSelectionChange={field.onChange}
-              />
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description</FormLabel>
-              <FormControl>
-                <RichTextEditor
-                  value={field.value ?? ""}
-                  onChange={field.onChange}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="status"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Status</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Set status" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {Object.values(TaskStatus).map((s) => (
-                      <SelectItem key={s} value={s}>
-                        {s}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
+    <FormProvider {...methods}>
+      <Form {...methods}>
+        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
+          <FormInput
+            name="title"
+            label="Title"
+            placeholder="e.g. Draft Q3 financial report"
           />
-          <FormField
-            control={form.control}
-            name="priority"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Priority</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Set priority" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {Object.values(TaskPriority).map((p) => (
-                      <SelectItem key={p} value={p}>
-                        {p}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
+          <FormAssigneeSelector
+            name="assigneeIds"
+            label="Assignees"
+            projectId={projectId}
+            workspaceId={workspaceId}
           />
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          {projectId && (
-            <FormField
-              control={form.control}
-              name="epicId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Epic (Optional)</FormLabel>
-                  <Select
-                    onValueChange={(value) => field.onChange(value || null)}
-                    value={field.value ?? ""}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select an epic" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {isLoadingEpics ? (
-                        <div className="text-muted-foreground p-2 text-sm">
-                          Loading epics...
-                        </div>
-                      ) : (
-                        epicsData?.data?.map((epic: any) => (
-                          <SelectItem key={epic.id} value={epic.id}>
-                            {epic.name}
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
+          <FormRichTextEditor name="description" label="Description" />
+          <div className="grid grid-cols-2 gap-4">
+            <FormSelect
+              name="status"
+              label="Status"
+              placeholder="Set status"
+              options={statusOptions}
             />
-          )}
-          <FormField
-            control={form.control}
-            name="dueDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Due Date (Optional)</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-full pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {field.value ? (
-                          format(field.value, "PPP")
-                        ) : (
-                          <span>Pick a date</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value || undefined}
-                      onSelect={field.onChange}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
+            <FormSelect
+              name="priority"
+              label="Priority"
+              placeholder="Set priority"
+              options={priorityOptions}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            {projectId && (
+              <FormSelect
+                name="epicId"
+                label="Epic (Optional)"
+                placeholder={isLoadingEpics ? "Loading..." : "Select an epic"}
+                options={epicOptions}
+              />
             )}
-          />
-        </div>
+            <FormDatePicker name="dueDate" label="Due Date (Optional)" />
+          </div>
 
-        {errorMessage && (
-          <div className="text-sm font-medium text-red-500">{errorMessage}</div>
-        )}
+          {errorMessage && (
+            <div className="text-sm font-medium text-red-500">
+              {errorMessage}
+            </div>
+          )}
 
-        <Button
-          type="submit"
-          className="w-full"
-          disabled={createMutation.isPending}
-        >
-          {createMutation.isPending ? "Creating Task..." : "Create Task"}
-        </Button>
-      </form>
-    </Form>
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={createMutation.isPending}
+          >
+            {createMutation.isPending ? "Creating Task..." : "Create Task"}
+          </Button>
+        </form>
+      </Form>
+    </FormProvider>
   );
 }

@@ -1,7 +1,5 @@
-// src/features/tasks/api/useAttachDocument.ts
 import api from "@/lib/api";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 interface AttachDocumentParams {
   workspaceId?: string;
@@ -32,19 +30,10 @@ export function useAttachDocument(
   projectId: string | undefined,
   taskId: string
 ) {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useApiMutation({
     mutationFn: (formData: FormData) =>
       attachDocument({ workspaceId, projectId, taskId, formData }),
-    onSuccess: () => {
-      toast.success("Document attached successfully.");
-      queryClient.invalidateQueries({ queryKey: ["task", taskId] });
-    },
-    onError: (error: any) => {
-      toast.error("Failed to attach document", {
-        description:
-          error.response?.data?.message || "An unexpected error occurred.",
-      });
-    },
+    successMessage: "Document attached successfully.",
+    invalidateQueries: [["task", taskId]],
   });
 }

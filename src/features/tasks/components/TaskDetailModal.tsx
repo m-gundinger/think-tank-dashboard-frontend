@@ -1,5 +1,3 @@
-// FILE: src/features/tasks/components/TaskDetailModal.tsx
-// src/features/tasks/components/TaskDetailModal.tsx
 import {
   Dialog,
   DialogContent,
@@ -7,9 +5,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { EditableField } from "@/components/ui/EditableField";
-import { useGetTask } from "../api/useGetTask";
-import { useUpdateTask } from "../api/useUpdateTask";
-import { useUpdateStandaloneTask } from "../api/useUpdateStandaloneTask";
+import { useApiResource } from "@/hooks/useApiResource";
 import { TaskDetailBody } from "./TaskDetailBody";
 import {
   TaskDetailSidebar,
@@ -38,15 +34,24 @@ export function TaskDetailModal({
   onOpenChange,
   onTaskSelect,
 }: TaskDetailModalProps) {
-  const { data: task, isLoading } = useGetTask(taskId);
-  const isProjectTask = !!task?.projectId;
+  const { data: task, isLoading } = useApiResource("tasks", [
+    "task",
+    taskId,
+  ]).useGetOne(taskId);
+  const taskResource = useApiResource(
+    task?.projectId
+      ? `/workspaces/${task.workspaceId}/projects/${task.projectId}/tasks`
+      : "/tasks",
+    task?.projectId ? ["tasks", task.projectId] : ["myTasks"]
+  );
+  const updateTaskMutation = taskResource.useUpdate();
 
-  const updateTaskMutation = isProjectTask
-    ? useUpdateTask(task?.workspaceId, task?.projectId, taskId!)
-    : useUpdateStandaloneTask(taskId!);
   const handleSave = (field: "title" | "description", value: string) => {
-    updateTaskMutation.mutate({ [field]: value });
+    if (taskId) {
+      updateTaskMutation.mutate({ id: taskId, data: { [field]: value } });
+    }
   };
+
   const renderContent = () => {
     if (isLoading || !task) {
       return (
@@ -67,6 +72,7 @@ export function TaskDetailModal({
         </>
       );
     }
+
     return (
       <>
         <DialogTitle className="flex items-center gap-2 pr-6">

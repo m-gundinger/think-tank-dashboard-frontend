@@ -1,4 +1,3 @@
-// src/features/views/components/KanbanBoard.tsx
 import {
   DndContext,
   DragEndEvent,
@@ -17,7 +16,6 @@ import { KanbanTaskCard } from "./KanbanTaskCard";
 import { useMemo, useState } from "react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Kanban } from "lucide-react";
-
 interface KanbanBoardProps {
   workspaceId: string;
   projectId: string;
@@ -26,7 +24,6 @@ interface KanbanBoardProps {
   onTaskSelect: (taskId: string) => void;
 }
 
-// Flattens a nested task structure into a single array
 const flattenTasks = (tasksToFlatten: Task[]): Task[] => {
   let flat: Task[] = [];
   if (!tasksToFlatten) return flat;
@@ -39,7 +36,6 @@ const flattenTasks = (tasksToFlatten: Task[]): Task[] => {
   return flat;
 };
 
-// Converts a column name (e.g., "In Progress") to a TaskStatus enum ("IN_PROGRESS")
 function mapColumnNameToStatus(columnName: string): TaskStatus | null {
   const normalizedName = columnName.trim().toUpperCase().replace(/\s+/g, "_");
   if (normalizedName === "TO_DO") return TaskStatus.TODO;
@@ -49,7 +45,6 @@ function mapColumnNameToStatus(columnName: string): TaskStatus | null {
   return null;
 }
 
-// Converts a TaskStatus enum to a display-friendly column name
 function mapStatusToColumnName(status: TaskStatus): string {
   switch (status) {
     case TaskStatus.TODO:
@@ -72,7 +67,7 @@ export function KanbanBoard({
   tasks,
   onTaskSelect,
 }: KanbanBoardProps) {
-  const moveTaskMutation = useMoveTask();
+  const moveTaskMutation = useMoveTask(projectId);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
 
   const sensors = useSensors(
@@ -82,18 +77,14 @@ export function KanbanBoard({
       },
     })
   );
-
-  // Filter for top-level tasks to display on the board
   const topLevelTasks = useMemo(
     () => tasks.filter((task) => !task.parentId),
     [tasks]
   );
-
   const columns = useMemo(() => {
     const kanbanView = views.find((v) => v.type === "KANBAN");
     return kanbanView?.columns || [];
   }, [views]);
-
   const tasksByColumn = useMemo(() => {
     const grouped = columns.reduce(
       (acc: Record<string, Task[]>, col: ViewColumn) => {
@@ -106,7 +97,6 @@ export function KanbanBoard({
     topLevelTasks.forEach((task) => {
       let targetColumnId = task.boardColumnId;
 
-      // Fallback for tasks that might not have a boardColumnId set
       if (!targetColumnId) {
         const expectedColumnName = mapStatusToColumnName(task.status);
         const fallbackColumn = columns.find(
@@ -123,7 +113,6 @@ export function KanbanBoard({
       }
     });
 
-    // Sort tasks within each column by their order
     for (const columnId in grouped) {
       grouped[columnId].sort(
         (a, b) => (a.orderInColumn || 0) - (b.orderInColumn || 0)
@@ -132,13 +121,11 @@ export function KanbanBoard({
 
     return grouped;
   }, [columns, topLevelTasks]);
-
   const onDragStart = (event: DragStartEvent) => {
     const allTasksFlat = flattenTasks(tasks);
     const task = allTasksFlat.find((t) => t.id === event.active.id);
     if (task) setActiveTask(task);
   };
-
   const onDragEnd = (event: DragEndEvent) => {
     setActiveTask(null);
     const { active, over } = event;
@@ -149,7 +136,6 @@ export function KanbanBoard({
     const allTasksFlat = flattenTasks(tasks);
     const draggedTask = allTasksFlat.find((t) => t.id === active.id);
     if (!draggedTask) return;
-
     const targetColumnId =
       over.data.current?.sortable?.containerId?.toString() ??
       over.id.toString();
@@ -173,18 +159,15 @@ export function KanbanBoard({
         const overOrder = overTask?.orderInColumn ?? prevOrder + 2000;
         newOrderInColumn = (prevOrder + overOrder) / 2;
       } else {
-        // Task is being moved from another column to a non-empty column, but not over a specific task
         const lastTask = tasksInDestColumn[tasksInDestColumn.length - 1];
         newOrderInColumn = (lastTask?.orderInColumn || 0) + 1000;
       }
     } else {
-      // Dropped on a column, not a task
       const lastTask = tasksInDestColumn[tasksInDestColumn.length - 1];
       newOrderInColumn = (lastTask?.orderInColumn || 0) + 1000;
     }
 
     const newStatus = mapColumnNameToStatus(targetColumn.name);
-
     moveTaskMutation.mutate({
       workspaceId,
       projectId,

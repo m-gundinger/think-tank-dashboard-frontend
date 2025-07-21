@@ -1,6 +1,5 @@
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
-
 async function getAnnouncements(query: any): Promise<any> {
   const { data } = await api.get("/announcements", { params: query });
   return data;

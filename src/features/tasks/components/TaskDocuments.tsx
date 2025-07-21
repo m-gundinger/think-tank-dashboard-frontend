@@ -1,4 +1,3 @@
-// src/features/tasks/components/TaskDocuments.tsx
 import { useMemo, useRef } from "react";
 import { DocumentType } from "@/types";
 import { Task } from "../task.types";
@@ -9,7 +8,7 @@ import { useDetachDocument } from "../api/useDetachDocument";
 import { toast } from "sonner";
 import { getAbsoluteUrl } from "@/lib/utils";
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
 function DocumentItem({
   doc,

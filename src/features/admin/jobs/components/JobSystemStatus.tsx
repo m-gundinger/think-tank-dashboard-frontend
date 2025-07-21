@@ -5,7 +5,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-
 const StatCard = ({
   title,
   value,
@@ -28,7 +27,6 @@ const StatCard = ({
     </CardContent>
   </Card>
 );
-
 export function JobSystemStatus() {
   const { data: statusData, isLoading: isLoadingStatus } =
     useGetJobSystemStatus();
@@ -42,7 +40,6 @@ export function JobSystemStatus() {
     processorStatus &&
     processorStatus.isProcessing &&
     processorStatus.consecutiveFailures < 5;
-
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
       <StatCard

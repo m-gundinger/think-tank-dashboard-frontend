@@ -1,8 +1,6 @@
 import api from "@/lib/api";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { AxiosError } from "axios";
-import { toast } from "sonner";
-
+import { useApiMutation } from "@/hooks/useApiMutation";
+import { useQueryClient } from "@tanstack/react-query";
 interface CreateViewParams {
   workspaceId: string;
   projectId: string;
@@ -28,19 +26,13 @@ async function createView({
 
 export function useCreateView(workspaceId: string) {
   const queryClient = useQueryClient();
-  return useMutation<any, AxiosError, { projectId: string; viewData: any }>({
+  return useApiMutation<any, { projectId: string; viewData: any }>({
     mutationFn: ({ projectId, viewData }) =>
       createView({ workspaceId, projectId, viewData }),
-    onSuccess: (_, variables) => {
-      toast.success("New view created successfully.");
+    successMessage: "New view created successfully.",
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["views", variables.projectId],
-      });
-    },
-    onError: (error: any) => {
-      toast.error("Failed to create view", {
-        description:
-          error.response?.data?.message || "An unexpected error occurred.",
       });
     },
   });

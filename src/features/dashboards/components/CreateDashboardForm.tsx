@@ -1,25 +1,17 @@
-import { useForm } from "react-hook-form";
+import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { useCreateDashboard } from "../api/useCreateDashboard";
-import { useUpdateDashboard } from "../api/useUpdateDashboard";
+import { Form } from "@/components/ui/form";
+import { FormInput } from "@/components/form/FormFields";
+import { useApiResource } from "@/hooks/useApiResource";
 import { useEffect } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { nameSchema, descriptionSchema } from "@/lib/schemas";
 
 const dashboardSchema = z.object({
-  name: z.string().min(2, "Dashboard name must be at least 2 characters."),
-  description: z.string().optional(),
+  name: nameSchema("Dashboard"),
+  description: descriptionSchema,
 });
-
 type DashboardFormValues = z.infer<typeof dashboardSchema>;
 
 interface DashboardFormProps {
@@ -36,35 +28,37 @@ export function CreateDashboardForm({
   onSuccess,
 }: DashboardFormProps) {
   const isEditMode = !!initialData;
-  const createMutation = useCreateDashboard(workspaceId, projectId);
-  const updateMutation = useUpdateDashboard(
-    workspaceId,
-    projectId,
-    initialData?.id
+  const dashboardResource = useApiResource(
+    `/workspaces/${workspaceId}/projects/${projectId}/dashboards`,
+    ["dashboards", projectId]
   );
+  const createMutation = dashboardResource.useCreate();
+  const updateMutation = dashboardResource.useUpdate();
   const mutation = isEditMode ? updateMutation : createMutation;
-
-  const form = useForm<DashboardFormValues>({
+  const methods = useForm<DashboardFormValues>({
     resolver: zodResolver(dashboardSchema),
     defaultValues: { name: "", description: "" },
   });
   useEffect(() => {
     if (isEditMode && initialData) {
-      form.reset({
+      methods.reset({
         name: initialData.name,
         description: initialData.description || "",
       });
     }
-  }, [initialData, isEditMode, form]);
+  }, [initialData, isEditMode, methods]);
   async function onSubmit(values: DashboardFormValues) {
     if (isEditMode) {
-      await updateMutation.mutateAsync(values, { onSuccess });
+      await updateMutation.mutateAsync(
+        { id: initialData.id, data: values },
+        { onSuccess }
+      );
     } else {
       await createMutation.mutateAsync(
         { ...values, projectId },
         {
           onSuccess: () => {
-            form.reset();
+            methods.reset();
             onSuccess?.();
           },
         }
@@ -73,45 +67,32 @@ export function CreateDashboardForm({
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Dashboard Name</FormLabel>
-              <FormControl>
-                <Input placeholder="e.g. Q3 Metrics" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description (Optional)</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="A summary of what this dashboard tracks"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button type="submit" className="w-full" disabled={mutation.isPending}>
-          {mutation.isPending
-            ? "Saving..."
-            : isEditMode
-              ? "Save Changes"
-              : "Create Dashboard"}
-        </Button>
-      </form>
-    </Form>
+    <FormProvider {...methods}>
+      <Form {...methods}>
+        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
+          <FormInput
+            name="name"
+            label="Dashboard Name"
+            placeholder="e.g. Q3 Metrics"
+          />
+          <FormInput
+            name="description"
+            label="Description (Optional)"
+            placeholder="A summary of what this dashboard tracks"
+          />
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={mutation.isPending}
+          >
+            {mutation.isPending
+              ? "Saving..."
+              : isEditMode
+                ? "Save Changes"
+                : "Create Dashboard"}
+          </Button>
+        </form>
+      </Form>
+    </FormProvider>
   );
 }

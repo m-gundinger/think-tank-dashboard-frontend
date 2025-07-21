@@ -1,7 +1,8 @@
-import { useGetActivities } from "../api/useGetActivities";
+import { useApiResource } from "@/hooks/useApiResource";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Activity, MessageSquarePlus, SquarePlus, Trash2 } from "lucide-react";
+
 const activityIconMap: Record<string, React.ElementType> = {
   TASK_CREATED: SquarePlus,
   TASK_UPDATED: Activity,
@@ -29,13 +30,13 @@ function formatActivityDetails(activity: any): string {
 }
 
 export function ProjectActivityLog({ workspaceId, projectId }: any) {
-  const { data, isLoading, isError } = useGetActivities(
-    workspaceId,
-    projectId,
-    {
-      limit: 50,
-    }
+  const activityResource = useApiResource(
+    `/workspaces/${workspaceId}/projects/${projectId}/activities`,
+    ["activities", projectId]
   );
+  const { data, isLoading, isError } = activityResource.useGetAll({
+    limit: 50,
+  });
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -56,7 +57,7 @@ export function ProjectActivityLog({ workspaceId, projectId }: any) {
         <CardTitle>Activity Feed</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {data?.data?.length > 0 ? (
+        {data?.data && data.data.length > 0 ? (
           data.data.map((activity: any) => {
             const Icon =
               activityIconMap[activity.actionType] || activityIconMap.DEFAULT;

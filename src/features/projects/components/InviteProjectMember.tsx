@@ -1,10 +1,5 @@
-// src/features/projects/components/InviteProjectMember.tsx
 import { useState } from "react";
-import { useGetUsers } from "@/features/admin/users/api/useGetUsers";
-import { useGetProjectRoles } from "@/features/project-roles/api/useGetProjectRoles";
-import { useAddProjectMember } from "../api/useAddProjectMember";
-import { useGetTeams } from "@/features/teams/api/useGetTeams";
-import { useAddTeamToProject } from "../api/useAddTeamToProject";
+import { useApiResource } from "@/hooks/useApiResource";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -36,6 +31,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useApiMutation } from "@/hooks/useApiMutation";
+import api from "@/lib/api";
 
 interface InviteProjectMemberProps {
   workspaceId: string;
@@ -53,19 +50,56 @@ export function InviteProjectMember({
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
   const [userSearch, setUserSearch] = useState("");
 
-  const { data: usersData, isLoading: isLoadingUsers } = useGetUsers({
-    search: userSearch,
-    limit: 1000,
-  });
-  const { data: rolesData, isLoading: isLoadingRoles } = useGetProjectRoles(
+  const userResource = useApiResource("admin/users", ["users"]);
+  const teamResource = useApiResource(`/workspaces/${workspaceId}/teams`, [
+    "teams",
     workspaceId,
-    projectId
+  ]);
+  const projectRoleResource = useApiResource(
+    `/workspaces/${workspaceId}/projects/${projectId}/roles`,
+    ["projectRoles", projectId]
   );
-  const { data: teamsData, isLoading: isLoadingTeams } =
-    useGetTeams(workspaceId);
 
-  const addMemberMutation = useAddProjectMember(workspaceId, projectId);
-  const addTeamMutation = useAddTeamToProject(workspaceId, projectId);
+  const { data: usersData, isLoading: isLoadingUsers } = userResource.useGetAll(
+    {
+      search: userSearch,
+      limit: 1000,
+    }
+  );
+  const { data: rolesData, isLoading: isLoadingRoles } =
+    projectRoleResource.useGetAll();
+  const { data: teamsData, isLoading: isLoadingTeams } =
+    teamResource.useGetAll();
+
+  const addMemberMutation = useApiMutation<
+    any,
+    { userId: string; roleId: string }
+  >({
+    mutationFn: async ({ userId, roleId }) => {
+      const { data } = await api.post(
+        `/workspaces/${workspaceId}/projects/${projectId}/members`,
+        { userId, roleId }
+      );
+      return data;
+    },
+    successMessage: "Member added to project.",
+    invalidateQueries: [["projectMembers", projectId]],
+  });
+
+  const addTeamMutation = useApiMutation<
+    any,
+    { teamId: string; roleId: string }
+  >({
+    mutationFn: async ({ teamId, roleId }) => {
+      const { data } = await api.post(
+        `/workspaces/${workspaceId}/projects/${projectId}/members/team`,
+        { teamId, roleId }
+      );
+      return data;
+    },
+    successMessage: (data) => `${data.count} member(s) added to the project.`,
+    invalidateQueries: [["projectMembers", projectId]],
+  });
 
   const availableUsers =
     usersData?.data.filter((u: any) => !existingMemberIds.includes(u.id)) || [];

@@ -1,6 +1,5 @@
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
-
 async function getWorkflowRuns(workflowId: string, query: any): Promise<any> {
   const { data } = await api.get(`/admin/workflows/${workflowId}/runs`, {
     params: query,

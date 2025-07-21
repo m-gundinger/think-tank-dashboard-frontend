@@ -1,14 +1,15 @@
-import { useGetProjects } from "../api/useGetProjects";
+import { useApiResource } from "@/hooks/useApiResource";
 import { ProjectCard } from "./ProjectCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ErrorState } from "@/components/ui/error-state";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Button } from "@/components/ui/button";
+import { PlusCircle } from "lucide-react";
 import { FolderKanban } from "lucide-react";
-import { CreateProjectDialog } from "./CreateProjectDialog";
 import { useState } from "react";
-import { EditProjectDialog } from "./EditProjectDialog";
-
+import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { ProjectForm } from "./ProjectForm";
 const ProjectListSkeleton = () => (
   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
     {Array.from({ length: 3 }).map((_, i) => (
@@ -24,10 +25,14 @@ const ProjectListSkeleton = () => (
     ))}
   </div>
 );
-
 export function ProjectList({ workspaceId }: { workspaceId: string }) {
-  const { data, isLoading, isError, error } = useGetProjects(workspaceId);
+  const projectResource = useApiResource(
+    `/workspaces/${workspaceId}/projects`,
+    ["projects", workspaceId]
+  );
+  const { data, isLoading, isError, error } = projectResource.useGetAll();
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   if (isLoading) {
     return <ProjectListSkeleton />;
@@ -51,7 +56,24 @@ export function ProjectList({ workspaceId }: { workspaceId: string }) {
         icon={<FolderKanban className="text-primary h-10 w-10" />}
         title="This workspace has no projects yet."
         description="Create the first project in this workspace to get started."
-        action={<CreateProjectDialog workspaceId={workspaceId} />}
+        action={
+          <ResourceCrudDialog
+            isOpen={isCreateOpen}
+            onOpenChange={setIsCreateOpen}
+            trigger={
+              <Button onClick={() => setIsCreateOpen(true)}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                New Project
+              </Button>
+            }
+            title="Create a new project"
+            description="Projects live inside workspaces and contain your tasks."
+            form={ProjectForm}
+            formProps={{ workspaceId }}
+            resourcePath={`/workspaces/${workspaceId}/projects`}
+            resourceKey={["projects", workspaceId]}
+          />
+        }
       />
     );
   }
@@ -68,11 +90,17 @@ export function ProjectList({ workspaceId }: { workspaceId: string }) {
         ))}
       </div>
 
-      <EditProjectDialog
-        workspaceId={workspaceId}
-        projectId={editingProjectId}
+      <ResourceCrudDialog
         isOpen={!!editingProjectId}
         onOpenChange={(isOpen) => !isOpen && setEditingProjectId(null)}
+        trigger={<></>}
+        title="Edit Project"
+        description="Make changes to your project here. Click save when you're done."
+        form={ProjectForm}
+        formProps={{ workspaceId }}
+        resourcePath={`/workspaces/${workspaceId}/projects`}
+        resourceKey={["projects", workspaceId]}
+        resourceId={editingProjectId}
       />
     </>
   );

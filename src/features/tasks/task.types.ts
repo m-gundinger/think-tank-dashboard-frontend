@@ -1,4 +1,3 @@
-// src/features/tasks/task.types.ts
 import {
   TaskStatus,
   TaskPriority,
@@ -49,6 +48,7 @@ const TaskAssigneeSchema = z.object({
   name: z.string(),
   avatarUrl: z.string().url().nullable(),
 });
+
 const TaskLinkSchema = z.object({
   id: z.string().uuid(),
   type: z.nativeEnum(TaskLinkType),
@@ -67,6 +67,7 @@ const TaskLinkSchema = z.object({
     })
     .optional(),
 });
+
 const CustomFieldDefinitionForTaskSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
@@ -120,6 +121,7 @@ const BaseTaskSchema = z.object({
 export type Task = z.infer<typeof BaseTaskSchema> & {
   subtasks: Task[];
 };
+
 export const TaskSchema: z.ZodType<Task> = BaseTaskSchema.extend({
   subtasks: z.lazy(() => z.array(TaskSchema)),
 });
@@ -146,25 +148,30 @@ export const CreateTaskBodySchema = CreateTaskDtoSchema.omit({
   projectId: true,
 });
 export type CreateTaskBody = z.infer<typeof CreateTaskBodySchema>;
+
 export const UpdateTaskDtoSchema = CreateTaskDtoSchema.omit({
   projectId: true,
   parentId: true,
 }).partial();
 export type UpdateTaskDto = z.infer<typeof UpdateTaskDtoSchema>;
+
 export const MoveTaskDtoSchema = z.object({
   targetColumnId: z.string().uuid(),
   orderInColumn: z.number().int(),
 });
 export type MoveTaskDto = z.infer<typeof MoveTaskDtoSchema>;
+
 export const CreateTaskLinkDtoSchema = z.object({
   targetTaskId: z.string().uuid(),
   type: z.nativeEnum(TaskLinkType),
 });
 export type CreateTaskLinkDto = z.infer<typeof CreateTaskLinkDtoSchema>;
+
 export const AssignUserToTaskDtoSchema = z.object({
   userId: z.string().uuid(),
 });
 export type AssignUserToTaskDto = z.infer<typeof AssignUserToTaskDtoSchema>;
+
 export const UpdateTaskCustomValuesDtoSchema = z.object({
   updates: z.array(
     z.object({

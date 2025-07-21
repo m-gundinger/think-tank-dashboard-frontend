@@ -1,7 +1,6 @@
-// src/features/teams/components/ManageTeamMembers.tsx
-import { useGetUsers } from "@/features/admin/users/api/useGetUsers";
-import { useAddUserToTeam } from "../api/useAddUserToTeam";
-import { useRemoveUserFromTeam } from "../api/useRemoveUserFromTeam";
+import { useApiResource } from "@/hooks/useApiResource";
+import { useApiMutation } from "@/hooks/useApiMutation";
+import api from "@/lib/api";
 import {
   Command,
   CommandEmpty,
@@ -20,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Check, UserPlus, XIcon } from "lucide-react";
 import { getAbsoluteUrl } from "@/lib/utils";
+
 interface ManageTeamMembersProps {
   team: any;
   workspaceId: string;
@@ -29,12 +29,30 @@ export function ManageTeamMembers({
   team,
   workspaceId,
 }: ManageTeamMembersProps) {
-  const { data: usersData, isLoading: isLoadingUsers } = useGetUsers({
+  const { data: usersData, isLoading: isLoadingUsers } = useApiResource(
+    "admin/users",
+    ["users"]
+  ).useGetAll({
     limit: 1000,
   });
-  const addUserMutation = useAddUserToTeam(workspaceId, team.id);
-  const removeUserMutation = useRemoveUserFromTeam(workspaceId, team.id);
-
+  const invalidateQueries = [
+    ["teams", workspaceId],
+    ["team", team.id],
+  ];
+  const addUserMutation = useApiMutation({
+    mutationFn: (userId: string) =>
+      api.post(`/workspaces/${workspaceId}/teams/${team.id}/members/${userId}`),
+    successMessage: "User added to team.",
+    invalidateQueries,
+  });
+  const removeUserMutation = useApiMutation({
+    mutationFn: (userId: string) =>
+      api.delete(
+        `/workspaces/${workspaceId}/teams/${team.id}/members/${userId}`
+      ),
+    successMessage: "User removed from team.",
+    invalidateQueries,
+  });
   const memberIds = new Set(team.members.map((m: any) => m.id));
   const availableUsers =
     usersData?.data.filter((user: any) => !memberIds.has(user.id)) || [];

@@ -1,6 +1,5 @@
 import api from "@/lib/api";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { AxiosError } from "axios";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 interface SetStatusParams {
   userId: string;
@@ -18,23 +17,8 @@ async function setUserStatus({
 }
 
 export function useSetUserStatus() {
-  const queryClient = useQueryClient();
-  return useMutation<any, AxiosError, SetStatusParams>({
+  return useApiMutation<any, SetStatusParams>({
     mutationFn: setUserStatus,
-    onSuccess: (updatedUser) => {
-      queryClient.setQueryData<any>(["users"], (oldData: any) => {
-        if (!oldData) return oldData;
-        return {
-          ...oldData,
-          data: oldData.data.map((user: any) =>
-            user.id === updatedUser.id ? updatedUser : user
-          ),
-        };
-      });
-    },
-    onSettled: (_data, _error, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["users"] });
-      queryClient.invalidateQueries({ queryKey: ["user", variables.userId] });
-    },
+    invalidateQueries: (data) => [["users"], ["user", data.id]],
   });
 }

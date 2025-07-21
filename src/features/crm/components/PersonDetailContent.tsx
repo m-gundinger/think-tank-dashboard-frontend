@@ -1,4 +1,3 @@
-// FILE: src/features/crm/components/PersonDetailContent.tsx
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -14,7 +13,6 @@ import {
 import { format } from "date-fns";
 import { RichTextOutput } from "@/components/ui/RichTextOutput";
 import { getAbsoluteUrl } from "@/lib/utils";
-
 const socialIcons: Record<string, React.ElementType> = {
   LINKEDIN: Linkedin,
   TWITTER: Twitter,
@@ -22,7 +20,6 @@ const socialIcons: Record<string, React.ElementType> = {
   WEBSITE: Globe,
   OTHER: ExternalLink,
 };
-
 function InfoItem({
   icon: Icon,
   label,
@@ -35,7 +32,6 @@ function InfoItem({
   href?: string;
 }) {
   if (!value) return null;
-
   const content = (
     <div className="flex items-start gap-4">
       <Icon className="text-muted-foreground mt-1 h-5 w-5 flex-shrink-0" />
@@ -45,7 +41,6 @@ function InfoItem({
       </div>
     </div>
   );
-
   if (href) {
     return (
       <a

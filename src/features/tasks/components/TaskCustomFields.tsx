@@ -1,4 +1,4 @@
-import { useGetCustomFieldDefinitions } from "@/features/custom-fields/api/useGetCustomFieldDefinitions";
+import { useApiResource } from "@/hooks/useApiResource";
 import { useUpdateTaskCustomValues } from "../api/useUpdateTaskCustomValues";
 import { Input } from "@/components/ui/input";
 import {
@@ -22,10 +22,11 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 
 export function TaskCustomFields({ task, workspaceId, projectId }: any) {
-  const { data: definitionsData, isLoading } = useGetCustomFieldDefinitions(
-    workspaceId,
-    projectId
-  );
+  const { data: definitionsData, isLoading } = useApiResource(
+    `/workspaces/${workspaceId}/projects/${projectId}/custom-fields`,
+    ["customFieldDefinitions", projectId]
+  ).useGetAll();
+
   const { mutate: updateValues } = useUpdateTaskCustomValues(
     workspaceId,
     projectId,

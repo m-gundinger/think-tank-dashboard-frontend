@@ -1,10 +1,9 @@
-// src/features/tasks/api/useMoveTask.ts
 import api from "@/lib/api";
-import { useMutation, useQueryClient, QueryKey } from "@tanstack/react-query";
+import { useApiMutation } from "@/hooks/useApiMutation";
 import { TaskStatus } from "@/types";
-import { AxiosError } from "axios";
-import { toast } from "sonner";
 import { Task } from "../task.types";
+import { useQueryClient, QueryKey } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 interface MoveTaskParams {
   workspaceId: string;
@@ -50,14 +49,13 @@ type MoveTaskContext =
     }
   | undefined;
 
-export function useMoveTask() {
+export function useMoveTask(projectId: string) {
   const queryClient = useQueryClient();
 
-  return useMutation<Task, AxiosError, MoveTaskParams, MoveTaskContext>({
+  return useApiMutation<Task, MoveTaskParams, MoveTaskContext>({
     mutationFn: moveTask,
     onMutate: async (variables) => {
-      const { projectId, taskId, targetColumnId, orderInColumn, newStatus } =
-        variables;
+      const { taskId, targetColumnId, orderInColumn, newStatus } = variables;
       const queryKeyPrefix = ["projects", projectId, "tasks", "view"];
 
       await queryClient.cancelQueries({
@@ -100,8 +98,8 @@ export function useMoveTask() {
         toast.error("Failed to move task. Reverting changes.");
       }
     },
-    onSettled: (_data, _error, variables) => {
-      const queryKeyPrefix = ["projects", variables.projectId, "tasks", "view"];
+    onSettled: () => {
+      const queryKeyPrefix = ["projects", projectId, "tasks", "view"];
       queryClient.invalidateQueries({ queryKey: queryKeyPrefix, exact: false });
     },
   });

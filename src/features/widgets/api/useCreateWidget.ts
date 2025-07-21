@@ -1,5 +1,5 @@
 import api from "@/lib/api";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 interface CreateWidgetParams {
   workspaceId: string;
@@ -26,24 +26,10 @@ export function useCreateWidget(
   projectId: string,
   dashboardId: string
 ) {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useApiMutation({
     mutationFn: (widgetData: any) =>
       createWidget({ workspaceId, projectId, dashboardId, widgetData }),
-    onSuccess: (newWidget) => {
-      queryClient.setQueryData<any>(
-        ["dashboard", dashboardId],
-        (oldData: any) => {
-          if (!oldData) return oldData;
-          return {
-            ...oldData,
-            widgets: [...oldData.widgets, newWidget],
-          };
-        }
-      );
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["dashboard", dashboardId] });
-    },
+    successMessage: "Widget added to dashboard.",
+    invalidateQueries: [["dashboard", dashboardId]],
   });
 }

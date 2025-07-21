@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
-import { useDeleteDashboard } from "../api/useDeleteDashboard";
+import { useApiResource } from "@/hooks/useApiResource";
 
 interface DashboardCardProps {
   dashboard: any;
@@ -21,10 +21,11 @@ interface DashboardCardProps {
 }
 
 export function DashboardCard({ dashboard, onEdit }: DashboardCardProps) {
-  const deleteMutation = useDeleteDashboard(
-    dashboard.workspaceId,
-    dashboard.projectId
+  const dashboardResource = useApiResource(
+    `/workspaces/${dashboard.workspaceId}/projects/${dashboard.projectId}/dashboards`,
+    ["dashboards", dashboard.projectId]
   );
+  const deleteMutation = dashboardResource.useDelete();
 
   const handleDelete = (e: React.MouseEvent) => {
     e.preventDefault();

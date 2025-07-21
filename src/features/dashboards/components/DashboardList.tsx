@@ -1,7 +1,8 @@
-import { useGetDashboards } from "../api/useGetDashboards";
+import { useApiResource } from "@/hooks/useApiResource";
 import { DashboardCard } from "./DashboardCard";
 import { useState } from "react";
-import { EditDashboardDialog } from "./EditDashboardDialog";
+import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { CreateDashboardForm } from "./CreateDashboardForm";
 
 export function DashboardList({
   workspaceId,
@@ -10,7 +11,11 @@ export function DashboardList({
   workspaceId: string;
   projectId: string;
 }) {
-  const { data, isLoading, isError } = useGetDashboards(workspaceId, projectId);
+  const dashboardResource = useApiResource(
+    `/workspaces/${workspaceId}/projects/${projectId}/dashboards`,
+    ["dashboards", projectId]
+  );
+  const { data, isLoading, isError } = dashboardResource.useGetAll();
   const [editingDashboardId, setEditingDashboardId] = useState<string | null>(
     null
   );
@@ -32,12 +37,16 @@ export function DashboardList({
           />
         ))}
       </div>
-      <EditDashboardDialog
-        workspaceId={workspaceId}
-        projectId={projectId}
-        dashboardId={editingDashboardId}
+      <ResourceCrudDialog
         isOpen={!!editingDashboardId}
         onOpenChange={(isOpen) => !isOpen && setEditingDashboardId(null)}
+        resourceId={editingDashboardId}
+        resourcePath={`/workspaces/${workspaceId}/projects/${projectId}/dashboards`}
+        resourceKey={["dashboards", projectId]}
+        title="Edit Dashboard"
+        description="Make changes to your dashboard here. Click save when you're done."
+        form={CreateDashboardForm}
+        formProps={{ workspaceId, projectId }}
       />
     </>
   );

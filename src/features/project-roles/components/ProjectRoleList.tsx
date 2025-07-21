@@ -1,25 +1,23 @@
 import { useState } from "react";
-import { useGetProjectRoles } from "../api/useGetProjectRoles";
-import { useDeleteProjectRole } from "../api/useDeleteProjectRole";
+import { useApiResource } from "@/hooks/useApiResource";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Edit, Trash2 } from "lucide-react";
 import { EditProjectRoleDialog } from "./EditProjectRoleDialog";
-
 interface Props {
   workspaceId: string;
   projectId: string;
 }
 
 export function ProjectRoleList({ workspaceId, projectId }: Props) {
-  const { data: rolesData, isLoading } = useGetProjectRoles(
-    workspaceId,
-    projectId
+  const projectRoleResource = useApiResource(
+    `/workspaces/${workspaceId}/projects/${projectId}/roles`,
+    ["projectRoles", projectId]
   );
-  const deleteMutation = useDeleteProjectRole(workspaceId, projectId);
+  const { data: rolesData, isLoading } = projectRoleResource.useGetAll();
+  const deleteMutation = projectRoleResource.useDelete();
   const [editingRole, setEditingRole] = useState<any | null>(null);
-
   if (isLoading) return <div>Loading Project Roles...</div>;
 
   const handleDelete = (role: any) => {

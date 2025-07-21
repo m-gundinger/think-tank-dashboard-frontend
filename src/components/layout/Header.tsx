@@ -1,4 +1,3 @@
-// FILE: src/components/layout/Header.tsx
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,14 +16,16 @@ import { SearchDialog } from "@/features/search/components/SearchDialog";
 import { NotificationBell } from "@/features/notifications/components/NotificationBell";
 import { useState } from "react";
 import { getAbsoluteUrl } from "@/lib/utils";
+
 export function Header() {
   const { data: user, isLoading } = useGetProfile();
   const logoutMutation = useLogout();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const handleLogout = () => {
-    logoutMutation.mutate();
+    logoutMutation.mutate(undefined);
   };
+
   return (
     <>
       <header className="flex h-16 items-center border-b bg-white px-6">

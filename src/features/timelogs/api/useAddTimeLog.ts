@@ -1,6 +1,5 @@
 import api from "@/lib/api";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-
+import { useApiMutation } from "@/hooks/useApiMutation";
 async function addTimeLog({
   workspaceId,
   projectId,
@@ -19,13 +18,10 @@ export function useAddTimeLog(
   projectId: string,
   taskId: string
 ) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
+  return useApiMutation({
     mutationFn: (timeLogData: any) =>
       addTimeLog({ workspaceId, projectId, taskId, timeLogData }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["timeLogs", taskId] });
-    },
+    successMessage: "Time logged successfully.",
+    invalidateQueries: [["timeLogs", taskId]],
   });
 }

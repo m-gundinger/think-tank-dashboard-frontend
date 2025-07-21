@@ -1,196 +1,201 @@
-import { useState } from "react";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Card, CardFooter } from "@/components/ui/card";
-import { TaskTableRow } from "./TaskTableRow";
-import { EmptyState } from "@/components/ui/empty-state";
-import { CreateTaskDialog } from "./CreateTaskDialog";
-import { CheckSquare, Trash2 } from "lucide-react";
+  DataTable,
+  DataTableWrapper,
+  ColumnDef,
+} from "@/components/ui/DataTable";
 import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
-import { Task } from "../task.types";
-import { Checkbox } from "@/components/ui/checkbox";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { useDeleteTask } from "../api/useDeleteTask";
+import { useApiResource } from "@/hooks/useApiResource";
+import { Task } from "../task.types";
+import { TaskStatus, TaskPriority } from "@/types";
+import { format } from "date-fns";
+import { toast } from "sonner";
+import { MoreHorizontal, Edit, Copy, Trash2 } from "lucide-react";
 
-export function TaskList({
-  workspaceId,
-  projectId,
-  tasks,
-  onTaskSelect,
-}: {
-  workspaceId: string;
-  projectId: string;
+interface TaskListProps {
   tasks: Task[];
   onTaskSelect: (taskId: string) => void;
-}) {
-  const [page, setPage] = useState(1);
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const deleteMutation = useDeleteTask(workspaceId, projectId);
-
-  const limit = 15;
-  const totalPages = Math.ceil(tasks.length / limit);
-  const paginatedTasks = tasks.slice((page - 1) * limit, page * limit);
-  const handlePageChange = (newPage: number) => {
-    if (newPage > 0 && newPage <= totalPages) {
-      setPage(newPage);
-    }
+  pagination?: {
+    page: number;
+    totalPages: number;
+    handlePageChange: (newPage: number) => void;
   };
+  emptyState: React.ReactNode;
+  apiUrl: string;
+  queryKey: string[];
+}
 
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedIds(paginatedTasks.map((item: any) => item.id) || []);
-    } else {
-      setSelectedIds([]);
-    }
-  };
+export function TaskList({
+  tasks,
+  onTaskSelect,
+  pagination,
+  emptyState,
+  apiUrl,
+  queryKey,
+}: TaskListProps) {
+  const taskResource = useApiResource(apiUrl, queryKey);
+  const deleteMutation = taskResource.useDelete();
+  const updateTaskMutation = taskResource.useUpdate();
 
-  const handleRowSelect = (id: string, checked: boolean) => {
-    if (checked) {
-      setSelectedIds((prev) => [...prev, id]);
-    } else {
-      setSelectedIds((prev) => prev.filter((prevId) => prevId !== id));
-    }
-  };
+  if (tasks.length === 0) {
+    return <>{emptyState}</>;
+  }
 
-  const handleBulkDelete = () => {
-    if (
-      window.confirm(
-        `Delete ${selectedIds.length} selected tasks? This cannot be undone.`
-      )
-    ) {
-      // @ts-ignore
-      deleteMutation.mutate(selectedIds, {
-        onSuccess: () => setSelectedIds([]),
-      });
-    }
-  };
-
-  const isAllSelected =
-    paginatedTasks.length > 0 && selectedIds.length === paginatedTasks.length;
-
-  const renderBody = () => {
-    if (tasks.length === 0) {
-      return (
-        <TableRow>
-          <TableCell colSpan={6}>
-            <EmptyState
-              icon={<CheckSquare className="text-primary h-10 w-10" />}
-              title="No tasks yet"
-              description="Create the first task in this project to get started."
-              action={
-                <CreateTaskDialog
-                  workspaceId={workspaceId}
-                  projectId={projectId}
-                />
-              }
-            />
-          </TableCell>
-        </TableRow>
-      );
-    }
-    return paginatedTasks.map((task: any) => (
-      <TaskTableRow
-        key={task.id}
-        task={task}
-        workspaceId={workspaceId}
-        projectId={projectId}
-        onTaskSelect={onTaskSelect}
-        level={0}
-        isSelected={selectedIds.includes(task.id)}
-        onSelectChange={handleRowSelect}
-      />
-    ));
-  };
+  const columns: ColumnDef<Task>[] = [
+    {
+      accessorKey: "title",
+      header: "Title",
+      cell: (task) => (
+        <span
+          className="cursor-pointer hover:underline"
+          onClick={() => onTaskSelect(task.id)}
+        >
+          {task.title}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: (task) => (
+        <Select
+          defaultValue={task.status}
+          onValueChange={(newStatus) =>
+            updateTaskMutation.mutate({
+              id: task.id,
+              data: { status: newStatus },
+            })
+          }
+        >
+          <SelectTrigger className="w-[140px]">
+            <SelectValue placeholder="Set status" />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.values(TaskStatus).map((s) => (
+              <SelectItem key={s} value={s}>
+                {s}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      ),
+    },
+    {
+      accessorKey: "priority",
+      header: "Priority",
+      cell: (task) => (
+        <Select
+          defaultValue={task.priority}
+          onValueChange={(newPriority) =>
+            updateTaskMutation.mutate({
+              id: task.id,
+              data: { priority: newPriority },
+            })
+          }
+        >
+          <SelectTrigger className="w-[120px]">
+            <SelectValue placeholder="Set priority" />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.values(TaskPriority).map((p) => (
+              <SelectItem key={p} value={p}>
+                {p}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      ),
+    },
+    {
+      accessorKey: "dueDate",
+      header: "Due Date",
+      cell: (task) =>
+        task.dueDate ? format(new Date(task.dueDate), "PPP") : "None",
+    },
+    {
+      accessorKey: "actions",
+      header: "Actions",
+      cell: (task) => (
+        <div className="text-right" onClick={(e) => e.stopPropagation()}>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => onTaskSelect(task.id)}>
+                <Edit className="mr-2 h-4 w-4" />
+                <span>View / Edit Details</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  navigator.clipboard.writeText(task.id);
+                  toast.success("Task ID copied to clipboard.");
+                }}
+              >
+                <Copy className="mr-2 h-4 w-4" />
+                <span>Copy Task ID</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="text-red-600"
+                onClick={() => {
+                  if (window.confirm(`Delete task: "${task.title}"?`)) {
+                    deleteMutation.mutate(task.id);
+                  }
+                }}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                <span>Delete Task</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      ),
+    },
+  ];
 
   return (
-    <>
-      {selectedIds.length > 0 && (
-        <div className="mb-4 flex items-center gap-2">
+    <DataTableWrapper>
+      <DataTable
+        columns={columns}
+        data={tasks}
+        pagination={pagination}
+        bulkActions={(selectedIds) => (
           <Button
             variant="destructive"
-            onClick={handleBulkDelete}
+            onClick={() => {
+              if (
+                window.confirm(
+                  `Delete ${selectedIds.length} selected tasks? This cannot be undone.`
+                )
+              ) {
+                deleteMutation.mutate(selectedIds);
+              }
+            }}
             disabled={deleteMutation.isPending}
           >
             <Trash2 className="mr-2 h-4 w-4" />
             Delete ({selectedIds.length})
           </Button>
-        </div>
-      )}
-      <Card>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[50px]">
-                <Checkbox
-                  checked={isAllSelected}
-                  onCheckedChange={handleSelectAll}
-                />
-              </TableHead>
-              <TableHead>Title</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Priority</TableHead>
-              <TableHead>Due Date</TableHead>
-              <TableHead className="w-[50px]">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>{renderBody()}</TableBody>
-        </Table>
-        <CardFooter className="border-t pt-4">
-          {totalPages > 1 && (
-            <Pagination>
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handlePageChange(page - 1);
-                    }}
-                    isActive={page > 1}
-                  />
-                </PaginationItem>
-                {[...Array(totalPages)].map((_, i) => (
-                  <PaginationItem key={i}>
-                    <PaginationLink
-                      href="#"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handlePageChange(i + 1);
-                      }}
-                      isActive={page === i + 1}
-                    >
-                      {i + 1}
-                    </PaginationLink>
-                  </PaginationItem>
-                ))}
-                <PaginationItem>
-                  <PaginationNext
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handlePageChange(page + 1);
-                    }}
-                    isActive={page < totalPages}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          )}
-        </CardFooter>
-      </Card>
-    </>
+        )}
+      />
+    </DataTableWrapper>
   );
 }

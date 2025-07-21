@@ -1,5 +1,3 @@
-// FILE: src/features/tasks/components/TaskDetailSidebar.tsx
-// src/features/tasks/components/TaskDetailSidebar.tsx
 import { TaskAssignees } from "./TaskAssignees";
 import { TimeLogSection } from "@/features/timelogs/components/TimeLogSection";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -11,8 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useUpdateTask } from "../api/useUpdateTask";
-import { useUpdateStandaloneTask } from "../api/useUpdateStandaloneTask";
+import { useApiResource } from "@/hooks/useApiResource";
 import { TaskStatus, TaskPriority } from "@/types";
 import {
   Popover,
@@ -26,15 +23,19 @@ import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { TaskDocuments } from "./TaskDocuments";
 export function TaskDetailSidebar({ task, workspaceId, projectId }: any) {
-  const updateTaskMutation = projectId
-    ? useUpdateTask(workspaceId!, projectId, task.id)
-    : useUpdateStandaloneTask(task.id);
+  const taskResource = useApiResource(
+    projectId
+      ? `/workspaces/${workspaceId}/projects/${projectId}/tasks`
+      : "/tasks",
+    projectId ? ["tasks", projectId] : ["myTasks"]
+  );
+  const updateTaskMutation = taskResource.useUpdate();
 
   const handleUpdate = (
     field: "status" | "priority" | "dueDate",
     value: string | null
   ) => {
-    updateTaskMutation.mutate({ [field]: value });
+    updateTaskMutation.mutate({ id: task.id, data: { [field]: value } });
   };
 
   return (

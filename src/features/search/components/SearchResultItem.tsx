@@ -1,10 +1,8 @@
 import { CommandItem } from "@/components/ui/command";
 import { getIcon } from "@/lib/icons";
 import { useNavigate } from "react-router-dom";
-
 export function SearchResultItem({ item }: { item: any }) {
   const navigate = useNavigate();
-
   const getLink = () => {
     switch (item.__typename) {
       case "Project":
@@ -17,14 +15,12 @@ export function SearchResultItem({ item }: { item: any }) {
         return "/";
     }
   };
-
   const handleSelect = () => {
     const url = getLink().replace("DUMMY_WS_ID", "1");
     navigate(url);
   };
 
   const Icon = getIcon(item.__typename);
-
   return (
     <CommandItem
       key={item.id}

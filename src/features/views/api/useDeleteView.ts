@@ -1,7 +1,5 @@
 import api from "@/lib/api";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { AxiosError } from "axios";
-import { toast } from "sonner";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 interface DeleteViewParams {
   workspaceId: string;
@@ -20,18 +18,9 @@ async function deleteView({
 }
 
 export function useDeleteView(workspaceId: string, projectId: string) {
-  const queryClient = useQueryClient();
-  return useMutation<void, AxiosError, string>({
+  return useApiMutation<void, string>({
     mutationFn: (viewId) => deleteView({ workspaceId, projectId, viewId }),
-    onSuccess: () => {
-      toast.success("View deleted successfully.");
-      queryClient.invalidateQueries({ queryKey: ["views", projectId] });
-    },
-    onError: (error: any) => {
-      toast.error("Failed to delete view", {
-        description:
-          error.response?.data?.message || "An unexpected error occurred.",
-      });
-    },
+    successMessage: "View deleted successfully.",
+    invalidateQueries: [["views", projectId]],
   });
 }

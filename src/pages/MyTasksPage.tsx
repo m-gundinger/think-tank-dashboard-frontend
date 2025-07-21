@@ -1,6 +1,4 @@
-// src/pages/MyTasksPage.tsx
-import { MyTasksList } from "@/features/tasks/components/MyTasksList";
-import { CreateTaskDialog } from "@/features/tasks/components/CreateTaskDialog";
+import { TaskList } from "@/features/tasks/components/TaskList";
 import { TaskDetailModal } from "@/features/tasks/components/TaskDetailModal";
 import { useSearchParams } from "react-router-dom";
 import { useState, useMemo } from "react";
@@ -14,9 +12,14 @@ import {
 import { Label } from "@/components/ui/label";
 import { ListTasksQuery } from "@/features/tasks/task.types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useGetMyTasks } from "@/features/tasks/api/useGetMyTasks";
+import { useApiResource } from "@/hooks/useApiResource";
 import { MyTasksKanbanBoard } from "@/features/tasks/components/MyTasksKanbanBoard";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
+import { CheckSquare, PlusCircle } from "lucide-react";
+import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { Button } from "@/components/ui/button";
+import { CreateTaskForm } from "@/features/tasks/components/CreateTaskForm";
 
 const TaskListSkeleton = () => (
   <div className="space-y-2 pt-4">
@@ -25,16 +28,14 @@ const TaskListSkeleton = () => (
     ))}
   </div>
 );
-
 export function MyTasksPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedTaskId = searchParams.get("taskId");
   const activeView = searchParams.get("view") || "list";
-
   const [page, setPage] = useState(1);
   const [filter, setFilter] = useState("all_assigned");
   const [sortBy, setSortBy] = useState("priority");
-
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
   const handleTaskSelect = (taskId: string | null) => {
     setSearchParams(
       (params) => {
@@ -60,7 +61,7 @@ export function MyTasksPage() {
   };
 
   const queryParams: ListTasksQuery = useMemo(() => {
-    const baseQuery = {
+    const baseQuery: ListTasksQuery = {
       sortBy: sortBy as ListTasksQuery["sortBy"],
       sortOrder: "desc" as const,
       limit: activeView === "kanban" ? 200 : 15,
@@ -84,14 +85,22 @@ export function MyTasksPage() {
     }
   }, [filter, sortBy, activeView, page]);
 
-  const { data, isLoading, isError } = useGetMyTasks(queryParams);
-
+  const { data, isLoading } = useApiResource("tasks/my-tasks", [
+    "myTasks",
+  ]).useGetAll(queryParams);
   const handlePageChange = (newPage: number) => {
     if (newPage > 0 && newPage <= (data?.totalPages || 1)) {
       setPage(newPage);
     }
   };
 
+  const emptyState = (
+    <EmptyState
+      icon={<CheckSquare className="text-primary h-10 w-10" />}
+      title="No tasks here"
+      description="No tasks match your current filter. Try selecting a different filter or create a new task."
+    />
+  );
   return (
     <>
       <div className="space-y-6">
@@ -145,7 +154,21 @@ export function MyTasksPage() {
               </div>
             )}
             <div className="self-end">
-              <CreateTaskDialog />
+              <ResourceCrudDialog
+                isOpen={isCreateOpen}
+                onOpenChange={setIsCreateOpen}
+                trigger={
+                  <Button onClick={() => setIsCreateOpen(true)}>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    New Task
+                  </Button>
+                }
+                title="Create a new task"
+                description="Fill in the details below to add a new task."
+                form={CreateTaskForm}
+                resourcePath="/tasks"
+                resourceKey={["myTasks"]}
+              />
             </div>
           </div>
         </div>
@@ -158,11 +181,12 @@ export function MyTasksPage() {
             {isLoading ? (
               <TaskListSkeleton />
             ) : (
-              <MyTasksList
+              <TaskList
                 onTaskSelect={handleTaskSelect}
                 tasks={data?.data || []}
-                isLoading={isLoading}
-                isError={isError}
+                emptyState={emptyState}
+                apiUrl="tasks"
+                queryKey={["myTasks"]}
                 pagination={{
                   page: data?.page || 1,
                   totalPages: data?.totalPages || 1,

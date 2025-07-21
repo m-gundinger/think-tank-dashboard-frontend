@@ -6,13 +6,16 @@ import { DashboardList } from "@/features/dashboards/components/DashboardList";
 import { EpicList } from "@/features/epics/components/EpicList";
 import { ActiveUsers } from "@/components/layout/ActiveUsers";
 import { Button } from "@/components/ui/button";
-import { Settings } from "lucide-react";
-import { CreateTaskDialog } from "@/features/tasks/components/CreateTaskDialog";
-import { CreateDashboardDialog } from "@/features/dashboards/components/CreateDashboardDialog";
-import { CreateEpicDialog } from "@/features/epics/components/CreateEpicDialog";
+import { Settings, CheckSquare, PlusCircle } from "lucide-react";
+import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { CreateTaskForm } from "@/features/tasks/components/CreateTaskForm";
+import { CreateDashboardForm } from "@/features/dashboards/components/CreateDashboardForm";
+import { CreateEpicForm } from "@/features/epics/components/CreateEpicForm";
 import { Task } from "@/features/tasks/task.types";
 import { View } from "@/types";
 import { ProjectActivityLog } from "@/features/activities/components/ProjectActivityLog";
+import { EmptyState } from "@/components/ui/empty-state";
+import { useState } from "react";
 
 interface ProjectDetailViewProps {
   views: View[];
@@ -33,31 +36,96 @@ export function ProjectDetailView({
   activeTab,
   onTabChange,
 }: ProjectDetailViewProps) {
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+
   const renderActionDialog = () => {
     const currentView = views.find((v) => v.id === activeTab);
     const viewType = currentView?.type;
 
     if (viewType === "KANBAN" || viewType === "LIST") {
       return (
-        <CreateTaskDialog workspaceId={workspaceId} projectId={projectId} />
+        <ResourceCrudDialog
+          trigger={
+            <Button>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              New Task
+            </Button>
+          }
+          title="Create a new task"
+          description="Fill in the details below to add a new task."
+          form={CreateTaskForm}
+          formProps={{ workspaceId, projectId }}
+          resourcePath={`/workspaces/${workspaceId}/projects/${projectId}/tasks`}
+          resourceKey={["tasks", projectId]}
+        />
       );
     }
     if (activeTab === "dashboards") {
       return (
-        <CreateDashboardDialog
-          workspaceId={workspaceId}
-          projectId={projectId}
+        <ResourceCrudDialog
+          isOpen={isCreateDialogOpen}
+          onOpenChange={setIsCreateDialogOpen}
+          trigger={
+            <Button onClick={() => setIsCreateDialogOpen(true)}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              New Dashboard
+            </Button>
+          }
+          title="Create New Dashboard"
+          description="Dashboards contain widgets to visualize your project data."
+          form={CreateDashboardForm}
+          formProps={{ workspaceId, projectId }}
+          resourcePath={`/workspaces/${workspaceId}/projects/${projectId}/dashboards`}
+          resourceKey={["dashboards", projectId]}
         />
       );
     }
     if (activeTab === "epics") {
       return (
-        <CreateEpicDialog workspaceId={workspaceId} projectId={projectId} />
+        <ResourceCrudDialog
+          isOpen={isCreateDialogOpen}
+          onOpenChange={setIsCreateDialogOpen}
+          trigger={
+            <Button onClick={() => setIsCreateDialogOpen(true)}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              New Epic
+            </Button>
+          }
+          title="Create New Epic"
+          description="Epics are large bodies of work that can be broken down into a number of smaller tasks."
+          form={CreateEpicForm}
+          formProps={{ workspaceId, projectId }}
+          resourcePath={`/workspaces/${workspaceId}/projects/${projectId}/epics`}
+          resourceKey={["epics", projectId]}
+        />
       );
     }
     return null;
   };
 
+  const projectTaskEmptyState = (
+    <EmptyState
+      icon={<CheckSquare className="text-primary h-10 w-10" />}
+      title="No tasks yet"
+      description="Create the first task in this project to get started."
+      action={
+        <ResourceCrudDialog
+          trigger={
+            <Button>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              New Task
+            </Button>
+          }
+          title="Create a new task"
+          description="Fill in the details below to add a new task."
+          form={CreateTaskForm}
+          formProps={{ workspaceId, projectId }}
+          resourcePath={`/workspaces/${workspaceId}/projects/${projectId}/tasks`}
+          resourceKey={["tasks", projectId]}
+        />
+      }
+    />
+  );
   return (
     <Tabs value={activeTab} onValueChange={onTabChange} className="space-y-4">
       <div className="flex items-center justify-between">
@@ -87,10 +155,11 @@ export function ProjectDetailView({
         <TabsContent key={view.id} value={view.id} className="mt-0 h-full">
           {view.type === "LIST" && (
             <TaskList
-              workspaceId={workspaceId}
-              projectId={projectId}
+              apiUrl={`/workspaces/${workspaceId}/projects/${projectId}/tasks`}
+              queryKey={["tasks", projectId]}
               tasks={tasks}
               onTaskSelect={onTaskSelect}
+              emptyState={projectTaskEmptyState}
             />
           )}
           {view.type === "KANBAN" && (

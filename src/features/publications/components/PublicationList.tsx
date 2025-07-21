@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { useGetPublications } from "../api/useGetPublications";
+import { useApiResource } from "@/hooks/useApiResource";
 import { PublicationCard } from "./PublicationCard";
 import { Skeleton } from "@/components/ui/skeleton";
-import { EditPublicationDialog } from "./EditPublicationDialog";
-
+import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { CreatePublicationForm } from "./CreatePublicationForm";
 const PublicationListSkeleton = () => (
   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
     {Array.from({ length: 6 }).map((_, i) => (
@@ -17,9 +17,9 @@ const PublicationListSkeleton = () => (
     ))}
   </div>
 );
-
 export function PublicationList() {
-  const { data, isLoading, isError } = useGetPublications({
+  const publicationResource = useApiResource("publications", ["publications"]);
+  const { data, isLoading, isError } = publicationResource.useGetAll({
     page: 1,
     limit: 12,
   });
@@ -30,7 +30,6 @@ export function PublicationList() {
   if (isLoading) return <PublicationListSkeleton />;
   if (isError) return <div>Failed to load publications.</div>;
   if (!data || data.data.length === 0) return <div>No publications found.</div>;
-
   return (
     <>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -42,10 +41,16 @@ export function PublicationList() {
           />
         ))}
       </div>
-      <EditPublicationDialog
-        publication={editingPublication}
+      <ResourceCrudDialog
         isOpen={!!editingPublication}
         onOpenChange={(isOpen) => !isOpen && setEditingPublication(null)}
+        trigger={<></>}
+        title="Edit Publication"
+        description="Make changes to the publication details."
+        form={CreatePublicationForm}
+        resourcePath="publications"
+        resourceKey={["publications"]}
+        resourceId={editingPublication?.id}
       />
     </>
   );

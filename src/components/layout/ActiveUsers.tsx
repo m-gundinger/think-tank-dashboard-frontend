@@ -1,4 +1,3 @@
-// FILE: src/components/layout/ActiveUsers.tsx
 import { usePresenceStore } from "@/store/presence";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {

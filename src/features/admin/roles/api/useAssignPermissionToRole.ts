@@ -1,5 +1,5 @@
 import api from "@/lib/api";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 async function assignPermission({
   roleId,
@@ -15,14 +15,10 @@ async function assignPermission({
 }
 
 export function useAssignPermissionToRole(roleId: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
+  return useApiMutation({
     mutationFn: (permissionId: string) =>
       assignPermission({ roleId, permissionId }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["roles"] });
-      queryClient.invalidateQueries({ queryKey: ["role", roleId] });
-    },
+    successMessage: "Permission assigned to role.",
+    invalidateQueries: [["roles"], ["role", roleId]],
   });
 }

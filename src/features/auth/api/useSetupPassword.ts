@@ -1,8 +1,6 @@
 import api from "@/lib/api";
-import { useMutation } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-
+import { useApiMutation } from "@/hooks/useApiMutation";
 interface SetupPasswordData {
   token: string;
   newPassword: string;
@@ -17,19 +15,11 @@ async function setupPassword(
 
 export function useSetupPassword() {
   const navigate = useNavigate();
-  return useMutation({
+  return useApiMutation({
     mutationFn: setupPassword,
-    onSuccess: (data) => {
-      toast.success("Password Set Successfully", {
-        description: data.message,
-      });
+    successMessage: (data) => data.message,
+    onSuccess: () => {
       navigate("/login");
-    },
-    onError: (error: any) => {
-      toast.error("Failed to set password", {
-        description:
-          error.response?.data?.message || "An unexpected error occurred.",
-      });
     },
   });
 }

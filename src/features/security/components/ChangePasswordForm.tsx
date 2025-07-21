@@ -1,16 +1,9 @@
-import { useForm } from "react-hook-form";
+import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { Form } from "@/components/ui/form";
+import { FormInput } from "@/components/form/FormFields";
 import {
   Card,
   CardContent,
@@ -32,13 +25,11 @@ const changePasswordSchema = z
     message: "New passwords do not match.",
     path: ["confirmPassword"],
   });
-
 type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;
 
 export function ChangePasswordForm() {
   const changePasswordMutation = useChangePassword();
-
-  const form = useForm<ChangePasswordFormValues>({
+  const methods = useForm<ChangePasswordFormValues>({
     resolver: zodResolver(changePasswordSchema),
     defaultValues: {
       currentPassword: "",
@@ -46,7 +37,6 @@ export function ChangePasswordForm() {
       confirmPassword: "",
     },
   });
-
   function onSubmit(values: ChangePasswordFormValues) {
     changePasswordMutation.mutate(values);
   }
@@ -61,54 +51,35 @@ export function ChangePasswordForm() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="currentPassword"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Current Password</FormLabel>
-                  <FormControl>
-                    <Input type="password" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="newPassword"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>New Password</FormLabel>
-                  <FormControl>
-                    <Input type="password" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="confirmPassword"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Confirm New Password</FormLabel>
-                  <FormControl>
-                    <Input type="password" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type="submit" disabled={changePasswordMutation.isPending}>
-              {changePasswordMutation.isPending
-                ? "Changing Password..."
-                : "Change Password"}
-            </Button>
-          </form>
-        </Form>
+        <FormProvider {...methods}>
+          <Form {...methods}>
+            <form
+              onSubmit={methods.handleSubmit(onSubmit)}
+              className="space-y-4"
+            >
+              <FormInput
+                name="currentPassword"
+                label="Current Password"
+                type="password"
+              />
+              <FormInput
+                name="newPassword"
+                label="New Password"
+                type="password"
+              />
+              <FormInput
+                name="confirmPassword"
+                label="Confirm New Password"
+                type="password"
+              />
+              <Button type="submit" disabled={changePasswordMutation.isPending}>
+                {changePasswordMutation.isPending
+                  ? "Changing Password..."
+                  : "Change Password"}
+              </Button>
+            </form>
+          </Form>
+        </FormProvider>
       </CardContent>
     </Card>
   );

@@ -1,33 +1,33 @@
 import { useState } from "react";
-import { useGetWorkflows } from "../api/useGetWorkflows";
+import { useApiResource } from "@/hooks/useApiResource";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Edit, Eye, Trash2, MoreHorizontal } from "lucide-react";
-import { EditWorkflowDialog } from "./EditWorkflowDialog";
 import { WorkflowRunsDialog } from "./WorkflowRunsDialog";
 import { useToggleWorkflow } from "../api/useToggleWorkflow";
-import { useDeleteWorkflow } from "../api/useDeleteWorkflow";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { WorkflowForm } from "./WorkflowForm";
 
 export function WorkflowList() {
-  const { data, isLoading, isError } = useGetWorkflows();
+  const workflowResource = useApiResource("admin/workflows", ["workflows"]);
+  const { data, isLoading, isError } = workflowResource.useGetAll();
   const [editingWorkflowId, setEditingWorkflowId] = useState<string | null>(
     null
   );
   const [viewingRunsFor, setViewingRunsFor] = useState<any | null>(null);
   const toggleMutation = useToggleWorkflow();
-  const deleteMutation = useDeleteWorkflow();
+  const deleteMutation = workflowResource.useDelete();
 
   if (isLoading) return <div>Loading workflows...</div>;
   if (isError) return <div>Error loading workflows.</div>;
-
   const handleDelete = (workflow: any) => {
     if (
       window.confirm(
@@ -118,14 +118,16 @@ export function WorkflowList() {
           </Card>
         ))}
       </div>
-      <EditWorkflowDialog
+      <ResourceCrudDialog
         isOpen={!!editingWorkflowId}
-        workflowId={editingWorkflowId}
-        onOpenChange={(isOpen) => {
-          if (!isOpen) {
-            setEditingWorkflowId(null);
-          }
-        }}
+        onOpenChange={(isOpen) => !isOpen && setEditingWorkflowId(null)}
+        resourceId={editingWorkflowId}
+        resourcePath="admin/workflows"
+        resourceKey={["workflows"]}
+        title="Edit Workflow"
+        description="Modify the workflow's trigger and actions."
+        form={WorkflowForm}
+        dialogClassName="sm:max-w-[600px]"
       />
       <WorkflowRunsDialog
         isOpen={!!viewingRunsFor}

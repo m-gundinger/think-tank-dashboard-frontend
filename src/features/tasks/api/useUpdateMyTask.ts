@@ -1,8 +1,8 @@
 import api from "@/lib/api";
-import { useMutation, useQueryClient, QueryKey } from "@tanstack/react-query";
-import { AxiosError } from "axios";
-import { toast } from "sonner";
+import { useApiMutation } from "@/hooks/useApiMutation";
 import { Task } from "../task.types";
+import { useQueryClient, QueryKey } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 interface UpdateMyTaskParams {
   taskId: string;
@@ -31,59 +31,56 @@ type UpdateMyTaskContext = {
 
 export function useUpdateMyTask() {
   const queryClient = useQueryClient();
+  return useApiMutation<Task, UpdateMyTaskParams, UpdateMyTaskContext>({
+    mutationFn: updateMyTask,
+    onMutate: async (variables) => {
+      const { taskId, taskData } = variables;
+      const queryKeyPrefix = ["myTasks"];
 
-  return useMutation<Task, AxiosError, UpdateMyTaskParams, UpdateMyTaskContext>(
-    {
-      mutationFn: updateMyTask,
-      onMutate: async (variables) => {
-        const { taskId, taskData } = variables;
-        const queryKeyPrefix = ["myTasks"];
+      await queryClient.cancelQueries({
+        queryKey: queryKeyPrefix,
+        exact: false,
+      });
 
-        await queryClient.cancelQueries({
-          queryKey: queryKeyPrefix,
-          exact: false,
+      const queries = queryClient
+        .getQueryCache()
+        .findAll({ queryKey: queryKeyPrefix });
+
+      const previousData = new Map<QueryKey, any>();
+      queries.forEach((query) => {
+        previousData.set(query.queryKey, query.state.data);
+      });
+
+      for (const [queryKey, oldData] of previousData.entries()) {
+        if (!oldData || !oldData.data) continue;
+
+        const updatedData = {
+          ...oldData,
+          data: oldData.data.map((task: Task) =>
+            task.id === taskId ? { ...task, ...taskData } : task
+          ),
+        };
+        queryClient.setQueryData(queryKey, updatedData);
+      }
+
+      return { previousData };
+    },
+    onError: (_err, _variables, context) => {
+      if (context?.previousData) {
+        context.previousData.forEach((data, queryKey) => {
+          queryClient.setQueryData(queryKey, data);
         });
-
-        const queries = queryClient
-          .getQueryCache()
-          .findAll({ queryKey: queryKeyPrefix });
-
-        const previousData = new Map<QueryKey, any>();
-        queries.forEach((query) => {
-          previousData.set(query.queryKey, query.state.data);
+        toast.error("Failed to update task. Reverting changes.");
+      }
+    },
+    onSettled: (_data, _error, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["myTasks"] });
+      if (variables.projectId) {
+        queryClient.invalidateQueries({
+          queryKey: ["projects", variables.projectId, "tasks"],
         });
-
-        for (const [queryKey, oldData] of previousData.entries()) {
-          if (!oldData || !oldData.data) continue;
-
-          const updatedData = {
-            ...oldData,
-            data: oldData.data.map((task: Task) =>
-              task.id === taskId ? { ...task, ...taskData } : task
-            ),
-          };
-          queryClient.setQueryData(queryKey, updatedData);
-        }
-
-        return { previousData };
-      },
-      onError: (_err, _variables, context) => {
-        if (context?.previousData) {
-          context.previousData.forEach((data, queryKey) => {
-            queryClient.setQueryData(queryKey, data);
-          });
-          toast.error("Failed to update task. Reverting changes.");
-        }
-      },
-      onSettled: (_data, _error, variables) => {
-        queryClient.invalidateQueries({ queryKey: ["myTasks"] });
-        if (variables.projectId) {
-          queryClient.invalidateQueries({
-            queryKey: ["projects", variables.projectId, "tasks"],
-          });
-        }
-        queryClient.invalidateQueries({ queryKey: ["task", variables.taskId] });
-      },
-    }
-  );
+      }
+      queryClient.invalidateQueries({ queryKey: ["task", variables.taskId] });
+    },
+  });
 }

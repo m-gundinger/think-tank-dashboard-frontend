@@ -1,6 +1,5 @@
 import api from "@/lib/api";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { AxiosError } from "axios";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 interface UpdateWidgetParams {
   workspaceId: string;
@@ -19,28 +18,14 @@ async function updateWidget(params: UpdateWidgetParams): Promise<any> {
   return data;
 }
 
-export function useUpdateWidget() {
-  const queryClient = useQueryClient();
-  return useMutation<any, AxiosError, UpdateWidgetParams>({
-    mutationFn: updateWidget,
-    onSuccess: (updatedWidget, variables) => {
-      queryClient.setQueryData<any>(
-        ["dashboard", variables.dashboardId],
-        (oldData: any) => {
-          if (!oldData) return oldData;
-          return {
-            ...oldData,
-            widgets: oldData.widgets.map((w: any) =>
-              w.id === updatedWidget.id ? updatedWidget : w
-            ),
-          };
-        }
-      );
-    },
-    onSettled: (_data, _error, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: ["dashboard", variables.dashboardId],
-      });
-    },
+export function useUpdateWidget(
+  workspaceId: string,
+  projectId: string,
+  dashboardId: string
+) {
+  return useApiMutation({
+    mutationFn: (params: { widgetId: string; widgetData: any }) =>
+      updateWidget({ workspaceId, projectId, dashboardId, ...params }),
+    invalidateQueries: [["dashboard", dashboardId]],
   });
 }

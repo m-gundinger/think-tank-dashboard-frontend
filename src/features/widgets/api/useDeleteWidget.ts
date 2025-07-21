@@ -1,7 +1,5 @@
 import api from "@/lib/api";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { AxiosError } from "axios";
-import { toast } from "sonner";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 interface DeleteParams {
   workspaceId: string;
@@ -26,19 +24,10 @@ export function useDeleteWidget(
   projectId: string,
   dashboardId: string
 ) {
-  const queryClient = useQueryClient();
-  return useMutation<void, AxiosError, string>({
+  return useApiMutation<void, string>({
     mutationFn: (widgetId) =>
       deleteWidget({ workspaceId, projectId, dashboardId, widgetId }),
-    onSuccess: () => {
-      toast.success("Widget removed from dashboard.");
-      queryClient.invalidateQueries({ queryKey: ["dashboard", dashboardId] });
-    },
-    onError: (error: any) => {
-      toast.error("Failed to delete widget", {
-        description:
-          error.response?.data?.message || "An unexpected error occurred.",
-      });
-    },
+    successMessage: "Widget removed from dashboard.",
+    invalidateQueries: [["dashboard", dashboardId]],
   });
 }

@@ -1,43 +1,45 @@
 import { useParams, useSearchParams } from "react-router-dom";
 import { useEffect, useMemo } from "react";
 import { TaskDetailModal } from "@/features/tasks/components/TaskDetailModal";
-import { useGetProjectViews } from "@/features/views/api/useGetProjectViews";
+import { useApiResource } from "@/hooks/useApiResource";
 import { useProjectSocket } from "@/hooks/useProjectSocket";
 import { usePresence } from "@/hooks/usePresence";
 import { ErrorState } from "@/components/ui/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProjectDetailView } from "./ProjectDetailView";
-import { useGetViewData } from "@/features/views/api/useGetViewData";
+import { ListTasksQuery } from "@/features/tasks/task.types";
 import { View } from "@/types";
+import { useGetViewData } from "@/features/views/api/useGetViewData";
 
 export function ProjectDetailPage() {
   const { workspaceId, projectId } = useParams<{
     workspaceId: string;
     projectId: string;
   }>();
+
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTabId = searchParams.get("view");
   const selectedTaskId = searchParams.get("taskId");
-
+  const viewsResource = useApiResource(
+    `/workspaces/${workspaceId}/projects/${projectId}/views`,
+    ["views", projectId]
+  );
   const {
     data: viewsData,
     isLoading: isLoadingViews,
     isError: isViewsError,
-  } = useGetProjectViews(workspaceId!, projectId!);
-
+  } = viewsResource.useGetAll();
   const activeView = useMemo(
     () => (viewsData?.data || []).find((v: View) => v.id === activeTabId),
     [viewsData, activeTabId]
   );
-
-  const viewDataQuery = {
+  const viewDataQuery: ListTasksQuery = {
     page: 1,
     limit: 100,
     includeSubtasks: false,
     sortBy: "orderInColumn" as const,
     sortOrder: "asc" as const,
   };
-
   const {
     data: viewData,
     isLoading: isLoadingViewData,
@@ -45,7 +47,6 @@ export function ProjectDetailPage() {
   } = useGetViewData(workspaceId!, projectId!, activeTabId, viewDataQuery, {
     enabled: !!activeView,
   });
-
   useProjectSocket(projectId!);
   usePresence("Project", projectId!);
 
@@ -63,8 +64,7 @@ export function ProjectDetailPage() {
         listTabView?.id || viewsData.data?.[0]?.id || "dashboards";
       handleTabChange(defaultViewId);
     }
-  }, [isLoadingViews, viewsData, activeTabId]);
-
+  }, [isLoadingViews, viewsData, activeTabId, handleTabChange]);
   const handleTaskSelect = (taskId: string | null) => {
     setSearchParams((params) => {
       if (taskId) {
@@ -90,7 +90,6 @@ export function ProjectDetailPage() {
   }
 
   const isLoading = isLoadingViews || (!!activeView && isLoadingViewData);
-
   if (isLoading || !activeTabId) {
     return (
       <div className="space-y-4">
@@ -120,8 +119,6 @@ export function ProjectDetailPage() {
       />
 
       <TaskDetailModal
-        workspaceId={workspaceId}
-        projectId={projectId}
         taskId={selectedTaskId}
         isOpen={!!selectedTaskId}
         onOpenChange={(isOpen) => {

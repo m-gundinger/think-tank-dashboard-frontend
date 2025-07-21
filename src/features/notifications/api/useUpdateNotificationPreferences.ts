@@ -1,8 +1,5 @@
 import api from "@/lib/api";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { AxiosError } from "axios";
-import { toast } from "sonner";
-
+import { useApiMutation } from "@/hooks/useApiMutation";
 async function updateNotificationPreferences(
   preferencesData: any
 ): Promise<any> {
@@ -11,18 +8,9 @@ async function updateNotificationPreferences(
 }
 
 export function useUpdateNotificationPreferences() {
-  const queryClient = useQueryClient();
-  return useMutation<any, AxiosError, any>({
+  return useApiMutation({
     mutationFn: updateNotificationPreferences,
-    onSuccess: (data) => {
-      queryClient.setQueryData(["notificationPreferences"], data);
-      toast.success("Notification preferences updated.");
-    },
-    onError: (error: any) => {
-      toast.error("Failed to update preferences", {
-        description:
-          error.response?.data?.message || "An unexpected error occurred.",
-      });
-    },
+    successMessage: "Notification preferences updated.",
+    invalidateQueries: [["notificationPreferences"]],
   });
 }

@@ -9,8 +9,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Link2, Trash2 } from "lucide-react";
-import { useAddTaskLink } from "../api/useAddTaskLink";
-import { useRemoveTaskLink } from "../api/useRemoveTaskLink";
+import { useApiMutation } from "@/hooks/useApiMutation";
+import api from "@/lib/api";
 import { TaskLinkType } from "@/types";
 
 export function TaskLinks({ task, workspaceId, projectId }: any) {
@@ -19,8 +19,24 @@ export function TaskLinks({ task, workspaceId, projectId }: any) {
     TaskLinkType.RELATES_TO
   );
 
-  const addLinkMutation = useAddTaskLink(workspaceId, projectId, task.id);
-  const removeLinkMutation = useRemoveTaskLink(workspaceId, projectId, task.id);
+  const addLinkMutation = useApiMutation({
+    mutationFn: (linkData: any) =>
+      api.post(
+        `/workspaces/${workspaceId}/projects/${projectId}/tasks/${task.id}/links`,
+        linkData
+      ),
+    successMessage: "Task linked successfully.",
+    invalidateQueries: [["task", task.id]],
+  });
+
+  const removeLinkMutation = useApiMutation({
+    mutationFn: (linkId: string) =>
+      api.delete(
+        `/workspaces/${workspaceId}/projects/${projectId}/tasks/${task.id}/links/${linkId}`
+      ),
+    successMessage: "Task link removed.",
+    invalidateQueries: [["task", task.id]],
+  });
 
   const handleAddLink = (e: React.FormEvent) => {
     e.preventDefault();

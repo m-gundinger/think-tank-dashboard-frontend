@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { z } from "zod";
-import { useCreateJobSchedule } from "../api/useCreateJobSchedule";
+import { useApiResource } from "@/hooks/useApiResource";
 import { useGetJobTypes } from "../api/useGetJobTypes";
 import {
   Select,
@@ -22,7 +22,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
 const JobScheduleFormSchema = z.object({
   name: z.string().min(1, "Schedule name is required."),
   jobType: z.string().min(1, "Job type is required."),
@@ -30,7 +29,6 @@ const JobScheduleFormSchema = z.object({
   payload: z.string(),
   isActive: z.boolean(),
 });
-
 type JobScheduleFormValues = {
   name: string;
   jobType: string;
@@ -38,7 +36,6 @@ type JobScheduleFormValues = {
   payload: string;
   isActive: boolean;
 };
-
 interface CreateJobScheduleFormProps {
   onSuccess?: () => void;
 }
@@ -46,9 +43,11 @@ interface CreateJobScheduleFormProps {
 export function CreateJobScheduleForm({
   onSuccess,
 }: CreateJobScheduleFormProps) {
-  const createMutation = useCreateJobSchedule();
+  const jobScheduleResource = useApiResource("admin/jobs/schedules", [
+    "jobSchedules",
+  ]);
+  const createMutation = jobScheduleResource.useCreate();
   const { data: jobTypesData, isLoading: isLoadingJobTypes } = useGetJobTypes();
-
   const form = useForm<JobScheduleFormValues>({
     resolver: zodResolver(JobScheduleFormSchema),
     defaultValues: {
@@ -59,7 +58,6 @@ export function CreateJobScheduleForm({
       isActive: true,
     },
   });
-
   async function onSubmit(values: JobScheduleFormValues) {
     let parsedPayload = {};
     if (values.payload && values.payload.trim()) {
@@ -78,7 +76,6 @@ export function CreateJobScheduleForm({
       ...values,
       payload: parsedPayload,
     };
-
     await createMutation.mutateAsync(submitData, {
       onSuccess: () => {
         form.reset();

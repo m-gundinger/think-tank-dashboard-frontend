@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-
 export function IntegrationCallbackPage() {
   const [searchParams] = useSearchParams();
 
@@ -21,7 +20,6 @@ export function IntegrationCallbackPage() {
       window.close();
     }
   }, [searchParams]);
-
   return (
     <div className="flex h-screen w-full items-center justify-center bg-gray-100">
       <div className="text-center">
