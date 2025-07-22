@@ -1,7 +1,9 @@
+// FILE: src/features/widgets/components/WidgetRenderer.tsx
 import { StatsCounterWidget } from "./StatsCounterWidget";
 import { TaskListWidget } from "./TaskListWidget";
 import { BurndownChartWidget } from "./BurndownChartWidget";
 import { TimeTrackingReportWidget } from "./TimeTrackingReportWidget";
+import { PieChartWidget } from "./PieChartWidget";
 import { WidgetWrapper } from "./WidgetWrapper";
 
 export function WidgetRenderer({ widget, workspaceId, projectId }: any) {
@@ -34,6 +36,14 @@ export function WidgetRenderer({ widget, workspaceId, projectId }: any) {
       case "TIME_TRACKING_REPORT":
         return (
           <TimeTrackingReportWidget
+            widget={widget}
+            workspaceId={workspaceId}
+            projectId={projectId}
+          />
+        );
+      case "PIE_CHART":
+        return (
+          <PieChartWidget
             widget={widget}
             workspaceId={workspaceId}
             projectId={projectId}

@@ -1,3 +1,5 @@
+// FILE: src/features/tasks/task.types.ts
+import { z, type ZodType } from "zod";
 import {
   TaskStatus,
   TaskPriority,
@@ -5,12 +7,12 @@ import {
   CustomFieldType,
   DocumentType,
 } from "@/types";
-import { z } from "zod";
 import {
   createPaginationSchema,
   createPaginatedResponseSchema,
   createUuidParamSchema,
 } from "@/lib/zod";
+import { TaskTypeSchema } from "../task-types/task-type.types";
 
 export const ProjectIdParamsSchema = createUuidParamSchema(
   "projectId",
@@ -90,6 +92,13 @@ const TaskDocumentSchema = z.object({
   createdAt: z.coerce.date(),
 });
 
+export const ChecklistItemSchema = z.object({
+  id: z.string(),
+  text: z.string(),
+  completed: z.boolean(),
+});
+export type ChecklistItem = z.infer<typeof ChecklistItemSchema>;
+
 const BaseTaskSchema = z.object({
   __typename: z.literal("Task"),
   id: z.string().uuid(),
@@ -98,6 +107,8 @@ const BaseTaskSchema = z.object({
   status: z.nativeEnum(TaskStatus),
   priority: z.nativeEnum(TaskPriority),
   projectId: z.string().uuid().nullable(),
+  taskTypeId: z.string().uuid().nullable().optional(),
+  taskType: TaskTypeSchema.nullable().optional(),
   workspaceId: z.string().uuid().nullable(),
   projectName: z.string().nullable(),
   ownerId: z.string().uuid().nullable(),
@@ -105,9 +116,12 @@ const BaseTaskSchema = z.object({
   startDate: z.coerce.date().nullable(),
   dueDate: z.coerce.date().nullable(),
   timeEstimate: z.number().int().nullable(),
+  storyPoints: z.number().int().nullable().optional(),
   epicId: z.string().uuid().nullable(),
+  sprintId: z.string().uuid().nullable().optional(),
   boardColumnId: z.string().uuid().nullable(),
   orderInColumn: z.number().int().nullable(),
+  recurrenceRule: z.string().nullable().optional(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
   assignees: z.array(TaskAssigneeSchema),
@@ -116,13 +130,14 @@ const BaseTaskSchema = z.object({
   customFields: z.array(TaskCustomFieldSchema),
   documents: z.array(TaskDocumentSchema),
   parentId: z.string().uuid().nullable(),
+  checklist: z.array(ChecklistItemSchema).nullable().optional(),
 });
 
 export type Task = z.infer<typeof BaseTaskSchema> & {
   subtasks: Task[];
 };
 
-export const TaskSchema: z.ZodType<Task> = BaseTaskSchema.extend({
+export const TaskSchema: ZodType<Task> = BaseTaskSchema.extend({
   subtasks: z.lazy(() => z.array(TaskSchema)),
 });
 
@@ -136,11 +151,15 @@ export const CreateTaskDtoSchema = z.object({
   startDate: z.coerce.date().optional().nullable(),
   dueDate: z.coerce.date().optional().nullable(),
   timeEstimate: z.number().int().positive().optional().nullable(),
+  storyPoints: z.number().int().positive().optional().nullable(),
   projectId: z.string().uuid().optional().nullable(),
+  taskTypeId: z.string().uuid().optional().nullable(),
   epicId: z.string().uuid().optional().nullable(),
-  boardColumnId: z.string().uuid().optional(),
+  sprintId: z.string().uuid().optional().nullable(),
+  boardColumnId: z.string().uuid().optional().nullable(),
   parentId: z.string().uuid().optional().nullable(),
   assigneeIds: z.array(z.string().uuid()).optional(),
+  checklist: z.array(ChecklistItemSchema).optional().nullable(),
 });
 export type CreateTaskDto = z.infer<typeof CreateTaskDtoSchema>;
 
@@ -148,7 +167,6 @@ export const CreateTaskBodySchema = CreateTaskDtoSchema.omit({
   projectId: true,
 });
 export type CreateTaskBody = z.infer<typeof CreateTaskBodySchema>;
-
 export const UpdateTaskDtoSchema = CreateTaskDtoSchema.omit({
   projectId: true,
   parentId: true,
@@ -160,18 +178,15 @@ export const MoveTaskDtoSchema = z.object({
   orderInColumn: z.number().int(),
 });
 export type MoveTaskDto = z.infer<typeof MoveTaskDtoSchema>;
-
 export const CreateTaskLinkDtoSchema = z.object({
   targetTaskId: z.string().uuid(),
   type: z.nativeEnum(TaskLinkType),
 });
 export type CreateTaskLinkDto = z.infer<typeof CreateTaskLinkDtoSchema>;
-
 export const AssignUserToTaskDtoSchema = z.object({
   userId: z.string().uuid(),
 });
 export type AssignUserToTaskDto = z.infer<typeof AssignUserToTaskDtoSchema>;
-
 export const UpdateTaskCustomValuesDtoSchema = z.object({
   updates: z.array(
     z.object({

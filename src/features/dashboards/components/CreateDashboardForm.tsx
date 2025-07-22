@@ -1,3 +1,4 @@
+// FILE: src/features/dashboards/components/CreateDashboardForm.tsx
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
@@ -16,7 +17,7 @@ type DashboardFormValues = z.infer<typeof dashboardSchema>;
 
 interface DashboardFormProps {
   workspaceId: string;
-  projectId: string;
+  projectId?: string;
   initialData?: any;
   onSuccess?: () => void;
 }
@@ -28,10 +29,16 @@ export function CreateDashboardForm({
   onSuccess,
 }: DashboardFormProps) {
   const isEditMode = !!initialData;
-  const dashboardResource = useApiResource(
-    `/workspaces/${workspaceId}/projects/${projectId}/dashboards`,
-    ["dashboards", projectId]
-  );
+
+  const resourceUrl = projectId
+    ? `/workspaces/${workspaceId}/projects/${projectId}/dashboards`
+    : `/workspaces/${workspaceId}/dashboards`;
+  const resourceKey = projectId
+    ? ["dashboards", projectId]
+    : ["dashboards", workspaceId];
+
+  const dashboardResource = useApiResource(resourceUrl, resourceKey);
+
   const createMutation = dashboardResource.useCreate();
   const updateMutation = dashboardResource.useUpdate();
   const mutation = isEditMode ? updateMutation : createMutation;
@@ -48,21 +55,26 @@ export function CreateDashboardForm({
     }
   }, [initialData, isEditMode, methods]);
   async function onSubmit(values: DashboardFormValues) {
+    const payload = {
+      ...values,
+      ...(projectId ? { projectId } : { workspaceId }),
+    };
+
     if (isEditMode) {
       await updateMutation.mutateAsync(
-        { id: initialData.id, data: values },
+        {
+          id: initialData.id,
+          data: { name: values.name, description: values.description },
+        },
         { onSuccess }
       );
     } else {
-      await createMutation.mutateAsync(
-        { ...values, projectId },
-        {
-          onSuccess: () => {
-            methods.reset();
-            onSuccess?.();
-          },
-        }
-      );
+      await createMutation.mutateAsync(payload, {
+        onSuccess: () => {
+          methods.reset();
+          onSuccess?.();
+        },
+      });
     }
   }
 

@@ -1,3 +1,4 @@
+// FILE: src/types/index.ts
 export enum TaskStatus {
   TODO = "TODO",
   IN_PROGRESS = "IN_PROGRESS",
@@ -22,6 +23,12 @@ export enum EpicStatus {
   ARCHIVED = "ARCHIVED",
 }
 
+export enum SprintStatus {
+  PLANNING = "PLANNING",
+  ACTIVE = "ACTIVE",
+  COMPLETED = "COMPLETED",
+}
+
 export enum TaskLinkType {
   RELATES_TO = "RELATES_TO",
   BLOCKS = "BLOCKS",
@@ -42,8 +49,10 @@ export enum WorkflowActionType {
   UPDATE_TASK_STATUS = "UPDATE_TASK_STATUS",
   CREATE_TASK = "CREATE_TASK",
   SEND_NOTIFICATION = "SEND_NOTIFICATION",
-  ASSIGN_USER = "ASSIGN_USER",
+  ASSIGN_TASK = "ASSIGN_TASK", // Formerly ASSIGN_USER
   ADD_COMMENT = "ADD_COMMENT",
+  SEND_TELEGRAM_MESSAGE = "SEND_TELEGRAM_MESSAGE", // Added
+  SEND_EMAIL_BREVO = "SEND_EMAIL_BREVO", // Added
 }
 
 export enum WidgetType {
@@ -51,6 +60,7 @@ export enum WidgetType {
   TASK_LIST = "TASK_LIST",
   BURNDOWN_CHART = "BURNDOWN_CHART",
   TIME_TRACKING_REPORT = "TIME_TRACKING_REPORT",
+  PIE_CHART = "PIE_CHART",
   CHART = "CHART",
   TABLE = "TABLE",
 }
@@ -98,6 +108,7 @@ export enum ViewType {
   LIST = "LIST",
   CALENDAR = "CALENDAR",
   GANTT = "GANTT",
+  BACKLOG = "BACKLOG",
 }
 
 export enum JobStatus {

@@ -1,3 +1,4 @@
+// FILE: src/features/tasks/components/CreateTaskForm.tsx
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
@@ -7,6 +8,7 @@ import {
   FormSelect,
   FormDatePicker,
   FormAssigneeSelector,
+  FormTaskTypeSelector,
 } from "@/components/form/FormFields";
 import { useApiResource } from "@/hooks/useApiResource";
 import { useGetProfile } from "@/features/profile/api/useGetProfile";
@@ -21,6 +23,7 @@ const taskSchema = z.object({
   description: z.string().optional(),
   status: z.nativeEnum(TaskStatus),
   priority: z.nativeEnum(TaskPriority),
+  taskTypeId: z.string().uuid().nullable().optional(),
   epicId: z.string().nullable().optional(),
   parentId: z.string().nullable().optional(),
   boardColumnId: z.string().uuid().optional().nullable(),
@@ -62,7 +65,6 @@ export function CreateTaskForm({
   const { data: epicsData, isLoading: isLoadingEpics } =
     epicResource.useGetAll();
   const { data: profileData } = useGetProfile();
-
   const methods = useForm<TaskFormValues>({
     resolver: zodResolver(taskSchema),
     defaultValues: {
@@ -70,6 +72,7 @@ export function CreateTaskForm({
       description: "",
       status: TaskStatus.TODO,
       priority: TaskPriority.NONE,
+      taskTypeId: null,
       epicId: null,
       parentId: parentId,
       boardColumnId: null,
@@ -84,12 +87,12 @@ export function CreateTaskForm({
       methods.setValue("assigneeIds", [profileData.id]);
     }
   }, [profileData, methods]);
-
   async function onSubmit(values: TaskFormValues) {
     const submitData: Partial<TaskFormValues> = { ...values };
     if (!submitData.boardColumnId) delete submitData.boardColumnId;
     if (!submitData.epicId) delete submitData.epicId;
     if (!submitData.parentId) delete submitData.parentId;
+    if (!submitData.taskTypeId) delete submitData.taskTypeId;
 
     await createMutation.mutate(submitData, {
       onSuccess: () => {
@@ -102,7 +105,6 @@ export function CreateTaskForm({
   const errorMessage = (
     createMutation.error as AxiosError<{ message?: string }>
   )?.response?.data?.message;
-
   const statusOptions = Object.values(TaskStatus).map((s) => ({
     value: s,
     label: s,
@@ -126,6 +128,14 @@ export function CreateTaskForm({
             label="Title"
             placeholder="e.g. Draft Q3 financial report"
           />
+          {projectId && workspaceId && (
+            <FormTaskTypeSelector
+              name="taskTypeId"
+              label="Task Type"
+              workspaceId={workspaceId}
+              projectId={projectId}
+            />
+          )}
           <FormAssigneeSelector
             name="assigneeIds"
             label="Assignees"

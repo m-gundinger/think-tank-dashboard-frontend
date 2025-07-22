@@ -1,3 +1,4 @@
+// FILE: src/features/dashboards/components/DashboardList.tsx
 import { useApiResource } from "@/hooks/useApiResource";
 import { DashboardCard } from "./DashboardCard";
 import { useState } from "react";
@@ -9,12 +10,17 @@ export function DashboardList({
   projectId,
 }: {
   workspaceId: string;
-  projectId: string;
+  projectId?: string;
 }) {
-  const dashboardResource = useApiResource(
-    `/workspaces/${workspaceId}/projects/${projectId}/dashboards`,
-    ["dashboards", projectId]
-  );
+  const resourceUrl = projectId
+    ? `/workspaces/${workspaceId}/projects/${projectId}/dashboards`
+    : `/workspaces/${workspaceId}/dashboards`;
+  const resourceKey = projectId
+    ? ["dashboards", projectId]
+    : ["dashboards", workspaceId];
+
+  const dashboardResource = useApiResource(resourceUrl, resourceKey);
+
   const { data, isLoading, isError } = dashboardResource.useGetAll();
   const [editingDashboardId, setEditingDashboardId] = useState<string | null>(
     null
@@ -23,7 +29,7 @@ export function DashboardList({
   if (isLoading) return <div>Loading dashboards...</div>;
   if (isError) return <div>Error loading dashboards.</div>;
   if (!data || data.data.length === 0) {
-    return <p>This project has no dashboards yet. Create one to begin!</p>;
+    return <p>No dashboards have been created yet. Create one to begin!</p>;
   }
 
   return (
@@ -41,8 +47,8 @@ export function DashboardList({
         isOpen={!!editingDashboardId}
         onOpenChange={(isOpen) => !isOpen && setEditingDashboardId(null)}
         resourceId={editingDashboardId}
-        resourcePath={`/workspaces/${workspaceId}/projects/${projectId}/dashboards`}
-        resourceKey={["dashboards", projectId]}
+        resourcePath={resourceUrl}
+        resourceKey={resourceKey}
         title="Edit Dashboard"
         description="Make changes to your dashboard here. Click save when you're done."
         form={CreateDashboardForm}

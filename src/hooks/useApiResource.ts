@@ -1,3 +1,4 @@
+// FILE: src/hooks/useApiResource.ts
 import api from "@/lib/api";
 import { useQuery, QueryKey } from "@tanstack/react-query";
 import { useApiMutation } from "./useApiMutation";

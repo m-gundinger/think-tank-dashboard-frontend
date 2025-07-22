@@ -1,3 +1,4 @@
+// FILE: src/features/dashboards/components/DashboardCard.tsx
 import {
   Card,
   CardDescription,
@@ -21,10 +22,16 @@ interface DashboardCardProps {
 }
 
 export function DashboardCard({ dashboard, onEdit }: DashboardCardProps) {
-  const dashboardResource = useApiResource(
-    `/workspaces/${dashboard.workspaceId}/projects/${dashboard.projectId}/dashboards`,
-    ["dashboards", dashboard.projectId]
-  );
+  const resourceUrl = dashboard.projectId
+    ? `/workspaces/${dashboard.workspaceId}/projects/${dashboard.projectId}/dashboards`
+    : `/workspaces/${dashboard.workspaceId}/dashboards`;
+
+  const resourceKey = dashboard.projectId
+    ? ["dashboards", dashboard.projectId]
+    : ["dashboards", dashboard.workspaceId];
+
+  const dashboardResource = useApiResource(resourceUrl, resourceKey);
+
   const deleteMutation = dashboardResource.useDelete();
 
   const handleDelete = (e: React.MouseEvent) => {
@@ -43,7 +50,9 @@ export function DashboardCard({ dashboard, onEdit }: DashboardCardProps) {
     onEdit(dashboard.id);
   };
 
-  const dashboardUrl = `./${dashboard.id}`;
+  const dashboardUrl = dashboard.projectId
+    ? `/workspaces/${dashboard.workspaceId}/projects/${dashboard.projectId}/${dashboard.id}`
+    : `/workspaces/${dashboard.workspaceId}/dashboards/${dashboard.id}`;
 
   return (
     <Link to={dashboardUrl}>

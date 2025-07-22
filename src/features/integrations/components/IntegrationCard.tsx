@@ -1,57 +1,65 @@
+// FILE: src/features/integrations/components/IntegrationCard.tsx
 import {
   Card,
-  CardHeader,
-  CardTitle,
+  CardContent,
   CardDescription,
   CardFooter,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ReactNode } from "react";
-import { Badge } from "@/components/ui/badge";
 
 interface IntegrationCardProps {
-  icon: ReactNode;
-  name: string;
-  description: string;
-  isConnected: boolean;
+  integration: {
+    name: string;
+    description: string;
+    logo: string;
+    isConnected: boolean;
+  };
   onConnect: () => void;
   onDisconnect: () => void;
-  isPending: boolean;
+  isConnecting: boolean;
 }
 
 export function IntegrationCard({
-  icon,
-  name,
-  description,
-  isConnected,
+  integration,
   onConnect,
   onDisconnect,
-  isPending,
+  isConnecting,
 }: IntegrationCardProps) {
   return (
     <Card>
-      <CardHeader className="flex-row items-start gap-4 space-y-0">
-        <div className="flex h-12 w-12 items-center justify-center rounded-lg border bg-gray-50">
-          {icon}
-        </div>
-        <div className="flex-1">
-          <CardTitle>{name}</CardTitle>
-          <CardDescription>{description}</CardDescription>
+      <CardHeader className="flex-row items-start gap-4">
+        <img
+          src={integration.logo}
+          alt={integration.name}
+          className="h-12 w-12"
+        />
+        <div>
+          <CardTitle>{integration.name}</CardTitle>
+          <CardDescription>{integration.description}</CardDescription>
         </div>
       </CardHeader>
-      <CardFooter className="flex justify-between">
-        {isConnected ? (
-          <Badge variant="secondary">Connected</Badge>
+      <CardContent></CardContent>
+      <CardFooter>
+        {integration.isConnected ? (
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={onDisconnect}
+            disabled={isConnecting}
+          >
+            Disconnect
+          </Button>
         ) : (
-          <Badge variant="outline">Not Connected</Badge>
+          <Button
+            className="w-full"
+            onClick={onConnect}
+            disabled={isConnecting}
+          >
+            {isConnecting ? "Connecting..." : "Connect"}
+          </Button>
         )}
-        <Button
-          variant={isConnected ? "destructive" : "default"}
-          onClick={isConnected ? onDisconnect : onConnect}
-          disabled={isPending}
-        >
-          {isConnected ? "Disconnect" : "Connect"}
-        </Button>
       </CardFooter>
     </Card>
   );

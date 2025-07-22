@@ -1,3 +1,4 @@
+// FILE: src/features/admin/workflows/components/ActionRepeater.tsx
 import { Control, useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
@@ -17,6 +18,10 @@ import {
 import { WorkflowActionType } from "@/types";
 import { UpdateTaskStatusFields } from "./action-fields/UpdateTaskStatusFields";
 import { CreateTaskFields } from "./action-fields/CreateTaskFields";
+import { AddCommentActionFields } from "./action-fields/AddCommentFields";
+import { AssignTaskActionFields } from "./action-fields/AssignTaskFields";
+import { SendEmailBrevoFields } from "./action-fields/SendEmailBrevoFields";
+import { SendTelegramMessageFields } from "./action-fields/SendTelegramMessageFields";
 
 interface ActionRepeaterProps {
   control: Control<any>;
@@ -27,6 +32,10 @@ interface ActionRepeaterProps {
 const actionFieldComponents: Record<string, React.FC<any>> = {
   UPDATE_TASK_STATUS: UpdateTaskStatusFields,
   CREATE_TASK: CreateTaskFields,
+  ADD_COMMENT: AddCommentActionFields,
+  ASSIGN_TASK: AssignTaskActionFields,
+  SEND_EMAIL_BREVO: SendEmailBrevoFields,
+  SEND_TELEGRAM_MESSAGE: SendTelegramMessageFields,
 };
 
 export function ActionRepeater({

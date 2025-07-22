@@ -1,3 +1,4 @@
+// FILE: src/features/comments/components/CommentSection.tsx
 import { Button } from "@/components/ui/button";
 import { useApiMutation } from "@/hooks/useApiMutation";
 import api from "@/lib/api";
@@ -75,7 +76,12 @@ export function CommentSection({ workspaceId, projectId, taskId }: any) {
         ))}
       </div>
       <div className="space-y-2">
-        <RichTextEditor value={newComment} onChange={setNewComment} />
+        <RichTextEditor
+          value={newComment}
+          onChange={setNewComment}
+          projectId={projectId}
+          workspaceId={workspaceId}
+        />
         <Button
           onClick={handleAddComment}
           disabled={addCommentMutation.isPending || isCommentEmpty()}

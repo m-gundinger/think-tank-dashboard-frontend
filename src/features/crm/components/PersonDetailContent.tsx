@@ -1,3 +1,4 @@
+// FILE: src/features/crm/components/PersonDetailContent.tsx
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -9,10 +10,12 @@ import {
   Mail,
   Phone,
   Twitter,
+  Building2,
 } from "lucide-react";
 import { format } from "date-fns";
 import { RichTextOutput } from "@/components/ui/RichTextOutput";
 import { getAbsoluteUrl } from "@/lib/utils";
+
 const socialIcons: Record<string, React.ElementType> = {
   LINKEDIN: Linkedin,
   TWITTER: Twitter,
@@ -20,6 +23,7 @@ const socialIcons: Record<string, React.ElementType> = {
   WEBSITE: Globe,
   OTHER: ExternalLink,
 };
+
 function InfoItem({
   icon: Icon,
   label,
@@ -106,6 +110,27 @@ export function PersonDetailContent({ person }: { person: any }) {
           />
         </div>
       </div>
+
+      {person.companies?.length > 0 && (
+        <>
+          <hr />
+          <div className="space-y-4">
+            <h3 className="text-muted-foreground px-2 text-sm font-semibold">
+              Companies
+            </h3>
+            <div className="space-y-1">
+              {person.companies.map((link: any) => (
+                <InfoItem
+                  key={link.companyId}
+                  icon={Building2}
+                  label={link.role || "Member"}
+                  value={link.company.name}
+                />
+              ))}
+            </div>
+          </div>
+        </>
+      )}
 
       {person.biography && (
         <>

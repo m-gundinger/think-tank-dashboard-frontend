@@ -29,19 +29,56 @@ const createTaskConfigSchema = z.object({
 });
 
 const updateTaskStatusConfigSchema = z.object({
-  status: z.nativeEnum(TaskStatus),
+  status: z.enum(Object.values(TaskStatus) as [string, ...string[]]),
+});
+
+export const AddCommentActionConfigSchema = z.object({
+  content: z.string().min(1),
+});
+export const AssignTaskActionConfigSchema = z.object({
+  userId: z.string().uuid(),
+});
+
+export const SendTelegramMessageActionConfigSchema = z.object({
+  message: z.string().min(1),
+});
+export const SendEmailBrevoActionConfigSchema = z.object({
+  templateId: z.number().int().positive(),
+  to: z.array(z.object({ email: z.string().email(), name: z.string() })),
+  params: z.record(z.string(), z.unknown()).optional(),
 });
 
 const workflowActionSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal(WorkflowActionType.CREATE_TASK),
     config: createTaskConfigSchema,
-    order: z.number(),
+    order: z.number().int().min(0),
   }),
   z.object({
     type: z.literal(WorkflowActionType.UPDATE_TASK_STATUS),
     config: updateTaskStatusConfigSchema,
-    order: z.number(),
+    order: z.number().int().min(0),
+  }),
+  z.object({
+    type: z.literal(WorkflowActionType.ADD_COMMENT),
+    config: AddCommentActionConfigSchema,
+    order: z.number().int().min(0),
+  }),
+  z.object({
+    type: z.literal(WorkflowActionType.ASSIGN_TASK),
+    config: AssignTaskActionConfigSchema,
+    order: z.number().int().min(0),
+  }),
+  z.object({
+    type: z.literal(WorkflowActionType.SEND_TELEGRAM_MESSAGE),
+    config: SendTelegramMessageActionConfigSchema,
+    order: z.number().int().min(0),
+  }),
+
+  z.object({
+    type: z.literal(WorkflowActionType.SEND_EMAIL_BREVO),
+    config: SendEmailBrevoActionConfigSchema,
+    order: z.number().int().min(0),
   }),
 ]);
 
@@ -67,7 +104,7 @@ export function WorkflowForm({ initialData, onSuccess }: WorkflowFormProps) {
 
   const mutation = isEditMode ? updateMutation : createMutation;
 
-  const form = useForm<WorkflowFormValues>({
+  const methods = useForm<WorkflowFormValues>({
     resolver: zodResolver(workflowSchema),
     defaultValues: {
       name: "",
@@ -80,15 +117,15 @@ export function WorkflowForm({ initialData, onSuccess }: WorkflowFormProps) {
 
   useEffect(() => {
     if (isEditMode) {
-      form.reset({
+      methods.reset({
         ...initialData,
         description: initialData.description ?? "",
       });
     }
-  }, [initialData, isEditMode, form]);
+  }, [initialData, isEditMode, methods]);
 
   const { fields, append, remove } = useFieldArray({
-    control: form.control,
+    control: methods.control,
     name: "actions",
   });
 
@@ -109,7 +146,7 @@ export function WorkflowForm({ initialData, onSuccess }: WorkflowFormProps) {
     } else {
       await createMutation.mutateAsync(finalValues, {
         onSuccess: () => {
-          form.reset();
+          methods.reset();
           onSuccess?.();
         },
       });
@@ -117,10 +154,10 @@ export function WorkflowForm({ initialData, onSuccess }: WorkflowFormProps) {
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+    <Form {...methods}>
+      <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-6">
         <FormField
-          control={form.control}
+          control={methods.control}
           name="name"
           render={({ field }) => (
             <FormItem>
@@ -133,7 +170,7 @@ export function WorkflowForm({ initialData, onSuccess }: WorkflowFormProps) {
           )}
         />
         <FormField
-          control={form.control}
+          control={methods.control}
           name="triggerType"
           render={({ field }) => (
             <FormItem>
@@ -163,7 +200,7 @@ export function WorkflowForm({ initialData, onSuccess }: WorkflowFormProps) {
             {fields.map((field, index) => (
               <ActionRepeater
                 key={field.id}
-                control={form.control}
+                control={methods.control}
                 index={index}
                 remove={remove}
               />
@@ -174,8 +211,8 @@ export function WorkflowForm({ initialData, onSuccess }: WorkflowFormProps) {
               size="sm"
               onClick={() =>
                 append({
-                  type: WorkflowActionType.CREATE_TASK,
-                  config: {},
+                  type: WorkflowActionType.UPDATE_TASK_STATUS,
+                  config: { status: TaskStatus.IN_PROGRESS },
                   order: fields.length,
                 } as any)
               }
@@ -184,6 +221,11 @@ export function WorkflowForm({ initialData, onSuccess }: WorkflowFormProps) {
               Add Action
             </Button>
           </div>
+          <FormField
+            control={methods.control}
+            name="actions"
+            render={() => <FormMessage />}
+          />
         </div>
 
         <Button type="submit" className="w-full" disabled={mutation.isPending}>

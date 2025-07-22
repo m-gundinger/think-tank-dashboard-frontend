@@ -1,3 +1,5 @@
+@import "dhtmlx-gantt/codebase/dhtmlxgantt.css";
+@import "react-big-calendar/lib/css/react-big-calendar.css";
 @import "tailwindcss";
 
 @custom-variant dark (&:is(.dark *));

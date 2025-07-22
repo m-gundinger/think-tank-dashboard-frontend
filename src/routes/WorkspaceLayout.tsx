@@ -1,3 +1,4 @@
+// FILE: src/routes/WorkspaceLayout.tsx
 import { NavLink, Outlet, useLocation, useParams } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useApiResource } from "@/hooks/useApiResource";
@@ -9,7 +10,7 @@ export function WorkspaceLayout() {
     "workspaces",
   ]).useGetOne(workspaceId!);
 
-  const currentTab = location.pathname.split("/").pop() || "projects";
+  const currentTab = location.pathname.split("/")[3] || "projects";
 
   return (
     <div className="space-y-6">
@@ -36,6 +37,12 @@ export function WorkspaceLayout() {
           </NavLink>
           <NavLink to={`/workspaces/${workspaceId}/teams`}>
             <TabsTrigger value="teams">Teams</TabsTrigger>
+          </NavLink>
+          <NavLink to={`/workspaces/${workspaceId}/dashboards`}>
+            <TabsTrigger value="dashboards">Dashboards</TabsTrigger>
+          </NavLink>
+          <NavLink to={`/workspaces/${workspaceId}/knowledge-bases`}>
+            <TabsTrigger value="knowledge-bases">Knowledge Base</TabsTrigger>
           </NavLink>
         </TabsList>
         <Outlet />

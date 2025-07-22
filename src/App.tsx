@@ -1,3 +1,4 @@
+// FILE: src/App.tsx
 import { Routes, Route, Navigate } from "react-router-dom";
 import { ProtectedLayout } from "./routes/ProtectedLayout";
 import { WorkspaceLayout } from "./routes/WorkspaceLayout";
@@ -23,6 +24,8 @@ import { IntegrationCallbackPage } from "./pages/IntegrationCallbackPage";
 import { ProjectSettingsPage } from "./pages/ProjectSettingsPage";
 import { ProjectAccessControlPage } from "./pages/ProjectAccessControlPage";
 import { ProjectCustomFieldsPage } from "./pages/ProjectCustomFieldsPage";
+import { ProjectTaskTypesPage } from "./pages/ProjectTaskTypesPage";
+import { ProjectViewsPage } from "./pages/ProjectViewsPage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 import { SetupPasswordPage } from "./pages/SetupPasswordPage";
@@ -32,6 +35,8 @@ import { JobMonitoringPage } from "./pages/admin/JobMonitoringPage";
 import { SystemStatusPage } from "./pages/admin/SystemStatusPage";
 import { CrmPage } from "./pages/CrmPage";
 import { MyTasksPage } from "./pages/MyTasksPage";
+import { WorkspaceDashboardListPage } from "./pages/WorkspaceDashboardListPage";
+import { KnowledgeBasePage } from "./pages/KnowledgeBasePage";
 
 function App() {
   return (
@@ -58,6 +63,8 @@ function App() {
             <Route index element={<Navigate to="projects" replace />} />
             <Route path="projects" element={<ProjectListPage />} />
             <Route path="teams" element={<TeamsPage />} />
+            <Route path="dashboards" element={<WorkspaceDashboardListPage />} />
+            <Route path="knowledge-bases" element={<KnowledgeBasePage />} />
           </Route>
           <Route
             path="workspaces/:workspaceId/projects/:projectId"
@@ -68,6 +75,10 @@ function App() {
             }
           />
           <Route
+            path="workspaces/:workspaceId/dashboards/:dashboardId"
+            element={<DashboardDetailPage />}
+          />
+          <Route
             path="workspaces/:workspaceId/projects/:projectId/settings"
             element={<ProjectSettingsPage />}
           >
@@ -75,6 +86,8 @@ function App() {
             <Route path="general" element={<ProjectGeneralSettingsPage />} />
             <Route path="access" element={<ProjectAccessControlPage />} />
             <Route path="custom-fields" element={<ProjectCustomFieldsPage />} />
+            <Route path="task-types" element={<ProjectTaskTypesPage />} />
+            <Route path="views" element={<ProjectViewsPage />} />
           </Route>
           <Route
             path="workspaces/:workspaceId/projects/:projectId/:dashboardId"

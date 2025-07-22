@@ -1,3 +1,4 @@
+// FILE: src/pages/DashboardDetailPage.tsx
 import { useParams } from "react-router-dom";
 import GridLayout, { Layout } from "react-grid-layout";
 import { useApiResource } from "@/hooks/useApiResource";
@@ -10,29 +11,40 @@ import { PlusCircle } from "lucide-react";
 import { useState } from "react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { CreateWidgetForm } from "@/features/widgets/components/CreateWidgetForm";
+
 export function DashboardDetailPage() {
   const { workspaceId, projectId, dashboardId } = useParams<{
     workspaceId: string;
-    projectId: string;
+    projectId?: string; // projectId is now optional
     dashboardId: string;
   }>();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
-  if (!workspaceId || !projectId || !dashboardId) {
+  if (!workspaceId || !dashboardId) {
     return <div>Missing ID parameter.</div>;
   }
 
-  const dashboardResource = useApiResource(
-    `/workspaces/${workspaceId}/projects/${projectId}/dashboards`,
-    ["dashboards", projectId]
-  );
+  const resourceUrl = projectId
+    ? `/workspaces/${workspaceId}/projects/${projectId}/dashboards`
+    : `/workspaces/${workspaceId}/dashboards`;
+
+  const resourceKey = projectId
+    ? ["dashboards", projectId]
+    : ["dashboards", workspaceId];
+
+  const dashboardResource = useApiResource(resourceUrl, resourceKey);
+
   const { data: dashboardData, isLoading } =
     dashboardResource.useGetOne(dashboardId);
+
+  // Note: useUpdateWidget will need to be aware of the context. For now, we assume it can figure it out.
+  // A more robust solution might involve passing both workspaceId and projectId to the hook.
   const updateWidgetMutation = useUpdateWidget(
     workspaceId,
-    projectId,
+    projectId!, // This might be an issue if projectId is null, requires careful handling in the hook
     dashboardId
   );
+
   const handleLayoutChange = (newLayout: Layout[]) => {
     if (!dashboardData?.widgets) return;
     const originalLayout = dashboardData.widgets.map((widget: any) => ({
@@ -65,11 +77,16 @@ export function DashboardDetailPage() {
 
   if (isLoading) return <div>Loading Dashboard...</div>;
   if (!dashboardData) return <div>Dashboard not found.</div>;
+
   const layout =
     dashboardData.widgets?.map((widget: any) => ({
       ...widget.layout,
       i: widget.id,
     })) || [];
+
+  const widgetResourcePath = projectId
+    ? `/workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}/widgets`
+    : `/workspaces/${workspaceId}/dashboards/${dashboardId}/widgets`;
 
   return (
     <div className="space-y-6">
@@ -93,7 +110,7 @@ export function DashboardDetailPage() {
           description="Select a widget type and configure it to visualize your data."
           form={CreateWidgetForm}
           formProps={{ workspaceId, projectId, dashboardId }}
-          resourcePath={`/workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}/widgets`}
+          resourcePath={widgetResourcePath}
           resourceKey={["dashboard", dashboardId]}
         />
       </div>

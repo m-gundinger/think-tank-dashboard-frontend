@@ -1,3 +1,4 @@
+// FILE: src/features/tasks/components/TaskLinks.tsx
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,21 +20,20 @@ export function TaskLinks({ task, workspaceId, projectId }: any) {
     TaskLinkType.RELATES_TO
   );
 
+  const getUrl = (subpath: string) => {
+    return projectId
+      ? `/workspaces/${workspaceId}/projects/${projectId}/tasks/${task.id}/${subpath}`
+      : `/tasks/${task.id}/${subpath}`;
+  };
+
   const addLinkMutation = useApiMutation({
-    mutationFn: (linkData: any) =>
-      api.post(
-        `/workspaces/${workspaceId}/projects/${projectId}/tasks/${task.id}/links`,
-        linkData
-      ),
+    mutationFn: (linkData: any) => api.post(getUrl("links"), linkData),
     successMessage: "Task linked successfully.",
     invalidateQueries: [["task", task.id]],
   });
 
   const removeLinkMutation = useApiMutation({
-    mutationFn: (linkId: string) =>
-      api.delete(
-        `/workspaces/${workspaceId}/projects/${projectId}/tasks/${task.id}/links/${linkId}`
-      ),
+    mutationFn: (linkId: string) => api.delete(getUrl(`links/${linkId}`)),
     successMessage: "Task link removed.",
     invalidateQueries: [["task", task.id]],
   });

@@ -1,3 +1,4 @@
+// FILE: src/features/tasks/components/TaskDetailSidebar.tsx
 import { TaskAssignees } from "./TaskAssignees";
 import { TimeLogSection } from "@/features/timelogs/components/TimeLogSection";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -22,6 +23,10 @@ import { Calendar as CalendarIcon, X } from "lucide-react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { TaskDocuments } from "./TaskDocuments";
+import { EditableField } from "@/components/ui/EditableField";
+import { RecurrenceSelector } from "./RecurrenceSelector";
+import { TaskTypeSelector } from "@/features/task-types/components/TaskTypeSelector";
+
 export function TaskDetailSidebar({ task, workspaceId, projectId }: any) {
   const taskResource = useApiResource(
     projectId
@@ -32,8 +37,14 @@ export function TaskDetailSidebar({ task, workspaceId, projectId }: any) {
   const updateTaskMutation = taskResource.useUpdate();
 
   const handleUpdate = (
-    field: "status" | "priority" | "dueDate",
-    value: string | null
+    field:
+      | "status"
+      | "priority"
+      | "dueDate"
+      | "storyPoints"
+      | "recurrenceRule"
+      | "taskTypeId",
+    value: string | null | number
   ) => {
     updateTaskMutation.mutate({ id: task.id, data: { [field]: value } });
   };
@@ -58,6 +69,17 @@ export function TaskDetailSidebar({ task, workspaceId, projectId }: any) {
           </SelectContent>
         </Select>
       </div>
+      {projectId && workspaceId && (
+        <div>
+          <h3 className="mb-2 text-sm font-semibold">Task Type</h3>
+          <TaskTypeSelector
+            workspaceId={workspaceId}
+            projectId={projectId}
+            value={task.taskTypeId}
+            onValueChange={(value) => handleUpdate("taskTypeId", value)}
+          />
+        </div>
+      )}
       <div>
         <h3 className="mb-2 text-sm font-semibold">Priority</h3>
         <Select
@@ -76,6 +98,27 @@ export function TaskDetailSidebar({ task, workspaceId, projectId }: any) {
           </SelectContent>
         </Select>
       </div>
+      <div>
+        <h3 className="mb-2 text-sm font-semibold">Story Points</h3>
+        <EditableField
+          initialValue={task.storyPoints?.toString() || ""}
+          onSave={(value) =>
+            handleUpdate(
+              "storyPoints",
+              value === "" ? null : parseInt(value, 10)
+            )
+          }
+          placeholder="Set points"
+        />
+      </div>
+      <div>
+        <h3 className="mb-2 text-sm font-semibold">Recurrence</h3>
+        <RecurrenceSelector
+          value={task.recurrenceRule}
+          onSave={(value) => handleUpdate("recurrenceRule", value)}
+        />
+      </div>
+
       <div>
         <h3 className="mb-2 text-sm font-semibold">Due Date</h3>
         <div className="flex items-center gap-1">

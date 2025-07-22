@@ -1,3 +1,4 @@
+// FILE: src/pages/ProjectDetailPage.tsx
 import { useParams, useSearchParams } from "react-router-dom";
 import { useEffect, useMemo } from "react";
 import { TaskDetailModal } from "@/features/tasks/components/TaskDetailModal";
@@ -6,7 +7,7 @@ import { useProjectSocket } from "@/hooks/useProjectSocket";
 import { usePresence } from "@/hooks/usePresence";
 import { ErrorState } from "@/components/ui/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ProjectDetailView } from "./ProjectDetailView";
+import { ProjectDetailView } from "@/features/views/components/ProjectDetailView";
 import { ListTasksQuery } from "@/features/tasks/task.types";
 import { View } from "@/types";
 import { useGetViewData } from "@/features/views/api/useGetViewData";

@@ -1,10 +1,14 @@
+// FILE: src/features/tasks/components/TaskDetailBody.tsx
 import { RichTextEditor } from "@/components/ui/RichTextEditor";
 import { CommentSection } from "@/features/comments/components/CommentSection";
 import { SubtaskList } from "./SubtaskList";
 import { useState, useEffect } from "react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
-import { CreateTaskForm } from "./CreateTaskForm";
+import { CreateTaskForm } from "@/features/tasks/components/CreateTaskForm";
 import { TaskLinks } from "./TaskLinks";
+import { TaskChecklist } from "./TaskChecklist";
+import { ChecklistItem } from "../task.types";
+
 export function TaskDetailBody({
   task,
   workspaceId,
@@ -18,6 +22,11 @@ export function TaskDetailBody({
   useEffect(() => {
     setDescription(task.description || "");
   }, [task.description]);
+
+  const handleChecklistSave = (items: ChecklistItem[]) => {
+    onSave("checklist", items);
+  };
+
   return (
     <div className="col-span-2 space-y-6 border-r pr-6">
       <RichTextEditor
@@ -28,6 +37,13 @@ export function TaskDetailBody({
             onSave("description", description);
           }
         }}
+        workspaceId={workspaceId}
+        projectId={projectId}
+      />
+
+      <TaskChecklist
+        initialItems={task.checklist || []}
+        onSave={handleChecklistSave}
       />
 
       <SubtaskList

@@ -1,3 +1,4 @@
+// FILE: src/features/teams/components/TeamCard.tsx
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useApiResource } from "@/hooks/useApiResource";
 import { getAbsoluteUrl } from "@/lib/utils";

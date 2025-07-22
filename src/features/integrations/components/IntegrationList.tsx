@@ -1,79 +1,46 @@
-import { useEffect } from "react";
-import { useGetIntegrations } from "../api/useGetIntegrations";
-import { useDisconnectIntegration } from "../api/useDisconnectIntegration";
+// FILE: src/features/integrations/components/IntegrationList.tsx
 import { IntegrationCard } from "./IntegrationCard";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Link, Cloud, Bot } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
 
-const getProviderIcon = (provider: string) => {
-  switch (provider) {
-    case "GOOGLE":
-      return <Link className="h-6 w-6" />;
-    case "NEXTCLOUD":
-      return <Cloud className="h-6 w-6" />;
-    default:
-      return <Bot className="h-6 w-6" />;
-  }
-};
+// Mock data, this would come from an API
+const availableIntegrations = [
+  {
+    name: "Google",
+    description:
+      "Connect your Google account for Calendar and Drive integrations.",
+    logo: "https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png",
+  },
+  {
+    name: "Slack",
+    description: "Receive notifications and create tasks directly from Slack.",
+    logo: "https://a.slack-edge.com/80588/marketing/img/meta/slack_hash_256.png",
+  },
+];
 
 export function IntegrationList() {
-  const queryClient = useQueryClient();
-  const { data: integrations, isLoading } = useGetIntegrations();
-  const disconnectMutation = useDisconnectIntegration();
+  // Mock state, this would be managed via React Query and API state
+  const connectedIntegrations = new Set(["Slack"]);
+  const isConnecting = false;
 
-  useEffect(() => {
-    const handleAuthCallback = (event: MessageEvent) => {
-      if (
-        event.origin === window.location.origin &&
-        event.data?.source === "google-oauth-callback"
-      ) {
-        if (event.data.status === "success") {
-          queryClient.invalidateQueries({ queryKey: ["integrations"] });
-        }
-      }
-    };
-
-    window.addEventListener("message", handleAuthCallback);
-    return () => {
-      window.removeEventListener("message", handleAuthCallback);
-    };
-  }, [queryClient]);
-
-  const handleConnect = (connectUrl: string) => {
-    const width = 600;
-    const height = 700;
-    const left = window.screen.width / 2 - width / 2;
-    const top = window.screen.height / 2 - height / 2;
-    window.open(
-      `http://localhost:3000${connectUrl}`,
-      "oauth-popup",
-      `width=${width},height=${height},top=${top},left=${left}`
-    );
+  const handleConnect = (name: string) => {
+    alert(`Connecting to ${name}...`);
   };
 
-  if (isLoading) {
-    return (
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <Skeleton key={i} className="h-[160px] w-full" />
-        ))}
-      </div>
-    );
-  }
+  const handleDisconnect = (name: string) => {
+    alert(`Disconnecting from ${name}...`);
+  };
 
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {integrations?.map((integration: any) => (
+      {availableIntegrations.map((integration) => (
         <IntegrationCard
-          key={integration.provider}
-          name={integration.provider}
-          description={`Connect your ${integration.provider} account.`}
-          icon={getProviderIcon(integration.provider)}
-          isConnected={integration.isConnected}
-          onConnect={() => handleConnect(integration.connectUrl)}
-          onDisconnect={() => disconnectMutation.mutate(integration.provider)}
-          isPending={disconnectMutation.isPending}
+          key={integration.name}
+          integration={{
+            ...integration,
+            isConnected: connectedIntegrations.has(integration.name),
+          }}
+          onConnect={() => handleConnect(integration.name)}
+          onDisconnect={() => handleDisconnect(integration.name)}
+          isConnecting={isConnecting}
         />
       ))}
     </div>

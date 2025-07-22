@@ -1,7 +1,9 @@
+// FILE: src/pages/ProjectDetailView.tsx
 import { Link } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TaskList } from "@/features/tasks/components/TaskList";
 import { KanbanBoard } from "@/features/views/components/KanbanBoard";
+import { BacklogView } from "@/features/views/components/BacklogView";
 import { DashboardList } from "@/features/dashboards/components/DashboardList";
 import { EpicList } from "@/features/epics/components/EpicList";
 import { ActiveUsers } from "@/components/layout/ActiveUsers";
@@ -37,12 +39,15 @@ export function ProjectDetailView({
   onTabChange,
 }: ProjectDetailViewProps) {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-
   const renderActionDialog = () => {
     const currentView = views.find((v) => v.id === activeTab);
     const viewType = currentView?.type;
 
-    if (viewType === "KANBAN" || viewType === "LIST") {
+    if (
+      viewType === "KANBAN" ||
+      viewType === "LIST" ||
+      viewType === "BACKLOG"
+    ) {
       return (
         <ResourceCrudDialog
           trigger={
@@ -165,6 +170,14 @@ export function ProjectDetailView({
           {view.type === "KANBAN" && (
             <KanbanBoard
               views={views}
+              tasks={tasks}
+              workspaceId={workspaceId}
+              projectId={projectId}
+              onTaskSelect={onTaskSelect}
+            />
+          )}
+          {view.type === "BACKLOG" && (
+            <BacklogView
               tasks={tasks}
               workspaceId={workspaceId}
               projectId={projectId}

@@ -1,3 +1,4 @@
+// FILE: src/features/widgets/components/CreateWidgetForm.tsx
 import { useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,7 @@ import { StatsCounterConfigFields } from "./config-fields/StatsCounterConfigFiel
 import { TaskListConfigFields } from "./config-fields/TaskListConfigFields";
 import { BurndownChartConfigFields } from "./config-fields/BurndownChartConfigFields";
 import { TimeTrackingReportConfigFields } from "./config-fields/TimeTrackingReportConfigFields";
+import { PieChartConfigFields } from "./config-fields/PieChartConfigFields";
 import { WidgetType } from "@/types";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -38,8 +40,8 @@ const configFieldsMap: Record<string, React.FC> = {
   TASK_LIST: TaskListConfigFields,
   BURNDOWN_CHART: BurndownChartConfigFields,
   TIME_TRACKING_REPORT: TimeTrackingReportConfigFields,
+  PIE_CHART: PieChartConfigFields,
 };
-
 function getDefaultConfig(type: WidgetType) {
   switch (type) {
     case WidgetType.STATS_COUNTER:
@@ -53,6 +55,8 @@ function getDefaultConfig(type: WidgetType) {
       return { startDate: twoWeeksAgo, endDate: today, unit: "task_count" };
     case WidgetType.TIME_TRACKING_REPORT:
       return { userIds: [] };
+    case WidgetType.PIE_CHART:
+      return { title: "Tasks by Status" };
     default:
       return {};
   }
@@ -99,10 +103,14 @@ export function CreateWidgetForm({
     });
   }
 
-  const widgetTypeOptions = Object.values(WidgetType).map((type) => ({
-    value: type,
-    label: type.replace(/_/g, " "),
-  }));
+  const widgetTypeOptions = Object.values(WidgetType)
+    .filter(
+      (type) => type !== "CHART" && type !== "TABLE" // Filter out generic types
+    )
+    .map((type) => ({
+      value: type,
+      label: type.replace(/_/g, " "),
+    }));
 
   return (
     <FormProvider {...methods}>

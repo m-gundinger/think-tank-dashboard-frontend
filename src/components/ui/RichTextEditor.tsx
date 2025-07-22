@@ -1,6 +1,8 @@
+// FILE: src/components/ui/RichTextEditor.tsx
 import { useEditor, EditorContent, Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
+import Mention from "@tiptap/extension-mention";
 import {
   Bold,
   Italic,
@@ -19,12 +21,15 @@ import { Separator } from "./separator";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import Picker, { EmojiClickData } from "emoji-picker-react";
 import { useCallback, useEffect } from "react";
+import { suggestion } from "./mention-suggestion";
 
 interface RichTextEditorProps {
   value: string;
   onChange: (value: string) => void;
   className?: string;
   onBlur?: () => void;
+  workspaceId?: string;
+  projectId?: string;
 }
 
 function EditorToolbar({ editor }: { editor: Editor | null }) {
@@ -145,26 +150,21 @@ export function RichTextEditor({
   onChange,
   className,
   onBlur,
+  workspaceId,
+  projectId,
 }: RichTextEditorProps) {
   const editor = useEditor({
     extensions: [
-      StarterKit.configure({
-        bulletList: {
-          HTMLAttributes: { class: "list-disc pl-4" },
-        },
-        orderedList: {
-          HTMLAttributes: { class: "list-decimal pl-4" },
-        },
-        blockquote: {
-          HTMLAttributes: { class: "border-l-4 pl-4" },
-        },
-      }),
+      StarterKit,
       Link.configure({
         openOnClick: false,
         autolink: true,
+      }),
+      Mention.configure({
         HTMLAttributes: {
-          class: "text-primary underline hover:text-primary/80",
+          class: "mention",
         },
+        suggestion: suggestion(workspaceId, projectId),
       }),
     ],
     content: value,

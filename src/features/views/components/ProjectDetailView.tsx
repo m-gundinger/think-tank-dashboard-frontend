@@ -1,12 +1,25 @@
+// FILE: src/features/views/components/ProjectDetailView.tsx
 import { Link } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TaskList } from "@/features/tasks/components/TaskList";
 import { KanbanBoard } from "@/features/views/components/KanbanBoard";
+import { BacklogView } from "@/features/views/components/BacklogView";
+import { GanttChartView } from "@/features/views/components/GanttChartView";
+import { CalendarView } from "@/features/views/components/CalendarView";
 import { DashboardList } from "@/features/dashboards/components/DashboardList";
 import { EpicList } from "@/features/epics/components/EpicList";
+import { SprintBoardView } from "@/features/sprints/components/SprintBoardView";
 import { ActiveUsers } from "@/components/layout/ActiveUsers";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Settings, CheckSquare, PlusCircle } from "lucide-react";
+import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { CreateTaskForm } from "@/features/tasks/components/CreateTaskForm";
 import { CreateDashboardForm } from "@/features/dashboards/components/CreateDashboardForm";
 import { CreateEpicForm } from "@/features/epics/components/CreateEpicForm";
 import { Task } from "@/features/tasks/task.types";
@@ -14,8 +27,7 @@ import { View } from "@/types";
 import { ProjectActivityLog } from "@/features/activities/components/ProjectActivityLog";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useState } from "react";
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
-import { CreateTaskForm } from "@/features/tasks/components/CreateTaskForm";
+import { TemplateSelectorDialog } from "@/features/task-templates/components/TemplateSelectorDialog";
 
 interface ProjectDetailViewProps {
   views: View[];
@@ -36,28 +48,58 @@ export function ProjectDetailView({
   activeTab,
   onTabChange,
 }: ProjectDetailViewProps) {
+  const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
+  const [isTemplateSelectorOpen, setIsTemplateSelectorOpen] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   const renderActionDialog = () => {
     const currentView = views.find((v) => v.id === activeTab);
     const viewType = currentView?.type;
 
-    if (viewType === "KANBAN" || viewType === "LIST") {
+    if (
+      viewType === "KANBAN" ||
+      viewType === "LIST" ||
+      viewType === "BACKLOG" ||
+      viewType === "GANTT" ||
+      viewType === "CALENDAR"
+    ) {
       return (
-        <ResourceCrudDialog
-          trigger={
-            <Button>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              New Task
-            </Button>
-          }
-          title="Create a new task"
-          description="Fill in the details below to add a new task."
-          form={CreateTaskForm}
-          formProps={{ workspaceId, projectId }}
-          resourcePath={`/workspaces/${workspaceId}/projects/${projectId}/tasks`}
-          resourceKey={["tasks", projectId]}
-        />
+        <>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                New Task
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => setIsCreateTaskOpen(true)}>
+                New Blank Task
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setIsTemplateSelectorOpen(true)}>
+                New from Template...
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <ResourceCrudDialog
+            isOpen={isCreateTaskOpen}
+            onOpenChange={setIsCreateTaskOpen}
+            title="Create a new task"
+            description="Fill in the details below to add a new task."
+            form={CreateTaskForm}
+            formProps={{ workspaceId, projectId }}
+            resourcePath={`/workspaces/${workspaceId}/projects/${projectId}/tasks`}
+            resourceKey={["tasks", projectId]}
+          />
+
+          <TemplateSelectorDialog
+            workspaceId={workspaceId}
+            projectId={projectId}
+            isOpen={isTemplateSelectorOpen}
+            onOpenChange={setIsTemplateSelectorOpen}
+          />
+        </>
       );
     }
     if (activeTab === "dashboards") {
@@ -108,22 +150,7 @@ export function ProjectDetailView({
       icon={<CheckSquare className="text-primary h-10 w-10" />}
       title="No tasks yet"
       description="Create the first task in this project to get started."
-      action={
-        <ResourceCrudDialog
-          trigger={
-            <Button>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              New Task
-            </Button>
-          }
-          title="Create a new task"
-          description="Fill in the details below to add a new task."
-          form={CreateTaskForm}
-          formProps={{ workspaceId, projectId }}
-          resourcePath={`/workspaces/${workspaceId}/projects/${projectId}/tasks`}
-          resourceKey={["tasks", projectId]}
-        />
-      }
+      action={renderActionDialog()}
     />
   );
   return (
@@ -135,6 +162,7 @@ export function ProjectDetailView({
               {view.name}
             </TabsTrigger>
           ))}
+          <TabsTrigger value="sprints">Sprints</TabsTrigger>
           <TabsTrigger value="dashboards">Dashboards</TabsTrigger>
           <TabsTrigger value="epics">Epics</TabsTrigger>
           <TabsTrigger value="activity">Activity</TabsTrigger>
@@ -171,8 +199,30 @@ export function ProjectDetailView({
               onTaskSelect={onTaskSelect}
             />
           )}
+          {view.type === "BACKLOG" && (
+            <BacklogView
+              tasks={tasks}
+              workspaceId={workspaceId}
+              projectId={projectId}
+              onTaskSelect={onTaskSelect}
+            />
+          )}
+          {view.type === "GANTT" && <GanttChartView tasks={tasks} />}
+          {view.type === "CALENDAR" && (
+            <CalendarView tasks={tasks} onTaskSelect={onTaskSelect} />
+          )}
         </TabsContent>
       ))}
+
+      <TabsContent value="sprints" className="mt-0">
+        <SprintBoardView
+          workspaceId={workspaceId}
+          projectId={projectId}
+          views={views}
+          tasks={tasks}
+          onTaskSelect={onTaskSelect}
+        />
+      </TabsContent>
 
       <TabsContent value="dashboards" className="mt-0 space-y-4">
         <DashboardList workspaceId={workspaceId} projectId={projectId} />

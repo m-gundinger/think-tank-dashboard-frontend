@@ -1,3 +1,4 @@
+// FILE: src/features/projects/components/InviteProjectMember.tsx
 import { useState } from "react";
 import { useApiResource } from "@/hooks/useApiResource";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,8 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useApiMutation } from "@/hooks/useApiMutation";
 import api from "@/lib/api";
+import { Switch } from "@/components/ui/switch";
+import { FormLabel } from "@/components/ui/form";
 
 interface InviteProjectMemberProps {
   workspaceId: string;
@@ -47,6 +50,7 @@ export function InviteProjectMember({
 }: InviteProjectMemberProps) {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null);
+  const [isGuest, setIsGuest] = useState(false);
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
   const [userSearch, setUserSearch] = useState("");
 
@@ -73,12 +77,12 @@ export function InviteProjectMember({
 
   const addMemberMutation = useApiMutation<
     any,
-    { userId: string; roleId: string }
+    { userId: string; roleId: string; isGuest: boolean }
   >({
-    mutationFn: async ({ userId, roleId }) => {
+    mutationFn: async ({ userId, roleId, isGuest }) => {
       const { data } = await api.post(
         `/workspaces/${workspaceId}/projects/${projectId}/members`,
-        { userId, roleId }
+        { userId, roleId, isGuest }
       );
       return data;
     },
@@ -88,12 +92,12 @@ export function InviteProjectMember({
 
   const addTeamMutation = useApiMutation<
     any,
-    { teamId: string; roleId: string }
+    { teamId: string; roleId: string; isGuest: boolean }
   >({
-    mutationFn: async ({ teamId, roleId }) => {
+    mutationFn: async ({ teamId, roleId, isGuest }) => {
       const { data } = await api.post(
         `/workspaces/${workspaceId}/projects/${projectId}/members/team`,
-        { teamId, roleId }
+        { teamId, roleId, isGuest }
       );
       return data;
     },
@@ -107,7 +111,7 @@ export function InviteProjectMember({
   const handleInviteUser = () => {
     if (selectedUserId && selectedRoleId) {
       addMemberMutation.mutate(
-        { userId: selectedUserId, roleId: selectedRoleId },
+        { userId: selectedUserId, roleId: selectedRoleId, isGuest },
         {
           onSuccess: () => {
             setSelectedUserId(null);
@@ -121,7 +125,7 @@ export function InviteProjectMember({
   const handleInviteTeam = () => {
     if (selectedTeamId && selectedRoleId) {
       addTeamMutation.mutate(
-        { teamId: selectedTeamId, roleId: selectedRoleId },
+        { teamId: selectedTeamId, roleId: selectedRoleId, isGuest },
         {
           onSuccess: () => {
             setSelectedTeamId(null);
@@ -206,6 +210,14 @@ export function InviteProjectMember({
                 </SelectContent>
               </Select>
             </div>
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="is-guest-user"
+                checked={isGuest}
+                onCheckedChange={setIsGuest}
+              />
+              <FormLabel htmlFor="is-guest-user">Add as guest</FormLabel>
+            </div>
             <Button
               onClick={handleInviteUser}
               disabled={
@@ -254,6 +266,14 @@ export function InviteProjectMember({
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="is-guest-team"
+                checked={isGuest}
+                onCheckedChange={setIsGuest}
+              />
+              <FormLabel htmlFor="is-guest-team">Add as guests</FormLabel>
             </div>
             <Button
               onClick={handleInviteTeam}

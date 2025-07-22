@@ -1,3 +1,4 @@
+// FILE: src/features/tasks/components/TaskDetailModal.tsx
 import {
   Dialog,
   DialogContent,
@@ -38,6 +39,7 @@ export function TaskDetailModal({
     "task",
     taskId,
   ]).useGetOne(taskId);
+
   const taskResource = useApiResource(
     task?.projectId
       ? `/workspaces/${task.workspaceId}/projects/${task.projectId}/tasks`
@@ -46,7 +48,7 @@ export function TaskDetailModal({
   );
   const updateTaskMutation = taskResource.useUpdate();
 
-  const handleSave = (field: "title" | "description", value: string) => {
+  const handleSave = (field: string, value: any) => {
     if (taskId) {
       updateTaskMutation.mutate({ id: taskId, data: { [field]: value } });
     }

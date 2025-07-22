@@ -1,3 +1,4 @@
+// FILE: src/components/form/FormFields.tsx
 import { useFormContext } from "react-hook-form";
 import {
   FormControl,
@@ -40,6 +41,7 @@ import {
 } from "@/components/ui/command";
 import { Badge } from "@/components/ui/badge";
 import { AssigneeSelector } from "@/features/tasks/components/AssigneeSelector";
+import { TaskTypeSelector } from "@/features/task-types/components/TaskTypeSelector";
 
 interface FormInputProps extends ComponentProps<typeof Input> {
   name: string;
@@ -406,6 +408,41 @@ export function FormAssigneeSelector({
             workspaceId={workspaceId}
             selectedIds={field.value}
             onSelectionChange={field.onChange}
+          />
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+interface FormTaskTypeSelectorProps {
+  name: string;
+  label: string;
+  workspaceId: string;
+  projectId: string;
+}
+
+export function FormTaskTypeSelector({
+  name,
+  label,
+  workspaceId,
+  projectId,
+}: FormTaskTypeSelectorProps) {
+  const { control } = useFormContext();
+
+  return (
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>{label}</FormLabel>
+          <TaskTypeSelector
+            workspaceId={workspaceId}
+            projectId={projectId}
+            value={field.value}
+            onValueChange={field.onChange}
           />
           <FormMessage />
         </FormItem>

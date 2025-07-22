@@ -1,3 +1,4 @@
+// FILE: src/components/ui/EntityCard.tsx
 import {
   Card,
   CardContent,
