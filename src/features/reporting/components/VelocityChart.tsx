@@ -1,4 +1,4 @@
-// FILE: src/features/reporting/components/VelocityChart.tsx
+
 import {
   ChartContainer,
   BarChart,

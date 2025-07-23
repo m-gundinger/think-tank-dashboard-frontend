@@ -1,4 +1,3 @@
-// FILE: src/features/knowledge-base/components/KnowledgeBaseCard.tsx
 import { EntityCard } from "@/components/ui/EntityCard";
 import { useManageKnowledgeBase } from "../api/useManageKnowledgeBase";
 import { BookOpen } from "lucide-react";
@@ -31,14 +30,10 @@ export function KnowledgeBaseCard({
     onEdit();
   };
 
-  // Link to a future detail page
-  // const linkTo = `/workspaces/${knowledgeBase.workspaceId}/knowledge-bases/${knowledgeBase.id}`;
-
   return (
     <EntityCard
       title={knowledgeBase.name}
       description={knowledgeBase.description || "No description."}
-      // linkTo={linkTo}
       onEdit={handleEdit}
       onDelete={handleDelete}
       deleteDisabled={deleteMutation.isPending}

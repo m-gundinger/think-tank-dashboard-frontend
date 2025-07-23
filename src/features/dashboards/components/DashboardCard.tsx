@@ -1,4 +1,3 @@
-// FILE: src/features/dashboards/components/DashboardCard.tsx
 import {
   Card,
   CardDescription,

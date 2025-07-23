@@ -1,4 +1,3 @@
-// FILE: src/features/crm/components/ManageCompanyPeople.tsx
 import { useApiResource } from "@/hooks/useApiResource";
 import { useManageCompanyPeople } from "../api/useManageCompanyPeople";
 import {

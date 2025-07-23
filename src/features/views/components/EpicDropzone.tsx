@@ -1,4 +1,4 @@
-// FILE: src/features/views/components/EpicDropzone.tsx
+
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext } from "@dnd-kit/sortable";
 import { Task } from "@/features/tasks/task.types";

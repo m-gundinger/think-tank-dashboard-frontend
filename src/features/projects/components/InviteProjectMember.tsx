@@ -1,4 +1,3 @@
-// FILE: src/features/projects/components/InviteProjectMember.tsx
 import { useState } from "react";
 import { useApiResource } from "@/hooks/useApiResource";
 import { Button } from "@/components/ui/button";

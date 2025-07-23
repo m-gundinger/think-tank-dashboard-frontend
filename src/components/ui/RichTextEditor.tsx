@@ -1,4 +1,3 @@
-// FILE: src/components/ui/RichTextEditor.tsx
 import { useEditor, EditorContent, Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";

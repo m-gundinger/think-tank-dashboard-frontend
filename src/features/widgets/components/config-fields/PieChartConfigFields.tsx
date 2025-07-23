@@ -1,4 +1,4 @@
-// FILE: src/features/widgets/components/config-fields/PieChartConfigFields.tsx
+
 import { FormInput } from "@/components/form/FormFields";
 
 export function PieChartConfigFields() {

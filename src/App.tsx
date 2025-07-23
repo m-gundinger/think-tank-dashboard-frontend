@@ -1,4 +1,3 @@
-// FILE: src/App.tsx
 import { Routes, Route, Navigate } from "react-router-dom";
 import { ProtectedLayout } from "./routes/ProtectedLayout";
 import { WorkspaceLayout } from "./routes/WorkspaceLayout";
@@ -37,6 +36,8 @@ import { CrmPage } from "./pages/CrmPage";
 import { MyTasksPage } from "./pages/MyTasksPage";
 import { WorkspaceDashboardListPage } from "./pages/WorkspaceDashboardListPage";
 import { KnowledgeBasePage } from "./pages/KnowledgeBasePage";
+import { ProjectGoalsPage } from "./pages/ProjectGoalsPage";
+import { WorkloadPage } from "./pages/WorkloadPage";
 
 function App() {
   return (
@@ -65,6 +66,7 @@ function App() {
             <Route path="teams" element={<TeamsPage />} />
             <Route path="dashboards" element={<WorkspaceDashboardListPage />} />
             <Route path="knowledge-bases" element={<KnowledgeBasePage />} />
+            <Route path="workload" element={<WorkloadPage />} /> {/* ADDED */}
           </Route>
           <Route
             path="workspaces/:workspaceId/projects/:projectId"
@@ -88,6 +90,7 @@ function App() {
             <Route path="custom-fields" element={<ProjectCustomFieldsPage />} />
             <Route path="task-types" element={<ProjectTaskTypesPage />} />
             <Route path="views" element={<ProjectViewsPage />} />
+            <Route path="goals" element={<ProjectGoalsPage />} />
           </Route>
           <Route
             path="workspaces/:workspaceId/projects/:projectId/:dashboardId"

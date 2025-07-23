@@ -1,4 +1,3 @@
-// FILE: src/components/layout/Sidebar.tsx
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,

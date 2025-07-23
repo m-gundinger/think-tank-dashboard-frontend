@@ -1,4 +1,3 @@
-// FILE: src/features/admin/workflows/components/action-fields/SendEmailBrevoFields.tsx
 import { Control } from "react-hook-form";
 import {
   FormField,

@@ -1,4 +1,3 @@
-// FILE: src/components/ui/MentionList.tsx
 import {
   forwardRef,
   useEffect,
@@ -13,7 +12,7 @@ interface MentionListProps {
   command: (item: { id: string; label: string }) => void;
 }
 
-interface MentionListRef {
+export interface MentionListRef {
   onKeyDown: (props: { event: KeyboardEvent }) => boolean;
 }
 

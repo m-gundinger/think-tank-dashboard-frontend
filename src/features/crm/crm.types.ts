@@ -1,4 +1,3 @@
-// FILE: src/features/crm/crm.types.ts
 import { z } from "zod";
 
 export const PersonInCompanySchema = z.object({
@@ -21,3 +20,34 @@ export const CompanySchema = z.object({
   people: z.array(PersonInCompanySchema),
 });
 export type Company = z.infer<typeof CompanySchema>;
+
+export const DealStageSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  order: z.number().int(),
+  projectId: z.string().uuid(),
+});
+export type DealStage = z.infer<typeof DealStageSchema>;
+
+const DealContactSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  email: z.string().email().nullable(),
+});
+
+export const DealSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  value: z.number(),
+  stageId: z.string().uuid(),
+  stage: DealStageSchema,
+  companyId: z.string().uuid(),
+  company: CompanySchema,
+  ownerId: z.string().uuid(),
+  ownerName: z.string(),
+  createdById: z.string().uuid(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  contacts: z.array(DealContactSchema),
+});
+export type Deal = z.infer<typeof DealSchema>;

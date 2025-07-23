@@ -1,4 +1,4 @@
-// FILE: src/features/task-types/api/useManageTaskTypes.ts
+
 import { useApiResource } from "@/hooks/useApiResource";
 
 export function useManageTaskTypes(workspaceId: string, projectId: string) {

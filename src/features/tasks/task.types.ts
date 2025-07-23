@@ -1,4 +1,3 @@
-// FILE: src/features/tasks/task.types.ts
 import { z, type ZodType } from "zod";
 import {
   TaskStatus,

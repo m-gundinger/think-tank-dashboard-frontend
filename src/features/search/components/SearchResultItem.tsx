@@ -6,17 +6,17 @@ export function SearchResultItem({ item }: { item: any }) {
   const getLink = () => {
     switch (item.__typename) {
       case "Project":
-        return `/workspaces/DUMMY_WS_ID/projects/${item.id}`;
+        return `/workspaces/${item.workspaceId}/projects/${item.id}`;
       case "Task":
-        return `/workspaces/DUMMY_WS_ID/projects/${item.projectId}/tasks/${item.id}`;
+        return `/workspaces/${item.project?.workspaceId}/projects/${item.projectId}?taskId=${item.id}`;
       case "User":
-        return `/profile/${item.id}`;
+        return `/profile`;
       default:
         return "/";
     }
   };
   const handleSelect = () => {
-    const url = getLink().replace("DUMMY_WS_ID", "1");
+    const url = getLink();
     navigate(url);
   };
 

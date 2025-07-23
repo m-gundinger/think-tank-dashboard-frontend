@@ -1,4 +1,3 @@
-// FILE: src/features/views/components/ProjectDetailView.tsx
 import { Link } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TaskList } from "@/features/tasks/components/TaskList";

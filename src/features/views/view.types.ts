@@ -1,4 +1,3 @@
-// FILE: src/features/views/view.types.ts
 import { z } from "zod";
 import { ViewType } from "@/types";
 import {

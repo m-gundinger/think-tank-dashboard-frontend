@@ -1,4 +1,3 @@
-// FILE: src/features/crm/components/CompanyDetailContent.tsx
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Globe } from "lucide-react";
 import { RichTextOutput } from "@/components/ui/RichTextOutput";

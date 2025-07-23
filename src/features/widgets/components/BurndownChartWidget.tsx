@@ -1,4 +1,4 @@
-// FILE: src/features/widgets/components/BurndownChartWidget.tsx
+
 import {
   ChartContainer,
   LineChart,

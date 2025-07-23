@@ -1,4 +1,4 @@
-// FILE: src/pages/ProjectDetailPage.tsx
+
 import { useParams, useSearchParams } from "react-router-dom";
 import { useEffect, useMemo } from "react";
 import { TaskDetailModal } from "@/features/tasks/components/TaskDetailModal";

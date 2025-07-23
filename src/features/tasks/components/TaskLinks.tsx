@@ -1,4 +1,3 @@
-// FILE: src/features/tasks/components/TaskLinks.tsx
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,9 +9,46 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Link2, Trash2 } from "lucide-react";
-import { useApiMutation } from "@/hooks/useApiMutation";
-import api from "@/lib/api";
+import { useManageTaskLinks } from "../api/useManageTaskLinks";
 import { TaskLinkType } from "@/types";
+
+function TaskLinkItem({ link, onRemove, onUpdateType }: any) {
+  const target = link.targetTask ?? link.sourceTask;
+
+  return (
+    <div className="hover:bg-accent/50 flex items-center justify-between rounded-md p-2 text-sm">
+      <div className="flex min-w-0 items-center gap-2">
+        <Link2 className="h-4 w-4 flex-shrink-0" />
+        <Select
+          defaultValue={link.type}
+          onValueChange={(newType) => onUpdateType(link.id, newType)}
+        >
+          <SelectTrigger className="h-7 w-[120px] text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.values(TaskLinkType).map((type) => (
+              <SelectItem key={type} value={type} className="text-xs">
+                {type.replace(/_/g, " ")}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <span className="text-muted-foreground truncate" title={target.title}>
+          {target.title}
+        </span>
+      </div>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-6 w-6"
+        onClick={() => onRemove(link.id)}
+      >
+        <Trash2 className="h-3 w-3" />
+      </Button>
+    </div>
+  );
+}
 
 export function TaskLinks({ task, workspaceId, projectId }: any) {
   const [targetTaskId, setTargetTaskId] = useState("");
@@ -20,61 +56,35 @@ export function TaskLinks({ task, workspaceId, projectId }: any) {
     TaskLinkType.RELATES_TO
   );
 
-  const getUrl = (subpath: string) => {
-    return projectId
-      ? `/workspaces/${workspaceId}/projects/${projectId}/tasks/${task.id}/${subpath}`
-      : `/tasks/${task.id}/${subpath}`;
-  };
-
-  const addLinkMutation = useApiMutation({
-    mutationFn: (linkData: any) => api.post(getUrl("links"), linkData),
-    successMessage: "Task linked successfully.",
-    invalidateQueries: [["task", task.id]],
-  });
-
-  const removeLinkMutation = useApiMutation({
-    mutationFn: (linkId: string) => api.delete(getUrl(`links/${linkId}`)),
-    successMessage: "Task link removed.",
-    invalidateQueries: [["task", task.id]],
-  });
+  const { addLink, removeLink, updateLink, isPending } = useManageTaskLinks(
+    workspaceId,
+    projectId,
+    task.id
+  );
 
   const handleAddLink = (e: React.FormEvent) => {
     e.preventDefault();
     if (!targetTaskId.trim()) return;
-    addLinkMutation.mutate(
+    addLink(
       { targetTaskId, type: linkType },
       { onSuccess: () => setTargetTaskId("") }
     );
   };
 
+  const allLinks = [...(task.links || []), ...(task.linkedToBy || [])];
+
   return (
     <div className="space-y-2">
       <h3 className="text-sm font-semibold">Linked Tasks</h3>
-      <div className="space-y-1 rounded-md border p-2">
-        {task.links?.length > 0 ? (
-          task.links.map((link: any) => (
-            <div
+      <div className="max-h-48 space-y-1 overflow-y-auto rounded-md border p-1">
+        {allLinks.length > 0 ? (
+          allLinks.map((link: any) => (
+            <TaskLinkItem
               key={link.id}
-              className="hover:bg-accent flex items-center justify-between p-2 text-sm"
-            >
-              <div className="flex items-center gap-2">
-                <Link2 className="h-3 w-3" />
-                <span className="font-medium">
-                  {link.type.replace(/_/g, " ")}:
-                </span>
-                <span className="text-muted-foreground truncate">
-                  {link.targetTask.title}
-                </span>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6"
-                onClick={() => removeLinkMutation.mutate(link.id)}
-              >
-                <Trash2 className="h-3 w-3" />
-              </Button>
-            </div>
+              link={link}
+              onRemove={removeLink}
+              onUpdateType={updateLink}
+            />
           ))
         ) : (
           <p className="text-muted-foreground p-2 text-center text-xs">
@@ -103,7 +113,7 @@ export function TaskLinks({ task, workspaceId, projectId }: any) {
             ))}
           </SelectContent>
         </Select>
-        <Button type="submit" disabled={addLinkMutation.isPending}>
+        <Button type="submit" disabled={isPending}>
           Link
         </Button>
       </form>

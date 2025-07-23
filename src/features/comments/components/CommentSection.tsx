@@ -1,4 +1,3 @@
-// FILE: src/features/comments/components/CommentSection.tsx
 import { Button } from "@/components/ui/button";
 import { useApiMutation } from "@/hooks/useApiMutation";
 import api from "@/lib/api";

@@ -1,4 +1,4 @@
-// FILE: src/features/task-templates/components/TemplateSelectorDialog.tsx
+
 import {
   Dialog,
   DialogContent,

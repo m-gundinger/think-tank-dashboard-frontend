@@ -1,4 +1,3 @@
-// FILE: src/features/views/components/ViewCard.tsx
 import { EntityCard } from "@/components/ui/EntityCard";
 import { useManageViews } from "../api/useManageViews";
 

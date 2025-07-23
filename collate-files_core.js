@@ -21,7 +21,7 @@ const SCRIPT_CONFIG = {
   ],
   // Folders to always ignore by name, wherever they appear
   IGNORED_DIRS_COMMON: [
-    //"ui",
+    "ui",
     "node_modules",
     ".git",
     ".angular",

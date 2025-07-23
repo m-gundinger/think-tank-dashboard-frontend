@@ -1,4 +1,3 @@
-// FILE: src/features/dashboards/components/DashboardList.tsx
 import { useApiResource } from "@/hooks/useApiResource";
 import { DashboardCard } from "./DashboardCard";
 import { useState } from "react";

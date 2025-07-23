@@ -1,15 +1,17 @@
-// FILE: src/features/widgets/components/WidgetRenderer.tsx
 import { StatsCounterWidget } from "./StatsCounterWidget";
 import { TaskListWidget } from "./TaskListWidget";
 import { BurndownChartWidget } from "./BurndownChartWidget";
 import { TimeTrackingReportWidget } from "./TimeTrackingReportWidget";
 import { PieChartWidget } from "./PieChartWidget";
+import { GoalTrackingWidget } from "./GoalTrackingWidget";
+import { LeadCycleTimeChartWidget } from "./LeadCycleTimeChartWidget";
 import { WidgetWrapper } from "./WidgetWrapper";
+import { WidgetType } from "@/types";
 
 export function WidgetRenderer({ widget, workspaceId, projectId }: any) {
   const renderWidgetContent = () => {
     switch (widget.type) {
-      case "STATS_COUNTER":
+      case WidgetType.STATS_COUNTER:
         return (
           <StatsCounterWidget
             widget={widget}
@@ -17,7 +19,7 @@ export function WidgetRenderer({ widget, workspaceId, projectId }: any) {
             projectId={projectId}
           />
         );
-      case "TASK_LIST":
+      case WidgetType.TASK_LIST:
         return (
           <TaskListWidget
             widget={widget}
@@ -25,7 +27,7 @@ export function WidgetRenderer({ widget, workspaceId, projectId }: any) {
             projectId={projectId}
           />
         );
-      case "BURNDOWN_CHART":
+      case WidgetType.BURNDOWN_CHART:
         return (
           <BurndownChartWidget
             widget={widget}
@@ -33,7 +35,7 @@ export function WidgetRenderer({ widget, workspaceId, projectId }: any) {
             projectId={projectId}
           />
         );
-      case "TIME_TRACKING_REPORT":
+      case WidgetType.TIME_TRACKING_REPORT:
         return (
           <TimeTrackingReportWidget
             widget={widget}
@@ -41,9 +43,25 @@ export function WidgetRenderer({ widget, workspaceId, projectId }: any) {
             projectId={projectId}
           />
         );
-      case "PIE_CHART":
+      case WidgetType.PIE_CHART:
         return (
           <PieChartWidget
+            widget={widget}
+            workspaceId={workspaceId}
+            projectId={projectId}
+          />
+        );
+      case WidgetType.GOAL_TRACKING:
+        return (
+          <GoalTrackingWidget
+            widget={widget}
+            workspaceId={workspaceId}
+            projectId={projectId}
+          />
+        );
+      case WidgetType.LEAD_CYCLE_TIME_CHART:
+        return (
+          <LeadCycleTimeChartWidget
             widget={widget}
             workspaceId={workspaceId}
             projectId={projectId}

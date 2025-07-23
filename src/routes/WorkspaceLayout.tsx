@@ -1,4 +1,3 @@
-// FILE: src/routes/WorkspaceLayout.tsx
 import { NavLink, Outlet, useLocation, useParams } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useApiResource } from "@/hooks/useApiResource";
@@ -43,6 +42,11 @@ export function WorkspaceLayout() {
           </NavLink>
           <NavLink to={`/workspaces/${workspaceId}/knowledge-bases`}>
             <TabsTrigger value="knowledge-bases">Knowledge Base</TabsTrigger>
+          </NavLink>
+          <NavLink to={`/workspaces/${workspaceId}/workload`}>
+            {" "}
+            {/* ADDED */}
+            <TabsTrigger value="workload">Workload</TabsTrigger>
           </NavLink>
         </TabsList>
         <Outlet />

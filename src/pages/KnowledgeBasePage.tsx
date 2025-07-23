@@ -1,4 +1,4 @@
-// FILE: src/pages/KnowledgeBasePage.tsx
+
 import { KnowledgeBaseList } from "@/features/knowledge-base/components/KnowledgeBaseList";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";

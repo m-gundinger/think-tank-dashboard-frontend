@@ -1,4 +1,4 @@
-// FILE: src/pages/ProjectViewsPage.tsx
+
 import { ViewList } from "@/features/views/components/ViewList";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";

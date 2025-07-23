@@ -1,4 +1,3 @@
-// FILE: src/features/sprints/components/SprintList.tsx
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Sprint } from "../sprint.types";
@@ -7,14 +6,9 @@ import { SprintStatus } from "@/types";
 interface SprintListProps {
   sprints: Sprint[];
   onStartSprint: (sprintId: string) => void;
-  onCompleteSprint: (sprintId: string) => void;
 }
 
-export function SprintList({
-  sprints,
-  onStartSprint,
-  onCompleteSprint,
-}: SprintListProps) {
+export function SprintList({ sprints, onStartSprint }: SprintListProps) {
   const plannedSprints = sprints.filter(
     (s) => s.status === SprintStatus.PLANNING
   );

@@ -1,8 +1,7 @@
-// FILE: src/pages/CrmPage.tsx
 import { useState } from "react";
 import { PersonList } from "@/features/crm/components/PersonList";
 import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, Building2 } from "lucide-react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { PersonForm } from "@/features/crm/components/PersonForm";
 import { CompanyForm } from "@/features/crm/components/CompanyForm";
@@ -12,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useApiResource } from "@/hooks/useApiResource";
 import { CompanyCard } from "@/features/crm/components/CompanyCard";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Building2 } from "lucide-react";
+import { DealPipeline } from "@/features/crm/components/DealPipeline";
 
 function CompanyList({
   onCompanySelect,
@@ -106,12 +105,16 @@ export function CrmPage() {
         <TabsList>
           <TabsTrigger value="people">People</TabsTrigger>
           <TabsTrigger value="companies">Companies</TabsTrigger>
+          <TabsTrigger value="deals">Deals</TabsTrigger>
         </TabsList>
         <TabsContent value="people" className="mt-4">
           <PersonList onPersonSelect={setSelectedPersonId} />
         </TabsContent>
         <TabsContent value="companies" className="mt-4">
           <CompanyList onCompanySelect={setSelectedCompanyId} />
+        </TabsContent>
+        <TabsContent value="deals" className="mt-4">
+          <DealPipeline />
         </TabsContent>
       </Tabs>
 

@@ -1,4 +1,4 @@
-// FILE: src/pages/DashboardDetailPage.tsx
+
 import { useParams } from "react-router-dom";
 import GridLayout, { Layout } from "react-grid-layout";
 import { useApiResource } from "@/hooks/useApiResource";
@@ -15,7 +15,7 @@ import { CreateWidgetForm } from "@/features/widgets/components/CreateWidgetForm
 export function DashboardDetailPage() {
   const { workspaceId, projectId, dashboardId } = useParams<{
     workspaceId: string;
-    projectId?: string; // projectId is now optional
+    projectId?: string; 
     dashboardId: string;
   }>();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -37,11 +37,11 @@ export function DashboardDetailPage() {
   const { data: dashboardData, isLoading } =
     dashboardResource.useGetOne(dashboardId);
 
-  // Note: useUpdateWidget will need to be aware of the context. For now, we assume it can figure it out.
-  // A more robust solution might involve passing both workspaceId and projectId to the hook.
+  
+  
   const updateWidgetMutation = useUpdateWidget(
     workspaceId,
-    projectId!, // This might be an issue if projectId is null, requires careful handling in the hook
+    projectId!, 
     dashboardId
   );
 

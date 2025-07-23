@@ -1,4 +1,3 @@
-// FILE: src/features/task-types/components/TaskTypeList.tsx
 import { useState } from "react";
 import { useManageTaskTypes } from "../api/useManageTaskTypes";
 import {
@@ -11,7 +10,6 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
 import {
   DropdownMenu,

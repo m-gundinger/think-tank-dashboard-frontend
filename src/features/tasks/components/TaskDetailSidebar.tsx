@@ -1,4 +1,4 @@
-// FILE: src/features/tasks/components/TaskDetailSidebar.tsx
+
 import { TaskAssignees } from "./TaskAssignees";
 import { TimeLogSection } from "@/features/timelogs/components/TimeLogSection";
 import { Skeleton } from "@/components/ui/skeleton";

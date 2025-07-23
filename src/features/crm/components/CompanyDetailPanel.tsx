@@ -1,4 +1,3 @@
-// FILE: src/features/crm/components/CompanyDetailPanel.tsx
 import { Sheet, SheetContent, SheetFooter } from "@/components/ui/sheet";
 import { useApiResource } from "@/hooks/useApiResource";
 import { Skeleton } from "@/components/ui/skeleton";

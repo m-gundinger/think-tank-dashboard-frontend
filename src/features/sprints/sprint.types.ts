@@ -1,4 +1,4 @@
-// FILE: src/features/sprints/sprint.types.ts
+
 import { z } from "zod";
 import { SprintStatus } from "@/types";
 import {

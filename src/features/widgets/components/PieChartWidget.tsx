@@ -1,4 +1,4 @@
-// FILE: src/features/widgets/components/PieChartWidget.tsx
+
 import {
   ResponsiveContainer,
   PieChart,

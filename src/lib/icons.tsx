@@ -1,4 +1,4 @@
-// FILE: src/lib/icons.tsx
+
 import {
   Briefcase,
   CheckSquare,
@@ -33,7 +33,7 @@ export function getIcon(typeName: string | null | undefined): LucideIcon {
   if (!typeName) {
     return ICONS.Default;
   }
-  // Case-insensitive matching
+  
   const foundIcon = Object.keys(ICONS).find(
     (key) => key.toLowerCase() === typeName.toLowerCase()
   );

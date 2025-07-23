@@ -1,4 +1,3 @@
-// FILE: src/features/projects/components/ProjectMemberList.tsx
 import { useGetProjectMembers } from "../api/useGetProjectMembers";
 import { useApiResource } from "@/hooks/useApiResource";
 import {

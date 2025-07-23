@@ -1,4 +1,3 @@
-// FILE: src/pages/ProjectAccessControlPage.tsx
 import { ProjectRoleList } from "@/features/project-roles/components/ProjectRoleList";
 import { InviteProjectMember } from "@/features/projects/components/InviteProjectMember";
 import { ProjectMemberList } from "@/features/projects/components/ProjectMemberList";

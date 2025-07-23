@@ -1,4 +1,3 @@
-// FILE: src/features/integrations/components/IntegrationCard.tsx
 import {
   Card,
   CardContent,

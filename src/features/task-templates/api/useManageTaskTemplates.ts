@@ -1,4 +1,4 @@
-// FILE: src/features/task-templates/api/useManageTaskTemplates.ts
+
 import { useApiResource } from "@/hooks/useApiResource";
 
 export function useManageTaskTemplates(workspaceId: string, projectId: string) {

@@ -1,3 +1,4 @@
+
 import { z, ZodType } from "zod";
 
 export const createPaginationSchema = (defaultLimit = 10) =>
@@ -23,7 +24,10 @@ export const createPaginatedResponseSchema = <T extends ZodType>(
     totalPages: z.number().int(),
   });
 
-export const createUuidParamSchema = (paramName: string, entityDisplayName: string) =>
+export const createUuidParamSchema = (
+  paramName: string,
+  entityDisplayName: string
+) =>
   z.object({
     [paramName]: z.string().uuid({
       message: `Invalid ${entityDisplayName} ID format. Expected UUID.`,

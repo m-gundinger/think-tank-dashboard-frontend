@@ -1,4 +1,4 @@
-// FILE: src/pages/TeamsPage.tsx
+
 import { TeamList } from "@/features/teams/components/TeamList";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";

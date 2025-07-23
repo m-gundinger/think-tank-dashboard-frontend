@@ -1,4 +1,3 @@
-// FILE: src/features/views/components/ViewList.tsx
 import { useState } from "react";
 import { useManageViews } from "../api/useManageViews";
 import { ViewCard } from "./ViewCard";

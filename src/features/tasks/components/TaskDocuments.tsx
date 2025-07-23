@@ -1,5 +1,4 @@
-// FILE: src/features/tasks/components/TaskDocuments.tsx
-import { useMemo, useRef } from "react";
+import { useRef, useMemo } from "react";
 import { DocumentType } from "@/types";
 import { Task } from "../task.types";
 import { Button } from "@/components/ui/button";
@@ -116,8 +115,8 @@ export function TaskDocuments({
     return Array.from(collectedDocs.values());
   }, [task]);
 
-  const inputDocs = allDocs.filter((d) => d.type === DocumentType.INPUT);
-  const outputDocs = allDocs.filter((d) => d.type === DocumentType.OUTPUT);
+  const inputDocs = allDocs.filter((d: any) => d.type === DocumentType.INPUT);
+  const outputDocs = allDocs.filter((d: any) => d.type === DocumentType.OUTPUT);
 
   const handleFileChange = (
     event: React.ChangeEvent<HTMLInputElement>,

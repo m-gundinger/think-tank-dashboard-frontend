@@ -1,4 +1,3 @@
-// FILE: src/features/knowledge-base/components/KnowledgeBaseList.tsx
 import { useManageKnowledgeBase } from "../api/useManageKnowledgeBase";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";

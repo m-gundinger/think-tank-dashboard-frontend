@@ -1,4 +1,3 @@
-// FILE: src/features/crm/components/CompanyCard.tsx
 import {
   Card,
   CardContent,

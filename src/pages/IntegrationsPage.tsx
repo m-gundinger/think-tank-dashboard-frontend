@@ -1,4 +1,4 @@
-// FILE: src/pages/IntegrationsPage.tsx
+
 import { IntegrationList } from "@/features/integrations/components/IntegrationList";
 
 export function IntegrationsPage() {

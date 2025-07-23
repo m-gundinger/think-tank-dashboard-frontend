@@ -1,4 +1,4 @@
-// FILE: src/pages/ProjectTaskTypesPage.tsx
+
 import { TaskTypeList } from "@/features/task-types/components/TaskTypeList";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";

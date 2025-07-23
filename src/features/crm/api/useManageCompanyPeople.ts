@@ -1,4 +1,3 @@
-// FILE: src/features/crm/api/useManageCompanyPeople.ts
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
 

@@ -1,5 +1,3 @@
-// FILE: src/features/views/components/BacklogView.tsx
-import { useState, useMemo } from "react";
 import {
   DndContext,
   DragEndEvent,
@@ -14,8 +12,8 @@ import { Task } from "@/features/tasks/task.types";
 import { useApiResource } from "@/hooks/useApiResource";
 import { useUpdateMyTask } from "@/features/tasks/api/useUpdateMyTask";
 import { EpicDropzone } from "./EpicDropzone";
-import { BacklogTaskItem } from "./BacklogTaskItem";
 import { KanbanTaskCard } from "./KanbanTaskCard";
+import { useState, useMemo } from "react";
 
 interface BacklogViewProps {
   tasks: Task[];

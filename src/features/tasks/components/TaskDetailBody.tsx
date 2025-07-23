@@ -1,4 +1,3 @@
-// FILE: src/features/tasks/components/TaskDetailBody.tsx
 import { RichTextEditor } from "@/components/ui/RichTextEditor";
 import { CommentSection } from "@/features/comments/components/CommentSection";
 import { SubtaskList } from "./SubtaskList";

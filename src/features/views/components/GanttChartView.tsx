@@ -1,4 +1,4 @@
-// FILE: src/features/views/components/GanttChartView.tsx
+
 import { useEffect, useRef } from "react";
 import { gantt } from "dhtmlx-gantt";
 import "dhtmlx-gantt/codebase/dhtmlxgantt.css";

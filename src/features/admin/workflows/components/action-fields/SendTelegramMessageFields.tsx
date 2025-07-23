@@ -1,4 +1,3 @@
-// FILE: src/features/admin/workflows/components/action-fields/SendTelegramMessageFields.tsx
 import { Control } from "react-hook-form";
 import {
   FormField,

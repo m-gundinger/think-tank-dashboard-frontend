@@ -1,4 +1,3 @@
-// FILE: src/features/crm/api/useGetCompanies.ts
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 

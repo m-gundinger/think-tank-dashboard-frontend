@@ -1,4 +1,3 @@
-// FILE: src/features/sprints/components/SprintBoardView.tsx
 import { useState, useMemo } from "react";
 import { useManageSprints } from "../api/useManageSprints";
 import { KanbanBoard } from "@/features/views/components/KanbanBoard";
@@ -92,8 +91,8 @@ export function SprintBoardView({
           description="Organize your work into time-boxed sprints."
           form={CreateSprintForm}
           formProps={{ workspaceId, projectId }}
-          resourcePath={""}
-          resourceKey={[]}
+          resourcePath={`/workspaces/${workspaceId}/projects/${projectId}/sprints`}
+          resourceKey={["sprints", projectId]}
         />
       </div>
 
@@ -131,7 +130,6 @@ export function SprintBoardView({
       <SprintList
         sprints={sprintsData?.data || []}
         onStartSprint={handleStartSprint}
-        onCompleteSprint={handleCompleteSprint}
       />
     </div>
   );

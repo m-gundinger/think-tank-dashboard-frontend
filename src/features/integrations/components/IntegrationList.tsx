@@ -1,7 +1,5 @@
-// FILE: src/features/integrations/components/IntegrationList.tsx
 import { IntegrationCard } from "./IntegrationCard";
 
-// Mock data, this would come from an API
 const availableIntegrations = [
   {
     name: "Google",
@@ -17,7 +15,6 @@ const availableIntegrations = [
 ];
 
 export function IntegrationList() {
-  // Mock state, this would be managed via React Query and API state
   const connectedIntegrations = new Set(["Slack"]);
   const isConnecting = false;
 
