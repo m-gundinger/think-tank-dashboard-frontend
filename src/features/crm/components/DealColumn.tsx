@@ -17,7 +17,6 @@ export function DealColumn({ stage, deals, onDealSelect }: DealColumnProps) {
       stage,
     },
   });
-
   const dealIds = deals.map((d) => d.id);
 
   const totalValue = deals.reduce((sum, deal) => sum + deal.value, 0);
@@ -25,7 +24,6 @@ export function DealColumn({ stage, deals, onDealSelect }: DealColumnProps) {
     style: "currency",
     currency: "USD",
   });
-
   return (
     <div
       ref={setNodeRef}

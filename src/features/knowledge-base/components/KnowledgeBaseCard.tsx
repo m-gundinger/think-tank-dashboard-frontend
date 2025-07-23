@@ -13,7 +13,6 @@ export function KnowledgeBaseCard({
 }: KnowledgeBaseCardProps) {
   const { useDelete } = useManageKnowledgeBase(knowledgeBase.workspaceId);
   const deleteMutation = useDelete();
-
   const handleDelete = (e: React.MouseEvent) => {
     e.preventDefault();
     if (
@@ -29,7 +28,6 @@ export function KnowledgeBaseCard({
     e.preventDefault();
     onEdit();
   };
-
   return (
     <EntityCard
       title={knowledgeBase.name}

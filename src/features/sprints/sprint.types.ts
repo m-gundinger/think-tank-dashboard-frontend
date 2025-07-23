@@ -1,4 +1,3 @@
-
 import { z } from "zod";
 import { SprintStatus } from "@/types";
 import {
@@ -8,7 +7,6 @@ import {
 } from "@/lib/zod";
 
 export const SprintIdParamsSchema = createUuidParamSchema("sprintId", "Sprint");
-
 export const SprintSchema = z.object({
   __typename: z.literal("Sprint"),
   id: z.string().uuid(),
@@ -22,7 +20,6 @@ export const SprintSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
 });
-
 export type Sprint = z.infer<typeof SprintSchema>;
 
 export const CreateSprintDtoSchema = z.object({
@@ -38,7 +35,6 @@ export const UpdateSprintDtoSchema = CreateSprintDtoSchema.omit({
   projectId: true,
 }).partial();
 export type UpdateSprintDto = z.infer<typeof UpdateSprintDtoSchema>;
-
 export const ListSprintsQuerySchema = createPaginationSchema().extend({
   status: z.nativeEnum(SprintStatus).optional(),
 });

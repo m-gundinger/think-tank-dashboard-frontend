@@ -14,7 +14,6 @@ import {
 import { format } from "date-fns";
 import { RichTextOutput } from "@/components/ui/RichTextOutput";
 import { getAbsoluteUrl } from "@/lib/utils";
-
 const socialIcons: Record<string, React.ElementType> = {
   LINKEDIN: Linkedin,
   TWITTER: Twitter,
@@ -22,7 +21,6 @@ const socialIcons: Record<string, React.ElementType> = {
   WEBSITE: Globe,
   OTHER: ExternalLink,
 };
-
 function InfoItem({
   icon: Icon,
   label,

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { RRule, rrulestr, Options } from "rrule";
 import { Button } from "@/components/ui/button";
@@ -18,7 +17,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Repeat } from "lucide-react";
-
 interface RecurrenceSelectorProps {
   value: string | null;
   onSave: (rruleString: string | null) => void;
@@ -30,7 +28,6 @@ const frequencies = [
   { value: RRule.MONTHLY, label: "Monthly" },
   { value: RRule.YEARLY, label: "Yearly" },
 ];
-
 const weekdays = [
   { value: RRule.MO, label: "M" },
   { value: RRule.TU, label: "T" },
@@ -40,12 +37,10 @@ const weekdays = [
   { value: RRule.SA, label: "S" },
   { value: RRule.SU, label: "S" },
 ];
-
 export function RecurrenceSelector({ value, onSave }: RecurrenceSelectorProps) {
   const [options, setOptions] = useState<Partial<Options>>({});
   const [ruleText, setRuleText] = useState("Does not repeat");
   const [popoverOpen, setPopoverOpen] = useState(false);
-
   useEffect(() => {
     if (value) {
       try {
@@ -77,7 +72,6 @@ export function RecurrenceSelector({ value, onSave }: RecurrenceSelectorProps) {
     onSave(null);
     setPopoverOpen(false);
   };
-
   const freq = options.freq ?? RRule.DAILY;
 
   const byweekdayValue = options.byweekday
@@ -86,7 +80,6 @@ export function RecurrenceSelector({ value, onSave }: RecurrenceSelectorProps) {
         : [options.byweekday]
       ).map((day) => day.toString())
     : [];
-
   return (
     <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
       <PopoverTrigger asChild>

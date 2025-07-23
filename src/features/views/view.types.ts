@@ -12,7 +12,6 @@ export const ProjectIdParamsSchema = createUuidParamSchema(
 );
 export const ViewIdParamsSchema = createUuidParamSchema("viewId", "View");
 export type ViewIdParams = z.infer<typeof ViewIdParamsSchema>;
-
 export const ViewColumnSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
@@ -21,7 +20,6 @@ export const ViewColumnSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
 });
-
 const KanbanConfigSchema = z.object({});
 
 const ListConfigSchema = z.object({
@@ -31,7 +29,6 @@ const ListConfigSchema = z.object({
 const CalendarConfigSchema = z.object({
   dateField: z.enum(["dueDate", "startDate"]),
 });
-
 const GanttConfigSchema = z.object({});
 const BacklogConfigSchema = z.object({});
 
@@ -70,15 +67,12 @@ export const ViewSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
 });
-
 export type View = z.infer<typeof ViewSchema>;
 export type ViewColumn = z.infer<typeof ViewColumnSchema>;
-
 export const CreateViewColumnDtoSchema = z.object({
   name: z.string().min(1, "Column name cannot be empty."),
   order: z.number().int().optional(),
 });
-
 export const CreateViewDtoSchema = z.object({
   name: z.string().min(1, "View name cannot be empty."),
   type: z.nativeEnum(ViewType),

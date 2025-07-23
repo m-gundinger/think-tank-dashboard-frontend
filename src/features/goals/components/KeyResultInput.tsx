@@ -27,7 +27,6 @@ export function KeyResultInput({ control }: KeyResultInputProps) {
     control,
     name: "keyResults",
   });
-
   return (
     <div className="space-y-4">
       <FormLabel>Key Results</FormLabel>

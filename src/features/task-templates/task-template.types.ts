@@ -1,12 +1,10 @@
 import { z } from "zod";
 import { createUuidParamSchema } from "@/lib/zod";
 import { UpdateTaskDtoSchema } from "@/features/tasks/task.types";
-
 export const TaskTemplateIdParamsSchema = createUuidParamSchema(
   "templateId",
   "Task Template"
 );
-
 export const TaskTemplateSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
@@ -16,7 +14,6 @@ export const TaskTemplateSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
 });
-
 export type TaskTemplate = z.infer<typeof TaskTemplateSchema>;
 
 export const CreateTaskTemplateDtoSchema = z.object({
@@ -26,5 +23,4 @@ export const CreateTaskTemplateDtoSchema = z.object({
     title: z.string().optional(),
   }),
 });
-
 export type CreateTaskTemplateDto = z.infer<typeof CreateTaskTemplateDtoSchema>;

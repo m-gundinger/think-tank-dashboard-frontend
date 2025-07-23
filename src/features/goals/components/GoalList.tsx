@@ -21,18 +21,15 @@ const ListSkeleton = () => (
     ))}
   </div>
 );
-
 export function GoalList({ workspaceId, projectId }: GoalListProps) {
   const { useGetAll } = useManageGoals(workspaceId, projectId);
   const { data, isLoading, isError } = useGetAll();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingGoalId, setEditingGoalId] = useState<string | null>(null);
-
   if (isLoading) return <ListSkeleton />;
   if (isError) return <div>Error loading goals.</div>;
 
   const goals = data?.data || [];
-
   return (
     <>
       <div className="space-y-6">

@@ -1,4 +1,3 @@
-
 import { ViewList } from "@/features/views/components/ViewList";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -15,7 +14,6 @@ export function ProjectViewsPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   if (!workspaceId || !projectId) return <div>Missing URL parameters.</div>;
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">

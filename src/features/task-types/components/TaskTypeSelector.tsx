@@ -1,4 +1,3 @@
-
 import {
   Select,
   SelectContent,
@@ -28,7 +27,6 @@ export function TaskTypeSelector({
     workspaceId,
     projectId
   ).useGetAll();
-
   return (
     <Select
       value={value ?? ""}

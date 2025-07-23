@@ -1,4 +1,3 @@
-
 import {
   ChartContainer,
   BarChart,
@@ -17,7 +16,6 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-
 interface VelocityChartProps {
   sprints: Sprint[];
 }
@@ -32,7 +30,6 @@ export function VelocityChart({ sprints }: VelocityChartProps) {
       name: sprint.name,
       Velocity: sprint.completedStoryPoints,
     }));
-
   if (chartData.length === 0) {
     return (
       <Card>

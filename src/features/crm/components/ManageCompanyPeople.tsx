@@ -33,11 +33,9 @@ export function ManageCompanyPeople({ company }: ManageCompanyPeopleProps) {
     removePerson,
     isLoading: isMutating,
   } = useManageCompanyPeople(company.id);
-
   const memberIds = new Set(company.people.map((p) => p.id));
   const availablePeople =
     peopleData?.data.filter((person: any) => !memberIds.has(person.id)) || [];
-
   return (
     <div className="space-y-4">
       <div>

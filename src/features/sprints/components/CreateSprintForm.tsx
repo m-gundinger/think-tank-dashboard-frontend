@@ -39,7 +39,6 @@ export function CreateSprintForm({
       projectId,
     },
   });
-
   useEffect(() => {
     if (isEditMode && initialData) {
       methods.reset({
@@ -51,7 +50,6 @@ export function CreateSprintForm({
       });
     }
   }, [initialData, isEditMode, methods]);
-
   async function onSubmit(values: SprintFormValues) {
     if (isEditMode) {
       await updateMutation.mutateAsync(

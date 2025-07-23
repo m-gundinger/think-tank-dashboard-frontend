@@ -15,7 +15,6 @@ import { nameSchema, descriptionSchema } from "@/lib/schemas";
 import { GoalStatus, KeyResultType } from "@/types";
 import { KeyResultInput } from "./KeyResultInput";
 import { useGetProjectMembers } from "@/features/projects/api/useGetProjectMembers";
-
 const keyResultSchema = z.object({
   name: z.string().min(1, "Key Result name is required."),
   type: z.nativeEnum(KeyResultType),
@@ -23,7 +22,6 @@ const keyResultSchema = z.object({
   targetValue: z.number(),
   currentValue: z.number(),
 });
-
 const goalSchema = z.object({
   name: nameSchema("Goal"),
   description: descriptionSchema,
@@ -33,7 +31,6 @@ const goalSchema = z.object({
   ownerId: z.string().uuid("An owner is required."),
   keyResults: z.array(keyResultSchema).optional(),
 });
-
 type GoalFormValues = z.infer<typeof goalSchema>;
 
 interface GoalFormProps {
@@ -53,11 +50,9 @@ export function GoalForm({
   const goalResource = useManageGoals(workspaceId, projectId);
   const { data: membersData, isLoading: isLoadingMembers } =
     useGetProjectMembers(workspaceId, projectId);
-
   const createMutation = goalResource.useCreate();
   const updateMutation = goalResource.useUpdate();
   const mutation = isEditMode ? updateMutation : createMutation;
-
   const methods = useForm<GoalFormValues>({
     resolver: zodResolver(goalSchema),
     defaultValues: {
@@ -69,7 +64,6 @@ export function GoalForm({
       keyResults: [],
     },
   });
-
   useEffect(() => {
     if (isEditMode && initialData) {
       methods.reset({
@@ -81,7 +75,6 @@ export function GoalForm({
       });
     }
   }, [initialData, isEditMode, methods]);
-
   async function onSubmit(values: GoalFormValues) {
     const payload = {
       ...values,
@@ -108,7 +101,6 @@ export function GoalForm({
   }));
   const memberOptions =
     membersData?.map((m: any) => ({ value: m.userId, label: m.name })) || [];
-
   return (
     <FormProvider {...methods}>
       <Form {...methods}>

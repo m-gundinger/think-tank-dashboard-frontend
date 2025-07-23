@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { SubtaskItem } from "./SubtaskItem";
-
 interface SubtaskListProps {
   task: any;
   onAddSubtask: () => void;

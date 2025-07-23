@@ -30,12 +30,10 @@ export function KnowledgeBaseForm({
   const createMutation = kbResource.useCreate();
   const updateMutation = kbResource.useUpdate();
   const mutation = isEditMode ? updateMutation : createMutation;
-
   const methods = useForm<KBFormValues>({
     resolver: zodResolver(kbSchema),
     defaultValues: { name: "", description: "" },
   });
-
   useEffect(() => {
     if (isEditMode && initialData) {
       methods.reset({
@@ -44,7 +42,6 @@ export function KnowledgeBaseForm({
       });
     }
   }, [initialData, isEditMode, methods]);
-
   async function onSubmit(values: KBFormValues) {
     if (isEditMode) {
       await updateMutation.mutateAsync(

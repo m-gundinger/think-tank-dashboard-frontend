@@ -1,4 +1,3 @@
-
 import { Calendar, dateFnsLocalizer, Event } from "react-big-calendar";
 import { format, parse, startOfWeek, getDay } from "date-fns";
 import { enUS } from "date-fns/locale/en-US";
@@ -12,7 +11,6 @@ interface CalendarViewProps {
 const locales = {
   "en-US": enUS,
 };
-
 const localizer = dateFnsLocalizer({
   format,
   parse,
@@ -20,7 +18,6 @@ const localizer = dateFnsLocalizer({
   getDay,
   locales,
 });
-
 export function CalendarView({ tasks, onTaskSelect }: CalendarViewProps) {
   const events: Event[] = tasks
     .filter((task) => task.dueDate)
@@ -30,7 +27,6 @@ export function CalendarView({ tasks, onTaskSelect }: CalendarViewProps) {
       end: new Date(task.dueDate!),
       resource: task,
     }));
-
   return (
     <div className="h-[calc(100vh-220px)]">
       <Calendar

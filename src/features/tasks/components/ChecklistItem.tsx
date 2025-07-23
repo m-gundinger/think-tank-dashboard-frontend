@@ -4,7 +4,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { ChecklistItem as ChecklistItemType } from "../task.types";
-
 interface ChecklistItemProps {
   item: ChecklistItemType;
   onUpdate: (id: string, updates: Partial<ChecklistItemType>) => void;
@@ -20,7 +19,6 @@ export function ChecklistItem({
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setText(e.target.value);
   };
-
   const handleBlur = () => {
     if (text.trim() === "") {
       onRemove(item.id);
@@ -28,7 +26,6 @@ export function ChecklistItem({
       onUpdate(item.id, { text });
     }
   };
-
   return (
     <div className="group flex items-center gap-2">
       <Checkbox

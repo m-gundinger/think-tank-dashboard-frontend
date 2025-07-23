@@ -8,7 +8,6 @@ import { useState } from "react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { KnowledgeBaseCard } from "./KnowledgeBaseCard";
 import { KnowledgeBaseForm } from "./KnowledgeBaseForm";
-
 const ListSkeleton = () => (
   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
     {Array.from({ length: 3 }).map((_, i) => (
@@ -24,12 +23,10 @@ const ListSkeleton = () => (
     ))}
   </div>
 );
-
 export function KnowledgeBaseList({ workspaceId }: { workspaceId: string }) {
   const kbResource = useManageKnowledgeBase(workspaceId);
   const { data, isLoading, isError, error } = kbResource.useGetAll();
   const [editingId, setEditingId] = useState<string | null>(null);
-
   if (isLoading) {
     return <ListSkeleton />;
   }

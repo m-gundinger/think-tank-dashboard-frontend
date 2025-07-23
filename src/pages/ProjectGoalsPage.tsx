@@ -1,13 +1,10 @@
-
 import { GoalList } from "@/features/goals/components/GoalList";
 import { useParams } from "react-router-dom";
-
 export function ProjectGoalsPage() {
   const { workspaceId, projectId } = useParams<{
     workspaceId: string;
     projectId: string;
   }>();
-
   if (!workspaceId || !projectId) {
     return <div>Missing URL parameters.</div>;
   }

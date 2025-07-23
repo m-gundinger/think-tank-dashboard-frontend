@@ -1,7 +1,6 @@
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
 import { useQueryClient } from "@tanstack/react-query";
-
 interface UpdateViewParams {
   workspaceId: string;
   projectId: string;

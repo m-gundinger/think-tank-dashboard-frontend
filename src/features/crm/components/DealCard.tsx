@@ -30,7 +30,6 @@ export function DealCard({ deal, onSelect }: DealCardProps) {
       deal,
     },
   });
-
   const style = {
     transition,
     transform: CSS.Transform.toString(transform),
@@ -41,7 +40,6 @@ export function DealCard({ deal, onSelect }: DealCardProps) {
     style: "currency",
     currency: "USD",
   });
-
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
       <Card

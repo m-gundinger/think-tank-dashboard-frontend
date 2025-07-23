@@ -3,15 +3,12 @@ import { z } from "zod";
 import { createPaginationSchema, createPaginatedResponseSchema } from "./zod";
 
 export const phoneRegex = new RegExp(/^[+]*[(]?[0-9]{1,4}[)]?[-\s./0-9]*$/);
-
 export const nameSchema = (entity: string, min = 2) =>
   z.string().min(min, `${entity} name must be at least ${min} characters.`);
-
 export const descriptionSchema = z.string().optional().nullable();
 
 export const requiredStringSchema = (fieldName: string) =>
   z.string().min(1, `${fieldName} is required.`);
-
 export const phoneNumberSchema = z
   .string()
   .refine((val) => {
@@ -25,7 +22,6 @@ export const socialLinkSchema = z.object({
   provider: z.nativeEnum(SocialProvider),
   url: z.string().url("Please enter a valid URL."),
 });
-
 const BaseProfileUpdateSchema = z.object({
   firstName: z.string().min(1).optional(),
   lastName: z.string().min(1).optional(),
@@ -36,7 +32,6 @@ const BaseProfileUpdateSchema = z.object({
   socialLinks: z.array(socialLinkSchema).optional(),
   skillIds: z.array(z.string().uuid()).optional(),
 });
-
 const BiographyUpdateSchema = z.object({
   biography: z
     .string()
@@ -61,7 +56,6 @@ export const UpdateAvatarDtoSchema = z.object({
   avatarUrl: z.string().url(),
 });
 export type UpdateAvatarDto = z.infer<typeof UpdateAvatarDtoSchema>;
-
 export const JobIdParamsSchema = z.object({
   jobId: z.string().uuid(),
 });

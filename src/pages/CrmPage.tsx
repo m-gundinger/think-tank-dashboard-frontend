@@ -21,7 +21,6 @@ function CompanyList({
   const { data, isLoading } = useApiResource("companies", [
     "companies",
   ]).useGetAll();
-
   if (isLoading) return <div>Loading companies...</div>;
 
   if (!data || data.data.length === 0) {
@@ -54,7 +53,6 @@ export function CrmPage() {
   );
   const [isCreatePersonOpen, setIsCreatePersonOpen] = useState(false);
   const [isCreateCompanyOpen, setIsCreateCompanyOpen] = useState(false);
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">

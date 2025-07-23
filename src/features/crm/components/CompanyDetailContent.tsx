@@ -3,7 +3,6 @@ import { Globe } from "lucide-react";
 import { RichTextOutput } from "@/components/ui/RichTextOutput";
 import { Company } from "../crm.types";
 import { ManageCompanyPeople } from "./ManageCompanyPeople";
-
 function InfoItem({
   icon: Icon,
   label,

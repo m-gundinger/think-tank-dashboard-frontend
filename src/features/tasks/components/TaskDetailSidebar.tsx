@@ -1,4 +1,3 @@
-
 import { TaskAssignees } from "./TaskAssignees";
 import { TimeLogSection } from "@/features/timelogs/components/TimeLogSection";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -26,7 +25,6 @@ import { TaskDocuments } from "./TaskDocuments";
 import { EditableField } from "@/components/ui/EditableField";
 import { RecurrenceSelector } from "./RecurrenceSelector";
 import { TaskTypeSelector } from "@/features/task-types/components/TaskTypeSelector";
-
 export function TaskDetailSidebar({ task, workspaceId, projectId }: any) {
   const taskResource = useApiResource(
     projectId

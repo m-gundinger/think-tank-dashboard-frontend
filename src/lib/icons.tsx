@@ -1,4 +1,3 @@
-
 import {
   Briefcase,
   CheckSquare,
@@ -13,7 +12,6 @@ import {
   Lightbulb,
   Flame,
 } from "lucide-react";
-
 export const ICONS: Record<string, LucideIcon> = {
   Project: Briefcase,
   Task: CheckSquare,
@@ -33,7 +31,7 @@ export function getIcon(typeName: string | null | undefined): LucideIcon {
   if (!typeName) {
     return ICONS.Default;
   }
-  
+
   const foundIcon = Object.keys(ICONS).find(
     (key) => key.toLowerCase() === typeName.toLowerCase()
   );

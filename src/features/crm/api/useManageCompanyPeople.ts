@@ -43,13 +43,11 @@ export function useManageCompanyPeople(companyId: string) {
     successMessage: "Person added to company.",
     invalidateQueries: [["companies"], ["company", companyId], ["people"]],
   });
-
   const removePersonMutation = useApiMutation<any, string>({
     mutationFn: (personId) => removePersonFromCompany({ companyId, personId }),
     successMessage: "Person removed from company.",
     invalidateQueries: [["companies"], ["company", companyId], ["people"]],
   });
-
   return {
     addPerson: addPersonMutation.mutate,
     removePerson: removePersonMutation.mutate,

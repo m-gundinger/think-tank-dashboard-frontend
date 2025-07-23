@@ -7,7 +7,6 @@ import { CreateTaskForm } from "@/features/tasks/components/CreateTaskForm";
 import { TaskLinks } from "./TaskLinks";
 import { TaskChecklist } from "./TaskChecklist";
 import { ChecklistItem } from "../task.types";
-
 export function TaskDetailBody({
   task,
   workspaceId,
@@ -21,11 +20,9 @@ export function TaskDetailBody({
   useEffect(() => {
     setDescription(task.description || "");
   }, [task.description]);
-
   const handleChecklistSave = (items: ChecklistItem[]) => {
     onSave("checklist", items);
   };
-
   return (
     <div className="col-span-2 space-y-6 border-r pr-6">
       <RichTextEditor

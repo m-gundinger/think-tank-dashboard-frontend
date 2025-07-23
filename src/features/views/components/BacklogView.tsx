@@ -35,7 +35,6 @@ export function BacklogView({
     `/workspaces/${workspaceId}/projects/${projectId}/epics`,
     ["epics", projectId]
   ).useGetAll();
-
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -43,7 +42,6 @@ export function BacklogView({
       },
     })
   );
-
   const { tasksWithoutEpic, tasksByEpic } = useMemo(() => {
     const tasksWithoutEpic: Task[] = [];
     const tasksByEpic: Record<string, Task[]> = {};
@@ -59,7 +57,6 @@ export function BacklogView({
     });
     return { tasksWithoutEpic, tasksByEpic };
   }, [tasks]);
-
   const onDragStart = (event: DragStartEvent) => {
     if (event.active.data.current?.type === "Task") {
       setActiveTask(event.active.data.current.task);
@@ -79,7 +76,6 @@ export function BacklogView({
     const newEpicId = targetIsEpic
       ? (over.id as string).replace("epic-", "")
       : null;
-
     if (task.epicId !== newEpicId) {
       updateTaskMutation.mutate({
         taskId,

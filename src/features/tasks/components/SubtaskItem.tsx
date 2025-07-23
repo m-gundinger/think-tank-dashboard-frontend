@@ -10,7 +10,6 @@ import {
 import { TaskStatus } from "@/types";
 import React from "react";
 import { Task } from "../task.types";
-
 interface SubtaskItemProps {
   task: Task;
   onTaskSelect: (taskId: string) => void;
@@ -24,7 +23,6 @@ const statusIconMap: Record<TaskStatus, React.ElementType> = {
   [TaskStatus.BLOCKED]: OctagonAlert,
   [TaskStatus.CANCELLED]: CircleSlash,
 };
-
 const statusColorMap: Record<TaskStatus, string> = {
   [TaskStatus.TODO]: "text-gray-500",
   [TaskStatus.IN_PROGRESS]: "text-blue-500",
@@ -33,7 +31,6 @@ const statusColorMap: Record<TaskStatus, string> = {
   [TaskStatus.BLOCKED]: "text-red-500",
   [TaskStatus.CANCELLED]: "text-gray-400",
 };
-
 export function SubtaskItem({ task, onTaskSelect }: SubtaskItemProps) {
   const handleClick = () => {
     onTaskSelect(task.id);
@@ -41,7 +38,6 @@ export function SubtaskItem({ task, onTaskSelect }: SubtaskItemProps) {
   const Icon = statusIconMap[task.status] || Circle;
   const isStruckThrough =
     task.status === TaskStatus.CANCELLED || task.status === TaskStatus.DONE;
-
   return (
     <div
       className="hover:bg-accent flex cursor-pointer items-center gap-3 rounded-md p-2"

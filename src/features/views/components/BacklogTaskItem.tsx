@@ -1,4 +1,3 @@
-
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Card } from "@/components/ui/card";
@@ -24,7 +23,6 @@ export function BacklogTaskItem({ task, onTaskSelect }: BacklogTaskItemProps) {
       task,
     },
   });
-
   const style = {
     transition,
     transform: CSS.Transform.toString(transform),

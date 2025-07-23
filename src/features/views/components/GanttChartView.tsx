@@ -1,11 +1,9 @@
-
 import { useEffect, useRef } from "react";
 import { gantt } from "dhtmlx-gantt";
 import "dhtmlx-gantt/codebase/dhtmlxgantt.css";
 import { Task } from "@/features/tasks/task.types";
 import { useApiResource } from "@/hooks/useApiResource";
 import { useParams } from "react-router-dom";
-
 interface GanttChartViewProps {
   tasks: Task[];
 }
@@ -16,13 +14,11 @@ export function GanttChartView({ tasks }: GanttChartViewProps) {
     workspaceId: string;
     projectId: string;
   }>();
-
   const taskResource = useApiResource(
     `/workspaces/${workspaceId}/projects/${projectId}/tasks`,
     ["tasks", projectId]
   );
   const updateTaskMutation = taskResource.useUpdate();
-
   useEffect(() => {
     if (!ganttContainer.current) return;
 
@@ -70,7 +66,6 @@ export function GanttChartView({ tasks }: GanttChartViewProps) {
         delete: () => Promise.resolve(),
       },
     });
-
     const eventId = gantt.attachEvent("onAfterTaskDrag", onAfterTaskDrag);
 
     return () => {
@@ -78,7 +73,6 @@ export function GanttChartView({ tasks }: GanttChartViewProps) {
       gantt.clearAll();
     };
   }, []);
-
   useEffect(() => {
     const formattedTasks = {
       data: tasks.map((task) => ({
@@ -94,7 +88,6 @@ export function GanttChartView({ tasks }: GanttChartViewProps) {
     };
     gantt.parse(formattedTasks);
   }, [tasks]);
-
   return (
     <div
       ref={ganttContainer}

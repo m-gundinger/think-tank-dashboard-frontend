@@ -1,12 +1,14 @@
-
 import { z } from "zod";
-import { createUuidParamSchema } from "@/lib/zod";
+import {
+  createPaginationSchema,
+  createPaginatedResponseSchema,
+  createUuidParamSchema,
+} from "@/lib/zod";
 
 export const TaskTypeIdParamsSchema = createUuidParamSchema(
   "taskTypeId",
   "Task Type"
 );
-
 export const TaskTypeSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
@@ -28,3 +30,9 @@ export type CreateTaskTypeDto = z.infer<typeof CreateTaskTypeDtoSchema>;
 
 export const UpdateTaskTypeDtoSchema = CreateTaskTypeDtoSchema.partial();
 export type UpdateTaskTypeDto = z.infer<typeof UpdateTaskTypeDtoSchema>;
+
+export const ListTaskTypesQuerySchema = createPaginationSchema();
+export type ListTaskTypesQuery = z.infer<typeof ListTaskTypesQuerySchema>;
+
+export const PaginatedTaskTypesResponseSchema =
+  createPaginatedResponseSchema(TaskTypeSchema);

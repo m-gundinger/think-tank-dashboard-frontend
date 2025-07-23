@@ -31,12 +31,10 @@ export function SprintBoardView({
   const sprintResource = useManageSprints(workspaceId, projectId);
   const { data: sprintsData, isLoading } = sprintResource.useGetAll();
   const updateMutation = sprintResource.useUpdate();
-
   const activeSprint = useMemo(
     () => sprintsData?.data?.find((s: any) => s.status === SprintStatus.ACTIVE),
     [sprintsData]
   );
-
   const completedSprints = useMemo(
     () =>
       sprintsData?.data?.filter(
@@ -44,12 +42,10 @@ export function SprintBoardView({
       ) || [],
     [sprintsData]
   );
-
   const activeSprintTasks = useMemo(
     () => tasks.filter((task) => task.sprintId === activeSprint?.id),
     [tasks, activeSprint]
   );
-
   const handleStartSprint = (sprintId: string) => {
     if (activeSprint) {
       alert(

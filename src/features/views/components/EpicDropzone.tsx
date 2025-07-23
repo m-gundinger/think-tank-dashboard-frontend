@@ -1,4 +1,3 @@
-
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext } from "@dnd-kit/sortable";
 import { Task } from "@/features/tasks/task.types";
@@ -18,7 +17,6 @@ export function EpicDropzone({ epic, tasks, onTaskSelect }: EpicDropzoneProps) {
       epic,
     },
   });
-
   const taskIds = tasks.map((t) => t.id);
 
   return (

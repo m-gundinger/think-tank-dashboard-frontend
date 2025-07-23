@@ -31,7 +31,6 @@ import { useState } from "react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { CreateTemplateFromTaskForm } from "@/features/task-templates/components/CreateTemplateFromTaskDialog";
 import { getIcon } from "@/lib/icons";
-
 export function KanbanTaskCard({
   task,
   onTaskSelect,

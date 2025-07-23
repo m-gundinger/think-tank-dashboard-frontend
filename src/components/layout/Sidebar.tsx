@@ -17,7 +17,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-
 const mainNavItems = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { to: "/my-tasks", icon: CheckSquare, label: "My Tasks" },
@@ -25,7 +24,6 @@ const mainNavItems = [
   { to: "/publications", icon: FileText, label: "Publications" },
   { to: "/crm", icon: Contact, label: "CRM" },
 ];
-
 const adminNavItems = [
   { to: "/admin/users", icon: Users, label: "Users" },
   { to: "/admin/roles", icon: Shield, label: "Roles" },
@@ -35,12 +33,10 @@ const adminNavItems = [
   { to: "/admin/jobs", icon: Clock, label: "Jobs & Queues" },
   { to: "/admin/system", icon: Activity, label: "System Status" },
 ];
-
 export function Sidebar() {
   const location = useLocation();
   const isAdminPath = location.pathname.startsWith("/admin");
   const [isAdminOpen, setIsAdminOpen] = useState(isAdminPath);
-
   return (
     <aside className="hidden w-64 flex-col border-r bg-gray-100/40 p-4 lg:flex">
       <h1 className="mb-8 text-2xl font-bold">AutoNomos</h1>

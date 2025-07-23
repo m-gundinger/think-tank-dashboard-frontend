@@ -1,20 +1,16 @@
-
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
 const settingsNavItems = [
   { to: "general", label: "General" },
   { to: "access", label: "Access Control" },
   { to: "custom-fields", label: "Custom Fields" },
   { to: "task-types", label: "Task Types" },
   { to: "views", label: "Views" },
-  { to: "goals", label: "Goals" }, 
+  { to: "goals", label: "Goals" },
 ];
-
 export function ProjectSettingsPage() {
   const location = useLocation();
   const currentTab = location.pathname.split("/").pop() || "general";
-
   return (
     <div className="space-y-6">
       <div>

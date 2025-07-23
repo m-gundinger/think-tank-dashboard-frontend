@@ -1,4 +1,3 @@
-
 import {
   Dialog,
   DialogContent,
@@ -17,7 +16,6 @@ import {
 import { useManageTaskTemplates } from "../api/useManageTaskTemplates";
 import { useInstantiateTaskTemplate } from "../api/useInstantiateTaskTemplate";
 import { Skeleton } from "@/components/ui/skeleton";
-
 interface TemplateSelectorDialogProps {
   workspaceId: string;
   projectId: string;
@@ -39,7 +37,6 @@ export function TemplateSelectorDialog({
     workspaceId,
     projectId
   );
-
   const handleSelect = (templateId: string) => {
     instantiateMutation.mutate(templateId, {
       onSuccess: () => {

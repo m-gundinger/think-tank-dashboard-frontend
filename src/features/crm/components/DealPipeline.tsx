@@ -34,7 +34,6 @@ export function DealPipeline() {
       },
     })
   );
-
   const dealsByStage = useMemo(() => {
     if (!stagesData?.data || !dealsData?.data) return {};
     const grouped: Record<string, Deal[]> = {};
@@ -46,7 +45,6 @@ export function DealPipeline() {
     });
     return grouped;
   }, [stagesData, dealsData]);
-
   const onDragStart = (event: DragStartEvent) => {
     if (event.active.data.current?.type === "Deal") {
       setActiveDeal(event.active.data.current.deal);

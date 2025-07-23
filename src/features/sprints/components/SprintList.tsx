@@ -15,7 +15,6 @@ export function SprintList({ sprints, onStartSprint }: SprintListProps) {
   const completedSprints = sprints.filter(
     (s) => s.status === SprintStatus.COMPLETED
   );
-
   return (
     <div className="space-y-4">
       {plannedSprints.length > 0 && (

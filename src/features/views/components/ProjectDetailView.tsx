@@ -50,7 +50,6 @@ export function ProjectDetailView({
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
   const [isTemplateSelectorOpen, setIsTemplateSelectorOpen] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-
   const renderActionDialog = () => {
     const currentView = views.find((v) => v.id === activeTab);
     const viewType = currentView?.type;

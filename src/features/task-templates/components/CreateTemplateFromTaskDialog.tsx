@@ -1,4 +1,3 @@
-
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
@@ -34,11 +33,9 @@ export function CreateTemplateFromTaskForm({
     resolver: zodResolver(formSchema),
     defaultValues: { name: task.title },
   });
-
   useEffect(() => {
     methods.reset({ name: `Template: ${task.title}` });
   }, [task, methods]);
-
   function onSubmit(values: FormValues) {
     const {
       id,
@@ -48,7 +45,6 @@ export function CreateTemplateFromTaskForm({
       workspaceId: wId,
       ...templateData
     } = task;
-
     createMutation.mutate({ name: values.name, templateData }, { onSuccess });
   }
 

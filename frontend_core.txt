@@ -166,7 +166,6 @@ function App() {
 }
 
 export default App;
-
 // FILE: src/components/form/FormFields.tsx
 import { useFormContext } from "react-hook-form";
 import {
@@ -802,7 +801,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-
 const mainNavItems = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { to: "/my-tasks", icon: CheckSquare, label: "My Tasks" },
@@ -810,7 +808,6 @@ const mainNavItems = [
   { to: "/publications", icon: FileText, label: "Publications" },
   { to: "/crm", icon: Contact, label: "CRM" },
 ];
-
 const adminNavItems = [
   { to: "/admin/users", icon: Users, label: "Users" },
   { to: "/admin/roles", icon: Shield, label: "Roles" },
@@ -820,12 +817,10 @@ const adminNavItems = [
   { to: "/admin/jobs", icon: Clock, label: "Jobs & Queues" },
   { to: "/admin/system", icon: Activity, label: "System Status" },
 ];
-
 export function Sidebar() {
   const location = useLocation();
   const isAdminPath = location.pathname.startsWith("/admin");
   const [isAdminOpen, setIsAdminOpen] = useState(isAdminPath);
-
   return (
     <aside className="hidden w-64 flex-col border-r bg-gray-100/40 p-4 lg:flex">
       <h1 className="mb-8 text-2xl font-bold">AutoNomos</h1>
@@ -889,7 +884,6 @@ export function Sidebar() {
     </aside>
   );
 }
-
 // FILE: src/features/activities/components/ProjectActivityLog.tsx
 import { useApiResource } from "@/hooks/useApiResource";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -5379,7 +5373,6 @@ export function CommentSection({ workspaceId, projectId, taskId }: any) {
 // FILE: src/features/crm/api/useGetCompanies.ts
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
-
 async function getCompanies(query?: any): Promise<any> {
   const { data } = await api.get("/companies", { params: query });
   return data;
@@ -5391,7 +5384,6 @@ export function useGetCompanies(query?: any) {
     queryFn: () => getCompanies(query),
   });
 }
-
 // FILE: src/features/crm/api/useManageCompanyPeople.ts
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
@@ -5438,20 +5430,17 @@ export function useManageCompanyPeople(companyId: string) {
     successMessage: "Person added to company.",
     invalidateQueries: [["companies"], ["company", companyId], ["people"]],
   });
-
   const removePersonMutation = useApiMutation<any, string>({
     mutationFn: (personId) => removePersonFromCompany({ companyId, personId }),
     successMessage: "Person removed from company.",
     invalidateQueries: [["companies"], ["company", companyId], ["people"]],
   });
-
   return {
     addPerson: addPersonMutation.mutate,
     removePerson: removePersonMutation.mutate,
     isLoading: addPersonMutation.isPending || removePersonMutation.isPending,
   };
 }
-
 // FILE: src/features/crm/components/CompanyCard.tsx
 import {
   Card,
@@ -5492,14 +5481,12 @@ export function CompanyCard({ company, onSelect }: CompanyCardProps) {
     </Card>
   );
 }
-
 // FILE: src/features/crm/components/CompanyDetailContent.tsx
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Globe } from "lucide-react";
 import { RichTextOutput } from "@/components/ui/RichTextOutput";
 import { Company } from "../crm.types";
 import { ManageCompanyPeople } from "./ManageCompanyPeople";
-
 function InfoItem({
   icon: Icon,
   label,
@@ -5589,7 +5576,6 @@ export function CompanyDetailContent({ company }: { company: Company }) {
     </div>
   );
 }
-
 // FILE: src/features/crm/components/CompanyDetailPanel.tsx
 import { Sheet, SheetContent, SheetFooter } from "@/components/ui/sheet";
 import { useApiResource } from "@/hooks/useApiResource";
@@ -5694,7 +5680,6 @@ export function CompanyDetailPanel({
     </>
   );
 }
-
 // FILE: src/features/crm/components/CompanyForm.tsx
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -5784,6 +5769,44 @@ export function CompanyForm({ initialData, onSuccess }: CompanyFormProps) {
     </FormProvider>
   );
 }
+// FILE: src/features/crm/components/CompanyList.tsx
+import { useApiResource } from "@/hooks/useApiResource";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Building2 } from "lucide-react";
+import { CompanyCard } from "./CompanyCard";
+
+export function CompanyList({
+  onCompanySelect,
+}: {
+  onCompanySelect: (id: string) => void;
+}) {
+  const { data, isLoading } = useApiResource("companies", [
+    "companies",
+  ]).useGetAll();
+  if (isLoading) return <div>Loading companies...</div>;
+
+  if (!data || data.data.length === 0) {
+    return (
+      <EmptyState
+        icon={<Building2 className="h-10 w-10" />}
+        title="No Companies Found"
+        description="Get started by creating your first company."
+      />
+    );
+  }
+
+  return (
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {data.data.map((company: any) => (
+        <CompanyCard
+          key={company.id}
+          company={company}
+          onSelect={() => onCompanySelect(company.id)}
+        />
+      ))}
+    </div>
+  );
+}
 
 // FILE: src/features/crm/components/DealCard.tsx
 import {
@@ -5818,7 +5841,6 @@ export function DealCard({ deal, onSelect }: DealCardProps) {
       deal,
     },
   });
-
   const style = {
     transition,
     transform: CSS.Transform.toString(transform),
@@ -5829,7 +5851,6 @@ export function DealCard({ deal, onSelect }: DealCardProps) {
     style: "currency",
     currency: "USD",
   });
-
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
       <Card
@@ -5856,7 +5877,6 @@ export function DealCard({ deal, onSelect }: DealCardProps) {
     </div>
   );
 }
-
 // FILE: src/features/crm/components/DealColumn.tsx
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext } from "@dnd-kit/sortable";
@@ -5877,7 +5897,6 @@ export function DealColumn({ stage, deals, onDealSelect }: DealColumnProps) {
       stage,
     },
   });
-
   const dealIds = deals.map((d) => d.id);
 
   const totalValue = deals.reduce((sum, deal) => sum + deal.value, 0);
@@ -5885,7 +5904,6 @@ export function DealColumn({ stage, deals, onDealSelect }: DealColumnProps) {
     style: "currency",
     currency: "USD",
   });
-
   return (
     <div
       ref={setNodeRef}
@@ -5907,7 +5925,6 @@ export function DealColumn({ stage, deals, onDealSelect }: DealColumnProps) {
     </div>
   );
 }
-
 // FILE: src/features/crm/components/DealPipeline.tsx
 import { useState, useMemo } from "react";
 import {
@@ -5945,7 +5962,6 @@ export function DealPipeline() {
       },
     })
   );
-
   const dealsByStage = useMemo(() => {
     if (!stagesData?.data || !dealsData?.data) return {};
     const grouped: Record<string, Deal[]> = {};
@@ -5957,7 +5973,6 @@ export function DealPipeline() {
     });
     return grouped;
   }, [stagesData, dealsData]);
-
   const onDragStart = (event: DragStartEvent) => {
     if (event.active.data.current?.type === "Deal") {
       setActiveDeal(event.active.data.current.deal);
@@ -6011,7 +6026,6 @@ export function DealPipeline() {
     </DndContext>
   );
 }
-
 // FILE: src/features/crm/components/ManageCompanyPeople.tsx
 import { useApiResource } from "@/hooks/useApiResource";
 import { useManageCompanyPeople } from "../api/useManageCompanyPeople";
@@ -6048,11 +6062,9 @@ export function ManageCompanyPeople({ company }: ManageCompanyPeopleProps) {
     removePerson,
     isLoading: isMutating,
   } = useManageCompanyPeople(company.id);
-
   const memberIds = new Set(company.people.map((p) => p.id));
   const availablePeople =
     peopleData?.data.filter((person: any) => !memberIds.has(person.id)) || [];
-
   return (
     <div className="space-y-4">
       <div>
@@ -6136,7 +6148,6 @@ export function ManageCompanyPeople({ company }: ManageCompanyPeopleProps) {
     </div>
   );
 }
-
 // FILE: src/features/crm/components/PersonCard.tsx
 import {
   Card,
@@ -6184,7 +6195,6 @@ export function PersonCard({ person, onSelect }: PersonCardProps) {
     </Card>
   );
 }
-
 // FILE: src/features/crm/components/PersonDetailContent.tsx
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -6202,7 +6212,6 @@ import {
 import { format } from "date-fns";
 import { RichTextOutput } from "@/components/ui/RichTextOutput";
 import { getAbsoluteUrl } from "@/lib/utils";
-
 const socialIcons: Record<string, React.ElementType> = {
   LINKEDIN: Linkedin,
   TWITTER: Twitter,
@@ -6210,7 +6219,6 @@ const socialIcons: Record<string, React.ElementType> = {
   WEBSITE: Globe,
   OTHER: ExternalLink,
 };
-
 function InfoItem({
   icon: Icon,
   label,
@@ -6378,7 +6386,6 @@ export function PersonDetailContent({ person }: { person: any }) {
     </div>
   );
 }
-
 // FILE: src/features/crm/components/PersonDetailPanel.tsx
 import { Sheet, SheetContent, SheetFooter } from "@/components/ui/sheet";
 import { useApiResource } from "@/hooks/useApiResource";
@@ -6483,7 +6490,6 @@ export function PersonDetailPanel({
     </>
   );
 }
-
 // FILE: src/features/crm/components/PersonForm.tsx
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -6573,7 +6579,6 @@ export function PersonForm({ initialData, onSuccess }: PersonFormProps) {
     </FormProvider>
   );
 }
-
 // FILE: src/features/crm/components/PersonList.tsx
 import { useState } from "react";
 import { useApiResource } from "@/hooks/useApiResource";
@@ -6737,7 +6742,6 @@ export function PersonList({ onPersonSelect }: PersonListProps) {
     </div>
   );
 }
-
 // FILE: src/features/crm/crm.types.ts
 import { z } from "zod";
 
@@ -6749,7 +6753,6 @@ export const PersonInCompanySchema = z.object({
   avatarUrl: z.string().url().nullable(),
   roleInCompany: z.string().nullable(),
 });
-
 export const CompanySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
@@ -6775,7 +6778,6 @@ const DealContactSchema = z.object({
   name: z.string(),
   email: z.string().email().nullable(),
 });
-
 export const DealSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
@@ -6792,6 +6794,24 @@ export const DealSchema = z.object({
   contacts: z.array(DealContactSchema),
 });
 export type Deal = z.infer<typeof DealSchema>;
+// FILE: src/features/crm/index.ts
+export * from "./api/useGetCompanies.js";
+export * from "./api/useManageCompanyPeople.js";
+export * from "./components/CompanyCard.js";
+export * from "./components/CompanyDetailContent.js";
+export * from "./components/CompanyDetailPanel.js";
+export * from "./components/CompanyForm.js";
+export * from "./components/CompanyList.js";
+export * from "./components/DealCard.js";
+export * from "./components/DealColumn.js";
+export * from "./components/DealPipeline.js";
+export * from "./components/ManageCompanyPeople.js";
+export * from "./components/PersonCard.js";
+export * from "./components/PersonDetailContent.js";
+export * from "./components/PersonDetailPanel.js";
+export * from "./components/PersonForm.js";
+export * from "./components/PersonList.js";
+export * from "./crm.types.js";
 
 // FILE: src/features/custom-fields/components/CustomFieldDefinitionForm.tsx
 import { useForm, FormProvider } from "react-hook-form";
@@ -7504,7 +7524,6 @@ export function useManageGoals(workspaceId: string, projectId: string) {
   );
   return resource;
 }
-
 // FILE: src/features/goals/components/GoalCard.tsx
 import { EntityCard } from "@/components/ui/EntityCard";
 import { Progress } from "@/components/ui/progress";
@@ -7595,7 +7614,6 @@ export function GoalCard({ goal, onEdit }: GoalCardProps) {
     </EntityCard>
   );
 }
-
 // FILE: src/features/goals/components/GoalForm.tsx
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -7614,7 +7632,6 @@ import { nameSchema, descriptionSchema } from "@/lib/schemas";
 import { GoalStatus, KeyResultType } from "@/types";
 import { KeyResultInput } from "./KeyResultInput";
 import { useGetProjectMembers } from "@/features/projects/api/useGetProjectMembers";
-
 const keyResultSchema = z.object({
   name: z.string().min(1, "Key Result name is required."),
   type: z.nativeEnum(KeyResultType),
@@ -7622,7 +7639,6 @@ const keyResultSchema = z.object({
   targetValue: z.number(),
   currentValue: z.number(),
 });
-
 const goalSchema = z.object({
   name: nameSchema("Goal"),
   description: descriptionSchema,
@@ -7632,7 +7648,6 @@ const goalSchema = z.object({
   ownerId: z.string().uuid("An owner is required."),
   keyResults: z.array(keyResultSchema).optional(),
 });
-
 type GoalFormValues = z.infer<typeof goalSchema>;
 
 interface GoalFormProps {
@@ -7652,11 +7667,9 @@ export function GoalForm({
   const goalResource = useManageGoals(workspaceId, projectId);
   const { data: membersData, isLoading: isLoadingMembers } =
     useGetProjectMembers(workspaceId, projectId);
-
   const createMutation = goalResource.useCreate();
   const updateMutation = goalResource.useUpdate();
   const mutation = isEditMode ? updateMutation : createMutation;
-
   const methods = useForm<GoalFormValues>({
     resolver: zodResolver(goalSchema),
     defaultValues: {
@@ -7668,7 +7681,6 @@ export function GoalForm({
       keyResults: [],
     },
   });
-
   useEffect(() => {
     if (isEditMode && initialData) {
       methods.reset({
@@ -7680,7 +7692,6 @@ export function GoalForm({
       });
     }
   }, [initialData, isEditMode, methods]);
-
   async function onSubmit(values: GoalFormValues) {
     const payload = {
       ...values,
@@ -7707,7 +7718,6 @@ export function GoalForm({
   }));
   const memberOptions =
     membersData?.map((m: any) => ({ value: m.userId, label: m.name })) || [];
-
   return (
     <FormProvider {...methods}>
       <Form {...methods}>
@@ -7753,7 +7763,6 @@ export function GoalForm({
     </FormProvider>
   );
 }
-
 // FILE: src/features/goals/components/GoalList.tsx
 import { useState } from "react";
 import { useManageGoals } from "../api/useManageGoals";
@@ -7778,18 +7787,15 @@ const ListSkeleton = () => (
     ))}
   </div>
 );
-
 export function GoalList({ workspaceId, projectId }: GoalListProps) {
   const { useGetAll } = useManageGoals(workspaceId, projectId);
   const { data, isLoading, isError } = useGetAll();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingGoalId, setEditingGoalId] = useState<string | null>(null);
-
   if (isLoading) return <ListSkeleton />;
   if (isError) return <div>Error loading goals.</div>;
 
   const goals = data?.data || [];
-
   return (
     <>
       <div className="space-y-6">
@@ -7852,7 +7858,6 @@ export function GoalList({ workspaceId, projectId }: GoalListProps) {
     </>
   );
 }
-
 // FILE: src/features/goals/components/KeyResultInput.tsx
 import { Control, useFieldArray } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -7883,7 +7888,6 @@ export function KeyResultInput({ control }: KeyResultInputProps) {
     control,
     name: "keyResults",
   });
-
   return (
     <div className="space-y-4">
       <FormLabel>Key Results</FormLabel>
@@ -8026,7 +8030,6 @@ export function KeyResultInput({ control }: KeyResultInputProps) {
     </div>
   );
 }
-
 // FILE: src/features/goals/goal.types.ts
 import { GoalStatus, KeyResultType } from "@/types";
 
@@ -8048,10 +8051,16 @@ export interface Goal {
   projectId?: string;
   keyResults: KeyResult[];
 }
+// FILE: src/features/goals/index.ts
+export * from "./api/useManageGoals.js";
+export * from "./components/GoalCard.js";
+export * from "./components/GoalForm.js";
+export * from "./components/GoalList.js";
+export * from "./components/KeyResultInput.js";
+export * from "./goal.types.js";
 
 // FILE: src/features/knowledge-base/api/useManageKnowledgeBase.ts
 import { useApiResource } from "@/hooks/useApiResource";
-
 export function useManageKnowledgeBase(workspaceId: string) {
   const resource = useApiResource(
     `/workspaces/${workspaceId}/knowledge-bases`,
@@ -8076,7 +8085,6 @@ export function KnowledgeBaseCard({
 }: KnowledgeBaseCardProps) {
   const { useDelete } = useManageKnowledgeBase(knowledgeBase.workspaceId);
   const deleteMutation = useDelete();
-
   const handleDelete = (e: React.MouseEvent) => {
     e.preventDefault();
     if (
@@ -8092,7 +8100,6 @@ export function KnowledgeBaseCard({
     e.preventDefault();
     onEdit();
   };
-
   return (
     <EntityCard
       title={knowledgeBase.name}
@@ -8106,7 +8113,6 @@ export function KnowledgeBaseCard({
     </EntityCard>
   );
 }
-
 // FILE: src/features/knowledge-base/components/KnowledgeBaseForm.tsx
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -8140,12 +8146,10 @@ export function KnowledgeBaseForm({
   const createMutation = kbResource.useCreate();
   const updateMutation = kbResource.useUpdate();
   const mutation = isEditMode ? updateMutation : createMutation;
-
   const methods = useForm<KBFormValues>({
     resolver: zodResolver(kbSchema),
     defaultValues: { name: "", description: "" },
   });
-
   useEffect(() => {
     if (isEditMode && initialData) {
       methods.reset({
@@ -8154,7 +8158,6 @@ export function KnowledgeBaseForm({
       });
     }
   }, [initialData, isEditMode, methods]);
-
   async function onSubmit(values: KBFormValues) {
     if (isEditMode) {
       await updateMutation.mutateAsync(
@@ -8201,7 +8204,6 @@ export function KnowledgeBaseForm({
     </FormProvider>
   );
 }
-
 // FILE: src/features/knowledge-base/components/KnowledgeBaseList.tsx
 import { useManageKnowledgeBase } from "../api/useManageKnowledgeBase";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -8213,7 +8215,6 @@ import { useState } from "react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { KnowledgeBaseCard } from "./KnowledgeBaseCard";
 import { KnowledgeBaseForm } from "./KnowledgeBaseForm";
-
 const ListSkeleton = () => (
   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
     {Array.from({ length: 3 }).map((_, i) => (
@@ -8229,12 +8230,10 @@ const ListSkeleton = () => (
     ))}
   </div>
 );
-
 export function KnowledgeBaseList({ workspaceId }: { workspaceId: string }) {
   const kbResource = useManageKnowledgeBase(workspaceId);
   const { data, isLoading, isError, error } = kbResource.useGetAll();
   const [editingId, setEditingId] = useState<string | null>(null);
-
   if (isLoading) {
     return <ListSkeleton />;
   }
@@ -8287,6 +8286,11 @@ export function KnowledgeBaseList({ workspaceId }: { workspaceId: string }) {
     </>
   );
 }
+// FILE: src/features/knowledge-base/index.ts
+export * from "./api/useManageKnowledgeBase.js";
+export * from "./components/KnowledgeBaseCard.js";
+export * from "./components/KnowledgeBaseForm.js";
+export * from "./components/KnowledgeBaseList.js";
 
 // FILE: src/features/notifications/api/useBroadcastNotification.ts
 import api from "@/lib/api";
@@ -10330,7 +10334,6 @@ export function PublicationList() {
 }
 
 // FILE: src/features/reporting/api/useGetWorkloadReport.ts
-
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 
@@ -10366,7 +10369,6 @@ export function useGetWorkloadReport(
 }
 
 // FILE: src/features/reporting/components/VelocityChart.tsx
-
 import {
   ChartContainer,
   BarChart,
@@ -10385,7 +10387,6 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-
 interface VelocityChartProps {
   sprints: Sprint[];
 }
@@ -10400,7 +10401,6 @@ export function VelocityChart({ sprints }: VelocityChartProps) {
       name: sprint.name,
       Velocity: sprint.completedStoryPoints,
     }));
-
   if (chartData.length === 0) {
     return (
       <Card>
@@ -10462,8 +10462,8 @@ export function VelocityChart({ sprints }: VelocityChartProps) {
     </Card>
   );
 }
-// FILE: src/features/reporting/components/WorkloadView.tsx
 
+// FILE: src/features/reporting/components/WorkloadView.tsx
 import { useGetWorkloadReport } from "../api/useGetWorkloadReport";
 import {
   Table,
@@ -10477,10 +10477,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getAbsoluteUrl } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
-
 export function WorkloadView({ workspaceId }: { workspaceId: string }) {
   const { data, isLoading, isError } = useGetWorkloadReport(workspaceId);
-
   if (isLoading) {
     return (
       <div className="space-y-2">
@@ -10502,7 +10500,9 @@ export function WorkloadView({ workspaceId }: { workspaceId: string }) {
               <TableHead>Team Member</TableHead>
               <TableHead className="text-center">Open Tasks</TableHead>
               <TableHead className="text-center">Story Points</TableHead>
-              <TableHead className="text-center">Time Estimate (Hours)</TableHead>
+              <TableHead className="text-center">
+                Time Estimate (Hours)
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -10511,14 +10511,21 @@ export function WorkloadView({ workspaceId }: { workspaceId: string }) {
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <Avatar className="h-9 w-9">
-                      <AvatarImage src={getAbsoluteUrl(member.avatarUrl)} alt={member.name} />
+                      <AvatarImage
+                        src={getAbsoluteUrl(member.avatarUrl)}
+                        alt={member.name}
+                      />
                       <AvatarFallback>{member.name?.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <span className="font-medium">{member.name}</span>
                   </div>
                 </TableCell>
-                <TableCell className="text-center">{member.taskCount}</TableCell>
-                <TableCell className="text-center">{member.storyPoints ?? 0}</TableCell>
+                <TableCell className="text-center">
+                  {member.taskCount}
+                </TableCell>
+                <TableCell className="text-center">
+                  {member.storyPoints ?? 0}
+                </TableCell>
                 <TableCell className="text-center">
                   {((member.timeEstimate ?? 0) / 60).toFixed(1)}h
                 </TableCell>
@@ -10530,6 +10537,12 @@ export function WorkloadView({ workspaceId }: { workspaceId: string }) {
     </Card>
   );
 }
+
+// FILE: src/features/reporting/index.ts
+export * from "./api/useGetWorkloadReport.js";
+export * from "./components/VelocityChart.js";
+export * from "./components/WorkloadView.js";
+
 // FILE: src/features/search/api/useSearch.ts
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
@@ -10801,7 +10814,6 @@ export function useGetSkills() {
 }
 
 // FILE: src/features/sprints/api/useManageSprints.ts
-
 import { useApiResource } from "@/hooks/useApiResource";
 
 export function useManageSprints(workspaceId: string, projectId: string) {
@@ -10811,6 +10823,7 @@ export function useManageSprints(workspaceId: string, projectId: string) {
   );
   return sprintResource;
 }
+
 // FILE: src/features/sprints/components/CreateSprintForm.tsx
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -10853,7 +10866,6 @@ export function CreateSprintForm({
       projectId,
     },
   });
-
   useEffect(() => {
     if (isEditMode && initialData) {
       methods.reset({
@@ -10865,7 +10877,6 @@ export function CreateSprintForm({
       });
     }
   }, [initialData, isEditMode, methods]);
-
   async function onSubmit(values: SprintFormValues) {
     if (isEditMode) {
       await updateMutation.mutateAsync(
@@ -10916,7 +10927,6 @@ export function CreateSprintForm({
     </FormProvider>
   );
 }
-
 // FILE: src/features/sprints/components/ProjectDetailView.tsx
 
 import { Link } from "react-router-dom";
@@ -11167,12 +11177,10 @@ export function SprintBoardView({
   const sprintResource = useManageSprints(workspaceId, projectId);
   const { data: sprintsData, isLoading } = sprintResource.useGetAll();
   const updateMutation = sprintResource.useUpdate();
-
   const activeSprint = useMemo(
     () => sprintsData?.data?.find((s: any) => s.status === SprintStatus.ACTIVE),
     [sprintsData]
   );
-
   const completedSprints = useMemo(
     () =>
       sprintsData?.data?.filter(
@@ -11180,12 +11188,10 @@ export function SprintBoardView({
       ) || [],
     [sprintsData]
   );
-
   const activeSprintTasks = useMemo(
     () => tasks.filter((task) => task.sprintId === activeSprint?.id),
     [tasks, activeSprint]
   );
-
   const handleStartSprint = (sprintId: string) => {
     if (activeSprint) {
       alert(
@@ -11270,7 +11276,6 @@ export function SprintBoardView({
     </div>
   );
 }
-
 // FILE: src/features/sprints/components/SprintList.tsx
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11289,7 +11294,6 @@ export function SprintList({ sprints, onStartSprint }: SprintListProps) {
   const completedSprints = sprints.filter(
     (s) => s.status === SprintStatus.COMPLETED
   );
-
   return (
     <div className="space-y-4">
       {plannedSprints.length > 0 && (
@@ -11335,9 +11339,14 @@ export function SprintList({ sprints, onStartSprint }: SprintListProps) {
     </div>
   );
 }
+// FILE: src/features/sprints/index.ts
+export * from "./api/useManageSprints.js";
+export * from "./components/CreateSprintForm.js";
+export * from "./components/SprintBoardView.js";
+export * from "./components/SprintList.js";
+export * from "./sprint.types.js";
 
 // FILE: src/features/sprints/sprint.types.ts
-
 import { z } from "zod";
 import { SprintStatus } from "@/types";
 import {
@@ -11347,7 +11356,6 @@ import {
 } from "@/lib/zod";
 
 export const SprintIdParamsSchema = createUuidParamSchema("sprintId", "Sprint");
-
 export const SprintSchema = z.object({
   __typename: z.literal("Sprint"),
   id: z.string().uuid(),
@@ -11361,7 +11369,6 @@ export const SprintSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
 });
-
 export type Sprint = z.infer<typeof SprintSchema>;
 
 export const CreateSprintDtoSchema = z.object({
@@ -11377,7 +11384,6 @@ export const UpdateSprintDtoSchema = CreateSprintDtoSchema.omit({
   projectId: true,
 }).partial();
 export type UpdateSprintDto = z.infer<typeof UpdateSprintDtoSchema>;
-
 export const ListSprintsQuerySchema = createPaginationSchema().extend({
   status: z.nativeEnum(SprintStatus).optional(),
 });
@@ -11385,6 +11391,7 @@ export type ListSprintsQuery = z.infer<typeof ListSprintsQuerySchema>;
 
 export const PaginatedSprintsResponseSchema =
   createPaginatedResponseSchema(SprintSchema);
+
 // FILE: src/features/task-templates/api/useInstantiateTaskTemplate.ts
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
@@ -11417,9 +11424,7 @@ export function useInstantiateTaskTemplate(
     invalidateQueries: [["tasks", projectId]],
   });
 }
-
 // FILE: src/features/task-templates/api/useManageTaskTemplates.ts
-
 import { useApiResource } from "@/hooks/useApiResource";
 
 export function useManageTaskTemplates(workspaceId: string, projectId: string) {
@@ -11431,7 +11436,6 @@ export function useManageTaskTemplates(workspaceId: string, projectId: string) {
 }
 
 // FILE: src/features/task-templates/components/CreateTemplateFromTaskDialog.tsx
-
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
@@ -11467,11 +11471,9 @@ export function CreateTemplateFromTaskForm({
     resolver: zodResolver(formSchema),
     defaultValues: { name: task.title },
   });
-
   useEffect(() => {
     methods.reset({ name: `Template: ${task.title}` });
   }, [task, methods]);
-
   function onSubmit(values: FormValues) {
     const {
       id,
@@ -11481,7 +11483,6 @@ export function CreateTemplateFromTaskForm({
       workspaceId: wId,
       ...templateData
     } = task;
-
     createMutation.mutate({ name: values.name, templateData }, { onSuccess });
   }
 
@@ -11508,7 +11509,6 @@ export function CreateTemplateFromTaskForm({
 }
 
 // FILE: src/features/task-templates/components/TemplateSelectorDialog.tsx
-
 import {
   Dialog,
   DialogContent,
@@ -11527,7 +11527,6 @@ import {
 import { useManageTaskTemplates } from "../api/useManageTaskTemplates";
 import { useInstantiateTaskTemplate } from "../api/useInstantiateTaskTemplate";
 import { Skeleton } from "@/components/ui/skeleton";
-
 interface TemplateSelectorDialogProps {
   workspaceId: string;
   projectId: string;
@@ -11549,7 +11548,6 @@ export function TemplateSelectorDialog({
     workspaceId,
     projectId
   );
-
   const handleSelect = (templateId: string) => {
     instantiateMutation.mutate(templateId, {
       onSuccess: () => {
@@ -11597,16 +11595,21 @@ export function TemplateSelectorDialog({
   );
 }
 
+// FILE: src/features/task-templates/index.ts
+export * from "./api/useInstantiateTaskTemplate.js";
+export * from "./api/useManageTaskTemplates.js";
+export * from "./components/CreateTemplateFromTaskDialog.js";
+export * from "./components/TemplateSelectorDialog.js";
+export * from "./task-template.types.js";
+
 // FILE: src/features/task-templates/task-template.types.ts
 import { z } from "zod";
 import { createUuidParamSchema } from "@/lib/zod";
 import { UpdateTaskDtoSchema } from "@/features/tasks/task.types";
-
 export const TaskTemplateIdParamsSchema = createUuidParamSchema(
   "templateId",
   "Task Template"
 );
-
 export const TaskTemplateSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
@@ -11616,7 +11619,6 @@ export const TaskTemplateSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
 });
-
 export type TaskTemplate = z.infer<typeof TaskTemplateSchema>;
 
 export const CreateTaskTemplateDtoSchema = z.object({
@@ -11626,13 +11628,9 @@ export const CreateTaskTemplateDtoSchema = z.object({
     title: z.string().optional(),
   }),
 });
-
 export type CreateTaskTemplateDto = z.infer<typeof CreateTaskTemplateDtoSchema>;
-
 // FILE: src/features/task-types/api/useManageTaskTypes.ts
-
 import { useApiResource } from "@/hooks/useApiResource";
-
 export function useManageTaskTypes(workspaceId: string, projectId: string) {
   const resource = useApiResource(
     `/workspaces/${workspaceId}/projects/${projectId}/task-types`,
@@ -11865,7 +11863,6 @@ export function TaskTypeList({ workspaceId, projectId }: ListProps) {
 }
 
 // FILE: src/features/task-types/components/TaskTypeSelector.tsx
-
 import {
   Select,
   SelectContent,
@@ -11895,7 +11892,6 @@ export function TaskTypeSelector({
     workspaceId,
     projectId
   ).useGetAll();
-
   return (
     <Select
       value={value ?? ""}
@@ -11922,16 +11918,25 @@ export function TaskTypeSelector({
   );
 }
 
-// FILE: src/features/task-types/task-type.types.ts
+// FILE: src/features/task-types/index.ts
+export * from "./api/useManageTaskTypes.js";
+export * from "./components/TaskTypeForm.js";
+export * from "./components/TaskTypeList.js";
+export * from "./components/TaskTypeSelector.js";
+export * from "./task-type.types.js";
 
+// FILE: src/features/task-types/task-type.types.ts
 import { z } from "zod";
-import { createUuidParamSchema } from "@/lib/zod";
+import {
+  createPaginationSchema,
+  createPaginatedResponseSchema,
+  createUuidParamSchema,
+} from "@/lib/zod";
 
 export const TaskTypeIdParamsSchema = createUuidParamSchema(
   "taskTypeId",
   "Task Type"
 );
-
 export const TaskTypeSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
@@ -11953,6 +11958,12 @@ export type CreateTaskTypeDto = z.infer<typeof CreateTaskTypeDtoSchema>;
 
 export const UpdateTaskTypeDtoSchema = CreateTaskTypeDtoSchema.partial();
 export type UpdateTaskTypeDto = z.infer<typeof UpdateTaskTypeDtoSchema>;
+
+export const ListTaskTypesQuerySchema = createPaginationSchema();
+export type ListTaskTypesQuery = z.infer<typeof ListTaskTypesQuerySchema>;
+
+export const PaginatedTaskTypesResponseSchema =
+  createPaginatedResponseSchema(TaskTypeSchema);
 
 // FILE: src/features/tasks/api/useAttachDocument.ts
 import api from "@/lib/api";
@@ -12574,7 +12585,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { ChecklistItem as ChecklistItemType } from "../task.types";
-
 interface ChecklistItemProps {
   item: ChecklistItemType;
   onUpdate: (id: string, updates: Partial<ChecklistItemType>) => void;
@@ -12590,7 +12600,6 @@ export function ChecklistItem({
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setText(e.target.value);
   };
-
   const handleBlur = () => {
     if (text.trim() === "") {
       onRemove(item.id);
@@ -12598,7 +12607,6 @@ export function ChecklistItem({
       onUpdate(item.id, { text });
     }
   };
-
   return (
     <div className="group flex items-center gap-2">
       <Checkbox
@@ -12624,7 +12632,6 @@ export function ChecklistItem({
     </div>
   );
 }
-
 // FILE: src/features/tasks/components/CreateTaskForm.tsx
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -12937,7 +12944,6 @@ export function MyTasksKanbanBoard({
 }
 
 // FILE: src/features/tasks/components/RecurrenceSelector.tsx
-
 import { useState, useEffect } from "react";
 import { RRule, rrulestr, Options } from "rrule";
 import { Button } from "@/components/ui/button";
@@ -12957,7 +12963,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Repeat } from "lucide-react";
-
 interface RecurrenceSelectorProps {
   value: string | null;
   onSave: (rruleString: string | null) => void;
@@ -12969,7 +12974,6 @@ const frequencies = [
   { value: RRule.MONTHLY, label: "Monthly" },
   { value: RRule.YEARLY, label: "Yearly" },
 ];
-
 const weekdays = [
   { value: RRule.MO, label: "M" },
   { value: RRule.TU, label: "T" },
@@ -12979,12 +12983,10 @@ const weekdays = [
   { value: RRule.SA, label: "S" },
   { value: RRule.SU, label: "S" },
 ];
-
 export function RecurrenceSelector({ value, onSave }: RecurrenceSelectorProps) {
   const [options, setOptions] = useState<Partial<Options>>({});
   const [ruleText, setRuleText] = useState("Does not repeat");
   const [popoverOpen, setPopoverOpen] = useState(false);
-
   useEffect(() => {
     if (value) {
       try {
@@ -13016,7 +13018,6 @@ export function RecurrenceSelector({ value, onSave }: RecurrenceSelectorProps) {
     onSave(null);
     setPopoverOpen(false);
   };
-
   const freq = options.freq ?? RRule.DAILY;
 
   const byweekdayValue = options.byweekday
@@ -13025,7 +13026,6 @@ export function RecurrenceSelector({ value, onSave }: RecurrenceSelectorProps) {
         : [options.byweekday]
       ).map((day) => day.toString())
     : [];
-
   return (
     <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
       <PopoverTrigger asChild>
@@ -13130,7 +13130,6 @@ import {
 import { TaskStatus } from "@/types";
 import React from "react";
 import { Task } from "../task.types";
-
 interface SubtaskItemProps {
   task: Task;
   onTaskSelect: (taskId: string) => void;
@@ -13144,7 +13143,6 @@ const statusIconMap: Record<TaskStatus, React.ElementType> = {
   [TaskStatus.BLOCKED]: OctagonAlert,
   [TaskStatus.CANCELLED]: CircleSlash,
 };
-
 const statusColorMap: Record<TaskStatus, string> = {
   [TaskStatus.TODO]: "text-gray-500",
   [TaskStatus.IN_PROGRESS]: "text-blue-500",
@@ -13153,7 +13151,6 @@ const statusColorMap: Record<TaskStatus, string> = {
   [TaskStatus.BLOCKED]: "text-red-500",
   [TaskStatus.CANCELLED]: "text-gray-400",
 };
-
 export function SubtaskItem({ task, onTaskSelect }: SubtaskItemProps) {
   const handleClick = () => {
     onTaskSelect(task.id);
@@ -13161,7 +13158,6 @@ export function SubtaskItem({ task, onTaskSelect }: SubtaskItemProps) {
   const Icon = statusIconMap[task.status] || Circle;
   const isStruckThrough =
     task.status === TaskStatus.CANCELLED || task.status === TaskStatus.DONE;
-
   return (
     <div
       className="hover:bg-accent flex cursor-pointer items-center gap-3 rounded-md p-2"
@@ -13183,12 +13179,10 @@ export function SubtaskItem({ task, onTaskSelect }: SubtaskItemProps) {
     </div>
   );
 }
-
 // FILE: src/features/tasks/components/SubtaskList.tsx
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { SubtaskItem } from "./SubtaskItem";
-
 interface SubtaskListProps {
   task: any;
   onAddSubtask: () => void;
@@ -13226,7 +13220,6 @@ export function SubtaskList({
     </div>
   );
 }
-
 // FILE: src/features/tasks/components/TaskAssignees.tsx
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -13638,7 +13631,6 @@ import { CreateTaskForm } from "@/features/tasks/components/CreateTaskForm";
 import { TaskLinks } from "./TaskLinks";
 import { TaskChecklist } from "./TaskChecklist";
 import { ChecklistItem } from "../task.types";
-
 export function TaskDetailBody({
   task,
   workspaceId,
@@ -13652,11 +13644,9 @@ export function TaskDetailBody({
   useEffect(() => {
     setDescription(task.description || "");
   }, [task.description]);
-
   const handleChecklistSave = (items: ChecklistItem[]) => {
     onSave("checklist", items);
   };
-
   return (
     <div className="col-span-2 space-y-6 border-r pr-6">
       <RichTextEditor
@@ -13711,7 +13701,6 @@ export function TaskDetailBody({
     </div>
   );
 }
-
 // FILE: src/features/tasks/components/TaskDetailModal.tsx
 
 import {
@@ -13853,7 +13842,6 @@ export function TaskDetailModal({
 }
 
 // FILE: src/features/tasks/components/TaskDetailSidebar.tsx
-
 import { TaskAssignees } from "./TaskAssignees";
 import { TimeLogSection } from "@/features/timelogs/components/TimeLogSection";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13881,7 +13869,6 @@ import { TaskDocuments } from "./TaskDocuments";
 import { EditableField } from "@/components/ui/EditableField";
 import { RecurrenceSelector } from "./RecurrenceSelector";
 import { TaskTypeSelector } from "@/features/task-types/components/TaskTypeSelector";
-
 export function TaskDetailSidebar({ task, workspaceId, projectId }: any) {
   const taskResource = useApiResource(
     projectId
@@ -14589,6 +14576,30 @@ export function TaskList({
     </DataTableWrapper>
   );
 }
+
+// FILE: src/features/tasks/index.ts
+export * from "./api/useAttachDocument.js";
+export * from "./api/useDetachDocument.js";
+export * from "./api/useManageTaskLinks.js";
+export * from "./api/useMoveTask.js";
+export * from "./api/useUpdateMyTask.js";
+export * from "./api/useUpdateTaskCustomValues.js";
+export * from "./components/AssigneeSelector.js";
+export * from "./components/ChecklistItem.js";
+export * from "./components/CreateTaskForm.js";
+export * from "./components/MyTasksKanbanBoard.js";
+export * from "./components/RecurrenceSelector.js";
+export * from "./components/SubtaskItem.js";
+export * from "./components/SubtaskList.js";
+export * from "./components/TaskAssignees.js";
+export * from "./components/TaskChecklist.js";
+export * from "./components/TaskCustomFields.js";
+export * from "./components/TaskDetailBody.js";
+export * from "./components/TaskDetailModal.js";
+export * from "./components/TaskDetailSidebar.js";
+export * from "./components/TaskDocuments.js";
+export * from "./components/TaskLinks.js";
+export * from "./components/TaskList.js";
 
 // FILE: src/features/tasks/task.types.ts
 import { z, type ZodType } from "zod";
@@ -15547,7 +15558,6 @@ export function useCreateView(workspaceId: string) {
     },
   });
 }
-
 // FILE: src/features/views/api/useDeleteView.ts
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
@@ -15575,7 +15585,6 @@ export function useDeleteView(workspaceId: string, projectId: string) {
     invalidateQueries: [["views", projectId]],
   });
 }
-
 // FILE: src/features/views/api/useGetProjectViews.ts
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
@@ -15655,7 +15664,6 @@ export function useGetViewData(
 }
 
 // FILE: src/features/views/api/useManageViews.ts
-
 import { useApiResource } from "@/hooks/useApiResource";
 
 export function useManageViews(workspaceId: string, projectId: string) {
@@ -15665,11 +15673,11 @@ export function useManageViews(workspaceId: string, projectId: string) {
   );
   return resource;
 }
+
 // FILE: src/features/views/api/useUpdateView.ts
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
 import { useQueryClient } from "@tanstack/react-query";
-
 interface UpdateViewParams {
   workspaceId: string;
   projectId: string;
@@ -15703,7 +15711,6 @@ export function useUpdateView(workspaceId: string, projectId: string) {
   });
 }
 // FILE: src/features/views/components/BacklogTaskItem.tsx
-
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Card } from "@/components/ui/card";
@@ -15729,7 +15736,6 @@ export function BacklogTaskItem({ task, onTaskSelect }: BacklogTaskItemProps) {
       task,
     },
   });
-
   const style = {
     transition,
     transform: CSS.Transform.toString(transform),
@@ -15786,7 +15792,6 @@ export function BacklogView({
     `/workspaces/${workspaceId}/projects/${projectId}/epics`,
     ["epics", projectId]
   ).useGetAll();
-
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -15794,7 +15799,6 @@ export function BacklogView({
       },
     })
   );
-
   const { tasksWithoutEpic, tasksByEpic } = useMemo(() => {
     const tasksWithoutEpic: Task[] = [];
     const tasksByEpic: Record<string, Task[]> = {};
@@ -15810,7 +15814,6 @@ export function BacklogView({
     });
     return { tasksWithoutEpic, tasksByEpic };
   }, [tasks]);
-
   const onDragStart = (event: DragStartEvent) => {
     if (event.active.data.current?.type === "Task") {
       setActiveTask(event.active.data.current.task);
@@ -15830,7 +15833,6 @@ export function BacklogView({
     const newEpicId = targetIsEpic
       ? (over.id as string).replace("epic-", "")
       : null;
-
     if (task.epicId !== newEpicId) {
       updateTaskMutation.mutate({
         taskId,
@@ -15878,9 +15880,7 @@ export function BacklogView({
     </DndContext>
   );
 }
-
 // FILE: src/features/views/components/CalendarView.tsx
-
 import { Calendar, dateFnsLocalizer, Event } from "react-big-calendar";
 import { format, parse, startOfWeek, getDay } from "date-fns";
 import { enUS } from "date-fns/locale/en-US";
@@ -15894,7 +15894,6 @@ interface CalendarViewProps {
 const locales = {
   "en-US": enUS,
 };
-
 const localizer = dateFnsLocalizer({
   format,
   parse,
@@ -15902,7 +15901,6 @@ const localizer = dateFnsLocalizer({
   getDay,
   locales,
 });
-
 export function CalendarView({ tasks, onTaskSelect }: CalendarViewProps) {
   const events: Event[] = tasks
     .filter((task) => task.dueDate)
@@ -15912,7 +15910,6 @@ export function CalendarView({ tasks, onTaskSelect }: CalendarViewProps) {
       end: new Date(task.dueDate!),
       resource: task,
     }));
-
   return (
     <div className="h-[calc(100vh-220px)]">
       <Calendar
@@ -15928,7 +15925,6 @@ export function CalendarView({ tasks, onTaskSelect }: CalendarViewProps) {
 }
 
 // FILE: src/features/views/components/EpicDropzone.tsx
-
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext } from "@dnd-kit/sortable";
 import { Task } from "@/features/tasks/task.types";
@@ -15948,7 +15944,6 @@ export function EpicDropzone({ epic, tasks, onTaskSelect }: EpicDropzoneProps) {
       epic,
     },
   });
-
   const taskIds = tasks.map((t) => t.id);
 
   return (
@@ -15975,14 +15970,12 @@ export function EpicDropzone({ epic, tasks, onTaskSelect }: EpicDropzoneProps) {
 }
 
 // FILE: src/features/views/components/GanttChartView.tsx
-
 import { useEffect, useRef } from "react";
 import { gantt } from "dhtmlx-gantt";
 import "dhtmlx-gantt/codebase/dhtmlxgantt.css";
 import { Task } from "@/features/tasks/task.types";
 import { useApiResource } from "@/hooks/useApiResource";
 import { useParams } from "react-router-dom";
-
 interface GanttChartViewProps {
   tasks: Task[];
 }
@@ -15993,13 +15986,11 @@ export function GanttChartView({ tasks }: GanttChartViewProps) {
     workspaceId: string;
     projectId: string;
   }>();
-
   const taskResource = useApiResource(
     `/workspaces/${workspaceId}/projects/${projectId}/tasks`,
     ["tasks", projectId]
   );
   const updateTaskMutation = taskResource.useUpdate();
-
   useEffect(() => {
     if (!ganttContainer.current) return;
 
@@ -16047,7 +16038,6 @@ export function GanttChartView({ tasks }: GanttChartViewProps) {
         delete: () => Promise.resolve(),
       },
     });
-
     const eventId = gantt.attachEvent("onAfterTaskDrag", onAfterTaskDrag);
 
     return () => {
@@ -16055,7 +16045,6 @@ export function GanttChartView({ tasks }: GanttChartViewProps) {
       gantt.clearAll();
     };
   }, []);
-
   useEffect(() => {
     const formattedTasks = {
       data: tasks.map((task) => ({
@@ -16071,7 +16060,6 @@ export function GanttChartView({ tasks }: GanttChartViewProps) {
     };
     gantt.parse(formattedTasks);
   }, [tasks]);
-
   return (
     <div
       ref={ganttContainer}
@@ -16333,7 +16321,6 @@ export function KanbanColumn({ column, tasks, onTaskSelect }: any) {
     </div>
   );
 }
-
 // FILE: src/features/views/components/KanbanTaskCard.tsx
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useSortable } from "@dnd-kit/sortable";
@@ -16368,7 +16355,6 @@ import { useState } from "react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { CreateTemplateFromTaskForm } from "@/features/task-templates/components/CreateTemplateFromTaskDialog";
 import { getIcon } from "@/lib/icons";
-
 export function KanbanTaskCard({
   task,
   onTaskSelect,
@@ -16570,7 +16556,6 @@ export function ProjectDetailView({
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
   const [isTemplateSelectorOpen, setIsTemplateSelectorOpen] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-
   const renderActionDialog = () => {
     const currentView = views.find((v) => v.id === activeTab);
     const viewType = currentView?.type;
@@ -16757,7 +16742,6 @@ export function ProjectDetailView({
     </Tabs>
   );
 }
-
 // FILE: src/features/views/components/ViewCard.tsx
 import { EntityCard } from "@/components/ui/EntityCard";
 import { useManageViews } from "../api/useManageViews";
@@ -16948,6 +16932,28 @@ export function ViewList({ workspaceId, projectId }: ViewListProps) {
   );
 }
 
+// FILE: src/features/views/index.ts
+export * from "./api/useCreateView.js";
+export * from "./api/useDeleteView.js";
+export * from "./api/useGetProjectViews.js";
+export * from "./api/useGetView.js";
+export * from "./api/useGetViewData.js";
+export * from "./api/useManageViews.js";
+export * from "./api/useUpdateView.js";
+export * from "./components/BacklogTaskItem.js";
+export * from "./components/BacklogView.js";
+export * from "./components/CalendarView.js";
+export * from "./components/EpicDropzone.js";
+export * from "./components/GanttChartView.js";
+export * from "./components/KanbanBoard.js";
+export * from "./components/KanbanColumn.js";
+export * from "./components/KanbanTaskCard.js";
+export * from "./components/ProjectDetailView.js";
+export * from "./components/ViewCard.js";
+export * from "./components/ViewForm.js";
+export * from "./components/ViewList.js";
+export * from "./view.types.js";
+
 // FILE: src/features/views/view.types.ts
 import { z } from "zod";
 import { ViewType } from "@/types";
@@ -16963,7 +16969,6 @@ export const ProjectIdParamsSchema = createUuidParamSchema(
 );
 export const ViewIdParamsSchema = createUuidParamSchema("viewId", "View");
 export type ViewIdParams = z.infer<typeof ViewIdParamsSchema>;
-
 export const ViewColumnSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
@@ -16972,7 +16977,6 @@ export const ViewColumnSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
 });
-
 const KanbanConfigSchema = z.object({});
 
 const ListConfigSchema = z.object({
@@ -16982,7 +16986,6 @@ const ListConfigSchema = z.object({
 const CalendarConfigSchema = z.object({
   dateField: z.enum(["dueDate", "startDate"]),
 });
-
 const GanttConfigSchema = z.object({});
 const BacklogConfigSchema = z.object({});
 
@@ -17021,15 +17024,12 @@ export const ViewSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
 });
-
 export type View = z.infer<typeof ViewSchema>;
 export type ViewColumn = z.infer<typeof ViewColumnSchema>;
-
 export const CreateViewColumnDtoSchema = z.object({
   name: z.string().min(1, "Column name cannot be empty."),
   order: z.number().int().optional(),
 });
-
 export const CreateViewDtoSchema = z.object({
   name: z.string().min(1, "View name cannot be empty."),
   type: z.nativeEnum(ViewType),
@@ -17060,7 +17060,6 @@ export const PaginatedViewsResponseSchema =
 export type PaginatedViewsResponse = z.infer<
   typeof PaginatedViewsResponseSchema
 >;
-
 // FILE: src/features/widgets/api/useCreateWidget.ts
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
@@ -18877,7 +18876,6 @@ const config = {
 export default config;
 
 // FILE: src/lib/icons.tsx
-
 import {
   Briefcase,
   CheckSquare,
@@ -18892,7 +18890,6 @@ import {
   Lightbulb,
   Flame,
 } from "lucide-react";
-
 export const ICONS: Record<string, LucideIcon> = {
   Project: Briefcase,
   Task: CheckSquare,
@@ -18912,7 +18909,7 @@ export function getIcon(typeName: string | null | undefined): LucideIcon {
   if (!typeName) {
     return ICONS.Default;
   }
-  
+
   const foundIcon = Object.keys(ICONS).find(
     (key) => key.toLowerCase() === typeName.toLowerCase()
   );
@@ -18925,15 +18922,12 @@ import { z } from "zod";
 import { createPaginationSchema, createPaginatedResponseSchema } from "./zod";
 
 export const phoneRegex = new RegExp(/^[+]*[(]?[0-9]{1,4}[)]?[-\s./0-9]*$/);
-
 export const nameSchema = (entity: string, min = 2) =>
   z.string().min(min, `${entity} name must be at least ${min} characters.`);
-
 export const descriptionSchema = z.string().optional().nullable();
 
 export const requiredStringSchema = (fieldName: string) =>
   z.string().min(1, `${fieldName} is required.`);
-
 export const phoneNumberSchema = z
   .string()
   .refine((val) => {
@@ -18947,7 +18941,6 @@ export const socialLinkSchema = z.object({
   provider: z.nativeEnum(SocialProvider),
   url: z.string().url("Please enter a valid URL."),
 });
-
 const BaseProfileUpdateSchema = z.object({
   firstName: z.string().min(1).optional(),
   lastName: z.string().min(1).optional(),
@@ -18958,7 +18951,6 @@ const BaseProfileUpdateSchema = z.object({
   socialLinks: z.array(socialLinkSchema).optional(),
   skillIds: z.array(z.string().uuid()).optional(),
 });
-
 const BiographyUpdateSchema = z.object({
   biography: z
     .string()
@@ -18983,7 +18975,6 @@ export const UpdateAvatarDtoSchema = z.object({
   avatarUrl: z.string().url(),
 });
 export type UpdateAvatarDto = z.infer<typeof UpdateAvatarDtoSchema>;
-
 export const JobIdParamsSchema = z.object({
   jobId: z.string().uuid(),
 });
@@ -19079,7 +19070,6 @@ export const JobSystemStatusResponseSchema = z.object({
   scheduler: z.object({ isRunning: z.boolean() }),
   registeredJobTypes: z.number().int(),
 });
-
 // FILE: src/lib/utils.ts
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -19529,7 +19519,6 @@ function CompanyList({
   const { data, isLoading } = useApiResource("companies", [
     "companies",
   ]).useGetAll();
-
   if (isLoading) return <div>Loading companies...</div>;
 
   if (!data || data.data.length === 0) {
@@ -19562,7 +19551,6 @@ export function CrmPage() {
   );
   const [isCreatePersonOpen, setIsCreatePersonOpen] = useState(false);
   const [isCreateCompanyOpen, setIsCreateCompanyOpen] = useState(false);
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -19641,7 +19629,6 @@ export function CrmPage() {
     </div>
   );
 }
-
 // FILE: src/pages/Dashboard.tsx
 export function DashboardPage() {
   return (
@@ -19864,7 +19851,6 @@ export function IntegrationsPage() {
 }
 
 // FILE: src/pages/KnowledgeBasePage.tsx
-
 import { KnowledgeBaseList } from "@/features/knowledge-base/components/KnowledgeBaseList";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -20147,7 +20133,6 @@ export function MyTasksPage() {
     </>
   );
 }
-
 // FILE: src/pages/ProfilePage.tsx
 import { UserForm } from "@/features/admin/users/components/UserForm";
 import {
@@ -20543,16 +20528,13 @@ export function ProjectGeneralSettingsPage() {
 }
 
 // FILE: src/pages/ProjectGoalsPage.tsx
-
 import { GoalList } from "@/features/goals/components/GoalList";
 import { useParams } from "react-router-dom";
-
 export function ProjectGoalsPage() {
   const { workspaceId, projectId } = useParams<{
     workspaceId: string;
     projectId: string;
   }>();
-
   if (!workspaceId || !projectId) {
     return <div>Missing URL parameters.</div>;
   }
@@ -20563,6 +20545,7 @@ export function ProjectGoalsPage() {
     </div>
   );
 }
+
 // FILE: src/pages/ProjectListPage.tsx
 import { ProjectList } from "@/features/projects/components/ProjectList";
 import { useParams } from "react-router-dom";
@@ -20612,23 +20595,19 @@ export function ProjectListPage() {
 }
 
 // FILE: src/pages/ProjectSettingsPage.tsx
-
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
 const settingsNavItems = [
   { to: "general", label: "General" },
   { to: "access", label: "Access Control" },
   { to: "custom-fields", label: "Custom Fields" },
   { to: "task-types", label: "Task Types" },
   { to: "views", label: "Views" },
-  { to: "goals", label: "Goals" }, 
+  { to: "goals", label: "Goals" },
 ];
-
 export function ProjectSettingsPage() {
   const location = useLocation();
   const currentTab = location.pathname.split("/").pop() || "general";
-
   return (
     <div className="space-y-6">
       <div>
@@ -20651,8 +20630,8 @@ export function ProjectSettingsPage() {
     </div>
   );
 }
-// FILE: src/pages/ProjectTaskTypesPage.tsx
 
+// FILE: src/pages/ProjectTaskTypesPage.tsx
 import { TaskTypeList } from "@/features/task-types/components/TaskTypeList";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -20702,7 +20681,6 @@ export function ProjectTaskTypesPage() {
 }
 
 // FILE: src/pages/ProjectViewsPage.tsx
-
 import { ViewList } from "@/features/views/components/ViewList";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -20719,7 +20697,6 @@ export function ProjectViewsPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   if (!workspaceId || !projectId) return <div>Missing URL parameters.</div>;
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -20750,6 +20727,7 @@ export function ProjectViewsPage() {
     </div>
   );
 }
+
 // FILE: src/pages/PublicationsPage.tsx
 import { PublicationList } from "@/features/publications/components/PublicationList";
 import { Button } from "@/components/ui/button";
@@ -20901,10 +20879,8 @@ export function TeamsPage() {
 // FILE: src/pages/WorkloadPage.tsx
 import { WorkloadView } from "@/features/reporting/components/WorkloadView";
 import { useParams } from "react-router-dom";
-
 export function WorkloadPage() {
   const { workspaceId } = useParams<{ workspaceId: string }>();
-
   if (!workspaceId) {
     return <div>Invalid Workspace ID</div>;
   }
@@ -20922,7 +20898,6 @@ export function WorkloadPage() {
     </div>
   );
 }
-
 // FILE: src/pages/WorkspaceDashboardListPage.tsx
 
 import { DashboardList } from "@/features/dashboards/components/DashboardList";
@@ -21137,7 +21112,6 @@ export function WorkspaceLayout() {
     </div>
   );
 }
-
 // FILE: src/store/auth.ts
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
@@ -21335,7 +21309,6 @@ export interface View {
   type: ViewType;
   columns: ViewColumn[];
 }
-
 // FILE: src/vite-env.d.ts
 /// <reference types="vite/client" />
 

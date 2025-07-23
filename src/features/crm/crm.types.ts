@@ -8,7 +8,6 @@ export const PersonInCompanySchema = z.object({
   avatarUrl: z.string().url().nullable(),
   roleInCompany: z.string().nullable(),
 });
-
 export const CompanySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
@@ -34,7 +33,6 @@ const DealContactSchema = z.object({
   name: z.string(),
   email: z.string().email().nullable(),
 });
-
 export const DealSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
