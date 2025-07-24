@@ -155,7 +155,6 @@ export function TaskDocuments({
   };
 
   const handleLinkFile = (provider: string) => {
-    // Placeholder for actual file picker logic
     alert(`Linking from ${provider} is not implemented yet.`);
   };
 

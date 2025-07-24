@@ -1,9 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
 async function getMessages(threadId: string): Promise<any[]> {
-  // This endpoint doesn't exist yet, so we'll mock the data.
-  // const { data } = await api.get(`/chat/threads/${threadId}/messages`);
-  // return data;
   if (!threadId) return Promise.resolve([]);
   return Promise.resolve([
     {

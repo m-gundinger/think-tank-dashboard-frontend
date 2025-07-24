@@ -5303,9 +5303,6 @@ export function SetupPasswordForm() {
 import { useQuery } from "@tanstack/react-query";
 
 async function getChannels(): Promise<any[]> {
-  // This endpoint doesn't exist yet, so we'll mock the data.
-  // const { data } = await api.get("/chat/channels");
-  // return data;
   return Promise.resolve([
     { id: "C1", name: "General", type: "channel" },
     { id: "C2", name: "Project Alpha", type: "channel" },
@@ -5317,7 +5314,7 @@ export function useGetChannels() {
   return useQuery({
     queryKey: ["chatChannels"],
     queryFn: getChannels,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5,
   });
 }
 
@@ -5325,9 +5322,6 @@ export function useGetChannels() {
 import { useQuery } from "@tanstack/react-query";
 
 async function getMessages(threadId: string): Promise<any[]> {
-  // This endpoint doesn't exist yet, so we'll mock the data.
-  // const { data } = await api.get(`/chat/threads/${threadId}/messages`);
-  // return data;
   if (!threadId) return Promise.resolve([]);
   return Promise.resolve([
     {
@@ -5365,9 +5359,6 @@ async function sendMessage({
   threadId,
   content,
 }: SendMessageParams): Promise<any> {
-  // This endpoint doesn't exist yet.
-  // const { data } = await api.post(`/chat/threads/${threadId}/messages`, { content });
-  // return data;
   console.log("Sending message:", { threadId, content });
   return Promise.resolve({
     id: "M3",
@@ -5380,7 +5371,7 @@ async function sendMessage({
 export function useSendMessage(threadId: string) {
   return useApiMutation({
     mutationFn: (content: string) => sendMessage({ threadId, content }),
-    // Optimistic updates would go here in a real implementation
+
     invalidateQueries: [["chatMessages", threadId]],
   });
 }
@@ -6399,7 +6390,6 @@ export function DealColumn({ stage, deals, onDealSelect }: DealColumnProps) {
   );
 }
 // FILE: src/features/crm/components/DealDetailContent.tsx
-// Placeholder for DealDetailContent - similar to CompanyDetailContent
 export function DealDetailContent({ deal }: { deal: any }) {
   return <div>Deal Details for {deal.name}</div>;
 }
@@ -8850,7 +8840,6 @@ export function MyTasksWidget() {
 import { DashboardWidget } from "./DashboardWidget";
 
 export function RecentMentionsWidget() {
-  // This would fetch data from a new endpoint like /notifications?type=mention
   return (
     <DashboardWidget title="Recent Mentions">
       <p className="text-muted-foreground text-sm">You have no new mentions.</p>
@@ -15683,7 +15672,6 @@ export function TaskDocuments({
   };
 
   const handleLinkFile = (provider: string) => {
-    // Placeholder for actual file picker logic
     alert(`Linking from ${provider} is not implemented yet.`);
   };
 
@@ -18549,8 +18537,6 @@ import { Tldraw } from "tldraw";
 import "tldraw/tldraw.css";
 
 export function WhiteboardView() {
-  // In a real application, you would fetch/save data using the `useApiResource` hooks
-  // and connect to a real-time collaboration service (e.g., via WebSockets).
   return (
     <div style={{ position: "fixed", inset: 0 }}>
       <Tldraw />

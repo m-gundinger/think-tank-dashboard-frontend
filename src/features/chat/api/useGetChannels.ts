@@ -1,9 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
 async function getChannels(): Promise<any[]> {
-  // This endpoint doesn't exist yet, so we'll mock the data.
-  // const { data } = await api.get("/chat/channels");
-  // return data;
   return Promise.resolve([
     { id: "C1", name: "General", type: "channel" },
     { id: "C2", name: "Project Alpha", type: "channel" },
@@ -15,6 +12,6 @@ export function useGetChannels() {
   return useQuery({
     queryKey: ["chatChannels"],
     queryFn: getChannels,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5,
   });
 }

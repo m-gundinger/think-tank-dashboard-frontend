@@ -3,7 +3,6 @@ import { IntegrationCard } from "./IntegrationCard";
 
 export function IntegrationList() {
   const handleGoogleConnect = () => {
-    // Placeholder for OAuth flow
     alert("Connecting to Google...");
   };
 
@@ -17,7 +16,7 @@ export function IntegrationList() {
         icon={<Mail className="h-6 w-6" />}
         title="Google Mail"
         description="Connect your Gmail account to send emails and notifications directly."
-        isConnected={true} // This would come from user data
+        isConnected={true}
         onConnect={handleGoogleConnect}
         onDisconnect={() => alert("Disconnecting from Google...")}
       />
