@@ -7,6 +7,7 @@ import { PersonForm } from "@/features/crm/components/PersonForm";
 import { CompanyForm } from "@/features/crm/components/CompanyForm";
 import { PersonDetailPanel } from "@/features/crm/components/PersonDetailPanel";
 import { CompanyDetailPanel } from "@/features/crm/components/CompanyDetailPanel";
+import { DealDetailPanel } from "@/features/crm/components/DealDetailPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useApiResource } from "@/hooks/useApiResource";
 import { CompanyCard } from "@/features/crm/components/CompanyCard";
@@ -51,6 +52,7 @@ export function CrmPage() {
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(
     null
   );
+  const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
   const [isCreatePersonOpen, setIsCreatePersonOpen] = useState(false);
   const [isCreateCompanyOpen, setIsCreateCompanyOpen] = useState(false);
   return (
@@ -112,7 +114,7 @@ export function CrmPage() {
           <CompanyList onCompanySelect={setSelectedCompanyId} />
         </TabsContent>
         <TabsContent value="deals" className="mt-4">
-          <DealPipeline />
+          <DealPipeline onDealSelect={setSelectedDealId} />
         </TabsContent>
       </Tabs>
 
@@ -126,6 +128,12 @@ export function CrmPage() {
         companyId={selectedCompanyId}
         onOpenChange={(isOpen) => {
           if (!isOpen) setSelectedCompanyId(null);
+        }}
+      />
+      <DealDetailPanel
+        dealId={selectedDealId}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) setSelectedDealId(null);
         }}
       />
     </div>

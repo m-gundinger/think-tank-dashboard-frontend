@@ -12,6 +12,7 @@ import {
   Lightbulb,
   Flame,
 } from "lucide-react";
+
 export const ICONS: Record<string, LucideIcon> = {
   Project: Briefcase,
   Task: CheckSquare,
@@ -25,8 +26,10 @@ export const ICONS: Record<string, LucideIcon> = {
   Spike: Flame,
   Story: Book,
   Idea: Lightbulb,
+  ProjectTemplate: FileText,
   Default: FileText,
 };
+
 export function getIcon(typeName: string | null | undefined): LucideIcon {
   if (!typeName) {
     return ICONS.Default;

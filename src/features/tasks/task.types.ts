@@ -5,6 +5,7 @@ import {
   TaskLinkType,
   CustomFieldType,
   DocumentType,
+  SocialProvider,
 } from "@/types";
 import {
   createPaginationSchema,
@@ -12,13 +13,11 @@ import {
   createUuidParamSchema,
 } from "@/lib/zod";
 import { TaskTypeSchema } from "../task-types/task-type.types";
-
 export const ProjectIdParamsSchema = createUuidParamSchema(
   "projectId",
   "Project"
 );
 export type ProjectIdParams = z.infer<typeof ProjectIdParamsSchema>;
-
 export const TaskIdParamsSchema = createUuidParamSchema("taskId", "Task");
 export type TaskIdParams = z.infer<typeof TaskIdParamsSchema>;
 
@@ -29,13 +28,11 @@ export interface TaskLinkIdParams {
   taskId: string;
   linkId: string;
 }
-
 export const TaskDocumentParamsSchema = TaskIdParamsSchema.extend({
   documentId: z.string().uuid(),
   type: z.nativeEnum(DocumentType),
 });
 export type TaskDocumentParams = z.infer<typeof TaskDocumentParamsSchema>;
-
 export const TaskAssigneeParamsSchema = TaskIdParamsSchema.extend({
   userId: z.string().uuid(),
 });
@@ -81,7 +78,6 @@ const TaskCustomFieldSchema = z.object({
   value: z.any(),
   definition: CustomFieldDefinitionForTaskSchema,
 });
-
 const TaskDocumentSchema = z.object({
   documentId: z.string().uuid(),
   type: z.nativeEnum(DocumentType),
@@ -89,6 +85,8 @@ const TaskDocumentSchema = z.object({
   url: z.string(),
   fileType: z.string().nullable(),
   createdAt: z.coerce.date(),
+  externalUrl: z.string().url().nullable(),
+  provider: z.nativeEnum(SocialProvider).nullable(),
 });
 
 export const ChecklistItemSchema = z.object({
@@ -97,10 +95,10 @@ export const ChecklistItemSchema = z.object({
   completed: z.boolean(),
 });
 export type ChecklistItem = z.infer<typeof ChecklistItemSchema>;
-
 const BaseTaskSchema = z.object({
   __typename: z.literal("Task"),
   id: z.string().uuid(),
+  shortId: z.string().nullable(),
   title: z.string(),
   description: z.string().nullable(),
   status: z.nativeEnum(TaskStatus),
@@ -124,6 +122,7 @@ const BaseTaskSchema = z.object({
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
   assignees: z.array(TaskAssigneeSchema),
+  watchers: z.array(TaskAssigneeSchema),
   links: z.array(TaskLinkSchema),
   linkedToBy: z.array(TaskLinkSchema),
   customFields: z.array(TaskCustomFieldSchema),
@@ -141,7 +140,6 @@ export const TaskSchema: ZodType<Task> = BaseTaskSchema.extend({
 });
 
 export type TaskLink = z.infer<typeof TaskLinkSchema>;
-
 export const CreateTaskDtoSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional().nullable(),
@@ -158,6 +156,7 @@ export const CreateTaskDtoSchema = z.object({
   boardColumnId: z.string().uuid().optional().nullable(),
   parentId: z.string().uuid().optional().nullable(),
   assigneeIds: z.array(z.string().uuid()).optional(),
+  watcherIds: z.array(z.string().uuid()).optional(),
   checklist: z.array(ChecklistItemSchema).optional().nullable(),
 });
 export type CreateTaskDto = z.infer<typeof CreateTaskDtoSchema>;
@@ -171,7 +170,6 @@ export const UpdateTaskDtoSchema = CreateTaskDtoSchema.omit({
   parentId: true,
 }).partial();
 export type UpdateTaskDto = z.infer<typeof UpdateTaskDtoSchema>;
-
 export const MoveTaskDtoSchema = z.object({
   targetColumnId: z.string().uuid(),
   orderInColumn: z.number().int(),
@@ -182,6 +180,11 @@ export const CreateTaskLinkDtoSchema = z.object({
   type: z.nativeEnum(TaskLinkType),
 });
 export type CreateTaskLinkDto = z.infer<typeof CreateTaskLinkDtoSchema>;
+export const UpdateTaskLinkDtoSchema = z.object({
+  type: z.nativeEnum(TaskLinkType),
+});
+export type UpdateTaskLinkDto = z.infer<typeof UpdateTaskLinkDtoSchema>;
+
 export const AssignUserToTaskDtoSchema = z.object({
   userId: z.string().uuid(),
 });
@@ -204,7 +207,9 @@ export const ListTasksQuerySchema = createPaginationSchema().extend({
   search: z.string().optional(),
   startDate: z.coerce.date().optional(),
   endDate: z.coerce.date().optional(),
-  includeSubtasks: z.boolean().default(false),
+  includeSubtasks: z
+    .preprocess((val) => val === "true", z.boolean())
+    .default(false),
   sortBy: z
     .enum([
       "createdAt",
@@ -227,4 +232,17 @@ export const PaginatedTasksResponseSchema =
 
 export type PaginatedTasksResponse = z.infer<
   typeof PaginatedTasksResponseSchema
+>;
+export const BulkDeleteTasksDtoSchema = z.object({
+  ids: z
+    .array(z.string().uuid())
+    .min(1, "At least one task ID must be provided."),
+});
+export type BulkDeleteTasksDto = z.infer<typeof BulkDeleteTasksDtoSchema>;
+
+export const BulkDeleteTasksResponseSchema = z.object({
+  count: z.number().int(),
+});
+export type BulkDeleteTasksResponse = z.infer<
+  typeof BulkDeleteTasksResponseSchema
 >;

@@ -1,7 +1,9 @@
 import { WorkloadView } from "@/features/reporting/components/WorkloadView";
 import { useParams } from "react-router-dom";
+
 export function WorkloadPage() {
   const { workspaceId } = useParams<{ workspaceId: string }>();
+
   if (!workspaceId) {
     return <div>Invalid Workspace ID</div>;
   }

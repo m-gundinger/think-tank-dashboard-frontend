@@ -14,7 +14,11 @@ import { Deal } from "../crm.types";
 import { DealColumn } from "./DealColumn";
 import { DealCard } from "./DealCard";
 
-export function DealPipeline() {
+interface DealPipelineProps {
+  onDealSelect: (dealId: string) => void;
+}
+
+export function DealPipeline({ onDealSelect }: DealPipelineProps) {
   const [activeDeal, setActiveDeal] = useState<Deal | null>(null);
   const { data: stagesData, isLoading: isLoadingStages } = useApiResource(
     "deal-stages",
@@ -83,14 +87,14 @@ export function DealPipeline() {
             key={stage.id}
             stage={stage}
             deals={dealsByStage[stage.id] || []}
-            onDealSelect={() => {}}
+            onDealSelect={onDealSelect}
           />
         ))}
       </div>
       {createPortal(
         <DragOverlay>
           {activeDeal ? (
-            <DealCard deal={activeDeal} onSelect={() => {}} />
+            <DealCard deal={activeDeal} onSelect={onDealSelect} />
           ) : null}
         </DragOverlay>,
         document.body

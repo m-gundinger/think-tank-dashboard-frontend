@@ -1,1 +1,1 @@
-Solve the following issue, and return the full, copy-paste ready files that need change. Dont answer in Canvas.
+Solve the following issues, and return the full, copy-paste ready files that need change. Dont answer in Canvas.

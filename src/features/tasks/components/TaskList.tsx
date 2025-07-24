@@ -57,6 +57,11 @@ export function TaskList({
 
   const columns: ColumnDef<Task>[] = [
     {
+      accessorKey: "shortId",
+      header: "ID",
+      cell: (task) => <span className="font-mono text-xs">{task.shortId}</span>,
+    },
+    {
       accessorKey: "title",
       header: "Title",
       cell: (task) => (
@@ -145,7 +150,7 @@ export function TaskList({
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => {
-                  navigator.clipboard.writeText(task.id);
+                  navigator.clipboard.writeText(task.shortId || task.id);
                   toast.success("Task ID copied to clipboard.");
                 }}
               >
@@ -170,7 +175,6 @@ export function TaskList({
       ),
     },
   ];
-
   return (
     <DataTableWrapper>
       <DataTable

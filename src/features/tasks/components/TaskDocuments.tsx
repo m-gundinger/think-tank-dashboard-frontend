@@ -2,7 +2,13 @@ import { useRef, useMemo } from "react";
 import { DocumentType } from "@/types";
 import { Task } from "../task.types";
 import { Button } from "@/components/ui/button";
-import { Paperclip, Upload, Trash2, FileText } from "lucide-react";
+import {
+  Paperclip,
+  Upload,
+  Trash2,
+  FileText,
+  Link as LinkIcon,
+} from "lucide-react";
 import { useAttachDocument } from "../api/useAttachDocument";
 import { useDetachDocument } from "../api/useDetachDocument";
 import { toast } from "sonner";
@@ -20,15 +26,21 @@ function DocumentItem({
   onDetach: (documentId: string, type: DocumentType) => void;
 }) {
   const isPropagated = doc.taskId !== task.id;
+  const isExternal = !!doc.externalUrl;
+
   return (
     <div className="hover:bg-accent/50 flex items-center justify-between rounded-md p-2 text-sm">
       <a
-        href={getAbsoluteUrl(doc.url)}
+        href={isExternal ? doc.externalUrl : getAbsoluteUrl(doc.url)}
         target="_blank"
         rel="noopener noreferrer"
         className="flex min-w-0 items-center gap-2"
       >
-        <FileText className="h-4 w-4 flex-shrink-0" />
+        {isExternal ? (
+          <LinkIcon className="h-4 w-4 flex-shrink-0" />
+        ) : (
+          <FileText className="h-4 w-4 flex-shrink-0" />
+        )}
         <span className="truncate" title={doc.title}>
           {doc.title}
         </span>
@@ -142,6 +154,11 @@ export function TaskDocuments({
     detachMutation.mutate({ documentId, type });
   };
 
+  const handleLinkFile = (provider: string) => {
+    // Placeholder for actual file picker logic
+    alert(`Linking from ${provider} is not implemented yet.`);
+  };
+
   return (
     <div className="space-y-4">
       <input
@@ -164,30 +181,51 @@ export function TaskDocuments({
           task={task}
           onDetach={handleDetach}
         />
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-full"
-          onClick={() => inputRef.current?.click()}
-          disabled={attachMutation.isPending}
-        >
-          <Upload className="mr-2 h-4 w-4" /> Attach Input
-        </Button>
+        <div className="grid grid-cols-2 gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full"
+            onClick={() => inputRef.current?.click()}
+            disabled={attachMutation.isPending}
+          >
+            <Upload className="mr-2 h-4 w-4" /> Upload Input
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full"
+            onClick={() => handleLinkFile("Provider")}
+          >
+            <LinkIcon className="mr-2 h-4 w-4" /> Link Input
+          </Button>
+        </div>
+
         <DocumentList
           title="Outputs"
           docs={outputDocs}
           task={task}
           onDetach={handleDetach}
         />
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-full"
-          onClick={() => outputRef.current?.click()}
-          disabled={attachMutation.isPending}
-        >
-          <Paperclip className="mr-2 h-4 w-4" /> Attach Output
-        </Button>
+        <div className="grid grid-cols-2 gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full"
+            onClick={() => outputRef.current?.click()}
+            disabled={attachMutation.isPending}
+          >
+            <Paperclip className="mr-2 h-4 w-4" /> Upload Output
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full"
+            onClick={() => handleLinkFile("Provider")}
+          >
+            <LinkIcon className="mr-2 h-4 w-4" /> Link Output
+          </Button>
+        </div>
       </div>
     </div>
   );

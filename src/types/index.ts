@@ -110,6 +110,7 @@ export enum ViewType {
   CALENDAR = "CALENDAR",
   GANTT = "GANTT",
   BACKLOG = "BACKLOG",
+  WHITEBOARD = "WHITEBOARD",
 }
 
 export enum JobStatus {
@@ -133,6 +134,20 @@ export enum KeyResultType {
   PERCENTAGE = "PERCENTAGE",
   CURRENCY = "CURRENCY",
   BOOLEAN = "BOOLEAN",
+}
+
+export enum InteractionType {
+  MEETING = "MEETING",
+  CALL = "CALL",
+  EMAIL = "EMAIL",
+}
+
+export enum ProjectStatus {
+  PLANNING = "PLANNING",
+  IN_PROGRESS = "IN_PROGRESS",
+  COMPLETED = "COMPLETED",
+  ON_HOLD = "ON_HOLD",
+  CANCELLED = "CANCELLED",
 }
 
 export interface ViewColumn {

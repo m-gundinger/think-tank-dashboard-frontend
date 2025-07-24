@@ -50,6 +50,7 @@ export function ProjectDetailView({
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
   const [isTemplateSelectorOpen, setIsTemplateSelectorOpen] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+
   const renderActionDialog = () => {
     const currentView = views.find((v) => v.id === activeTab);
     const viewType = currentView?.type;
@@ -182,7 +183,7 @@ export function ProjectDetailView({
           {view.type === "LIST" && (
             <TaskList
               apiUrl={`/workspaces/${workspaceId}/projects/${projectId}/tasks`}
-              queryKey={["tasks", projectId]}
+              queryKey={["tasks", projectId, view.id]}
               tasks={tasks}
               onTaskSelect={onTaskSelect}
               emptyState={projectTaskEmptyState}

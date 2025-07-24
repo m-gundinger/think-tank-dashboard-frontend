@@ -1,62 +1,70 @@
 import {
   Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 interface IntegrationCardProps {
-  integration: {
-    name: string;
-    description: string;
-    logo: string;
-    isConnected: boolean;
-  };
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  isConnected: boolean;
   onConnect: () => void;
-  onDisconnect: () => void;
-  isConnecting: boolean;
+  onDisconnect?: () => void;
+  onManage?: () => void;
 }
 
 export function IntegrationCard({
-  integration,
+  icon,
+  title,
+  description,
+  isConnected,
   onConnect,
   onDisconnect,
-  isConnecting,
+  onManage,
 }: IntegrationCardProps) {
   return (
     <Card>
-      <CardHeader className="flex-row items-start gap-4">
-        <img
-          src={integration.logo}
-          alt={integration.name}
-          className="h-12 w-12"
-        />
-        <div>
-          <CardTitle>{integration.name}</CardTitle>
-          <CardDescription>{integration.description}</CardDescription>
+      <CardHeader className="flex flex-row items-start gap-4 space-y-0">
+        <div className="bg-background flex h-12 w-12 items-center justify-center rounded-lg border">
+          {icon}
+        </div>
+        <div className="flex-1">
+          <CardTitle>{title}</CardTitle>
+          <CardDescription>{description}</CardDescription>
         </div>
       </CardHeader>
-      <CardContent></CardContent>
-      <CardFooter>
-        {integration.isConnected ? (
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={onDisconnect}
-            disabled={isConnecting}
-          >
-            Disconnect
-          </Button>
+      <CardContent>
+        {/* Future content can go here, like sync status */}
+      </CardContent>
+      <CardFooter className="flex items-center justify-between">
+        <Badge
+          variant={isConnected ? "default" : "outline"}
+          className={isConnected ? "bg-green-500" : ""}
+        >
+          {isConnected ? "Connected" : "Not Connected"}
+        </Badge>
+        {isConnected ? (
+          <div className="flex gap-2">
+            {onDisconnect && (
+              <Button variant="destructive" size="sm" onClick={onDisconnect}>
+                Disconnect
+              </Button>
+            )}
+            {onManage && (
+              <Button variant="secondary" size="sm" onClick={onManage}>
+                Manage
+              </Button>
+            )}
+          </div>
         ) : (
-          <Button
-            className="w-full"
-            onClick={onConnect}
-            disabled={isConnecting}
-          >
-            {isConnecting ? "Connecting..." : "Connect"}
+          <Button size="sm" onClick={onConnect}>
+            Connect
           </Button>
         )}
       </CardFooter>

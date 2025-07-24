@@ -14,15 +14,20 @@ import {
   Activity,
   Contact,
   CheckSquare,
+  Home,
+  MessageSquare,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+
 const mainNavItems = [
+  { to: "/home", icon: Home, label: "Home" },
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { to: "/my-tasks", icon: CheckSquare, label: "My Tasks" },
   { to: "/workspaces", icon: FolderKanban, label: "Workspaces" },
   { to: "/publications", icon: FileText, label: "Publications" },
   { to: "/crm", icon: Contact, label: "CRM" },
+  { to: "/chat", icon: MessageSquare, label: "Chat" },
 ];
 const adminNavItems = [
   { to: "/admin/users", icon: Users, label: "Users" },
@@ -33,10 +38,12 @@ const adminNavItems = [
   { to: "/admin/jobs", icon: Clock, label: "Jobs & Queues" },
   { to: "/admin/system", icon: Activity, label: "System Status" },
 ];
+
 export function Sidebar() {
   const location = useLocation();
   const isAdminPath = location.pathname.startsWith("/admin");
   const [isAdminOpen, setIsAdminOpen] = useState(isAdminPath);
+
   return (
     <aside className="hidden w-64 flex-col border-r bg-gray-100/40 p-4 lg:flex">
       <h1 className="mb-8 text-2xl font-bold">AutoNomos</h1>

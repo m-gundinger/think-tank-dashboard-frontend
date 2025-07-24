@@ -38,6 +38,8 @@ import { WorkspaceDashboardListPage } from "./pages/WorkspaceDashboardListPage";
 import { KnowledgeBasePage } from "./pages/KnowledgeBasePage";
 import { ProjectGoalsPage } from "./pages/ProjectGoalsPage";
 import { WorkloadPage } from "./pages/WorkloadPage";
+import { HomePage } from "./pages/HomePage";
+import { ChatPage } from "./pages/ChatPage";
 
 function App() {
   return (
@@ -54,9 +56,11 @@ function App() {
         />
 
         <Route path="/" element={<ProtectedLayout />}>
-          <Route index element={<Navigate to="/dashboard" replace />} />
+          <Route index element={<Navigate to="/home" replace />} />
+          <Route path="home" element={<HomePage />} />
+          <Route path="chat" element={<ChatPage />} />
           <Route path="dashboard" element={<DashboardPage />} />
-          <Route path="my-tasks" element={<MyTasksPage />} />{" "}
+          <Route path="my-tasks" element={<MyTasksPage />} />
           <Route path="workspaces" element={<WorkspacesPage />} />
           <Route path="publications" element={<PublicationsPage />} />
           <Route path="crm" element={<CrmPage />} />
@@ -66,7 +70,7 @@ function App() {
             <Route path="teams" element={<TeamsPage />} />
             <Route path="dashboards" element={<WorkspaceDashboardListPage />} />
             <Route path="knowledge-bases" element={<KnowledgeBasePage />} />
-            <Route path="workload" element={<WorkloadPage />} /> {/* ADDED */}
+            <Route path="workload" element={<WorkloadPage />} />
           </Route>
           <Route
             path="workspaces/:workspaceId/projects/:projectId"

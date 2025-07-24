@@ -3,6 +3,8 @@ import { Globe } from "lucide-react";
 import { RichTextOutput } from "@/components/ui/RichTextOutput";
 import { Company } from "../crm.types";
 import { ManageCompanyPeople } from "./ManageCompanyPeople";
+import { InteractionTimeline } from "./InteractionTimeline";
+
 function InfoItem({
   icon: Icon,
   label,
@@ -88,6 +90,10 @@ export function CompanyDetailContent({ company }: { company: Company }) {
 
       <div className="px-2">
         <ManageCompanyPeople company={company} />
+      </div>
+      <hr />
+      <div className="px-2">
+        <InteractionTimeline companyId={company.id} />
       </div>
     </div>
   );

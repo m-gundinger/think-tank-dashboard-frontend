@@ -12,6 +12,7 @@ export const ProjectIdParamsSchema = createUuidParamSchema(
 );
 export const ViewIdParamsSchema = createUuidParamSchema("viewId", "View");
 export type ViewIdParams = z.infer<typeof ViewIdParamsSchema>;
+
 export const ViewColumnSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
@@ -20,6 +21,7 @@ export const ViewColumnSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
 });
+
 const KanbanConfigSchema = z.object({});
 
 const ListConfigSchema = z.object({
@@ -31,6 +33,7 @@ const CalendarConfigSchema = z.object({
 });
 const GanttConfigSchema = z.object({});
 const BacklogConfigSchema = z.object({});
+const WhiteboardConfigSchema = z.object({});
 
 export const ViewConfigSchema = z.discriminatedUnion("type", [
   z.object({
@@ -53,6 +56,10 @@ export const ViewConfigSchema = z.discriminatedUnion("type", [
     type: z.literal(ViewType.BACKLOG),
     settings: BacklogConfigSchema.optional(),
   }),
+  z.object({
+    type: z.literal(ViewType.WHITEBOARD),
+    settings: WhiteboardConfigSchema.optional(),
+  }),
 ]);
 export type ViewConfig = z.infer<typeof ViewConfigSchema>;
 
@@ -64,21 +71,32 @@ export const ViewSchema = z.object({
   config: ViewConfigSchema.nullable(),
   projectId: z.string().uuid(),
   columns: z.array(ViewColumnSchema),
+  filters: z.any().nullable(),
+  sorting: z.any().nullable(),
+  grouping: z.any().nullable(),
+  isPublic: z.boolean(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
+
 export type View = z.infer<typeof ViewSchema>;
 export type ViewColumn = z.infer<typeof ViewColumnSchema>;
+
 export const CreateViewColumnDtoSchema = z.object({
   name: z.string().min(1, "Column name cannot be empty."),
   order: z.number().int().optional(),
 });
+
 export const CreateViewDtoSchema = z.object({
   name: z.string().min(1, "View name cannot be empty."),
   type: z.nativeEnum(ViewType),
   config: ViewConfigSchema.optional(),
   projectId: z.string().uuid(),
   columns: z.array(CreateViewColumnDtoSchema).optional(),
+  filters: z.any().optional(),
+  sorting: z.any().optional(),
+  grouping: z.any().optional(),
+  isPublic: z.boolean().optional(),
 });
 export type CreateViewDto = z.infer<typeof CreateViewDtoSchema>;
 
@@ -86,6 +104,10 @@ export const UpdateViewDtoSchema = z.object({
   name: z.string().min(1).optional(),
   config: ViewConfigSchema.optional(),
   columns: z.array(CreateViewColumnDtoSchema).optional(),
+  filters: z.any().optional(),
+  sorting: z.any().optional(),
+  grouping: z.any().optional(),
+  isPublic: z.boolean().optional(),
 });
 export type UpdateViewDto = z.infer<typeof UpdateViewDtoSchema>;
 

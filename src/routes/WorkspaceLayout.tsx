@@ -2,6 +2,7 @@ import { NavLink, Outlet, useLocation, useParams } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useApiResource } from "@/hooks/useApiResource";
 import { Skeleton } from "@/components/ui/skeleton";
+
 export function WorkspaceLayout() {
   const { workspaceId } = useParams<{ workspaceId: string }>();
   const location = useLocation();
@@ -44,8 +45,6 @@ export function WorkspaceLayout() {
             <TabsTrigger value="knowledge-bases">Knowledge Base</TabsTrigger>
           </NavLink>
           <NavLink to={`/workspaces/${workspaceId}/workload`}>
-            {" "}
-            {/* ADDED */}
             <TabsTrigger value="workload">Workload</TabsTrigger>
           </NavLink>
         </TabsList>
