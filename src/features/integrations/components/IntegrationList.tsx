@@ -1,39 +1,59 @@
-import { Mail, Calendar, Box } from "lucide-react";
+import { useState } from "react";
+import { IntegrationProvider } from "@/types/api";
+import { useApiResource } from "@/hooks/useApiResource";
 import { IntegrationCard } from "./IntegrationCard";
+import { IntegrationConnectionDialog } from "./IntegrationConnectionDialog";
 
 export function IntegrationList() {
-  const handleGoogleConnect = () => {
-    alert("Connecting to Google...");
+  const [selectedProvider, setSelectedProvider] =
+    useState<IntegrationProvider | null>(null);
+  const { data: integrations, isLoading } = useApiResource(
+    "integrations/configurations",
+    ["integrations"]
+  ).useGetAll();
+  const { useDelete } = useApiResource("integrations/configurations", [
+    "integrations",
+  ]);
+  const deleteMutation = useDelete();
+
+  const connectedProviders = new Set(
+    integrations?.data?.map((i: any) => i.provider)
+  );
+
+  const handleConnect = (provider: IntegrationProvider) => {
+    setSelectedProvider(provider);
   };
 
-  const handleNextcloudConnect = () => {
-    alert("Connecting to Nextcloud...");
+  const handleDisconnect = (provider: IntegrationProvider) => {
+    const integration = integrations?.data.find(
+      (i: any) => i.provider === provider
+    );
+    if (integration && window.confirm(`Disconnect from ${provider}?`)) {
+      deleteMutation.mutate(integration.id);
+    }
   };
+
+  if (isLoading) return <div>Loading integrations...</div>;
 
   return (
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-      <IntegrationCard
-        icon={<Mail className="h-6 w-6" />}
-        title="Google Mail"
-        description="Connect your Gmail account to send emails and notifications directly."
-        isConnected={true}
-        onConnect={handleGoogleConnect}
-        onDisconnect={() => alert("Disconnecting from Google...")}
+    <>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        {Object.values(IntegrationProvider).map((provider) => (
+          <IntegrationCard
+            key={provider}
+            provider={provider}
+            isConnected={connectedProviders.has(provider)}
+            onConnect={() => handleConnect(provider)}
+            onDisconnect={() => handleDisconnect(provider)}
+          />
+        ))}
+      </div>
+      <IntegrationConnectionDialog
+        isOpen={!!selectedProvider}
+        onOpenChange={(isOpen) => !isOpen && setSelectedProvider(null)}
+        provider={selectedProvider}
+        workspaceId={"<WORKSPACE_ID>"} // This needs to be dynamically sourced
       />
-      <IntegrationCard
-        icon={<Calendar className="h-6 w-6" />}
-        title="Google Calendar"
-        description="Enable two-way sync for tasks with due dates."
-        isConnected={false}
-        onConnect={() => alert("Connecting to Google Calendar...")}
-      />
-      <IntegrationCard
-        icon={<Box className="h-6 w-6" />}
-        title="Nextcloud"
-        description="Link and manage files from your Nextcloud instance."
-        isConnected={false}
-        onConnect={handleNextcloudConnect}
-      />
-    </div>
+    </>
   );
 }

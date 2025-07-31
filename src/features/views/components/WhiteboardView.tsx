@@ -3,7 +3,7 @@ import "tldraw/tldraw.css";
 
 export function WhiteboardView() {
   return (
-    <div style={{ position: "fixed", inset: 0 }}>
+    <div className="fixed inset-0 z-50">
       <Tldraw />
     </div>
   );

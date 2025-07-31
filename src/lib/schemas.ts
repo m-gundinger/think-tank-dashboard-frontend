@@ -1,6 +1,5 @@
 import { SocialProvider, JobStatus } from "@/types";
 import { z } from "zod";
-import { createPaginationSchema, createPaginatedResponseSchema } from "./zod";
 
 export const phoneRegex = new RegExp(/^[+]*[(]?[0-9]{1,4}[)]?[-\s./0-9]*$/);
 export const nameSchema = (entity: string, min = 2) =>
@@ -107,47 +106,4 @@ export const JobScheduleSchema = z.object({
   nextRunAt: z.coerce.date().nullable(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
-});
-export const JobListQuerySchema = createPaginationSchema().extend({
-  type: z.string().optional(),
-  status: z.nativeEnum(JobStatus).optional(),
-  sortBy: z
-    .enum(["createdAt", "scheduledAt", "priority", "type", "status"])
-    .default("createdAt"),
-  sortOrder: z.enum(["asc", "desc"]).default("desc"),
-});
-export const JobScheduleListQuerySchema = createPaginationSchema().extend({
-  jobType: z.string().optional(),
-  isActive: z.preprocess((val) => val === "true", z.boolean()).optional(),
-  sortBy: z
-    .enum(["name", "createdAt", "lastRunAt", "nextRunAt"])
-    .default("name"),
-  sortOrder: z.enum(["asc", "desc"]).default("asc"),
-});
-export const PaginatedJobsResponseSchema =
-  createPaginatedResponseSchema(JobSchema);
-export const PaginatedJobSchedulesResponseSchema =
-  createPaginatedResponseSchema(JobScheduleSchema);
-export const QueueStatsSchema = z.object({
-  totalJobs: z.object({
-    total: z.number().int(),
-    pending: z.number().int(),
-    running: z.number().int(),
-    completed: z.number().int(),
-    failed: z.number().int(),
-    cancelled: z.number().int(),
-  }),
-  averageWaitTime: z.number(),
-  averageProcessingTime: z.number(),
-  throughputPerHour: z.number(),
-  failureRate: z.number(),
-});
-export const JobSystemStatusResponseSchema = z.object({
-  processor: z.object({
-    isProcessing: z.boolean(),
-    runningJobs: z.number().int(),
-    consecutiveFailures: z.number().int(),
-  }),
-  scheduler: z.object({ isRunning: z.boolean() }),
-  registeredJobTypes: z.number().int(),
 });

@@ -1,5 +1,5 @@
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { useApiResource } from "@/hooks/useApiResource";
+import { useManageDeals } from "../api/useManageDeals";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DealDetailContent } from "./DealDetailContent";
 
@@ -12,9 +12,8 @@ export function DealDetailPanel({
   dealId,
   onOpenChange,
 }: DealDetailPanelProps) {
-  const { data: deal, isLoading } = useApiResource("deals", [
-    "deals",
-  ]).useGetOne(dealId);
+  const { useGetOne } = useManageDeals();
+  const { data: deal, isLoading } = useGetOne(dealId);
 
   return (
     <Sheet open={!!dealId} onOpenChange={onOpenChange}>

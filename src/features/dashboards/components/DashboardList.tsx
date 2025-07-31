@@ -28,7 +28,11 @@ export function DashboardList({
   if (isLoading) return <div>Loading dashboards...</div>;
   if (isError) return <div>Error loading dashboards.</div>;
   if (!data || data.data.length === 0) {
-    return <p>No dashboards have been created yet. Create one to begin!</p>;
+    return (
+      <p className="text-muted-foreground">
+        No dashboards have been created yet. Create one to begin!
+      </p>
+    );
   }
 
   return (

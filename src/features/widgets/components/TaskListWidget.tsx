@@ -1,5 +1,6 @@
 import { useGetWidgetData } from "../api/useGetWidgetData";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function TaskListWidget({ widget, workspaceId, projectId }: any) {
   const { data, isLoading } = useGetWidgetData(
@@ -9,7 +10,15 @@ export function TaskListWidget({ widget, workspaceId, projectId }: any) {
     widget.id
   );
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) {
+    return (
+      <div className="space-y-2">
+        <Skeleton className="h-6 w-full" />
+        <Skeleton className="h-6 w-full" />
+        <Skeleton className="h-6 w-full" />
+      </div>
+    );
+  }
 
   const payload = data?.payload;
   return (

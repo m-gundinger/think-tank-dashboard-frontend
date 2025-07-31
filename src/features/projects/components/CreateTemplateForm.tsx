@@ -5,8 +5,8 @@ import { FormInput, FormRichTextEditor } from "@/components/form/FormFields";
 import { useApiResource } from "@/hooks/useApiResource";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { nameSchema, descriptionSchema } from "@/lib/schemas";
 import { useEffect } from "react";
+import { nameSchema, descriptionSchema } from "@/lib/schemas";
 
 const templateSchema = z.object({
   name: nameSchema("Template"),
@@ -17,6 +17,7 @@ type TemplateFormValues = z.infer<typeof templateSchema>;
 interface CreateTemplateFormProps {
   workspaceId: string;
   projectId: string;
+  sourceProjectId: string;
   initialData?: any;
   onSuccess?: () => void;
 }
@@ -24,14 +25,15 @@ interface CreateTemplateFormProps {
 export function CreateTemplateForm({
   workspaceId,
   projectId,
+  sourceProjectId,
   initialData,
   onSuccess,
 }: CreateTemplateFormProps) {
   const isEditMode = !!initialData;
-  const resource = useApiResource(
-    `/workspaces/${workspaceId}/projects/${projectId}/templates`,
-    ["projectTemplates", projectId]
-  );
+  const resource = useApiResource(`/admin/project-templates`, [
+    "projectTemplates",
+    projectId,
+  ]);
   const createMutation = resource.useCreate();
   const updateMutation = resource.useUpdate();
   const mutation = isEditMode ? updateMutation : createMutation;
@@ -47,13 +49,14 @@ export function CreateTemplateForm({
   }, [initialData, isEditMode, methods]);
 
   async function onSubmit(values: TemplateFormValues) {
+    const payload = { ...values, sourceProjectId };
     if (isEditMode) {
       await updateMutation.mutateAsync(
         { id: initialData.id, data: values },
         { onSuccess }
       );
     } else {
-      await createMutation.mutateAsync(values, {
+      await createMutation.mutateAsync(payload, {
         onSuccess: () => {
           methods.reset();
           onSuccess?.();

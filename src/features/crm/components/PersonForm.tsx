@@ -2,7 +2,7 @@ import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { FormInput } from "@/components/form/FormFields";
-import { useApiResource } from "@/hooks/useApiResource";
+import { useManagePeople } from "../api/useManagePeople";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
@@ -25,10 +25,10 @@ interface PersonFormProps {
 }
 
 export function PersonForm({ initialData, onSuccess }: PersonFormProps) {
-  const personResource = useApiResource("people", ["people"]);
+  const { useCreate, useUpdate } = useManagePeople();
   const isEditMode = !!initialData;
-  const createMutation = personResource.useCreate();
-  const updateMutation = personResource.useUpdate();
+  const createMutation = useCreate();
+  const updateMutation = useUpdate();
   const mutation = isEditMode ? updateMutation : createMutation;
   const methods = useForm<PersonFormValues>({
     resolver: zodResolver(personSchema),

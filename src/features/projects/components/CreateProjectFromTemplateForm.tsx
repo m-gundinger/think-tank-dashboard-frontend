@@ -2,7 +2,7 @@ import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { FormInput, FormSelect } from "@/components/form/FormFields";
-import { useCreateProjectFromTemplate } from "../api/useManageProjectTemplates";
+import { useCreateProjectFromTemplate } from "../api/useCreateProjectFromTemplate";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { nameSchema } from "@/lib/schemas";
@@ -25,7 +25,7 @@ export function CreateProjectFromTemplateForm({
   onSuccess,
 }: CreateProjectFromTemplateFormProps) {
   const { data: templatesData, isLoading: isLoadingTemplates } = useApiResource(
-    "project-templates",
+    "admin/project-templates",
     ["projectTemplates"]
   ).useGetAll();
 

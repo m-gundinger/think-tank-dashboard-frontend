@@ -1,4 +1,4 @@
-import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useParams } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const settingsNavItems = [
@@ -13,7 +13,10 @@ const settingsNavItems = [
 
 export function ProjectSettingsPage() {
   const location = useLocation();
+  const { workspaceId, projectId } = useParams();
   const currentTab = location.pathname.split("/").pop() || "general";
+
+  const basePath = `/workspaces/${workspaceId}/projects/${projectId}/settings`;
 
   return (
     <div className="space-y-6">
@@ -24,10 +27,10 @@ export function ProjectSettingsPage() {
         </p>
       </div>
 
-      <Tabs defaultValue={currentTab} className="space-y-4">
+      <Tabs value={currentTab} className="space-y-4">
         <TabsList>
           {settingsNavItems.map((item) => (
-            <NavLink to={item.to} key={item.to} end>
+            <NavLink to={`${basePath}/${item.to}`} key={item.to} end>
               <TabsTrigger value={item.to}>{item.label}</TabsTrigger>
             </NavLink>
           ))}

@@ -3,7 +3,7 @@ import { useApiMutation } from "@/hooks/useApiMutation";
 
 interface DeleteParams {
   workspaceId: string;
-  projectId: string;
+  projectId?: string;
   dashboardId: string;
   widgetId: string;
 }
@@ -14,14 +14,15 @@ async function deleteWidget({
   dashboardId,
   widgetId,
 }: DeleteParams): Promise<void> {
-  await api.delete(
-    `/workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}/widgets/${widgetId}`
-  );
+  const url = projectId
+    ? `/workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}/widgets/${widgetId}`
+    : `/workspaces/${workspaceId}/dashboards/${dashboardId}/widgets/${widgetId}`;
+  await api.delete(url);
 }
 
 export function useDeleteWidget(
   workspaceId: string,
-  projectId: string,
+  projectId: string | undefined,
   dashboardId: string
 ) {
   return useApiMutation<void, string>({

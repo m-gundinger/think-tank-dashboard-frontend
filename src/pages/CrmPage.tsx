@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { PersonList } from "@/features/crm/components/PersonList";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Building2 } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { PersonForm } from "@/features/crm/components/PersonForm";
 import { CompanyForm } from "@/features/crm/components/CompanyForm";
@@ -9,43 +8,9 @@ import { PersonDetailPanel } from "@/features/crm/components/PersonDetailPanel";
 import { CompanyDetailPanel } from "@/features/crm/components/CompanyDetailPanel";
 import { DealDetailPanel } from "@/features/crm/components/DealDetailPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useApiResource } from "@/hooks/useApiResource";
-import { CompanyCard } from "@/features/crm/components/CompanyCard";
-import { EmptyState } from "@/components/ui/empty-state";
+import { PersonList } from "@/features/crm/components/PersonList";
+import { CompanyList } from "@/features/crm/components/CompanyList";
 import { DealPipeline } from "@/features/crm/components/DealPipeline";
-
-function CompanyList({
-  onCompanySelect,
-}: {
-  onCompanySelect: (id: string) => void;
-}) {
-  const { data, isLoading } = useApiResource("companies", [
-    "companies",
-  ]).useGetAll();
-  if (isLoading) return <div>Loading companies...</div>;
-
-  if (!data || data.data.length === 0) {
-    return (
-      <EmptyState
-        icon={<Building2 className="h-10 w-10" />}
-        title="No Companies Found"
-        description="Get started by creating your first company."
-      />
-    );
-  }
-
-  return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {data.data.map((company: any) => (
-        <CompanyCard
-          key={company.id}
-          company={company}
-          onSelect={() => onCompanySelect(company.id)}
-        />
-      ))}
-    </div>
-  );
-}
 
 export function CrmPage() {
   const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
@@ -61,18 +26,15 @@ export function CrmPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">CRM</h1>
           <p className="text-muted-foreground">
-            Manage all people and companies in your organization.
+            Manage all people, companies, and deals in your organization.
           </p>
         </div>
-        <div>
+        <div className="flex gap-2">
           <ResourceCrudDialog
             isOpen={isCreatePersonOpen}
             onOpenChange={setIsCreatePersonOpen}
             trigger={
-              <Button
-                onClick={() => setIsCreatePersonOpen(true)}
-                className="mr-2"
-              >
+              <Button onClick={() => setIsCreatePersonOpen(true)}>
                 <PlusCircle className="mr-2 h-4 w-4" />
                 New Person
               </Button>
@@ -95,8 +57,8 @@ export function CrmPage() {
             title="Create New Company"
             description="Add a new company or organization to the CRM."
             form={CompanyForm}
-            resourcePath="companies"
-            resourceKey={["companies"]}
+            resourcePath="organizations"
+            resourceKey={["organizations"]}
           />
         </div>
       </div>

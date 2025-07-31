@@ -1,4 +1,3 @@
-
 import { useGetWidgetData } from "../api/useGetWidgetData";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";

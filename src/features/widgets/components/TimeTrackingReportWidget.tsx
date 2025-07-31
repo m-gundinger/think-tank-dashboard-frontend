@@ -1,4 +1,3 @@
-
 import { useGetWidgetData } from "../api/useGetWidgetData";
 import {
   Table,
@@ -8,6 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function TimeTrackingReportWidget({
   widget,
@@ -20,7 +20,15 @@ export function TimeTrackingReportWidget({
     widget.dashboardId,
     widget.id
   );
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) {
+    return (
+      <div className="space-y-2">
+        <Skeleton className="h-8 w-full" />
+        <Skeleton className="h-8 w-full" />
+        <Skeleton className="h-8 w-full" />
+      </div>
+    );
+  }
 
   const payload = data?.payload;
   return (

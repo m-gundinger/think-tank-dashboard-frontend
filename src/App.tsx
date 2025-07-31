@@ -40,6 +40,7 @@ import { ProjectGoalsPage } from "./pages/ProjectGoalsPage";
 import { WorkloadPage } from "./pages/WorkloadPage";
 import { HomePage } from "./pages/HomePage";
 import { ChatPage } from "./pages/ChatPage";
+import { ProjectTemplatesPage } from "./pages/ProjectTemplatesPage";
 
 function App() {
   return (
@@ -95,6 +96,7 @@ function App() {
             <Route path="task-types" element={<ProjectTaskTypesPage />} />
             <Route path="views" element={<ProjectViewsPage />} />
             <Route path="goals" element={<ProjectGoalsPage />} />
+            <Route path="templates" element={<ProjectTemplatesPage />} />
           </Route>
           <Route
             path="workspaces/:workspaceId/projects/:projectId/:dashboardId"

@@ -33,7 +33,6 @@ export function ProjectTemplateCard({
     e.preventDefault();
     onEdit();
   };
-
   return (
     <EntityCard
       title={template.name}

@@ -1,4 +1,4 @@
-import { useApiResource } from "@/hooks/useApiResource";
+import { useManageInteractions } from "../api/useManageInteractions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mail, Phone, Users } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -19,10 +19,8 @@ export function InteractionTimeline({
   dealId?: string;
 }) {
   const queryParams = { personId, companyId, dealId };
-  const { data, isLoading } = useApiResource("interactions", [
-    "interactions",
-    queryParams,
-  ]).useGetAll(queryParams);
+  const { useGetAll } = useManageInteractions();
+  const { data, isLoading } = useGetAll(queryParams);
 
   return (
     <Card>

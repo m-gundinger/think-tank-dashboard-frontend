@@ -1,4 +1,3 @@
-
 import { FormInput } from "@/components/form/FormFields";
 
 export function PieChartConfigFields() {

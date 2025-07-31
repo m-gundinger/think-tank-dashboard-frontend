@@ -2,7 +2,7 @@ import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { FormInput } from "@/components/form/FormFields";
-import { useApiResource } from "@/hooks/useApiResource";
+import { useManageCompanies } from "../api/useManageCompanies";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
@@ -21,10 +21,10 @@ interface CompanyFormProps {
 }
 
 export function CompanyForm({ initialData, onSuccess }: CompanyFormProps) {
-  const companyResource = useApiResource("companies", ["companies"]);
+  const { useCreate, useUpdate } = useManageCompanies();
   const isEditMode = !!initialData;
-  const createMutation = companyResource.useCreate();
-  const updateMutation = companyResource.useUpdate();
+  const createMutation = useCreate();
+  const updateMutation = useUpdate();
   const mutation = isEditMode ? updateMutation : createMutation;
   const methods = useForm<CompanyFormValues>({
     resolver: zodResolver(companySchema),

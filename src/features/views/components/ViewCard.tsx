@@ -1,5 +1,6 @@
 import { EntityCard } from "@/components/ui/EntityCard";
 import { useManageViews } from "../api/useManageViews";
+import { getIcon } from "@/lib/icons";
 
 interface ViewCardProps {
   view: any;
@@ -31,6 +32,8 @@ export function ViewCard({
     onEdit();
   };
 
+  const Icon = getIcon(view.type);
+
   return (
     <EntityCard
       title={view.name}
@@ -38,9 +41,10 @@ export function ViewCard({
       onEdit={handleEdit}
       onDelete={handleDelete}
       deleteDisabled={deleteMutation.isPending}
+      icon={Icon}
     >
       <div className="text-muted-foreground text-sm">
-        {view.columns.length > 0
+        {view.columns?.length > 0
           ? `${view.columns.length} columns`
           : "No specific columns configured"}
       </div>

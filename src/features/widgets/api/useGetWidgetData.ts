@@ -7,15 +7,16 @@ async function getWidgetData({
   dashboardId,
   widgetId,
 }: any): Promise<any> {
-  const { data } = await api.get(
-    `/workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}/widgets/${widgetId}/data`
-  );
+  const url = projectId
+    ? `/workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}/widgets/${widgetId}/data`
+    : `/workspaces/${workspaceId}/dashboards/${dashboardId}/widgets/${widgetId}/data`;
+  const { data } = await api.get(url);
   return data;
 }
 
 export function useGetWidgetData(
   workspaceId: string,
-  projectId: string,
+  projectId: string | undefined,
   dashboardId: string,
   widgetId: string
 ) {
@@ -23,6 +24,6 @@ export function useGetWidgetData(
     queryKey: ["widgetData", widgetId],
     queryFn: () =>
       getWidgetData({ workspaceId, projectId, dashboardId, widgetId }),
-    enabled: !!workspaceId && !!projectId && !!dashboardId && !!widgetId,
+    enabled: !!workspaceId && !!dashboardId && !!widgetId,
   });
 }

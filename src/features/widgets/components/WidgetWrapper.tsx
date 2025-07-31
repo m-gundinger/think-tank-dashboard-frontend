@@ -13,7 +13,7 @@ import { useDeleteWidget } from "../api/useDeleteWidget";
 interface WidgetWrapperProps {
   widget: any;
   workspaceId: string;
-  projectId: string;
+  projectId?: string;
   children: ReactNode;
 }
 
@@ -25,7 +25,7 @@ export function WidgetWrapper({
 }: WidgetWrapperProps) {
   const deleteMutation = useDeleteWidget(
     workspaceId,
-    projectId,
+    projectId!,
     widget.dashboardId
   );
 
@@ -37,7 +37,7 @@ export function WidgetWrapper({
 
   return (
     <Card className="h-full">
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-row items-center justify-between p-4">
         <CardTitle className="text-base">{widget.title}</CardTitle>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -57,7 +57,7 @@ export function WidgetWrapper({
           </DropdownMenuContent>
         </DropdownMenu>
       </CardHeader>
-      <CardContent>{children}</CardContent>
+      <CardContent className="p-4 pt-0">{children}</CardContent>
     </Card>
   );
 }

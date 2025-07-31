@@ -6,8 +6,6 @@ import { BacklogView } from "@/features/views/components/BacklogView";
 import { GanttChartView } from "@/features/views/components/GanttChartView";
 import { CalendarView } from "@/features/views/components/CalendarView";
 import { DashboardList } from "@/features/dashboards/components/DashboardList";
-import { EpicList } from "@/features/epics/components/EpicList";
-import { SprintBoardView } from "@/features/sprints/components/SprintBoardView";
 import { ActiveUsers } from "@/components/layout/ActiveUsers";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,7 +18,6 @@ import { Settings, CheckSquare, PlusCircle } from "lucide-react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { CreateTaskForm } from "@/features/tasks/components/CreateTaskForm";
 import { CreateDashboardForm } from "@/features/dashboards/components/CreateDashboardForm";
-import { CreateEpicForm } from "@/features/epics/components/CreateEpicForm";
 import { Task } from "@/features/tasks/task.types";
 import { View } from "@/types";
 import { ProjectActivityLog } from "@/features/activities/components/ProjectActivityLog";
@@ -121,26 +118,6 @@ export function ProjectDetailView({
         />
       );
     }
-    if (activeTab === "epics") {
-      return (
-        <ResourceCrudDialog
-          isOpen={isCreateDialogOpen}
-          onOpenChange={setIsCreateDialogOpen}
-          trigger={
-            <Button onClick={() => setIsCreateDialogOpen(true)}>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              New Epic
-            </Button>
-          }
-          title="Create New Epic"
-          description="Epics are large bodies of work that can be broken down into a number of smaller tasks."
-          form={CreateEpicForm}
-          formProps={{ workspaceId, projectId }}
-          resourcePath={`/workspaces/${workspaceId}/projects/${projectId}/epics`}
-          resourceKey={["epics", projectId]}
-        />
-      );
-    }
     return null;
   };
 
@@ -161,9 +138,7 @@ export function ProjectDetailView({
               {view.name}
             </TabsTrigger>
           ))}
-          <TabsTrigger value="sprints">Sprints</TabsTrigger>
           <TabsTrigger value="dashboards">Dashboards</TabsTrigger>
-          <TabsTrigger value="epics">Epics</TabsTrigger>
           <TabsTrigger value="activity">Activity</TabsTrigger>
         </TabsList>
 
@@ -213,22 +188,8 @@ export function ProjectDetailView({
         </TabsContent>
       ))}
 
-      <TabsContent value="sprints" className="mt-0">
-        <SprintBoardView
-          workspaceId={workspaceId}
-          projectId={projectId}
-          views={views}
-          tasks={tasks}
-          onTaskSelect={onTaskSelect}
-        />
-      </TabsContent>
-
       <TabsContent value="dashboards" className="mt-0 space-y-4">
         <DashboardList workspaceId={workspaceId} projectId={projectId} />
-      </TabsContent>
-
-      <TabsContent value="epics" className="mt-0">
-        <EpicList workspaceId={workspaceId} projectId={projectId} />
       </TabsContent>
 
       <TabsContent value="activity" className="mt-0">

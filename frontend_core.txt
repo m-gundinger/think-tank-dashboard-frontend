@@ -87,6 +87,7 @@ import { ProjectGoalsPage } from "./pages/ProjectGoalsPage";
 import { WorkloadPage } from "./pages/WorkloadPage";
 import { HomePage } from "./pages/HomePage";
 import { ChatPage } from "./pages/ChatPage";
+import { ProjectTemplatesPage } from "./pages/ProjectTemplatesPage";
 
 function App() {
   return (
@@ -142,6 +143,7 @@ function App() {
             <Route path="task-types" element={<ProjectTaskTypesPage />} />
             <Route path="views" element={<ProjectViewsPage />} />
             <Route path="goals" element={<ProjectGoalsPage />} />
+            <Route path="templates" element={<ProjectTemplatesPage />} />
           </Route>
           <Route
             path="workspaces/:workspaceId/projects/:projectId/:dashboardId"
@@ -983,6 +985,14 @@ export function ProjectActivityLog({ workspaceId, projectId }: any) {
   );
 }
 
+// FILE: src/features/admin/announcements/api/useManageAnnouncements.ts
+import { useApiResource } from "@/hooks/useApiResource";
+
+export function useManageAnnouncements() {
+  const resource = useApiResource("announcements", ["announcements"]);
+  return resource;
+}
+
 // FILE: src/features/admin/announcements/components/AnnouncementForm.tsx
 import { useForm, FormProvider } from "react-hook-form";
 import { useEffect } from "react";
@@ -1340,6 +1350,22 @@ export function useCancelJob() {
     successMessage: (data) => `Job cancelled. Job ID: ${data.job.id}`,
     invalidateQueries: (data) => [["jobs"], ["job", data.job.id]],
   });
+}
+
+// FILE: src/features/admin/jobs/api/useManageJobs.ts
+import { useApiResource } from "@/hooks/useApiResource";
+
+export function useManageJobs() {
+  const resource = useApiResource("admin/jobs", ["jobs"]);
+  return resource;
+}
+
+// FILE: src/features/admin/jobs/api/useManageJobSchedules.ts
+import { useApiResource } from "@/hooks/useApiResource";
+
+export function useManageJobSchedules() {
+  const resource = useApiResource("admin/jobs/schedules", ["jobSchedules"]);
+  return resource;
 }
 
 // FILE: src/features/admin/jobs/api/useTriggerJobSchedule.ts
@@ -1861,6 +1887,14 @@ export function PermissionListPage() {
   );
 }
 
+// FILE: src/features/admin/permissions/api/useManagePermissions.ts
+import { useApiResource } from "@/hooks/useApiResource";
+
+export function useManagePermissions() {
+  const resource = useApiResource("admin/permissions", ["permissions"]);
+  return resource;
+}
+
 // FILE: src/features/admin/permissions/components/PermissionForm.tsx
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -1955,18 +1989,9 @@ export function PermissionForm({
     </FormProvider>
   );
 }
-
 // FILE: src/features/admin/permissions/components/PermissionList.tsx
 import { useState } from "react";
 import { useApiResource } from "@/hooks/useApiResource";
-import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Trash2 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   DataTable,
   DataTableWrapper,
@@ -1982,7 +2007,6 @@ export function PermissionList() {
     page,
     limit: 15,
   });
-  const deleteMutation = permissionResource.useDelete();
 
   const handlePageChange = (newPage: number) => {
     if (newPage > 0 && newPage <= (data?.totalPages || 1)) {
@@ -2010,37 +2034,6 @@ export function PermissionList() {
       header: "Description",
       cell: (permission) => permission.description,
     },
-    {
-      accessorKey: "actions",
-      header: "Actions",
-      cell: (permission) => (
-        <div className="text-right">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                className="text-red-600"
-                onClick={() => {
-                  if (
-                    window.confirm(
-                      `Delete permission "${permission.action} on ${permission.subject}"?`
-                    )
-                  ) {
-                    deleteMutation.mutate(permission.id);
-                  }
-                }}
-              >
-                <Trash2 className="mr-2 h-4 w-4" /> Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      ),
-    },
   ];
 
   if (isLoading) return <div>Loading permissions...</div>;
@@ -2055,30 +2048,11 @@ export function PermissionList() {
           totalPages: data?.totalPages || 1,
           handlePageChange,
         }}
-        bulkActions={(selectedIds) => (
-          <Button
-            variant="destructive"
-            onClick={() => {
-              if (
-                window.confirm(
-                  `Delete ${selectedIds.length} selected permissions?`
-                )
-              ) {
-                deleteMutation.mutate(selectedIds, {
-                  onSuccess: () => {},
-                });
-              }
-            }}
-            disabled={deleteMutation.isPending}
-          >
-            <Trash2 className="mr-2 h-4 w-4" />
-            Delete ({selectedIds.length})
-          </Button>
-        )}
       />
     </DataTableWrapper>
   );
 }
+// FILE: src/features/admin/permissions/permission.types.ts
 
 // FILE: src/features/admin/RoleListPage.tsx
 import { RoleList } from "@/features/admin/roles/components/RoleList";
@@ -2122,6 +2096,14 @@ export function useAssignPermissionToRole(roleId: string) {
     invalidateQueries: [["roles"], ["role", roleId]],
   });
 }
+// FILE: src/features/admin/roles/api/useManageRoles.ts
+import { useApiResource } from "@/hooks/useApiResource";
+
+export function useManageRoles() {
+  const resource = useApiResource("admin/roles", ["roles"]);
+  return resource;
+}
+
 // FILE: src/features/admin/roles/api/useRevokePermissionFromRole.ts
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
@@ -2441,7 +2423,6 @@ export function RoleList() {
     </>
   );
 }
-
 // FILE: src/features/admin/system-status/api/useGetSystemStatus.ts
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
@@ -2647,6 +2628,14 @@ export function useHardDeleteUser() {
     invalidateQueries: [["users"]],
   });
 }
+// FILE: src/features/admin/users/api/useManageUsers.ts
+import { useApiResource } from "@/hooks/useApiResource";
+
+export function useManageUsers() {
+  const resource = useApiResource("admin/users", ["users"]);
+  return resource;
+}
+
 // FILE: src/features/admin/users/api/useSetUserStatus.ts
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
@@ -5317,7 +5306,6 @@ export function useGetChannels() {
     staleTime: 1000 * 60 * 5,
   });
 }
-
 // FILE: src/features/chat/api/useGetMessages.ts
 import { useQuery } from "@tanstack/react-query";
 
@@ -5346,7 +5334,6 @@ export function useGetMessages(threadId: string | null) {
     enabled: !!threadId,
   });
 }
-
 // FILE: src/features/chat/api/useSendMessage.ts
 import { useApiMutation } from "@/hooks/useApiMutation";
 
@@ -5375,7 +5362,6 @@ export function useSendMessage(threadId: string) {
     invalidateQueries: [["chatMessages", threadId]],
   });
 }
-
 // FILE: src/features/chat/components/ChannelList.tsx
 import { useGetChannels } from "../api/useGetChannels";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -5454,7 +5440,6 @@ export function ChatInterface() {
     </div>
   );
 }
-
 // FILE: src/features/chat/components/MessageInput.tsx
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -5573,8 +5558,6 @@ export * from "./components/ChatInterface.js";
 export * from "./components/ChannelList.js";
 export * from "./components/MessageInput.js";
 export * from "./components/MessageView.js";
-export * from "./components/ChatInterface.js";
-
 // FILE: src/features/comments/api/useGetComments.ts
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
@@ -5834,6 +5817,14 @@ export function useGetCompanies(query?: any) {
     queryFn: () => getCompanies(query),
   });
 }
+// FILE: src/features/crm/api/useManageCompanies.ts
+import { useApiResource } from "@/hooks/useApiResource";
+
+export function useManageCompanies() {
+  const resource = useApiResource("organizations", ["organizations"]);
+  return resource;
+}
+
 // FILE: src/features/crm/api/useManageCompanyPeople.ts
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
@@ -5891,11 +5882,35 @@ export function useManageCompanyPeople(companyId: string) {
     isLoading: addPersonMutation.isPending || removePersonMutation.isPending,
   };
 }
+// FILE: src/features/crm/api/useManageDeals.ts
+import { useApiResource } from "@/hooks/useApiResource";
+
+export function useManageDeals() {
+  const resource = useApiResource("deals", ["deals"]);
+  return resource;
+}
+
+// FILE: src/features/crm/api/useManageDealStages.ts
+import { useApiResource } from "@/hooks/useApiResource";
+
+export function useManageDealStages() {
+  const resource = useApiResource("deal-stages", ["dealStages"]);
+  return resource;
+}
+
 // FILE: src/features/crm/api/useManageInteractions.ts
 import { useApiResource } from "@/hooks/useApiResource";
 
 export function useManageInteractions() {
   const resource = useApiResource("/interactions", ["interactions"]);
+  return resource;
+}
+
+// FILE: src/features/crm/api/useManagePeople.ts
+import { useApiResource } from "@/hooks/useApiResource";
+
+export function useManagePeople() {
+  const resource = useApiResource("people", ["people"]);
   return resource;
 }
 
@@ -6149,7 +6164,7 @@ import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { FormInput } from "@/components/form/FormFields";
-import { useApiResource } from "@/hooks/useApiResource";
+import { useManageCompanies } from "../api/useManageCompanies";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
@@ -6168,10 +6183,10 @@ interface CompanyFormProps {
 }
 
 export function CompanyForm({ initialData, onSuccess }: CompanyFormProps) {
-  const companyResource = useApiResource("companies", ["companies"]);
+  const { useCreate, useUpdate } = useManageCompanies();
   const isEditMode = !!initialData;
-  const createMutation = companyResource.useCreate();
-  const updateMutation = companyResource.useUpdate();
+  const createMutation = useCreate();
+  const updateMutation = useUpdate();
   const mutation = isEditMode ? updateMutation : createMutation;
   const methods = useForm<CompanyFormValues>({
     resolver: zodResolver(companySchema),
@@ -6234,20 +6249,29 @@ export function CompanyForm({ initialData, onSuccess }: CompanyFormProps) {
   );
 }
 // FILE: src/features/crm/components/CompanyList.tsx
-import { useApiResource } from "@/hooks/useApiResource";
+import { useManageCompanies } from "../api/useManageCompanies";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Building2 } from "lucide-react";
 import { CompanyCard } from "./CompanyCard";
+import { Skeleton } from "@/components/ui/skeleton";
+
+const ListSkeleton = () => (
+  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    {Array.from({ length: 4 }).map((_, i) => (
+      <Skeleton key={i} className="h-36 w-full" />
+    ))}
+  </div>
+);
 
 export function CompanyList({
   onCompanySelect,
 }: {
   onCompanySelect: (id: string) => void;
 }) {
-  const { data, isLoading } = useApiResource("companies", [
-    "companies",
-  ]).useGetAll();
-  if (isLoading) return <div>Loading companies...</div>;
+  const { useGetAll } = useManageCompanies();
+  const { data, isLoading } = useGetAll();
+
+  if (isLoading) return <ListSkeleton />;
 
   if (!data || data.data.length === 0) {
     return (
@@ -6390,13 +6414,15 @@ export function DealColumn({ stage, deals, onDealSelect }: DealColumnProps) {
   );
 }
 // FILE: src/features/crm/components/DealDetailContent.tsx
-export function DealDetailContent({ deal }: { deal: any }) {
+import { Deal } from "../crm.types";
+
+export function DealDetailContent({ deal }: { deal: Deal }) {
   return <div>Deal Details for {deal.name}</div>;
 }
 
 // FILE: src/features/crm/components/DealDetailPanel.tsx
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { useApiResource } from "@/hooks/useApiResource";
+import { useManageDeals } from "../api/useManageDeals";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DealDetailContent } from "./DealDetailContent";
 
@@ -6409,9 +6435,8 @@ export function DealDetailPanel({
   dealId,
   onOpenChange,
 }: DealDetailPanelProps) {
-  const { data: deal, isLoading } = useApiResource("deals", [
-    "deals",
-  ]).useGetOne(dealId);
+  const { useGetOne } = useManageDeals();
+  const { data: deal, isLoading } = useGetOne(dealId);
 
   return (
     <Sheet open={!!dealId} onOpenChange={onOpenChange}>
@@ -6429,7 +6454,6 @@ export function DealDetailPanel({
     </Sheet>
   );
 }
-
 // FILE: src/features/crm/components/DealPipeline.tsx
 import { useState, useMemo } from "react";
 import {
@@ -6442,27 +6466,37 @@ import {
   DragStartEvent,
 } from "@dnd-kit/core";
 import { createPortal } from "react-dom";
-import { useApiResource } from "@/hooks/useApiResource";
+import { useManageDealStages } from "../api/useManageDealStages";
+import { useManageDeals } from "../api/useManageDeals";
 import { Deal } from "../crm.types";
 import { DealColumn } from "./DealColumn";
 import { DealCard } from "./DealCard";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface DealPipelineProps {
   onDealSelect: (dealId: string) => void;
 }
 
+const PipelineSkeleton = () => (
+  <div className="flex gap-4">
+    {Array.from({ length: 4 }).map((_, i) => (
+      <div key={i} className="w-72 shrink-0 space-y-2">
+        <Skeleton className="h-8 w-1/2" />
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-24 w-full" />
+      </div>
+    ))}
+  </div>
+);
+
 export function DealPipeline({ onDealSelect }: DealPipelineProps) {
   const [activeDeal, setActiveDeal] = useState<Deal | null>(null);
-  const { data: stagesData, isLoading: isLoadingStages } = useApiResource(
-    "deal-stages",
-    ["dealStages"]
-  ).useGetAll({ projectId: "YOUR_PROJECT_ID" });
-  const { data: dealsData, isLoading: isLoadingDeals } = useApiResource(
-    "deals",
-    ["deals"]
-  ).useGetAll();
-  const dealResource = useApiResource("deals", ["deals"]);
-  const updateDealMutation = dealResource.useUpdate();
+  const { data: stagesData, isLoading: isLoadingStages } =
+    useManageDealStages().useGetAll();
+  const { data: dealsData, isLoading: isLoadingDeals } =
+    useManageDeals().useGetAll();
+  const { useUpdate } = useManageDeals();
+  const updateDealMutation = useUpdate();
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -6505,7 +6539,7 @@ export function DealPipeline({ onDealSelect }: DealPipelineProps) {
   };
 
   if (isLoadingStages || isLoadingDeals) {
-    return <div>Loading deal pipeline...</div>;
+    return <PipelineSkeleton />;
   }
 
   return (
@@ -6515,14 +6549,16 @@ export function DealPipeline({ onDealSelect }: DealPipelineProps) {
       onDragEnd={onDragEnd}
     >
       <div className="flex h-[calc(100vh-250px)] gap-4 overflow-x-auto p-1">
-        {stagesData?.data?.map((stage: any) => (
-          <DealColumn
-            key={stage.id}
-            stage={stage}
-            deals={dealsByStage[stage.id] || []}
-            onDealSelect={onDealSelect}
-          />
-        ))}
+        {stagesData?.data
+          ?.sort((a: any, b: any) => a.order - b.order)
+          .map((stage: any) => (
+            <DealColumn
+              key={stage.id}
+              stage={stage}
+              deals={dealsByStage[stage.id] || []}
+              onDealSelect={onDealSelect}
+            />
+          ))}
       </div>
       {createPortal(
         <DragOverlay>
@@ -6627,7 +6663,7 @@ export function InteractionForm({
 }
 
 // FILE: src/features/crm/components/InteractionTimeline.tsx
-import { useApiResource } from "@/hooks/useApiResource";
+import { useManageInteractions } from "../api/useManageInteractions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mail, Phone, Users } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -6648,10 +6684,8 @@ export function InteractionTimeline({
   dealId?: string;
 }) {
   const queryParams = { personId, companyId, dealId };
-  const { data, isLoading } = useApiResource("interactions", [
-    "interactions",
-    queryParams,
-  ]).useGetAll(queryParams);
+  const { useGetAll } = useManageInteractions();
+  const { data, isLoading } = useGetAll(queryParams);
 
   return (
     <Card>
@@ -7164,7 +7198,7 @@ import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { FormInput } from "@/components/form/FormFields";
-import { useApiResource } from "@/hooks/useApiResource";
+import { useManagePeople } from "../api/useManagePeople";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
@@ -7187,10 +7221,10 @@ interface PersonFormProps {
 }
 
 export function PersonForm({ initialData, onSuccess }: PersonFormProps) {
-  const personResource = useApiResource("people", ["people"]);
+  const { useCreate, useUpdate } = useManagePeople();
   const isEditMode = !!initialData;
-  const createMutation = personResource.useCreate();
-  const updateMutation = personResource.useUpdate();
+  const createMutation = useCreate();
+  const updateMutation = useUpdate();
   const mutation = isEditMode ? updateMutation : createMutation;
   const methods = useForm<PersonFormValues>({
     resolver: zodResolver(personSchema),
@@ -7413,6 +7447,43 @@ export function PersonList({ onPersonSelect }: PersonListProps) {
 }
 // FILE: src/features/crm/crm.types.ts
 import { z } from "zod";
+import { InteractionType, SkillCategory, SocialProvider } from "@/types/api";
+
+export const SkillSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  description: z.string().nullable(),
+  category: z.nativeEnum(SkillCategory),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
+});
+
+export const SocialLinkSchema = z.object({
+  id: z.string().uuid(),
+  provider: z.nativeEnum(SocialProvider),
+  url: z.string().url(),
+  personId: z.string().uuid(),
+  createdAt: z.coerce.date(),
+});
+
+export const PersonSchema = z.object({
+  id: z.string().uuid(),
+  firstName: z.string(),
+  lastName: z.string(),
+  email: z.string().email().nullable(),
+  avatarUrl: z.string().nullable(),
+  biography: z.string().nullable(),
+  phoneNumber: z.string().nullable(),
+  birthday: z.coerce.date().nullable(),
+  socialLinks: z.array(SocialLinkSchema),
+  skills: z.array(SkillSchema),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
+  authId: z.string().uuid().nullable(),
+  isActive: z.boolean(),
+  roles: z.array(z.string()),
+  name: z.string(),
+});
 
 export const PersonInCompanySchema = z.object({
   id: z.string().uuid(),
@@ -7422,6 +7493,7 @@ export const PersonInCompanySchema = z.object({
   avatarUrl: z.string().url().nullable(),
   roleInCompany: z.string().nullable(),
 });
+
 export const CompanySchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
@@ -7447,6 +7519,7 @@ const DealContactSchema = z.object({
   name: z.string(),
   email: z.string().email().nullable(),
 });
+
 export const DealSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
@@ -7454,33 +7527,48 @@ export const DealSchema = z.object({
   stageId: z.string().uuid(),
   stage: DealStageSchema,
   companyId: z.string().uuid(),
-  company: CompanySchema,
+  company: CompanySchema.pick({ name: true }),
   ownerId: z.string().uuid(),
   ownerName: z.string(),
   createdById: z.string().uuid(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
   contacts: z.array(DealContactSchema),
 });
 export type Deal = z.infer<typeof DealSchema>;
+
+export const InteractionSchema = z.object({
+  id: z.string().uuid(),
+  type: z.nativeEnum(InteractionType),
+  notes: z.string(),
+  date: z.coerce.date(),
+  actor: z.object({ name: z.string().nullable() }).nullable(),
+});
+export type Interaction = z.infer<typeof InteractionSchema>;
 // FILE: src/features/crm/index.ts
-export * from "./api/useGetCompanies.js";
-export * from "./api/useManageCompanyPeople.js";
-export * from "./components/CompanyCard.js";
-export * from "./components/CompanyDetailContent.js";
-export * from "./components/CompanyDetailPanel.js";
-export * from "./components/CompanyForm.js";
-export * from "./components/CompanyList.js";
-export * from "./components/DealCard.js";
-export * from "./components/DealColumn.js";
-export * from "./components/DealPipeline.js";
-export * from "./components/ManageCompanyPeople.js";
-export * from "./components/PersonCard.js";
-export * from "./components/PersonDetailContent.js";
-export * from "./components/PersonDetailPanel.js";
-export * from "./components/PersonForm.js";
-export * from "./components/PersonList.js";
-export * from "./crm.types.js";
+export * from "./api/useManageCompanies";
+export * from "./api/useManageCompanyPeople";
+export * from "./api/useManageDeals";
+export * from "./api/useManageDealStages";
+export * from "./api/useManageInteractions";
+export * from "./api/useManagePeople";
+export * from "./components/CompanyCard";
+export * from "./components/CompanyDetailContent";
+export * from "./components/CompanyDetailPanel";
+export * from "./components/CompanyForm";
+export * from "./components/CompanyList";
+export * from "./components/DealCard";
+export * from "./components/DealColumn";
+export * from "./components/DealPipeline";
+export * from "./components/InteractionForm";
+export * from "./components/InteractionTimeline";
+export * from "./components/ManageCompanyPeople";
+export * from "./components/PersonCard";
+export * from "./components/PersonDetailContent";
+export * from "./components/PersonDetailPanel";
+export * from "./components/PersonForm";
+export * from "./components/PersonList";
+export * from "./crm.types";
 
 // FILE: src/features/custom-fields/components/CustomFieldDefinitionForm.tsx
 import { useForm, FormProvider } from "react-hook-form";
@@ -7980,7 +8068,11 @@ export function DashboardList({
   if (isLoading) return <div>Loading dashboards...</div>;
   if (isError) return <div>Error loading dashboards.</div>;
   if (!data || data.data.length === 0) {
-    return <p>No dashboards have been created yet. Create one to begin!</p>;
+    return (
+      <p className="text-muted-foreground">
+        No dashboards have been created yet. Create one to begin!
+      </p>
+    );
   }
 
   return (
@@ -8008,181 +8100,6 @@ export function DashboardList({
     </>
   );
 }
-
-// FILE: src/features/epics/components/CreateEpicForm.tsx
-import { useForm, FormProvider } from "react-hook-form";
-import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
-import { FormInput, FormRichTextEditor } from "@/components/form/FormFields";
-import { useApiResource } from "@/hooks/useApiResource";
-import { EpicStatus } from "@/types";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { nameSchema, descriptionSchema } from "@/lib/schemas";
-
-const epicSchema = z.object({
-  name: nameSchema("Epic", 3),
-  description: descriptionSchema,
-  status: z.nativeEnum(EpicStatus),
-});
-type EpicFormValues = z.infer<typeof epicSchema>;
-
-interface CreateEpicFormProps {
-  workspaceId: string;
-  projectId: string;
-  onSuccess?: () => void;
-}
-
-export function CreateEpicForm({
-  workspaceId,
-  projectId,
-  onSuccess,
-}: CreateEpicFormProps) {
-  const epicResource = useApiResource(
-    `/workspaces/${workspaceId}/projects/${projectId}/epics`,
-    ["epics", projectId]
-  );
-  const createMutation = epicResource.useCreate();
-
-  const methods = useForm<EpicFormValues>({
-    resolver: zodResolver(epicSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-      status: EpicStatus.TODO,
-    },
-  });
-  async function onSubmit(values: EpicFormValues) {
-    await createMutation.mutateAsync(values, {
-      onSuccess: () => {
-        methods.reset();
-        onSuccess?.();
-      },
-    });
-  }
-
-  return (
-    <FormProvider {...methods}>
-      <Form {...methods}>
-        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
-          <FormInput
-            name="name"
-            label="Epic Name"
-            placeholder="e.g., 2025 Marketing Campaign"
-          />
-          <FormRichTextEditor name="description" label="Description" />
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={createMutation.isPending}
-          >
-            {createMutation.isPending ? "Creating..." : "Create Epic"}
-          </Button>
-        </form>
-      </Form>
-    </FormProvider>
-  );
-}
-
-// FILE: src/features/epics/components/EpicList.tsx
-import { useState } from "react";
-import { useApiResource } from "@/hooks/useApiResource";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Button } from "@/components/ui/button";
-import { Edit, Trash2 } from "lucide-react";
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
-import { CreateEpicForm } from "./CreateEpicForm";
-
-export function EpicList({ workspaceId, projectId }: any) {
-  const epicResource = useApiResource(
-    `/workspaces/${workspaceId}/projects/${projectId}/epics`,
-    ["epics", projectId]
-  );
-  const { data, isLoading, isError } = epicResource.useGetAll();
-  const deleteMutation = epicResource.useDelete();
-  const [editingEpicId, setEditingEpicId] = useState<string | null>(null);
-  if (isLoading) return <div>Loading epics...</div>;
-  if (isError) return <div>Error loading epics.</div>;
-  const handleDelete = (epic: any) => {
-    if (
-      window.confirm(`Are you sure you want to delete the epic "${epic.name}"?`)
-    ) {
-      deleteMutation.mutate(epic.id);
-    }
-  };
-
-  return (
-    <>
-      <div className="space-y-4">
-        {data && data.data && data.data.length > 0 ? (
-          data.data.map((epic: any) => (
-            <Card key={epic.id}>
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div>
-                    <CardTitle>{epic.name}</CardTitle>
-                    <CardDescription className="mt-1">
-                      {epic.description || "No description."}
-                    </CardDescription>
-                  </div>
-                  <div className="flex gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setEditingEpicId(epic.id)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDelete(epic)}
-                    >
-                      <Trash2 className="text-destructive h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">
-                    Status: {epic.status}
-                  </span>
-                  <div className="flex w-1/3 items-center gap-2">
-                    <Progress value={epic.progress} className="h-2" />
-                    <span className="text-muted-foreground w-12 text-right">
-                      {epic.progress}%
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        ) : (
-          <p>No epics found for this project.</p>
-        )}
-      </div>
-      <ResourceCrudDialog
-        isOpen={!!editingEpicId}
-        onOpenChange={(isOpen) => !isOpen && setEditingEpicId(null)}
-        resourceId={editingEpicId}
-        resourcePath={`/workspaces/${workspaceId}/projects/${projectId}/epics`}
-        resourceKey={["epics", projectId]}
-        title="Edit Epic"
-        description="Make changes to your epic's details."
-        form={CreateEpicForm}
-      />
-    </>
-  );
-}
-
 // FILE: src/features/goals/api/useManageGoals.ts
 import { useApiResource } from "@/hooks/useApiResource";
 
@@ -8727,7 +8644,6 @@ export * from "./components/GoalForm.js";
 export * from "./components/GoalList.js";
 export * from "./components/KeyResultInput.js";
 export * from "./goal.types.js";
-
 // FILE: src/features/home/api/useGetUserDashboard.ts
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
@@ -8801,7 +8717,6 @@ export function HomeDashboard() {
     </GridLayout>
   );
 }
-
 // FILE: src/features/home/components/MyTasksWidget.tsx
 import { DashboardWidget } from "./DashboardWidget";
 import { useApiResource } from "@/hooks/useApiResource";
@@ -8835,7 +8750,6 @@ export function MyTasksWidget() {
     </DashboardWidget>
   );
 }
-
 // FILE: src/features/home/components/RecentMentionsWidget.tsx
 import { DashboardWidget } from "./DashboardWidget";
 
@@ -8846,7 +8760,6 @@ export function RecentMentionsWidget() {
     </DashboardWidget>
   );
 }
-
 // FILE: src/features/home/index.ts
 export * from "./api/useGetUserDashboard.js";
 export * from "./components/DashboardWidget.js";
@@ -8860,6 +8773,20 @@ export function useManageKnowledgeBase(workspaceId: string) {
   const resource = useApiResource(
     `/workspaces/${workspaceId}/knowledge-bases`,
     ["knowledgeBases", workspaceId]
+  );
+  return resource;
+}
+
+// FILE: src/features/knowledge-base/api/useManageKnowledgePages.ts
+import { useApiResource } from "@/hooks/useApiResource";
+
+export function useManageKnowledgePages(
+  workspaceId: string,
+  knowledgeBaseId: string
+) {
+  const resource = useApiResource(
+    `/workspaces/${workspaceId}/knowledge-bases/${knowledgeBaseId}/pages`,
+    ["knowledgePages", knowledgeBaseId]
   );
   return resource;
 }
@@ -9086,6 +9013,8 @@ export * from "./api/useManageKnowledgeBase.js";
 export * from "./components/KnowledgeBaseCard.js";
 export * from "./components/KnowledgeBaseForm.js";
 export * from "./components/KnowledgeBaseList.js";
+
+// FILE: src/features/knowledge-base/knowledge-base.types.ts
 
 // FILE: src/features/notifications/api/useBroadcastNotification.ts
 import api from "@/lib/api";
@@ -9834,6 +9763,17 @@ export function ProfileAvatar({
   );
 }
 
+// FILE: src/features/project-roles/api/useManageProjectRoles.ts
+import { useApiResource } from "@/hooks/useApiResource";
+
+export function useManageProjectRoles(workspaceId: string, projectId: string) {
+  const resource = useApiResource(
+    `/workspaces/${workspaceId}/projects/${projectId}/roles`,
+    ["projectRoles", projectId]
+  );
+  return resource;
+}
+
 // FILE: src/features/project-roles/components/CreateProjectRoleForm.tsx
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -10098,6 +10038,37 @@ export function ProjectRoleList({ workspaceId, projectId }: Props) {
   );
 }
 
+// FILE: src/features/projects/api/useCreateProjectFromTemplate.ts
+import { useApiMutation } from "@/hooks/useApiMutation";
+import api from "@/lib/api";
+
+interface CreateFromTemplateParams {
+  workspaceId: string;
+  templateId: string;
+  name: string;
+}
+
+async function createProjectFromTemplate({
+  workspaceId,
+  templateId,
+  name,
+}: CreateFromTemplateParams): Promise<any> {
+  const { data } = await api.post(
+    `/admin/project-templates/${templateId}/create-project`,
+    { name }
+  );
+  return data;
+}
+
+export function useCreateProjectFromTemplate(workspaceId: string) {
+  return useApiMutation({
+    mutationFn: (params: Omit<CreateFromTemplateParams, "workspaceId">) =>
+      createProjectFromTemplate({ workspaceId, ...params }),
+    successMessage: "Project created from template successfully!",
+    invalidateQueries: [["projects", workspaceId]],
+  });
+}
+
 // FILE: src/features/projects/api/useGetProjectMembers.ts
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
@@ -10126,8 +10097,6 @@ export function useGetProjectMembers(
 
 // FILE: src/features/projects/api/useManageProjectTemplates.ts
 import { useApiResource } from "@/hooks/useApiResource";
-import { useApiMutation } from "@/hooks/useApiMutation";
-import api from "@/lib/api";
 
 export function useManageProjectTemplates(
   workspaceId: string,
@@ -10140,39 +10109,12 @@ export function useManageProjectTemplates(
   return resource;
 }
 
-interface CreateFromTemplateParams {
-  workspaceId: string;
-  templateId: string;
-  name: string;
-}
-
-async function createProjectFromTemplate({
-  workspaceId,
-  templateId,
-  name,
-}: CreateFromTemplateParams): Promise<any> {
-  const { data } = await api.post(
-    `/workspaces/${workspaceId}/project-templates/${templateId}/create-project`,
-    { name }
-  );
-  return data;
-}
-
-export function useCreateProjectFromTemplate(workspaceId: string) {
-  return useApiMutation({
-    mutationFn: (params: Omit<CreateFromTemplateParams, "workspaceId">) =>
-      createProjectFromTemplate({ workspaceId, ...params }),
-    successMessage: "Project created from template successfully!",
-    invalidateQueries: [["projects", workspaceId]],
-  });
-}
-
 // FILE: src/features/projects/components/CreateProjectFromTemplateForm.tsx
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { FormInput, FormSelect } from "@/components/form/FormFields";
-import { useCreateProjectFromTemplate } from "../api/useManageProjectTemplates";
+import { useCreateProjectFromTemplate } from "../api/useCreateProjectFromTemplate";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { nameSchema } from "@/lib/schemas";
@@ -10195,7 +10137,7 @@ export function CreateProjectFromTemplateForm({
   onSuccess,
 }: CreateProjectFromTemplateFormProps) {
   const { data: templatesData, isLoading: isLoadingTemplates } = useApiResource(
-    "project-templates",
+    "admin/project-templates",
     ["projectTemplates"]
   ).useGetAll();
 
@@ -10248,7 +10190,6 @@ export function CreateProjectFromTemplateForm({
     </FormProvider>
   );
 }
-
 // FILE: src/features/projects/components/CreateTemplateForm.tsx
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -10257,8 +10198,8 @@ import { FormInput, FormRichTextEditor } from "@/components/form/FormFields";
 import { useApiResource } from "@/hooks/useApiResource";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { nameSchema, descriptionSchema } from "@/lib/schemas";
 import { useEffect } from "react";
+import { nameSchema, descriptionSchema } from "@/lib/schemas";
 
 const templateSchema = z.object({
   name: nameSchema("Template"),
@@ -10269,6 +10210,7 @@ type TemplateFormValues = z.infer<typeof templateSchema>;
 interface CreateTemplateFormProps {
   workspaceId: string;
   projectId: string;
+  sourceProjectId: string;
   initialData?: any;
   onSuccess?: () => void;
 }
@@ -10276,14 +10218,15 @@ interface CreateTemplateFormProps {
 export function CreateTemplateForm({
   workspaceId,
   projectId,
+  sourceProjectId,
   initialData,
   onSuccess,
 }: CreateTemplateFormProps) {
   const isEditMode = !!initialData;
-  const resource = useApiResource(
-    `/workspaces/${workspaceId}/projects/${projectId}/templates`,
-    ["projectTemplates", projectId]
-  );
+  const resource = useApiResource(`/admin/project-templates`, [
+    "projectTemplates",
+    projectId,
+  ]);
   const createMutation = resource.useCreate();
   const updateMutation = resource.useUpdate();
   const mutation = isEditMode ? updateMutation : createMutation;
@@ -10299,13 +10242,14 @@ export function CreateTemplateForm({
   }, [initialData, isEditMode, methods]);
 
   async function onSubmit(values: TemplateFormValues) {
+    const payload = { ...values, sourceProjectId };
     if (isEditMode) {
       await updateMutation.mutateAsync(
         { id: initialData.id, data: values },
         { onSuccess }
       );
     } else {
-      await createMutation.mutateAsync(values, {
+      await createMutation.mutateAsync(payload, {
         onSuccess: () => {
           methods.reset();
           onSuccess?.();
@@ -10343,7 +10287,6 @@ export function CreateTemplateForm({
     </FormProvider>
   );
 }
-
 // FILE: src/features/projects/components/InviteProjectMember.tsx
 import { useState } from "react";
 import { useApiResource } from "@/hooks/useApiResource";
@@ -10831,6 +10774,14 @@ import { FolderKanban } from "lucide-react";
 import { useState } from "react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { ProjectForm } from "./ProjectForm";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { CreateProjectFromTemplateForm } from "./CreateProjectFromTemplateForm";
+
 const ProjectListSkeleton = () => (
   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
     {Array.from({ length: 3 }).map((_, i) => (
@@ -10854,6 +10805,8 @@ export function ProjectList({ workspaceId }: { workspaceId: string }) {
   const { data, isLoading, isError, error } = projectResource.useGetAll();
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isCreateFromTemplateOpen, setIsCreateFromTemplateOpen] =
+    useState(false);
 
   if (isLoading) {
     return <ProjectListSkeleton />;
@@ -10870,6 +10823,10 @@ export function ProjectList({ workspaceId }: { workspaceId: string }) {
       />
     );
   }
+
+  const handleEdit = (projectId: string) => {
+    setEditingProjectId(projectId);
+  };
 
   if (!data || data.data.length === 0) {
     return (
@@ -10901,20 +10858,54 @@ export function ProjectList({ workspaceId }: { workspaceId: string }) {
 
   return (
     <>
+      <div className="flex justify-end">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              New Project
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem onClick={() => setIsCreateOpen(true)}>
+              New Blank Project
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setIsCreateFromTemplateOpen(true)}>
+              New from Template
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <ResourceCrudDialog
+          isOpen={isCreateOpen}
+          onOpenChange={setIsCreateOpen}
+          title="Create a new project"
+          description="Projects live inside workspaces and contain your tasks."
+          form={ProjectForm}
+          formProps={{ workspaceId }}
+          resourcePath={`/workspaces/${workspaceId}/projects`}
+          resourceKey={["projects", workspaceId]}
+        />
+        <ResourceCrudDialog
+          isOpen={isCreateFromTemplateOpen}
+          onOpenChange={setIsCreateFromTemplateOpen}
+          title="Create from Template"
+          description="Create a new project based on an existing template."
+          form={CreateProjectFromTemplateForm}
+          formProps={{ workspaceId }}
+          resourcePath={""}
+          resourceKey={[]}
+        />
+      </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {data.data.map((project: any) => (
-          <ProjectCard
-            project={project}
-            key={project.id}
-            onEdit={setEditingProjectId}
-          />
+          <ProjectCard project={project} key={project.id} onEdit={handleEdit} />
         ))}
       </div>
 
       <ResourceCrudDialog
         isOpen={!!editingProjectId}
         onOpenChange={(isOpen) => !isOpen && setEditingProjectId(null)}
-        trigger={<></>}
         title="Edit Project"
         description="Make changes to your project here. Click save when you're done."
         form={ProjectForm}
@@ -10926,7 +10917,6 @@ export function ProjectList({ workspaceId }: { workspaceId: string }) {
     </>
   );
 }
-
 // FILE: src/features/projects/components/ProjectMemberList.tsx
 import { useGetProjectMembers } from "../api/useGetProjectMembers";
 import { useApiResource } from "@/hooks/useApiResource";
@@ -11131,7 +11121,6 @@ export function ProjectTemplateCard({
     e.preventDefault();
     onEdit();
   };
-
   return (
     <EntityCard
       title={template.name}
@@ -11147,7 +11136,6 @@ export function ProjectTemplateCard({
     </EntityCard>
   );
 }
-
 // FILE: src/features/projects/components/ProjectTemplateList.tsx
 import { useState } from "react";
 import { useManageProjectTemplates } from "../api/useManageProjectTemplates";
@@ -11219,7 +11207,6 @@ export function ProjectTemplateList({ workspaceId, projectId }: ListProps) {
     </>
   );
 }
-
 // FILE: src/features/projects/project.types.ts
 import { z } from "zod";
 import { ProjectStatus } from "@/types";
@@ -11290,6 +11277,14 @@ export const PaginatedProjectsResponseSchema =
 export type PaginatedProjectsResponse = z.infer<
   typeof PaginatedProjectsResponseSchema
 >;
+
+// FILE: src/features/publications/api/useManagePublications.ts
+import { useApiResource } from "@/hooks/useApiResource";
+
+export function useManagePublications() {
+  const resource = useApiResource("publications", ["publications"]);
+  return resource;
+}
 
 // FILE: src/features/publications/components/CreatePublicationForm.tsx
 import { useForm, FormProvider } from "react-hook-form";
@@ -11578,101 +11573,6 @@ export function useGetWorkloadReport(
     enabled: !!workspaceId,
   });
 }
-// FILE: src/features/reporting/components/VelocityChart.tsx
-import {
-  ChartContainer,
-  BarChart,
-  CartesianGrid,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Bar,
-  ResponsiveContainer,
-} from "@/components/ui/recharts";
-import { Sprint } from "@/features/sprints/sprint.types";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
-interface VelocityChartProps {
-  sprints: Sprint[];
-}
-
-export function VelocityChart({ sprints }: VelocityChartProps) {
-  const chartData = sprints
-    .filter(
-      (sprint) =>
-        sprint.status === "COMPLETED" && sprint.completedStoryPoints != null
-    )
-    .map((sprint) => ({
-      name: sprint.name,
-      Velocity: sprint.completedStoryPoints,
-    }));
-  if (chartData.length === 0) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Team Velocity</CardTitle>
-          <CardDescription>
-            Complete sprints with story points to see your team's velocity over
-            time.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="text-muted-foreground flex h-[200px] items-center justify-center">
-            Not enough data to display chart.
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Team Velocity</CardTitle>
-        <CardDescription>
-          Story points completed in each sprint.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <ChartContainer className="h-[200px] w-full">
-          <ResponsiveContainer>
-            <BarChart
-              data={chartData}
-              margin={{ top: 5, right: 20, left: -10, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis
-                dataKey="name"
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
-              />
-              <YAxis fontSize={12} tickLine={false} axisLine={false} />
-              <Tooltip
-                cursor={{ fill: "hsl(var(--muted))" }}
-                contentStyle={{
-                  backgroundColor: "hsl(var(--popover))",
-                  borderColor: "hsl(var(--border))",
-                }}
-              />
-              <Bar
-                dataKey="Velocity"
-                fill="hsl(var(--primary))"
-                radius={[4, 4, 0, 0]}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        </ChartContainer>
-      </CardContent>
-    </Card>
-  );
-}
-
 // FILE: src/features/reporting/components/WorkloadView.tsx
 import { useGetWorkloadReport } from "../api/useGetWorkloadReport";
 import {
@@ -11751,8 +11651,8 @@ export function WorkloadView({ workspaceId }: { workspaceId: string }) {
 }
 // FILE: src/features/reporting/index.ts
 export * from "./api/useGetWorkloadReport.js";
-export * from "./components/VelocityChart.js";
 export * from "./components/WorkloadView.js";
+
 // FILE: src/features/search/api/useSearch.ts
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
@@ -12022,585 +11922,6 @@ export function useGetSkills() {
     staleTime: Infinity,
   });
 }
-
-// FILE: src/features/sprints/api/useManageSprints.ts
-import { useApiResource } from "@/hooks/useApiResource";
-
-export function useManageSprints(workspaceId: string, projectId: string) {
-  const sprintResource = useApiResource(
-    `/workspaces/${workspaceId}/projects/${projectId}/sprints`,
-    ["sprints", projectId]
-  );
-  return sprintResource;
-}
-
-// FILE: src/features/sprints/components/CreateSprintForm.tsx
-import { useForm, FormProvider } from "react-hook-form";
-import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
-import { FormInput, FormDatePicker } from "@/components/form/FormFields";
-import { useManageSprints } from "../api/useManageSprints";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
-import { CreateSprintDtoSchema } from "../sprint.types";
-
-type SprintFormValues = z.infer<typeof CreateSprintDtoSchema>;
-
-interface CreateSprintFormProps {
-  workspaceId: string;
-  projectId: string;
-  initialData?: any;
-  onSuccess?: () => void;
-}
-
-export function CreateSprintForm({
-  workspaceId,
-  projectId,
-  initialData,
-  onSuccess,
-}: CreateSprintFormProps) {
-  const isEditMode = !!initialData;
-  const sprintResource = useManageSprints(workspaceId, projectId);
-  const createMutation = sprintResource.useCreate();
-  const updateMutation = sprintResource.useUpdate();
-  const mutation = isEditMode ? updateMutation : createMutation;
-
-  const methods = useForm<SprintFormValues>({
-    resolver: zodResolver(CreateSprintDtoSchema),
-    defaultValues: {
-      name: "",
-      goal: "",
-      startDate: null,
-      endDate: null,
-      projectId,
-    },
-  });
-  useEffect(() => {
-    if (isEditMode && initialData) {
-      methods.reset({
-        ...initialData,
-        startDate: initialData.startDate
-          ? new Date(initialData.startDate)
-          : null,
-        endDate: initialData.endDate ? new Date(initialData.endDate) : null,
-      });
-    }
-  }, [initialData, isEditMode, methods]);
-  async function onSubmit(values: SprintFormValues) {
-    if (isEditMode) {
-      await updateMutation.mutateAsync(
-        { id: initialData.id, data: values },
-        { onSuccess }
-      );
-    } else {
-      await createMutation.mutateAsync(values, {
-        onSuccess: () => {
-          methods.reset();
-          onSuccess?.();
-        },
-      });
-    }
-  }
-
-  return (
-    <FormProvider {...methods}>
-      <Form {...methods}>
-        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
-          <FormInput
-            name="name"
-            label="Sprint Name"
-            placeholder="e.g., October Sprint #1"
-          />
-          <FormInput
-            name="goal"
-            label="Sprint Goal (Optional)"
-            placeholder="What is the main objective of this sprint?"
-          />
-          <div className="grid grid-cols-2 gap-4">
-            <FormDatePicker name="startDate" label="Start Date" />
-            <FormDatePicker name="endDate" label="End Date" />
-          </div>
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={mutation.isPending}
-          >
-            {mutation.isPending
-              ? "Saving..."
-              : isEditMode
-                ? "Save Changes"
-                : "Create Sprint"}
-          </Button>
-        </form>
-      </Form>
-    </FormProvider>
-  );
-}
-// FILE: src/features/sprints/components/ProjectDetailView.tsx
-
-import { Link } from "react-router-dom";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TaskList } from "@/features/tasks/components/TaskList";
-import { KanbanBoard } from "@/features/views/components/KanbanBoard";
-import { BacklogView } from "@/features/views/components/BacklogView";
-import { DashboardList } from "@/features/dashboards/components/DashboardList";
-import { EpicList } from "@/features/epics/components/EpicList";
-import { SprintBoardView } from "@/features/sprints/components/SprintBoardView";
-import { ActiveUsers } from "@/components/layout/ActiveUsers";
-import { Button } from "@/components/ui/button";
-import { Settings, CheckSquare, PlusCircle } from "lucide-react";
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
-import { CreateTaskForm } from "@/features/tasks/components/CreateTaskForm";
-import { CreateDashboardForm } from "@/features/dashboards/components/CreateDashboardForm";
-import { CreateEpicForm } from "@/features/epics/components/CreateEpicForm";
-import { Task } from "@/features/tasks/task.types";
-import { View } from "@/types";
-import { ProjectActivityLog } from "@/features/activities/components/ProjectActivityLog";
-import { EmptyState } from "@/components/ui/empty-state";
-import { useState } from "react";
-
-interface ProjectDetailViewProps {
-  views: View[];
-  tasks: Task[];
-  workspaceId: string;
-  projectId: string;
-  onTaskSelect: (taskId: string | null) => void;
-  activeTab: string;
-  onTabChange: (tab: string) => void;
-}
-
-export function ProjectDetailView({
-  views,
-  tasks,
-  workspaceId,
-  projectId,
-  onTaskSelect,
-  activeTab,
-  onTabChange,
-}: ProjectDetailViewProps) {
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const renderActionDialog = () => {
-    const currentView = views.find((v) => v.id === activeTab);
-    const viewType = currentView?.type;
-
-    if (
-      viewType === "KANBAN" ||
-      viewType === "LIST" ||
-      viewType === "BACKLOG"
-    ) {
-      return (
-        <ResourceCrudDialog
-          trigger={
-            <Button>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              New Task
-            </Button>
-          }
-          title="Create a new task"
-          description="Fill in the details below to add a new task."
-          form={CreateTaskForm}
-          formProps={{ workspaceId, projectId }}
-          resourcePath={`/workspaces/${workspaceId}/projects/${projectId}/tasks`}
-          resourceKey={["tasks", projectId]}
-        />
-      );
-    }
-    if (activeTab === "dashboards") {
-      return (
-        <ResourceCrudDialog
-          isOpen={isCreateDialogOpen}
-          onOpenChange={setIsCreateDialogOpen}
-          trigger={
-            <Button onClick={() => setIsCreateDialogOpen(true)}>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              New Dashboard
-            </Button>
-          }
-          title="Create New Dashboard"
-          description="Dashboards contain widgets to visualize your project data."
-          form={CreateDashboardForm}
-          formProps={{ workspaceId, projectId }}
-          resourcePath={`/workspaces/${workspaceId}/projects/${projectId}/dashboards`}
-          resourceKey={["dashboards", projectId]}
-        />
-      );
-    }
-    if (activeTab === "epics") {
-      return (
-        <ResourceCrudDialog
-          isOpen={isCreateDialogOpen}
-          onOpenChange={setIsCreateDialogOpen}
-          trigger={
-            <Button onClick={() => setIsCreateDialogOpen(true)}>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              New Epic
-            </Button>
-          }
-          title="Create New Epic"
-          description="Epics are large bodies of work that can be broken down into a number of smaller tasks."
-          form={CreateEpicForm}
-          formProps={{ workspaceId, projectId }}
-          resourcePath={`/workspaces/${workspaceId}/projects/${projectId}/epics`}
-          resourceKey={["epics", projectId]}
-        />
-      );
-    }
-    return null;
-  };
-
-  const projectTaskEmptyState = (
-    <EmptyState
-      icon={<CheckSquare className="text-primary h-10 w-10" />}
-      title="No tasks yet"
-      description="Create the first task in this project to get started."
-      action={
-        <ResourceCrudDialog
-          trigger={
-            <Button>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              New Task
-            </Button>
-          }
-          title="Create a new task"
-          description="Fill in the details below to add a new task."
-          form={CreateTaskForm}
-          formProps={{ workspaceId, projectId }}
-          resourcePath={`/workspaces/${workspaceId}/projects/${projectId}/tasks`}
-          resourceKey={["tasks", projectId]}
-        />
-      }
-    />
-  );
-  return (
-    <Tabs value={activeTab} onValueChange={onTabChange} className="space-y-4">
-      <div className="flex items-center justify-between">
-        <TabsList>
-          {views.map((view) => (
-            <TabsTrigger key={view.id} value={view.id}>
-              {view.name}
-            </TabsTrigger>
-          ))}
-          <TabsTrigger value="sprints">Sprints</TabsTrigger>
-          <TabsTrigger value="dashboards">Dashboards</TabsTrigger>
-          <TabsTrigger value="epics">Epics</TabsTrigger>
-          <TabsTrigger value="activity">Activity</TabsTrigger>
-        </TabsList>
-
-        <div className="flex items-center gap-2">
-          <ActiveUsers />
-          {renderActionDialog()}
-          <Button variant="outline" asChild>
-            <Link to="settings">
-              <Settings className="h-4 w-4" />
-            </Link>
-          </Button>
-        </div>
-      </div>
-
-      {views.map((view) => (
-        <TabsContent key={view.id} value={view.id} className="mt-0 h-full">
-          {view.type === "LIST" && (
-            <TaskList
-              apiUrl={`/workspaces/${workspaceId}/projects/${projectId}/tasks`}
-              queryKey={["tasks", projectId]}
-              tasks={tasks}
-              onTaskSelect={onTaskSelect}
-              emptyState={projectTaskEmptyState}
-            />
-          )}
-          {view.type === "KANBAN" && (
-            <KanbanBoard
-              views={views}
-              tasks={tasks}
-              workspaceId={workspaceId}
-              projectId={projectId}
-              onTaskSelect={onTaskSelect}
-            />
-          )}
-          {view.type === "BACKLOG" && (
-            <BacklogView
-              tasks={tasks}
-              workspaceId={workspaceId}
-              projectId={projectId}
-              onTaskSelect={onTaskSelect}
-            />
-          )}
-        </TabsContent>
-      ))}
-
-      <TabsContent value="sprints" className="mt-0">
-        <SprintBoardView
-          workspaceId={workspaceId}
-          projectId={projectId}
-          views={views}
-          tasks={tasks}
-          onTaskSelect={onTaskSelect}
-        />
-      </TabsContent>
-
-      <TabsContent value="dashboards" className="mt-0 space-y-4">
-        <DashboardList workspaceId={workspaceId} projectId={projectId} />
-      </TabsContent>
-
-      <TabsContent value="epics" className="mt-0">
-        <EpicList workspaceId={workspaceId} projectId={projectId} />
-      </TabsContent>
-
-      <TabsContent value="activity" className="mt-0">
-        <ProjectActivityLog workspaceId={workspaceId} projectId={projectId} />
-      </TabsContent>
-    </Tabs>
-  );
-}
-// FILE: src/features/sprints/components/SprintBoardView.tsx
-import { useState, useMemo } from "react";
-import { useManageSprints } from "../api/useManageSprints";
-import { KanbanBoard } from "@/features/views/components/KanbanBoard";
-import { SprintList } from "./SprintList";
-import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
-import { CreateSprintForm } from "./CreateSprintForm";
-import { EmptyState } from "@/components/ui/empty-state";
-import { SprintStatus } from "@/types";
-import { View } from "@/types";
-import { Task } from "@/features/tasks/task.types";
-import { VelocityChart } from "@/features/reporting/components/VelocityChart";
-
-interface SprintBoardViewProps {
-  workspaceId: string;
-  projectId: string;
-  views: View[];
-  tasks: Task[];
-  onTaskSelect: (taskId: string | null) => void;
-}
-
-export function SprintBoardView({
-  workspaceId,
-  projectId,
-  views,
-  tasks,
-  onTaskSelect,
-}: SprintBoardViewProps) {
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const sprintResource = useManageSprints(workspaceId, projectId);
-  const { data: sprintsData, isLoading } = sprintResource.useGetAll();
-  const updateMutation = sprintResource.useUpdate();
-  const activeSprint = useMemo(
-    () => sprintsData?.data?.find((s: any) => s.status === SprintStatus.ACTIVE),
-    [sprintsData]
-  );
-  const completedSprints = useMemo(
-    () =>
-      sprintsData?.data?.filter(
-        (s: any) => s.status === SprintStatus.COMPLETED
-      ) || [],
-    [sprintsData]
-  );
-  const activeSprintTasks = useMemo(
-    () => tasks.filter((task) => task.sprintId === activeSprint?.id),
-    [tasks, activeSprint]
-  );
-  const handleStartSprint = (sprintId: string) => {
-    if (activeSprint) {
-      alert(
-        "An active sprint is already in progress. Please complete it first."
-      );
-      return;
-    }
-    updateMutation.mutate({
-      id: sprintId,
-      data: { status: SprintStatus.ACTIVE },
-    });
-  };
-
-  const handleCompleteSprint = (sprintId: string) => {
-    updateMutation.mutate({
-      id: sprintId,
-      data: { status: SprintStatus.COMPLETED },
-    });
-  };
-
-  if (isLoading) {
-    return <div>Loading sprints...</div>;
-  }
-
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Sprints</h2>
-        <ResourceCrudDialog
-          isOpen={isCreateOpen}
-          onOpenChange={setIsCreateOpen}
-          trigger={
-            <Button onClick={() => setIsCreateOpen(true)}>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Create Sprint
-            </Button>
-          }
-          title="Create a New Sprint"
-          description="Organize your work into time-boxed sprints."
-          form={CreateSprintForm}
-          formProps={{ workspaceId, projectId }}
-          resourcePath={`/workspaces/${workspaceId}/projects/${projectId}/sprints`}
-          resourceKey={["sprints", projectId]}
-        />
-      </div>
-
-      <VelocityChart sprints={completedSprints} />
-
-      {activeSprint ? (
-        <div className="rounded-lg border p-4">
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <h3 className="text-xl font-semibold">{activeSprint.name}</h3>
-              <p className="text-muted-foreground">{activeSprint.goal}</p>
-            </div>
-            <Button onClick={() => handleCompleteSprint(activeSprint.id)}>
-              Complete Sprint
-            </Button>
-          </div>
-          <div className="h-[60vh]">
-            <KanbanBoard
-              workspaceId={workspaceId}
-              projectId={projectId}
-              views={views}
-              tasks={activeSprintTasks}
-              onTaskSelect={onTaskSelect}
-            />
-          </div>
-        </div>
-      ) : (
-        <EmptyState
-          icon={<PlusCircle className="h-10 w-10" />}
-          title="No Active Sprint"
-          description="Start a planned sprint or create a new one to begin."
-        />
-      )}
-
-      <SprintList
-        sprints={sprintsData?.data || []}
-        onStartSprint={handleStartSprint}
-      />
-    </div>
-  );
-}
-// FILE: src/features/sprints/components/SprintList.tsx
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Sprint } from "../sprint.types";
-import { SprintStatus } from "@/types";
-
-interface SprintListProps {
-  sprints: Sprint[];
-  onStartSprint: (sprintId: string) => void;
-}
-
-export function SprintList({ sprints, onStartSprint }: SprintListProps) {
-  const plannedSprints = sprints.filter(
-    (s) => s.status === SprintStatus.PLANNING
-  );
-  const completedSprints = sprints.filter(
-    (s) => s.status === SprintStatus.COMPLETED
-  );
-  return (
-    <div className="space-y-4">
-      {plannedSprints.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Planned Sprints</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {plannedSprints.map((sprint) => (
-              <div
-                key={sprint.id}
-                className="flex items-center justify-between rounded-md border p-2"
-              >
-                <span>{sprint.name}</span>
-                <Button size="sm" onClick={() => onStartSprint(sprint.id)}>
-                  Start Sprint
-                </Button>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
-      {completedSprints.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Completed Sprints</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {completedSprints.map((sprint) => (
-              <div
-                key={sprint.id}
-                className="flex items-center justify-between rounded-md border p-2"
-              >
-                <span>{sprint.name}</span>
-                <span className="text-muted-foreground text-sm">
-                  Completed on {new Date(sprint.updatedAt).toLocaleDateString()}
-                </span>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
-    </div>
-  );
-}
-// FILE: src/features/sprints/index.ts
-export * from "./api/useManageSprints.js";
-export * from "./components/CreateSprintForm.js";
-export * from "./components/SprintBoardView.js";
-export * from "./components/SprintList.js";
-export * from "./sprint.types.js";
-
-// FILE: src/features/sprints/sprint.types.ts
-import { z } from "zod";
-import { SprintStatus } from "@/types";
-import {
-  createPaginationSchema,
-  createPaginatedResponseSchema,
-  createUuidParamSchema,
-} from "@/lib/zod";
-
-export const SprintIdParamsSchema = createUuidParamSchema("sprintId", "Sprint");
-export const SprintSchema = z.object({
-  __typename: z.literal("Sprint"),
-  id: z.string().uuid(),
-  name: z.string(),
-  goal: z.string().nullable(),
-  startDate: z.date().nullable(),
-  endDate: z.date().nullable(),
-  status: z.nativeEnum(SprintStatus),
-  completedStoryPoints: z.number().int().nullable().optional(),
-  projectId: z.string().uuid(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-});
-export type Sprint = z.infer<typeof SprintSchema>;
-
-export const CreateSprintDtoSchema = z.object({
-  name: z.string().min(1, "Sprint name is required."),
-  goal: z.string().optional().nullable(),
-  startDate: z.date().optional().nullable(),
-  endDate: z.date().optional().nullable(),
-  projectId: z.string().uuid(),
-});
-export type CreateSprintDto = z.infer<typeof CreateSprintDtoSchema>;
-
-export const UpdateSprintDtoSchema = CreateSprintDtoSchema.omit({
-  projectId: true,
-}).partial();
-export type UpdateSprintDto = z.infer<typeof UpdateSprintDtoSchema>;
-export const ListSprintsQuerySchema = createPaginationSchema().extend({
-  status: z.nativeEnum(SprintStatus).optional(),
-});
-export type ListSprintsQuery = z.infer<typeof ListSprintsQuerySchema>;
-
-export const PaginatedSprintsResponseSchema =
-  createPaginatedResponseSchema(SprintSchema);
 
 // FILE: src/features/task-templates/api/useInstantiateTaskTemplate.ts
 import api from "@/lib/api";
@@ -13379,6 +12700,23 @@ export function useManageTaskLinks(
   };
 }
 
+// FILE: src/features/tasks/api/useManageTasks.ts
+import { useApiResource } from "@/hooks/useApiResource";
+
+export function useManageTasks(
+  workspaceId?: string | null,
+  projectId?: string | null
+) {
+  const resourceUrl =
+    workspaceId && projectId
+      ? `/workspaces/${workspaceId}/projects/${projectId}/tasks`
+      : "/tasks";
+  const resourceKey = projectId ? ["tasks", projectId] : ["myTasks"];
+
+  const resource = useApiResource(resourceUrl, resourceKey);
+  return resource;
+}
+
 // FILE: src/features/tasks/api/useManageTaskWatchers.ts
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
@@ -13637,6 +12975,43 @@ export function useUpdateMyTask() {
     },
   });
 }
+// FILE: src/features/tasks/api/useUpdateTask.ts
+import api from "@/lib/api";
+import { useApiMutation } from "@/hooks/useApiMutation";
+import { Task } from "../task.types";
+
+interface UpdateTaskParams {
+  taskId: string;
+  workspaceId?: string | null;
+  projectId?: string | null;
+  taskData: Partial<Task>;
+}
+
+async function updateTask({
+  taskId,
+  workspaceId,
+  projectId,
+  taskData,
+}: UpdateTaskParams): Promise<Task> {
+  const url =
+    workspaceId && projectId
+      ? `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}`
+      : `/tasks/${taskId}`;
+  const { data } = await api.put(url, taskData);
+  return data;
+}
+
+export function useUpdateTask() {
+  return useApiMutation<Task, UpdateTaskParams>({
+    mutationFn: updateTask,
+    invalidateQueries: (data) => [
+      ["task", data.id],
+      ["tasks", data.projectId],
+      ["myTasks"],
+    ],
+  });
+}
+
 // FILE: src/features/tasks/api/useUpdateTaskCustomValues.ts
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
@@ -14281,7 +13656,6 @@ export function KanbanTaskCard({
     </>
   );
 }
-
 // FILE: src/features/tasks/components/MyTasksKanbanBoard.tsx
 import { useState, useMemo } from "react";
 import {
@@ -14402,7 +13776,6 @@ export function MyTasksKanbanBoard({
     </DndContext>
   );
 }
-
 // FILE: src/features/tasks/components/RecurrenceSelector.tsx
 import { useState, useEffect } from "react";
 import { RRule, rrulestr, Options } from "rrule";
@@ -16349,6 +15722,17 @@ export const BulkDeleteTasksResponseSchema = z.object({
 export type BulkDeleteTasksResponse = z.infer<
   typeof BulkDeleteTasksResponseSchema
 >;
+// FILE: src/features/teams/api/useManageTeams.ts
+import { useApiResource } from "@/hooks/useApiResource";
+
+export function useManageTeams(workspaceId: string) {
+  const resource = useApiResource(`/workspaces/${workspaceId}/teams`, [
+    "teams",
+    workspaceId,
+  ]);
+  return resource;
+}
+
 // FILE: src/features/teams/components/ManageTeamMembers.tsx
 
 import { useApiResource } from "@/hooks/useApiResource";
@@ -18028,8 +17412,6 @@ import { BacklogView } from "@/features/views/components/BacklogView";
 import { GanttChartView } from "@/features/views/components/GanttChartView";
 import { CalendarView } from "@/features/views/components/CalendarView";
 import { DashboardList } from "@/features/dashboards/components/DashboardList";
-import { EpicList } from "@/features/epics/components/EpicList";
-import { SprintBoardView } from "@/features/sprints/components/SprintBoardView";
 import { ActiveUsers } from "@/components/layout/ActiveUsers";
 import { Button } from "@/components/ui/button";
 import {
@@ -18042,7 +17424,6 @@ import { Settings, CheckSquare, PlusCircle } from "lucide-react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { CreateTaskForm } from "@/features/tasks/components/CreateTaskForm";
 import { CreateDashboardForm } from "@/features/dashboards/components/CreateDashboardForm";
-import { CreateEpicForm } from "@/features/epics/components/CreateEpicForm";
 import { Task } from "@/features/tasks/task.types";
 import { View } from "@/types";
 import { ProjectActivityLog } from "@/features/activities/components/ProjectActivityLog";
@@ -18143,26 +17524,6 @@ export function ProjectDetailView({
         />
       );
     }
-    if (activeTab === "epics") {
-      return (
-        <ResourceCrudDialog
-          isOpen={isCreateDialogOpen}
-          onOpenChange={setIsCreateDialogOpen}
-          trigger={
-            <Button onClick={() => setIsCreateDialogOpen(true)}>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              New Epic
-            </Button>
-          }
-          title="Create New Epic"
-          description="Epics are large bodies of work that can be broken down into a number of smaller tasks."
-          form={CreateEpicForm}
-          formProps={{ workspaceId, projectId }}
-          resourcePath={`/workspaces/${workspaceId}/projects/${projectId}/epics`}
-          resourceKey={["epics", projectId]}
-        />
-      );
-    }
     return null;
   };
 
@@ -18183,9 +17544,7 @@ export function ProjectDetailView({
               {view.name}
             </TabsTrigger>
           ))}
-          <TabsTrigger value="sprints">Sprints</TabsTrigger>
           <TabsTrigger value="dashboards">Dashboards</TabsTrigger>
-          <TabsTrigger value="epics">Epics</TabsTrigger>
           <TabsTrigger value="activity">Activity</TabsTrigger>
         </TabsList>
 
@@ -18235,22 +17594,8 @@ export function ProjectDetailView({
         </TabsContent>
       ))}
 
-      <TabsContent value="sprints" className="mt-0">
-        <SprintBoardView
-          workspaceId={workspaceId}
-          projectId={projectId}
-          views={views}
-          tasks={tasks}
-          onTaskSelect={onTaskSelect}
-        />
-      </TabsContent>
-
       <TabsContent value="dashboards" className="mt-0 space-y-4">
         <DashboardList workspaceId={workspaceId} projectId={projectId} />
-      </TabsContent>
-
-      <TabsContent value="epics" className="mt-0">
-        <EpicList workspaceId={workspaceId} projectId={projectId} />
       </TabsContent>
 
       <TabsContent value="activity" className="mt-0">
@@ -18345,6 +17690,7 @@ export function SaveViewForm({
 // FILE: src/features/views/components/ViewCard.tsx
 import { EntityCard } from "@/components/ui/EntityCard";
 import { useManageViews } from "../api/useManageViews";
+import { getIcon } from "@/lib/icons";
 
 interface ViewCardProps {
   view: any;
@@ -18376,6 +17722,8 @@ export function ViewCard({
     onEdit();
   };
 
+  const Icon = getIcon(view.type);
+
   return (
     <EntityCard
       title={view.name}
@@ -18383,16 +17731,16 @@ export function ViewCard({
       onEdit={handleEdit}
       onDelete={handleDelete}
       deleteDisabled={deleteMutation.isPending}
+      icon={Icon}
     >
       <div className="text-muted-foreground text-sm">
-        {view.columns.length > 0
+        {view.columns?.length > 0
           ? `${view.columns.length} columns`
           : "No specific columns configured"}
       </div>
     </EntityCard>
   );
 }
-
 // FILE: src/features/views/components/ViewForm.tsx
 
 import { useForm, FormProvider } from "react-hook-form";
@@ -18538,12 +17886,11 @@ import "tldraw/tldraw.css";
 
 export function WhiteboardView() {
   return (
-    <div style={{ position: "fixed", inset: 0 }}>
+    <div className="fixed inset-0 z-50">
       <Tldraw />
     </div>
   );
 }
-
 // FILE: src/features/views/index.ts
 export * from "./api/useCreateView.js";
 export * from "./api/useDeleteView.js";
@@ -18700,7 +18047,7 @@ import { useApiMutation } from "@/hooks/useApiMutation";
 
 interface CreateWidgetParams {
   workspaceId: string;
-  projectId: string;
+  projectId?: string;
   dashboardId: string;
   widgetData: any;
 }
@@ -18711,16 +18058,17 @@ async function createWidget({
   dashboardId,
   widgetData,
 }: CreateWidgetParams): Promise<any> {
-  const { data } = await api.post(
-    `/workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}/widgets`,
-    widgetData
-  );
+  const url = projectId
+    ? `/workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}/widgets`
+    : `/workspaces/${workspaceId}/dashboards/${dashboardId}/widgets`;
+
+  const { data } = await api.post(url, widgetData);
   return data;
 }
 
 export function useCreateWidget(
   workspaceId: string,
-  projectId: string,
+  projectId: string | undefined,
   dashboardId: string
 ) {
   return useApiMutation({
@@ -18736,7 +18084,7 @@ import { useApiMutation } from "@/hooks/useApiMutation";
 
 interface DeleteParams {
   workspaceId: string;
-  projectId: string;
+  projectId?: string;
   dashboardId: string;
   widgetId: string;
 }
@@ -18747,14 +18095,15 @@ async function deleteWidget({
   dashboardId,
   widgetId,
 }: DeleteParams): Promise<void> {
-  await api.delete(
-    `/workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}/widgets/${widgetId}`
-  );
+  const url = projectId
+    ? `/workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}/widgets/${widgetId}`
+    : `/workspaces/${workspaceId}/dashboards/${dashboardId}/widgets/${widgetId}`;
+  await api.delete(url);
 }
 
 export function useDeleteWidget(
   workspaceId: string,
-  projectId: string,
+  projectId: string | undefined,
   dashboardId: string
 ) {
   return useApiMutation<void, string>({
@@ -18764,6 +18113,40 @@ export function useDeleteWidget(
     invalidateQueries: [["dashboard", dashboardId]],
   });
 }
+// FILE: src/features/widgets/api/useGetDashboard.ts
+import api from "@/lib/api";
+import { useQuery } from "@tanstack/react-query";
+
+interface GetDashboardParams {
+  workspaceId: string;
+  projectId?: string;
+  dashboardId: string;
+}
+
+async function getDashboard({
+  workspaceId,
+  projectId,
+  dashboardId,
+}: GetDashboardParams): Promise<any> {
+  const url = projectId
+    ? `/workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}`
+    : `/workspaces/${workspaceId}/dashboards/${dashboardId}`;
+  const { data } = await api.get(url);
+  return data;
+}
+
+export function useGetDashboard(
+  workspaceId: string,
+  projectId: string | undefined,
+  dashboardId: string
+) {
+  return useQuery({
+    queryKey: ["dashboard", dashboardId],
+    queryFn: () => getDashboard({ workspaceId, projectId, dashboardId }),
+    enabled: !!workspaceId && !!dashboardId,
+  });
+}
+
 // FILE: src/features/widgets/api/useGetWidgetData.ts
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
@@ -18774,15 +18157,16 @@ async function getWidgetData({
   dashboardId,
   widgetId,
 }: any): Promise<any> {
-  const { data } = await api.get(
-    `/workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}/widgets/${widgetId}/data`
-  );
+  const url = projectId
+    ? `/workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}/widgets/${widgetId}/data`
+    : `/workspaces/${workspaceId}/dashboards/${dashboardId}/widgets/${widgetId}/data`;
+  const { data } = await api.get(url);
   return data;
 }
 
 export function useGetWidgetData(
   workspaceId: string,
-  projectId: string,
+  projectId: string | undefined,
   dashboardId: string,
   widgetId: string
 ) {
@@ -18790,17 +18174,16 @@ export function useGetWidgetData(
     queryKey: ["widgetData", widgetId],
     queryFn: () =>
       getWidgetData({ workspaceId, projectId, dashboardId, widgetId }),
-    enabled: !!workspaceId && !!projectId && !!dashboardId && !!widgetId,
+    enabled: !!workspaceId && !!dashboardId && !!widgetId,
   });
 }
-
 // FILE: src/features/widgets/api/useUpdateWidget.ts
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
 
 interface UpdateWidgetParams {
   workspaceId: string;
-  projectId: string;
+  projectId?: string;
   dashboardId: string;
   widgetId: string;
   widgetData: any;
@@ -18808,16 +18191,16 @@ interface UpdateWidgetParams {
 
 async function updateWidget(params: UpdateWidgetParams): Promise<any> {
   const { workspaceId, projectId, dashboardId, widgetId, widgetData } = params;
-  const { data } = await api.put(
-    `/workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}/widgets/${widgetId}`,
-    widgetData
-  );
+  const url = projectId
+    ? `/workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}/widgets/${widgetId}`
+    : `/workspaces/${workspaceId}/dashboards/${dashboardId}/widgets/${widgetId}`;
+  const { data } = await api.put(url, widgetData);
   return data;
 }
 
 export function useUpdateWidget(
   workspaceId: string,
-  projectId: string,
+  projectId: string | undefined,
   dashboardId: string
 ) {
   return useApiMutation({
@@ -18875,13 +18258,24 @@ export function BurndownChartWidget({ widget, workspaceId, projectId }: any) {
 }
 
 // FILE: src/features/widgets/components/config-fields/BurndownChartConfigFields.tsx
-import { FormDatePicker } from "@/components/form/FormFields";
+import { FormDatePicker, FormSelect } from "@/components/form/FormFields";
 
 export function BurndownChartConfigFields() {
+  const unitOptions = [
+    { value: "task_count", label: "Task Count" },
+    { value: "story_points", label: "Story Points" },
+  ];
+
   return (
     <div className="space-y-4">
       <FormDatePicker name="config.startDate" label="Start Date" />
       <FormDatePicker name="config.endDate" label="End Date" />
+      <FormSelect
+        name="config.unit"
+        label="Unit"
+        placeholder="Select unit"
+        options={unitOptions}
+      />
     </div>
   );
 }
@@ -18919,9 +18313,7 @@ export function GoalTrackingConfigFields() {
     </div>
   );
 }
-
 // FILE: src/features/widgets/components/config-fields/LeadCycleTimeConfigFields.tsx
-
 import { FormInput } from "@/components/form/FormFields";
 
 export function LeadCycleTimeConfigFields() {
@@ -18932,13 +18324,11 @@ export function LeadCycleTimeConfigFields() {
         label="Chart Title"
         placeholder="e.g., Task Lead Times"
       />
-      {/* Additional config like date ranges could be added here */}
     </div>
   );
 }
 
 // FILE: src/features/widgets/components/config-fields/PieChartConfigFields.tsx
-
 import { FormInput } from "@/components/form/FormFields";
 
 export function PieChartConfigFields() {
@@ -19099,8 +18489,7 @@ export function TimeTrackingReportConfigFields() {
 }
 
 // FILE: src/features/widgets/components/CreateWidgetForm.tsx
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
@@ -19112,7 +18501,7 @@ import { BurndownChartConfigFields } from "./config-fields/BurndownChartConfigFi
 import { TimeTrackingReportConfigFields } from "./config-fields/TimeTrackingReportConfigFields";
 import { PieChartConfigFields } from "./config-fields/PieChartConfigFields";
 import { GoalTrackingConfigFields } from "./config-fields/GoalTrackingConfigFields";
-import { LeadCycleTimeConfigFields } from "./config-fields/LeadCycleTimeConfigFields"; 
+import { LeadCycleTimeConfigFields } from "./config-fields/LeadCycleTimeConfigFields";
 import { WidgetType } from "@/types";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19133,7 +18522,7 @@ type WidgetFormValues = z.infer<typeof widgetSchema>;
 
 interface CreateWidgetFormProps {
   workspaceId: string;
-  projectId: string;
+  projectId?: string;
   dashboardId: string;
   onSuccess?: () => void;
 }
@@ -19145,7 +18534,7 @@ const configFieldsMap: Record<string, React.FC> = {
   TIME_TRACKING_REPORT: TimeTrackingReportConfigFields,
   PIE_CHART: PieChartConfigFields,
   GOAL_TRACKING: GoalTrackingConfigFields,
-  LEAD_CYCLE_TIME_CHART: LeadCycleTimeConfigFields, 
+  LEAD_CYCLE_TIME_CHART: LeadCycleTimeConfigFields,
 };
 function getDefaultConfig(type: WidgetType) {
   switch (type) {
@@ -19164,7 +18553,7 @@ function getDefaultConfig(type: WidgetType) {
       return { title: "Tasks by Status" };
     case WidgetType.GOAL_TRACKING:
       return { goalId: "" };
-    case WidgetType.LEAD_CYCLE_TIME_CHART: 
+    case WidgetType.LEAD_CYCLE_TIME_CHART:
       return { title: "Task Lead Times" };
     default:
       return {};
@@ -19212,14 +18601,10 @@ export function CreateWidgetForm({
     });
   }
 
-  const widgetTypeOptions = Object.values(WidgetType)
-    .filter(
-      (type) => type !== "CHART" && type !== "TABLE" 
-    )
-    .map((type) => ({
-      value: type,
-      label: type.replace(/_/g, " "),
-    }));
+  const widgetTypeOptions = Object.values(WidgetType).map((type) => ({
+    value: type,
+    label: type.replace(/_/g, " "),
+  }));
 
   return (
     <FormProvider {...methods}>
@@ -19266,8 +18651,8 @@ export function CreateWidgetForm({
     </FormProvider>
   );
 }
-// FILE: src/features/widgets/components/GoalTrackingWidget.tsx
 
+// FILE: src/features/widgets/components/GoalTrackingWidget.tsx
 import { useGetWidgetData } from "../api/useGetWidgetData";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
@@ -19421,9 +18806,7 @@ export function LeadCycleTimeChartWidget({
     </ChartContainer>
   );
 }
-
 // FILE: src/features/widgets/components/PieChartWidget.tsx
-
 import {
   ResponsiveContainer,
   PieChart,
@@ -19491,6 +18874,7 @@ export function PieChartWidget({ widget, workspaceId, projectId }: any) {
 
 // FILE: src/features/widgets/components/StatsCounterWidget.tsx
 import { useGetWidgetData } from "../api/useGetWidgetData";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function StatsCounterWidget({ widget, workspaceId, projectId }: any) {
   const { data, isLoading } = useGetWidgetData(
@@ -19499,8 +18883,14 @@ export function StatsCounterWidget({ widget, workspaceId, projectId }: any) {
     widget.dashboardId,
     widget.id
   );
-
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) {
+    return (
+      <div className="space-y-2">
+        <Skeleton className="h-8 w-1/2" />
+        <Skeleton className="h-4 w-1/3" />
+      </div>
+    );
+  }
 
   const payload = data?.payload;
   return (
@@ -19510,10 +18900,10 @@ export function StatsCounterWidget({ widget, workspaceId, projectId }: any) {
     </>
   );
 }
-
 // FILE: src/features/widgets/components/TaskListWidget.tsx
 import { useGetWidgetData } from "../api/useGetWidgetData";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function TaskListWidget({ widget, workspaceId, projectId }: any) {
   const { data, isLoading } = useGetWidgetData(
@@ -19523,7 +18913,15 @@ export function TaskListWidget({ widget, workspaceId, projectId }: any) {
     widget.id
   );
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) {
+    return (
+      <div className="space-y-2">
+        <Skeleton className="h-6 w-full" />
+        <Skeleton className="h-6 w-full" />
+        <Skeleton className="h-6 w-full" />
+      </div>
+    );
+  }
 
   const payload = data?.payload;
   return (
@@ -19546,9 +18944,7 @@ export function TaskListWidget({ widget, workspaceId, projectId }: any) {
     </div>
   );
 }
-
 // FILE: src/features/widgets/components/TimeTrackingReportWidget.tsx
-
 import { useGetWidgetData } from "../api/useGetWidgetData";
 import {
   Table,
@@ -19558,6 +18954,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function TimeTrackingReportWidget({
   widget,
@@ -19570,7 +18967,15 @@ export function TimeTrackingReportWidget({
     widget.dashboardId,
     widget.id
   );
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) {
+    return (
+      <div className="space-y-2">
+        <Skeleton className="h-8 w-full" />
+        <Skeleton className="h-8 w-full" />
+        <Skeleton className="h-8 w-full" />
+      </div>
+    );
+  }
 
   const payload = data?.payload;
   return (
@@ -19691,7 +19096,6 @@ export function WidgetRenderer({ widget, workspaceId, projectId }: any) {
     </WidgetWrapper>
   );
 }
-
 // FILE: src/features/widgets/components/WidgetWrapper.tsx
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19708,7 +19112,7 @@ import { useDeleteWidget } from "../api/useDeleteWidget";
 interface WidgetWrapperProps {
   widget: any;
   workspaceId: string;
-  projectId: string;
+  projectId?: string;
   children: ReactNode;
 }
 
@@ -19720,7 +19124,7 @@ export function WidgetWrapper({
 }: WidgetWrapperProps) {
   const deleteMutation = useDeleteWidget(
     workspaceId,
-    projectId,
+    projectId!,
     widget.dashboardId
   );
 
@@ -19732,7 +19136,7 @@ export function WidgetWrapper({
 
   return (
     <Card className="h-full">
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-row items-center justify-between p-4">
         <CardTitle className="text-base">{widget.title}</CardTitle>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -19752,9 +19156,16 @@ export function WidgetWrapper({
           </DropdownMenuContent>
         </DropdownMenu>
       </CardHeader>
-      <CardContent>{children}</CardContent>
+      <CardContent className="p-4 pt-0">{children}</CardContent>
     </Card>
   );
+}
+// FILE: src/features/workspaces/api/useManageWorkspaces.ts
+import { useApiResource } from "@/hooks/useApiResource";
+
+export function useManageWorkspaces() {
+  const resource = useApiResource("workspaces", ["workspaces"]);
+  return resource;
 }
 
 // FILE: src/features/workspaces/components/WorkspaceCard.tsx
@@ -20317,7 +19728,6 @@ export function usePresence(contextType: string, contextId: string) {
     };
   }, [socket, contextType, contextId, setMembers, addMember, removeMember]);
 }
-
 // FILE: src/hooks/useProjectSocket.ts
 import { useEffect } from "react";
 import { useSocket } from "./useSocket";
@@ -20363,7 +19773,6 @@ export function useProjectSocket(projectId: string) {
     };
   }, [socket, projectId, queryClient]);
 }
-
 // FILE: src/hooks/useSocket.ts
 import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
@@ -20555,7 +19964,6 @@ export function getIcon(typeName: string | null | undefined): LucideIcon {
 // FILE: src/lib/schemas.ts
 import { SocialProvider, JobStatus } from "@/types";
 import { z } from "zod";
-import { createPaginationSchema, createPaginatedResponseSchema } from "./zod";
 
 export const phoneRegex = new RegExp(/^[+]*[(]?[0-9]{1,4}[)]?[-\s./0-9]*$/);
 export const nameSchema = (entity: string, min = 2) =>
@@ -20662,49 +20070,6 @@ export const JobScheduleSchema = z.object({
   nextRunAt: z.coerce.date().nullable(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
-});
-export const JobListQuerySchema = createPaginationSchema().extend({
-  type: z.string().optional(),
-  status: z.nativeEnum(JobStatus).optional(),
-  sortBy: z
-    .enum(["createdAt", "scheduledAt", "priority", "type", "status"])
-    .default("createdAt"),
-  sortOrder: z.enum(["asc", "desc"]).default("desc"),
-});
-export const JobScheduleListQuerySchema = createPaginationSchema().extend({
-  jobType: z.string().optional(),
-  isActive: z.preprocess((val) => val === "true", z.boolean()).optional(),
-  sortBy: z
-    .enum(["name", "createdAt", "lastRunAt", "nextRunAt"])
-    .default("name"),
-  sortOrder: z.enum(["asc", "desc"]).default("asc"),
-});
-export const PaginatedJobsResponseSchema =
-  createPaginatedResponseSchema(JobSchema);
-export const PaginatedJobSchedulesResponseSchema =
-  createPaginatedResponseSchema(JobScheduleSchema);
-export const QueueStatsSchema = z.object({
-  totalJobs: z.object({
-    total: z.number().int(),
-    pending: z.number().int(),
-    running: z.number().int(),
-    completed: z.number().int(),
-    failed: z.number().int(),
-    cancelled: z.number().int(),
-  }),
-  averageWaitTime: z.number(),
-  averageProcessingTime: z.number(),
-  throughputPerHour: z.number(),
-  failureRate: z.number(),
-});
-export const JobSystemStatusResponseSchema = z.object({
-  processor: z.object({
-    isProcessing: z.boolean(),
-    runningJobs: z.number().int(),
-    consecutiveFailures: z.number().int(),
-  }),
-  scheduler: z.object({ isRunning: z.boolean() }),
-  registeredJobTypes: z.number().int(),
 });
 // FILE: src/lib/utils.ts
 import { clsx, type ClassValue } from "clsx";
@@ -20992,7 +20357,6 @@ export function PermissionListPage() {
     </div>
   );
 }
-
 // FILE: src/pages/admin/RoleListPage.tsx
 import { RoleList } from "@/features/admin/roles/components/RoleList";
 import { Button } from "@/components/ui/button";
@@ -21147,12 +20511,10 @@ export function ChatPage() {
     </div>
   );
 }
-
 // FILE: src/pages/CrmPage.tsx
 import { useState } from "react";
-import { PersonList } from "@/features/crm/components/PersonList";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Building2 } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { PersonForm } from "@/features/crm/components/PersonForm";
 import { CompanyForm } from "@/features/crm/components/CompanyForm";
@@ -21160,43 +20522,9 @@ import { PersonDetailPanel } from "@/features/crm/components/PersonDetailPanel";
 import { CompanyDetailPanel } from "@/features/crm/components/CompanyDetailPanel";
 import { DealDetailPanel } from "@/features/crm/components/DealDetailPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useApiResource } from "@/hooks/useApiResource";
-import { CompanyCard } from "@/features/crm/components/CompanyCard";
-import { EmptyState } from "@/components/ui/empty-state";
+import { PersonList } from "@/features/crm/components/PersonList";
+import { CompanyList } from "@/features/crm/components/CompanyList";
 import { DealPipeline } from "@/features/crm/components/DealPipeline";
-
-function CompanyList({
-  onCompanySelect,
-}: {
-  onCompanySelect: (id: string) => void;
-}) {
-  const { data, isLoading } = useApiResource("companies", [
-    "companies",
-  ]).useGetAll();
-  if (isLoading) return <div>Loading companies...</div>;
-
-  if (!data || data.data.length === 0) {
-    return (
-      <EmptyState
-        icon={<Building2 className="h-10 w-10" />}
-        title="No Companies Found"
-        description="Get started by creating your first company."
-      />
-    );
-  }
-
-  return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {data.data.map((company: any) => (
-        <CompanyCard
-          key={company.id}
-          company={company}
-          onSelect={() => onCompanySelect(company.id)}
-        />
-      ))}
-    </div>
-  );
-}
 
 export function CrmPage() {
   const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
@@ -21212,18 +20540,15 @@ export function CrmPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">CRM</h1>
           <p className="text-muted-foreground">
-            Manage all people and companies in your organization.
+            Manage all people, companies, and deals in your organization.
           </p>
         </div>
-        <div>
+        <div className="flex gap-2">
           <ResourceCrudDialog
             isOpen={isCreatePersonOpen}
             onOpenChange={setIsCreatePersonOpen}
             trigger={
-              <Button
-                onClick={() => setIsCreatePersonOpen(true)}
-                className="mr-2"
-              >
+              <Button onClick={() => setIsCreatePersonOpen(true)}>
                 <PlusCircle className="mr-2 h-4 w-4" />
                 New Person
               </Button>
@@ -21246,8 +20571,8 @@ export function CrmPage() {
             title="Create New Company"
             description="Add a new company or organization to the CRM."
             form={CompanyForm}
-            resourcePath="companies"
-            resourceKey={["companies"]}
+            resourcePath="organizations"
+            resourceKey={["organizations"]}
           />
         </div>
       </div>
@@ -21290,6 +20615,7 @@ export function CrmPage() {
     </div>
   );
 }
+
 // FILE: src/pages/Dashboard.tsx
 export function DashboardPage() {
   return (
@@ -21474,7 +20800,6 @@ export function HomePage() {
     </div>
   );
 }
-
 // FILE: src/pages/IntegrationCallbackPage.tsx
 import { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
@@ -21576,7 +20901,6 @@ export function KnowledgeBasePage() {
     </div>
   );
 }
-
 // FILE: src/pages/Login.tsx
 import { LoginForm } from "@/features/auth/components/LoginForm";
 
@@ -21956,7 +21280,6 @@ export function ProjectAccessControlPage() {
     </div>
   );
 }
-
 // FILE: src/pages/ProjectCustomFieldsPage.tsx
 import { CustomFieldDefinitionList } from "@/features/custom-fields/components/CustomFieldDefinitionList";
 import { useParams } from "react-router-dom";
@@ -22007,7 +21330,6 @@ export function ProjectCustomFieldsPage() {
     </div>
   );
 }
-
 // FILE: src/pages/ProjectDetailPage.tsx
 
 import { useParams, useSearchParams } from "react-router-dom";
@@ -22222,7 +21544,6 @@ export function ProjectGoalsPage() {
     </div>
   );
 }
-
 // FILE: src/pages/ProjectListPage.tsx
 import { ProjectList } from "@/features/projects/components/ProjectList";
 import { useParams } from "react-router-dom";
@@ -22272,7 +21593,7 @@ export function ProjectListPage() {
 }
 
 // FILE: src/pages/ProjectSettingsPage.tsx
-import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useParams } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const settingsNavItems = [
@@ -22287,7 +21608,10 @@ const settingsNavItems = [
 
 export function ProjectSettingsPage() {
   const location = useLocation();
+  const { workspaceId, projectId } = useParams();
   const currentTab = location.pathname.split("/").pop() || "general";
+
+  const basePath = `/workspaces/${workspaceId}/projects/${projectId}/settings`;
 
   return (
     <div className="space-y-6">
@@ -22298,10 +21622,10 @@ export function ProjectSettingsPage() {
         </p>
       </div>
 
-      <Tabs defaultValue={currentTab} className="space-y-4">
+      <Tabs value={currentTab} className="space-y-4">
         <TabsList>
           {settingsNavItems.map((item) => (
-            <NavLink to={item.to} key={item.to} end>
+            <NavLink to={`${basePath}/${item.to}`} key={item.to} end>
               <TabsTrigger value={item.to}>{item.label}</TabsTrigger>
             </NavLink>
           ))}
@@ -22311,6 +21635,7 @@ export function ProjectSettingsPage() {
     </div>
   );
 }
+
 // FILE: src/pages/ProjectTaskTypesPage.tsx
 import { TaskTypeList } from "@/features/task-types/components/TaskTypeList";
 import { useParams } from "react-router-dom";
@@ -22359,7 +21684,6 @@ export function ProjectTaskTypesPage() {
     </div>
   );
 }
-
 // FILE: src/pages/ProjectTemplatesPage.tsx
 import { ProjectTemplateList } from "@/features/projects/components/ProjectTemplateList";
 import { useParams } from "react-router-dom";
@@ -22399,8 +21723,8 @@ export function ProjectTemplatesPage() {
           title="Save Project as Template"
           description="This will create a new template based on the current project's structure (views, custom fields, etc.). Tasks and other content will not be included."
           form={CreateTemplateForm}
-          formProps={{ workspaceId, projectId }}
-          resourcePath={`/workspaces/${workspaceId}/projects/${projectId}/templates`}
+          formProps={{ workspaceId, projectId, sourceProjectId: projectId }}
+          resourcePath={`/admin/project-templates`}
           resourceKey={["projectTemplates", projectId]}
         />
       </div>
@@ -22408,7 +21732,6 @@ export function ProjectTemplatesPage() {
     </div>
   );
 }
-
 // FILE: src/pages/ProjectViewsPage.tsx
 import { ViewList } from "@/features/views/components/ViewList";
 import { useParams } from "react-router-dom";
@@ -22456,7 +21779,6 @@ export function ProjectViewsPage() {
     </div>
   );
 }
-
 // FILE: src/pages/PublicationsPage.tsx
 import { PublicationList } from "@/features/publications/components/PublicationList";
 import { Button } from "@/components/ui/button";
@@ -22945,6 +22267,233 @@ export const usePresenceStore = create<PresenceState>((set) => ({
       members: state.members.filter((m) => m.socketId !== socketId),
     })),
 }));
+// FILE: src/types/api.ts
+export enum SocialProvider {
+  GOOGLE = "GOOGLE",
+  LINKEDIN = "LINKEDIN",
+  TWITTER = "TWITTER",
+  FACEBOOK = "FACEBOOK",
+  NEXTCLOUD = "NEXTCLOUD",
+  TELEGRAM = "TELEGRAM",
+  GITHUB = "GITHUB",
+  WEBSITE = "WEBSITE",
+  OTHER = "OTHER",
+  WORDPRESS = "WORDPRESS",
+  CANVA = "CANVA",
+  INSTAGRAM = "INSTAGRAM",
+  WHATSAPP = "WHATSAPP",
+  OPEN_ROUTER = "OPEN_ROUTER",
+  BREVO = "BREVO",
+  GOOGLE_CALENDAR = "GOOGLE_CALENDAR",
+  GOOGLE_DOCS = "GOOGLE_DOCS",
+  GOOGLE_SHEETS = "GOOGLE_SHEETS",
+  GOOGLE_SLIDES = "GOOGLE_SLIDES",
+  GOOGLE_MEET = "GOOGLE_MEET",
+  GOOGLE_CHAT = "GOOGLE_CHAT",
+  GOOGLE_YOUTUBE = "GOOGLE_YOUTUBE",
+}
+
+export enum SkillCategory {
+  TECHNICAL = "TECHNICAL",
+  SOFT_SKILL = "SOFT_SKILL",
+  LANGUAGE = "LANGUAGE",
+  OTHER = "OTHER",
+}
+
+export enum PublicationStatus {
+  DRAFT = "DRAFT",
+  PUBLISHED = "PUBLISHED",
+  ARCHIVED = "ARCHIVED",
+}
+
+export enum DocumentType {
+  INPUT = "INPUT",
+  OUTPUT = "OUTPUT",
+}
+
+export enum AnnouncementSeverity {
+  INFO = "INFO",
+  LOW = "LOW",
+  MEDIUM = "MEDIUM",
+  HIGH = "HIGH",
+  CRITICAL = "CRITICAL",
+}
+
+export enum ProjectStatus {
+  PLANNING = "PLANNING",
+  IN_PROGRESS = "IN_PROGRESS",
+  ON_HOLD = "ON_HOLD",
+  COMPLETED = "COMPLETED",
+  CANCELLED = "CANCELLED",
+}
+
+export enum TaskStatus {
+  TODO = "TODO",
+  IN_PROGRESS = "IN_PROGRESS",
+  IN_REVIEW = "IN_REVIEW",
+  DONE = "DONE",
+  BLOCKED = "BLOCKED",
+  CANCELLED = "CANCELLED",
+}
+
+export enum TaskPriority {
+  NONE = "NONE",
+  LOW = "LOW",
+  MEDIUM = "MEDIUM",
+  HIGH = "HIGH",
+  URGENT = "URGENT",
+}
+
+export enum TaskLinkType {
+  RELATES_TO = "RELATES_TO",
+  BLOCKS = "BLOCKS",
+  IS_BLOCKED_BY = "IS_BLOCKED_BY",
+}
+
+export enum CustomFieldType {
+  TEXT = "TEXT",
+  NUMBER = "NUMBER",
+  DATE = "DATE",
+  SELECT = "SELECT",
+}
+
+export enum ActivityActionType {
+  TASK_CREATED = "TASK_CREATED",
+  TASK_UPDATED = "TASK_UPDATED",
+  TASK_DELETED = "TASK_DELETED",
+  TASK_MOVED = "TASK_MOVED",
+  COMMENT_CREATED = "COMMENT_CREATED",
+  COMMENT_UPDATED = "COMMENT_UPDATED",
+  COMMENT_DELETED = "COMMENT_DELETED",
+  PROJECT_CREATED = "PROJECT_CREATED",
+  PROJECT_UPDATED = "PROJECT_UPDATED",
+}
+
+export enum JobStatus {
+  PENDING = "PENDING",
+  RUNNING = "RUNNING",
+  COMPLETED = "COMPLETED",
+  FAILED = "FAILED",
+  CANCELLED = "CANCELLED",
+}
+
+export enum NotificationType {
+  SYSTEM_BROADCAST = "SYSTEM_BROADCAST",
+  TASK_ASSIGNMENT = "TASK_ASSIGNMENT",
+  COMMENT_MENTION = "COMMENT_MENTION",
+  PROJECT_INVITE = "PROJECT_INVITE",
+  INTEGRATION_HEALTH_ALERT = "INTEGRATION_HEALTH_ALERT",
+}
+
+export enum NotificationSeverity {
+  LOW = "LOW",
+  MEDIUM = "MEDIUM",
+  HIGH = "HIGH",
+  CRITICAL = "CRITICAL",
+}
+
+export enum EmailDigestFrequency {
+  NONE = "NONE",
+  DAILY = "DAILY",
+  WEEKLY = "WEEKLY",
+  IMMEDIATELY = "IMMEDIATELY",
+}
+
+export enum WorkflowActionType {
+  CREATE_TASK = "CREATE_TASK",
+  UPDATE_TASK_STATUS = "UPDATE_TASK_STATUS",
+  ADD_COMMENT = "ADD_COMMENT",
+  ASSIGN_TASK = "ASSIGN_TASK",
+  SEND_TELEGRAM_MESSAGE = "SEND_TELEGRAM_MESSAGE",
+  SEND_EMAIL_BREVO = "SEND_EMAIL_BREVO",
+  SEND_WEBHOOK = "SEND_WEBHOOK",
+  SEND_GOOGLE_CHAT_MESSAGE = "SEND_GOOGLE_CHAT_MESSAGE",
+}
+
+export enum WorkflowRunStatus {
+  RUNNING = "RUNNING",
+  SUCCESS = "SUCCESS",
+  FAILED = "FAILED",
+}
+
+export enum ViewType {
+  KANBAN = "KANBAN",
+  LIST = "LIST",
+  CALENDAR = "CALENDAR",
+  GANTT = "GANTT",
+  BACKLOG = "BACKLOG",
+  WHITEBOARD = "WHITEBOARD",
+}
+
+export enum WidgetType {
+  STATS_COUNTER = "STATS_COUNTER",
+  TASK_LIST = "TASK_LIST",
+  BURNDOWN_CHART = "BURNDOWN_CHART",
+  TIME_TRACKING_REPORT = "TIME_TRACKING_REPORT",
+  PIE_CHART = "PIE_CHART",
+  GOAL_TRACKING = "GOAL_TRACKING",
+  LEAD_CYCLE_TIME_CHART = "LEAD_CYCLE_TIME_CHART",
+}
+
+export enum GoalStatus {
+  ON_TRACK = "ON_TRACK",
+  AT_RISK = "AT_RISK",
+  OFF_TRACK = "OFF_TRACK",
+  ACHIEVED = "ACHIEVED",
+  NOT_STARTED = "NOT_STARTED",
+}
+
+export enum KeyResultType {
+  NUMBER = "NUMBER",
+  PERCENTAGE = "PERCENTAGE",
+  CURRENCY = "CURRENCY",
+  BOOLEAN = "BOOLEAN",
+}
+
+export enum InteractionType {
+  EMAIL = "EMAIL",
+  CALL = "CALL",
+  MEETING = "MEETING",
+  SOCIAL = "SOCIAL",
+}
+
+export enum IntegrationProvider {
+  GOOGLE = "GOOGLE",
+  NEXTCLOUD = "NEXTCLOUD",
+  BREVO = "BREVO",
+  WORDPRESS = "WORDPRESS",
+  CANVA = "CANVA",
+  OPEN_ROUTER = "OPEN_ROUTER",
+  LINKEDIN = "LINKEDIN",
+  FACEBOOK = "FACEBOOK",
+  TWITTER = "TWITTER",
+  INSTAGRAM = "INSTAGRAM",
+  WHATSAPP = "WHATSAPP",
+  TELEGRAM = "TELEGRAM",
+  GOOGLE_CALENDAR = "GOOGLE_CALENDAR",
+  GOOGLE_DOCS = "GOOGLE_DOCS",
+  GOOGLE_SHEETS = "GOOGLE_SHEETS",
+  GOOGLE_SLIDES = "GOOGLE_SLIDES",
+  GOOGLE_MEET = "GOOGLE_MEET",
+  GOOGLE_CHAT = "GOOGLE_CHAT",
+  GOOGLE_YOUTUBE = "GOOGLE_YOUTUBE",
+}
+
+export enum IntegrationHealthStatus {
+  OK = "OK",
+  ERROR = "ERROR",
+  DISABLED = "DISABLED",
+}
+
+export enum IntegrationCategory {
+  OAUTH = "OAUTH",
+  API_KEY = "API_KEY",
+  WEBHOOK = "WEBHOOK",
+}
+
+export enum WebhookAction {
+  CREATE_TASK = "CREATE_TASK",
+}
 
 // FILE: src/types/index.ts
 export enum TaskStatus {
@@ -23001,6 +22550,7 @@ export enum WorkflowActionType {
   ADD_COMMENT = "ADD_COMMENT",
   SEND_TELEGRAM_MESSAGE = "SEND_TELEGRAM_MESSAGE",
   SEND_EMAIL_BREVO = "SEND_EMAIL_BREVO",
+  SEND_WEBHOOK = "SEND_WEBHOOK",
 }
 
 export enum WidgetType {

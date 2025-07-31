@@ -1,13 +1,5 @@
 import { useState } from "react";
 import { useApiResource } from "@/hooks/useApiResource";
-import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Trash2 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   DataTable,
   DataTableWrapper,
@@ -23,7 +15,6 @@ export function PermissionList() {
     page,
     limit: 15,
   });
-  const deleteMutation = permissionResource.useDelete();
 
   const handlePageChange = (newPage: number) => {
     if (newPage > 0 && newPage <= (data?.totalPages || 1)) {
@@ -51,37 +42,6 @@ export function PermissionList() {
       header: "Description",
       cell: (permission) => permission.description,
     },
-    {
-      accessorKey: "actions",
-      header: "Actions",
-      cell: (permission) => (
-        <div className="text-right">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                className="text-red-600"
-                onClick={() => {
-                  if (
-                    window.confirm(
-                      `Delete permission "${permission.action} on ${permission.subject}"?`
-                    )
-                  ) {
-                    deleteMutation.mutate(permission.id);
-                  }
-                }}
-              >
-                <Trash2 className="mr-2 h-4 w-4" /> Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      ),
-    },
   ];
 
   if (isLoading) return <div>Loading permissions...</div>;
@@ -96,26 +56,6 @@ export function PermissionList() {
           totalPages: data?.totalPages || 1,
           handlePageChange,
         }}
-        bulkActions={(selectedIds) => (
-          <Button
-            variant="destructive"
-            onClick={() => {
-              if (
-                window.confirm(
-                  `Delete ${selectedIds.length} selected permissions?`
-                )
-              ) {
-                deleteMutation.mutate(selectedIds, {
-                  onSuccess: () => {},
-                });
-              }
-            }}
-            disabled={deleteMutation.isPending}
-          >
-            <Trash2 className="mr-2 h-4 w-4" />
-            Delete ({selectedIds.length})
-          </Button>
-        )}
       />
     </DataTableWrapper>
   );

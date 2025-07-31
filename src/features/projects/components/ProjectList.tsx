@@ -10,6 +10,14 @@ import { FolderKanban } from "lucide-react";
 import { useState } from "react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { ProjectForm } from "./ProjectForm";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { CreateProjectFromTemplateForm } from "./CreateProjectFromTemplateForm";
+
 const ProjectListSkeleton = () => (
   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
     {Array.from({ length: 3 }).map((_, i) => (
@@ -33,6 +41,8 @@ export function ProjectList({ workspaceId }: { workspaceId: string }) {
   const { data, isLoading, isError, error } = projectResource.useGetAll();
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isCreateFromTemplateOpen, setIsCreateFromTemplateOpen] =
+    useState(false);
 
   if (isLoading) {
     return <ProjectListSkeleton />;
@@ -49,6 +59,10 @@ export function ProjectList({ workspaceId }: { workspaceId: string }) {
       />
     );
   }
+
+  const handleEdit = (projectId: string) => {
+    setEditingProjectId(projectId);
+  };
 
   if (!data || data.data.length === 0) {
     return (
@@ -80,20 +94,54 @@ export function ProjectList({ workspaceId }: { workspaceId: string }) {
 
   return (
     <>
+      <div className="flex justify-end">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              New Project
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem onClick={() => setIsCreateOpen(true)}>
+              New Blank Project
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setIsCreateFromTemplateOpen(true)}>
+              New from Template
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <ResourceCrudDialog
+          isOpen={isCreateOpen}
+          onOpenChange={setIsCreateOpen}
+          title="Create a new project"
+          description="Projects live inside workspaces and contain your tasks."
+          form={ProjectForm}
+          formProps={{ workspaceId }}
+          resourcePath={`/workspaces/${workspaceId}/projects`}
+          resourceKey={["projects", workspaceId]}
+        />
+        <ResourceCrudDialog
+          isOpen={isCreateFromTemplateOpen}
+          onOpenChange={setIsCreateFromTemplateOpen}
+          title="Create from Template"
+          description="Create a new project based on an existing template."
+          form={CreateProjectFromTemplateForm}
+          formProps={{ workspaceId }}
+          resourcePath={""}
+          resourceKey={[]}
+        />
+      </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {data.data.map((project: any) => (
-          <ProjectCard
-            project={project}
-            key={project.id}
-            onEdit={setEditingProjectId}
-          />
+          <ProjectCard project={project} key={project.id} onEdit={handleEdit} />
         ))}
       </div>
 
       <ResourceCrudDialog
         isOpen={!!editingProjectId}
         onOpenChange={(isOpen) => !isOpen && setEditingProjectId(null)}
-        trigger={<></>}
         title="Edit Project"
         description="Make changes to your project here. Click save when you're done."
         form={ProjectForm}

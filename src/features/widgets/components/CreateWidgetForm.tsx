@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
@@ -11,7 +10,7 @@ import { BurndownChartConfigFields } from "./config-fields/BurndownChartConfigFi
 import { TimeTrackingReportConfigFields } from "./config-fields/TimeTrackingReportConfigFields";
 import { PieChartConfigFields } from "./config-fields/PieChartConfigFields";
 import { GoalTrackingConfigFields } from "./config-fields/GoalTrackingConfigFields";
-import { LeadCycleTimeConfigFields } from "./config-fields/LeadCycleTimeConfigFields"; 
+import { LeadCycleTimeConfigFields } from "./config-fields/LeadCycleTimeConfigFields";
 import { WidgetType } from "@/types";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -32,7 +31,7 @@ type WidgetFormValues = z.infer<typeof widgetSchema>;
 
 interface CreateWidgetFormProps {
   workspaceId: string;
-  projectId: string;
+  projectId?: string;
   dashboardId: string;
   onSuccess?: () => void;
 }
@@ -44,7 +43,7 @@ const configFieldsMap: Record<string, React.FC> = {
   TIME_TRACKING_REPORT: TimeTrackingReportConfigFields,
   PIE_CHART: PieChartConfigFields,
   GOAL_TRACKING: GoalTrackingConfigFields,
-  LEAD_CYCLE_TIME_CHART: LeadCycleTimeConfigFields, 
+  LEAD_CYCLE_TIME_CHART: LeadCycleTimeConfigFields,
 };
 function getDefaultConfig(type: WidgetType) {
   switch (type) {
@@ -63,7 +62,7 @@ function getDefaultConfig(type: WidgetType) {
       return { title: "Tasks by Status" };
     case WidgetType.GOAL_TRACKING:
       return { goalId: "" };
-    case WidgetType.LEAD_CYCLE_TIME_CHART: 
+    case WidgetType.LEAD_CYCLE_TIME_CHART:
       return { title: "Task Lead Times" };
     default:
       return {};
@@ -111,14 +110,10 @@ export function CreateWidgetForm({
     });
   }
 
-  const widgetTypeOptions = Object.values(WidgetType)
-    .filter(
-      (type) => type !== "CHART" && type !== "TABLE" 
-    )
-    .map((type) => ({
-      value: type,
-      label: type.replace(/_/g, " "),
-    }));
+  const widgetTypeOptions = Object.values(WidgetType).map((type) => ({
+    value: type,
+    label: type.replace(/_/g, " "),
+  }));
 
   return (
     <FormProvider {...methods}>

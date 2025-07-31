@@ -3,7 +3,7 @@ import { useApiMutation } from "@/hooks/useApiMutation";
 
 interface UpdateWidgetParams {
   workspaceId: string;
-  projectId: string;
+  projectId?: string;
   dashboardId: string;
   widgetId: string;
   widgetData: any;
@@ -11,16 +11,16 @@ interface UpdateWidgetParams {
 
 async function updateWidget(params: UpdateWidgetParams): Promise<any> {
   const { workspaceId, projectId, dashboardId, widgetId, widgetData } = params;
-  const { data } = await api.put(
-    `/workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}/widgets/${widgetId}`,
-    widgetData
-  );
+  const url = projectId
+    ? `/workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}/widgets/${widgetId}`
+    : `/workspaces/${workspaceId}/dashboards/${dashboardId}/widgets/${widgetId}`;
+  const { data } = await api.put(url, widgetData);
   return data;
 }
 
 export function useUpdateWidget(
   workspaceId: string,
-  projectId: string,
+  projectId: string | undefined,
   dashboardId: string
 ) {
   return useApiMutation({

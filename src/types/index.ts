@@ -52,6 +52,7 @@ export enum WorkflowActionType {
   ADD_COMMENT = "ADD_COMMENT",
   SEND_TELEGRAM_MESSAGE = "SEND_TELEGRAM_MESSAGE",
   SEND_EMAIL_BREVO = "SEND_EMAIL_BREVO",
+  SEND_WEBHOOK = "SEND_WEBHOOK",
 }
 
 export enum WidgetType {

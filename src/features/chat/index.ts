@@ -5,4 +5,3 @@ export * from "./components/ChatInterface.js";
 export * from "./components/ChannelList.js";
 export * from "./components/MessageInput.js";
 export * from "./components/MessageView.js";
-export * from "./components/ChatInterface.js";
