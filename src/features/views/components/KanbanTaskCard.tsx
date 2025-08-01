@@ -24,13 +24,14 @@ import { useApiResource } from "@/hooks/useApiResource";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { Task } from "@/features/tasks/task.types";
-import { TaskStatus } from "@/types";
+import { Task } from "@/types";
+import { TaskStatus } from "@/types/api";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { CreateTemplateFromTaskForm } from "@/features/task-templates/components/CreateTemplateFromTaskDialog";
 import { getIcon } from "@/lib/icons";
+
 export function KanbanTaskCard({
   task,
   onTaskSelect,
@@ -54,17 +55,20 @@ export function KanbanTaskCard({
     transition,
     transform: CSS.Transform.toString(transform),
   };
+
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (window.confirm(`Delete task "${task.title}"?`)) {
       deleteTaskMutation.mutate(task.id);
     }
   };
+
   const handleCopyId = (e: React.MouseEvent) => {
     e.stopPropagation();
-    navigator.clipboard.writeText(task.id);
+    navigator.clipboard.writeText(task.shortId || task.id);
     toast.success("Task ID copied to clipboard.");
   };
+
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
     onTaskSelect(task.id);

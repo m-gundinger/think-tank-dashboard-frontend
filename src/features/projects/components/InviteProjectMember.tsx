@@ -51,7 +51,6 @@ export function InviteProjectMember({
   const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null);
   const [isGuest, setIsGuest] = useState(false);
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
-  const [userSearch, setUserSearch] = useState("");
 
   const userResource = useApiResource("admin/users", ["users"]);
   const teamResource = useApiResource(`/workspaces/${workspaceId}/teams`, [
@@ -63,12 +62,8 @@ export function InviteProjectMember({
     ["projectRoles", projectId]
   );
 
-  const { data: usersData, isLoading: isLoadingUsers } = userResource.useGetAll(
-    {
-      search: userSearch,
-      limit: 1000,
-    }
-  );
+  const { data: usersData, isLoading: isLoadingUsers } =
+    userResource.useGetAll();
   const { data: rolesData, isLoading: isLoadingRoles } =
     projectRoleResource.useGetAll();
   const { data: teamsData, isLoading: isLoadingTeams } =
@@ -114,7 +109,6 @@ export function InviteProjectMember({
         {
           onSuccess: () => {
             setSelectedUserId(null);
-            setUserSearch("");
           },
         }
       );
@@ -168,10 +162,7 @@ export function InviteProjectMember({
                 </PopoverTrigger>
                 <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
                   <Command>
-                    <CommandInput
-                      placeholder="Search by name or email..."
-                      onValueChange={setUserSearch}
-                    />
+                    <CommandInput placeholder="Search by name or email..." />
                     <CommandList>
                       {isLoadingUsers && <CommandItem>Loading...</CommandItem>}
                       <CommandEmpty>No users found.</CommandEmpty>

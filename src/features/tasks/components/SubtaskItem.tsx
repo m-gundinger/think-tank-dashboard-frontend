@@ -7,9 +7,9 @@ import {
   Eye,
   OctagonAlert,
 } from "lucide-react";
-import { TaskStatus } from "@/types";
+import { TaskStatus } from "@/types/api";
 import React from "react";
-import { Task } from "../task.types";
+import { Task } from "@/types";
 interface SubtaskItemProps {
   task: Task;
   onTaskSelect: (taskId: string) => void;

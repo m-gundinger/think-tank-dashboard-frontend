@@ -112,6 +112,7 @@ function App() {
           <Route path="workspaces" element={<WorkspacesPage />} />
           <Route path="publications" element={<PublicationsPage />} />
           <Route path="crm" element={<CrmPage />} />
+
           <Route path="workspaces/:workspaceId" element={<WorkspaceLayout />}>
             <Route index element={<Navigate to="projects" replace />} />
             <Route path="projects" element={<ProjectListPage />} />
@@ -819,6 +820,7 @@ const mainNavItems = [
   { to: "/crm", icon: Contact, label: "CRM" },
   { to: "/chat", icon: MessageSquare, label: "Chat" },
 ];
+
 const adminNavItems = [
   { to: "/admin/users", icon: Users, label: "Users" },
   { to: "/admin/roles", icon: Shield, label: "Roles" },
@@ -897,11 +899,14 @@ export function Sidebar() {
     </aside>
   );
 }
+// FILE: src/features/activities/api/useGetActivities.ts
+
 // FILE: src/features/activities/components/ProjectActivityLog.tsx
 import { useApiResource } from "@/hooks/useApiResource";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Activity, MessageSquarePlus, SquarePlus, Trash2 } from "lucide-react";
+import { AnyValue } from "@/types";
 
 const activityIconMap: Record<string, React.ElementType> = {
   TASK_CREATED: SquarePlus,
@@ -910,7 +915,8 @@ const activityIconMap: Record<string, React.ElementType> = {
   COMMENT_CREATED: MessageSquarePlus,
   DEFAULT: Activity,
 };
-function formatActivityDetails(activity: any): string {
+
+function formatActivityDetails(activity: AnyValue): string {
   const actorName = activity.actor.name;
   switch (activity.actionType) {
     case "TASK_CREATED":
@@ -929,14 +935,21 @@ function formatActivityDetails(activity: any): string {
   }
 }
 
-export function ProjectActivityLog({ workspaceId, projectId }: any) {
+export function ProjectActivityLog({
+  workspaceId,
+  projectId,
+}: {
+  workspaceId: string;
+  projectId: string;
+}) {
   const activityResource = useApiResource(
     `/workspaces/${workspaceId}/projects/${projectId}/activities`,
     ["activities", projectId]
   );
   const { data, isLoading, isError } = activityResource.useGetAll({
-    limit: 50,
+    enabled: true,
   });
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -951,6 +964,7 @@ export function ProjectActivityLog({ workspaceId, projectId }: any) {
   }
 
   if (isError) return <div>Failed to load project activity.</div>;
+
   return (
     <Card>
       <CardHeader>
@@ -984,6 +998,37 @@ export function ProjectActivityLog({ workspaceId, projectId }: any) {
     </Card>
   );
 }
+// FILE: src/features/admin/announcements/api/useGetAnnouncements.ts
+import api from "@/lib/api";
+import { useQuery } from "@tanstack/react-query";
+import { PaginatedResponse, Announcement } from "@/types";
+async function getAnnouncements(
+  query: any
+): Promise<PaginatedResponse<Announcement>> {
+  const { data } = await api.get("/announcements", { params: query });
+  return data;
+}
+
+export function useGetAnnouncements(query: any) {
+  return useQuery({
+    queryKey: ["announcements", query],
+    queryFn: () => getAnnouncements(query),
+  });
+}
+
+async function getAnnouncement(id: string): Promise<Announcement> {
+  const { data } = await api.get(`/announcements/${id}`);
+  return data;
+}
+
+export function useGetAnnouncement(id: string | null) {
+  return useQuery<Announcement>({
+    queryKey: ["announcement", id],
+    queryFn: () => getAnnouncement(id!),
+
+    enabled: !!id,
+  });
+}
 
 // FILE: src/features/admin/announcements/api/useManageAnnouncements.ts
 import { useApiResource } from "@/hooks/useApiResource";
@@ -992,7 +1037,6 @@ export function useManageAnnouncements() {
   const resource = useApiResource("announcements", ["announcements"]);
   return resource;
 }
-
 // FILE: src/features/admin/announcements/components/AnnouncementForm.tsx
 import { useForm, FormProvider } from "react-hook-form";
 import { useEffect } from "react";
@@ -1005,8 +1049,11 @@ import {
   FormSwitch,
 } from "@/components/form/FormFields";
 import { useApiResource } from "@/hooks/useApiResource";
+import { AnnouncementSeverity, PublicationStatus } from "@/types/api";
+import { Announcement } from "@/types";
+
 interface AnnouncementFormProps {
-  initialData?: any;
+  initialData?: Announcement;
   onSuccess?: () => void;
 }
 
@@ -1045,12 +1092,12 @@ export function AnnouncementForm({
       content: { message: values.content },
     };
     if (isEditMode) {
-      await updateMutation.mutate(
+      await updateMutation.mutateAsync(
         { id: initialData.id, data: finalValues },
         { onSuccess }
       );
     } else {
-      await createMutation.mutate(finalValues, {
+      await createMutation.mutateAsync(finalValues, {
         onSuccess: () => {
           methods.reset();
           onSuccess?.();
@@ -1059,18 +1106,14 @@ export function AnnouncementForm({
     }
   }
 
-  const statusOptions = [
-    { value: "DRAFT", label: "Draft" },
-    { value: "PUBLISHED", label: "Published" },
-    { value: "ARCHIVED", label: "Archived" },
-  ];
-  const severityOptions = [
-    { value: "INFO", label: "Info" },
-    { value: "LOW", label: "Low" },
-    { value: "MEDIUM", label: "Medium" },
-    { value: "HIGH", label: "High" },
-    { value: "CRITICAL", label: "Critical" },
-  ];
+  const statusOptions = Object.values(PublicationStatus).map((s) => ({
+    value: s,
+    label: s.charAt(0) + s.slice(1).toLowerCase(),
+  }));
+  const severityOptions = Object.values(AnnouncementSeverity).map((s) => ({
+    value: s,
+    label: s.charAt(0) + s.slice(1).toLowerCase(),
+  }));
   return (
     <FormProvider {...methods}>
       <Form {...methods}>
@@ -1120,7 +1163,6 @@ export function AnnouncementForm({
     </FormProvider>
   );
 }
-
 // FILE: src/features/admin/announcements/components/AnnouncementList.tsx
 import { useState } from "react";
 import { useApiResource } from "@/hooks/useApiResource";
@@ -1140,16 +1182,15 @@ import {
 } from "@/components/ui/DataTable";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { AnnouncementForm } from "./AnnouncementForm";
+import { Announcement } from "@/types";
+
 export function AnnouncementList() {
-  const [page, setPage] = useState(1);
+  const [, setPage] = useState(1);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const announcementResource = useApiResource("announcements", [
+  const announcementResource = useApiResource<Announcement>("announcements", [
     "announcements",
   ]);
-  const { data, isLoading, isError } = announcementResource.useGetAll({
-    page,
-    limit: 10,
-  });
+  const { data, isLoading, isError } = announcementResource.useGetAll();
   const deleteMutation = announcementResource.useDelete();
 
   const handlePageChange = (newPage: number) => {
@@ -1158,74 +1199,77 @@ export function AnnouncementList() {
     }
   };
 
-  const columns: ColumnDef<any>[] = [
+  const columns: ColumnDef<Announcement>[] = [
     {
       accessorKey: "title",
       header: "Title",
-      cell: (announcement) => (
-        <span className="font-medium">{announcement.title}</span>
+      cell: (row: Announcement) => (
+        <span className="font-medium">{row.title}</span>
       ),
     },
     {
       accessorKey: "status",
       header: "Status",
-      cell: (announcement) => (
-        <Badge variant="outline">{announcement.status}</Badge>
+      cell: (row: Announcement) => (
+        <Badge variant="outline">{row.status}</Badge>
       ),
     },
     {
       accessorKey: "severity",
       header: "Severity",
-      cell: (announcement) => (
-        <Badge variant="secondary">{announcement.severity}</Badge>
+      cell: (row: Announcement) => (
+        <Badge variant="secondary">{row.severity}</Badge>
       ),
     },
     {
       accessorKey: "isPinned",
       header: "Pinned",
-      cell: (announcement) => (announcement.isPinned ? "Yes" : "No"),
+      cell: (row: Announcement) => (row.isPinned ? "Yes" : "No"),
     },
     {
       accessorKey: "publishedAt",
       header: "Published",
-      cell: (announcement) =>
-        announcement.publishedAt
-          ? new Date(announcement.publishedAt).toLocaleDateString("en-US")
+      cell: (row: Announcement) =>
+        row.publishedAt
+          ? new Date(row.publishedAt).toLocaleDateString("en-US")
           : "N/A",
     },
     {
       accessorKey: "actions",
       header: "Actions",
-      cell: (announcement) => (
-        <div className="text-right">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setEditingId(announcement.id)}>
-                <Edit className="mr-2 h-4 w-4" /> Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="text-red-600"
-                onClick={() => {
-                  if (
-                    window.confirm(
-                      `Delete announcement "${announcement.title}"?`
-                    )
-                  ) {
-                    deleteMutation.mutate(announcement.id);
-                  }
-                }}
-              >
-                <Trash2 className="mr-2 h-4 w-4" /> Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      ),
+      cell: (row: Announcement) => {
+        const announcement = row;
+        return (
+          <div className="text-right">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setEditingId(announcement.id)}>
+                  <Edit className="mr-2 h-4 w-4" /> Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="text-red-600"
+                  onClick={() => {
+                    if (
+                      window.confirm(
+                        `Delete announcement "${announcement.title}"?`
+                      )
+                    ) {
+                      deleteMutation.mutate(announcement.id);
+                    }
+                  }}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" /> Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        );
+      },
     },
   ];
 
@@ -1277,10 +1321,27 @@ export function AnnouncementList() {
     </>
   );
 }
+// FILE: src/features/admin/jobs/api/useCancelJob.ts
+import api from "@/lib/api";
+import { useApiMutation } from "@/hooks/useApiMutation";
+
+async function cancelJob(jobId: string): Promise<any> {
+  const { data } = await api.post(`/admin/jobs/${jobId}/cancel`);
+  return data;
+}
+
+export function useCancelJob() {
+  return useApiMutation({
+    mutationFn: cancelJob,
+    successMessage: (data) => `Job cancelled. Job ID: ${data.job.id}`,
+    invalidateQueries: (data) => [["jobs"], ["job", data.job.id]],
+  });
+}
 
 // FILE: src/features/admin/jobs/api/useGetJobSystemStatus.ts
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
+
 async function getJobSystemStatus(): Promise<any> {
   const { data } = await api.get("/admin/jobs/system/status");
   return data;
@@ -1306,10 +1367,10 @@ export function useGetQueueStats() {
     refetchInterval: 5000,
   });
 }
-
 // FILE: src/features/admin/jobs/api/useGetJobTypes.ts
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
+
 async function getJobTypes(): Promise<any> {
   const { data } = await api.get("/admin/jobs/system/job-types");
   return data;
@@ -1322,10 +1383,10 @@ export function useGetJobTypes() {
     staleTime: Infinity,
   });
 }
-
 // FILE: src/features/admin/jobs/api/useJobActions.ts
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
+
 async function retryJob(jobId: string): Promise<any> {
   const { data } = await api.post(`/admin/jobs/${jobId}/retry`);
   return data;
@@ -1359,7 +1420,6 @@ export function useManageJobs() {
   const resource = useApiResource("admin/jobs", ["jobs"]);
   return resource;
 }
-
 // FILE: src/features/admin/jobs/api/useManageJobSchedules.ts
 import { useApiResource } from "@/hooks/useApiResource";
 
@@ -1367,10 +1427,26 @@ export function useManageJobSchedules() {
   const resource = useApiResource("admin/jobs/schedules", ["jobSchedules"]);
   return resource;
 }
+// FILE: src/features/admin/jobs/api/useRetryJob.ts
+import api from "@/lib/api";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
+async function retryJob(jobId: string): Promise<any> {
+  const { data } = await api.post(`/admin/jobs/${jobId}/retry`);
+  return data;
+}
+
+export function useRetryJob() {
+  return useApiMutation({
+    mutationFn: retryJob,
+    successMessage: (data) => `Job sent for retry. Job ID: ${data.job.id}`,
+    invalidateQueries: (data) => [["jobs"], ["job", data.job.id]],
+  });
+}
 // FILE: src/features/admin/jobs/api/useTriggerJobSchedule.ts
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
+
 async function triggerJobSchedule(
   scheduleId: string
 ): Promise<{ jobId: string }> {
@@ -1387,7 +1463,6 @@ export function useTriggerJobSchedule() {
       `Job schedule triggered. New Job ID: ${data.jobId}`,
   });
 }
-
 // FILE: src/features/admin/jobs/components/CreateJobScheduleForm.tsx
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -1413,6 +1488,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
 const JobScheduleFormSchema = z.object({
   name: z.string().min(1, "Schedule name is required."),
   jobType: z.string().min(1, "Job type is required."),
@@ -1420,6 +1496,7 @@ const JobScheduleFormSchema = z.object({
   payload: z.string(),
   isActive: z.boolean(),
 });
+
 type JobScheduleFormValues = {
   name: string;
   jobType: string;
@@ -1427,6 +1504,7 @@ type JobScheduleFormValues = {
   payload: string;
   isActive: boolean;
 };
+
 interface CreateJobScheduleFormProps {
   onSuccess?: () => void;
 }
@@ -1449,6 +1527,7 @@ export function CreateJobScheduleForm({
       isActive: true,
     },
   });
+
   async function onSubmit(values: JobScheduleFormValues) {
     let parsedPayload = {};
     if (values.payload && values.payload.trim()) {
@@ -1567,9 +1646,7 @@ export function CreateJobScheduleForm({
     </Form>
   );
 }
-
 // FILE: src/features/admin/jobs/components/JobList.tsx
-import { useState } from "react";
 import { useApiResource } from "@/hooks/useApiResource";
 import { useRetryJob, useCancelJob } from "../api/useJobActions";
 import {
@@ -1596,8 +1673,8 @@ import {
   CheckCircle,
   AlertCircle,
 } from "lucide-react";
-import { JobStatus } from "@/types";
-import { Job } from "@/lib/schemas";
+import { JobStatus } from "@/types/api";
+import { Job } from "@/types";
 
 const statusVariantMap: Record<
   JobStatus,
@@ -1609,6 +1686,7 @@ const statusVariantMap: Record<
   [JobStatus.FAILED]: "destructive",
   [JobStatus.CANCELLED]: "destructive",
 };
+
 const statusIconMap: Record<JobStatus, React.ElementType> = {
   [JobStatus.PENDING]: Clock,
   [JobStatus.RUNNING]: RefreshCw,
@@ -1616,13 +1694,10 @@ const statusIconMap: Record<JobStatus, React.ElementType> = {
   [JobStatus.FAILED]: AlertCircle,
   [JobStatus.CANCELLED]: XCircle,
 };
+
 export function JobList() {
-  const jobResource = useApiResource("admin/jobs", ["jobs"]);
-  const [page] = useState(1);
-  const { data, isLoading, isError } = jobResource.useGetAll({
-    page,
-    limit: 20,
-  });
+  const jobResource = useApiResource<Job>("admin/jobs", ["jobs"]);
+  const { data, isLoading, isError } = jobResource.useGetAll();
   const retryMutation = useRetryJob();
   const cancelMutation = useCancelJob();
 
@@ -1641,7 +1716,7 @@ export function JobList() {
       </TableHeader>
       <TableBody>
         {data && data.data && data.data.length > 0 ? (
-          data.data.map((job: Job) => {
+          data.data.map((job) => {
             const StatusIcon = statusIconMap[job.status];
             return (
               <TableRow key={job.id}>
@@ -1702,7 +1777,6 @@ export function JobList() {
 }
 
 // FILE: src/features/admin/jobs/components/JobScheduleList.tsx
-import { useState } from "react";
 import { useApiResource } from "@/hooks/useApiResource";
 import {
   Table,
@@ -1715,15 +1789,13 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
+import { AnyValue } from "@/types";
+
 export function JobScheduleList() {
   const jobScheduleResource = useApiResource("admin/jobs/schedules", [
     "jobSchedules",
   ]);
-  const [page] = useState(1);
-  const { data, isLoading, isError } = jobScheduleResource.useGetAll({
-    page,
-    limit: 20,
-  });
+  const { data, isLoading, isError } = jobScheduleResource.useGetAll();
   const updateMutation = jobScheduleResource.useUpdate();
   const deleteMutation = jobScheduleResource.useDelete();
 
@@ -1743,7 +1815,7 @@ export function JobScheduleList() {
       </TableHeader>
       <TableBody>
         {data && data.data && data.data.length > 0 ? (
-          data.data.map((schedule: any) => (
+          data.data.map((schedule: AnyValue) => (
             <TableRow key={schedule.id}>
               <TableCell className="font-medium">{schedule.name}</TableCell>
               <TableCell className="font-mono text-xs">
@@ -1799,6 +1871,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+
 const StatCard = ({
   title,
   value,
@@ -1821,6 +1894,7 @@ const StatCard = ({
     </CardContent>
   </Card>
 );
+
 export function JobSystemStatus() {
   const { data: statusData, isLoading: isLoadingStatus } =
     useGetJobSystemStatus();
@@ -1867,7 +1941,6 @@ export function JobSystemStatus() {
     </div>
   );
 }
-
 // FILE: src/features/admin/PermissionListPage.tsx
 import { PermissionList } from "@/features/admin/permissions/components/PermissionList";
 
@@ -1886,7 +1959,6 @@ export function PermissionListPage() {
     </div>
   );
 }
-
 // FILE: src/features/admin/permissions/api/useManagePermissions.ts
 import { useApiResource } from "@/hooks/useApiResource";
 
@@ -1894,7 +1966,6 @@ export function useManagePermissions() {
   const resource = useApiResource("admin/permissions", ["permissions"]);
   return resource;
 }
-
 // FILE: src/features/admin/permissions/components/PermissionForm.tsx
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -1997,16 +2068,14 @@ import {
   DataTableWrapper,
   ColumnDef,
 } from "@/components/ui/DataTable";
+import { Permission } from "@/types";
 
 export function PermissionList() {
-  const [page, setPage] = useState(1);
-  const permissionResource = useApiResource("admin/permissions", [
+  const [, setPage] = useState(1);
+  const permissionResource = useApiResource<Permission>("admin/permissions", [
     "permissions",
   ]);
-  const { data, isLoading, isError } = permissionResource.useGetAll({
-    page,
-    limit: 15,
-  });
+  const { data, isLoading, isError } = permissionResource.useGetAll();
 
   const handlePageChange = (newPage: number) => {
     if (newPage > 0 && newPage <= (data?.totalPages || 1)) {
@@ -2014,25 +2083,25 @@ export function PermissionList() {
     }
   };
 
-  const columns: ColumnDef<any>[] = [
+  const columns: ColumnDef<Permission>[] = [
     {
       accessorKey: "action",
       header: "Action",
-      cell: (permission) => (
-        <span className="font-mono">{permission.action}</span>
+      cell: (row: Permission) => (
+        <span className="font-mono">{row.action}</span>
       ),
     },
     {
       accessorKey: "subject",
       header: "Subject",
-      cell: (permission) => (
-        <span className="font-mono">{permission.subject}</span>
+      cell: (row: Permission) => (
+        <span className="font-mono">{row.subject}</span>
       ),
     },
     {
       accessorKey: "description",
       header: "Description",
-      cell: (permission) => permission.description,
+      cell: (row: Permission) => row.description,
     },
   ];
 
@@ -2052,8 +2121,6 @@ export function PermissionList() {
     </DataTableWrapper>
   );
 }
-// FILE: src/features/admin/permissions/permission.types.ts
-
 // FILE: src/features/admin/RoleListPage.tsx
 import { RoleList } from "@/features/admin/roles/components/RoleList";
 
@@ -2103,7 +2170,6 @@ export function useManageRoles() {
   const resource = useApiResource("admin/roles", ["roles"]);
   return resource;
 }
-
 // FILE: src/features/admin/roles/api/useRevokePermissionFromRole.ts
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
@@ -2151,14 +2217,13 @@ import {
 import { Check, ChevronsUpDown, XIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { AnyValue } from "@/types";
 
-export function ManageRolePermissions({ role }: { role: any }) {
+export function ManageRolePermissions({ role }: { role: AnyValue }) {
   const permissionResource = useApiResource("admin/permissions", [
     "permissions",
   ]);
-  const { data: permissionsData, isLoading } = permissionResource.useGetAll({
-    limit: 100,
-  });
+  const { data: permissionsData, isLoading } = permissionResource.useGetAll();
   const assignMutation = useAssignPermissionToRole(role.id);
   const revokeMutation = useRevokePermissionFromRole(role.id);
   const [popoverOpen, setPopoverOpen] = useState(false);
@@ -2233,14 +2298,14 @@ export function ManageRolePermissions({ role }: { role: any }) {
     </div>
   );
 }
-
 // FILE: src/features/admin/roles/components/RoleCard.tsx
 import { Badge } from "@/components/ui/badge";
 import { useApiResource } from "@/hooks/useApiResource";
 import { EntityCard } from "@/components/ui/EntityCard";
+import { RoleWithPermissions } from "@/types";
 
 interface RoleCardProps {
-  role: any;
+  role: RoleWithPermissions;
   onEdit: (roleId: string) => void;
 }
 
@@ -2276,7 +2341,7 @@ export function RoleCard({ role, onEdit }: RoleCardProps) {
         <div className="flex flex-wrap items-center gap-1">
           <span className="text-sm font-semibold">Permissions:</span>
           {role.permissions?.length > 0 ? (
-            role.permissions.map((p: any) => (
+            role.permissions.map((p) => (
               <Badge variant="outline" key={p.id}>
                 {p.action} on {p.subject}
               </Badge>
@@ -2289,7 +2354,6 @@ export function RoleCard({ role, onEdit }: RoleCardProps) {
     </EntityCard>
   );
 }
-
 // FILE: src/features/admin/roles/components/RoleForm.tsx
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -2389,9 +2453,11 @@ import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { RoleCard } from "./RoleCard";
 import { RoleForm } from "./RoleForm";
 import { ManageRolePermissions } from "./ManageRolePermissions";
-
+import { RoleWithPermissions } from "@/types";
 export function RoleList() {
-  const roleResource = useApiResource("admin/roles", ["roles"]);
+  const roleResource = useApiResource<RoleWithPermissions>("admin/roles", [
+    "roles",
+  ]);
   const { data, isLoading, isError } = roleResource.useGetAll();
   const [editingRoleId, setEditingRoleId] = useState<string | null>(null);
 
@@ -2401,7 +2467,7 @@ export function RoleList() {
   return (
     <>
       <div className="grid gap-4 md:grid-cols-2">
-        {data?.data?.map((role: any) => (
+        {data?.data?.map((role) => (
           <RoleCard key={role.id} role={role} onEdit={setEditingRoleId} />
         ))}
       </div>
@@ -2418,7 +2484,7 @@ export function RoleList() {
         }}
         dialogClassName="sm:max-w-4xl"
       >
-        {(role: any) => <ManageRolePermissions role={role} />}
+        {(role) => <ManageRolePermissions role={role} />}
       </ResourceCrudDialog>
     </>
   );
@@ -2426,6 +2492,7 @@ export function RoleList() {
 // FILE: src/features/admin/system-status/api/useGetSystemStatus.ts
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
+
 async function getSystemStatus(): Promise<any> {
   const { data } = await api.get("/status");
   return data;
@@ -2435,11 +2502,9 @@ export function useGetSystemStatus() {
   return useQuery({
     queryKey: ["systemStatus"],
     queryFn: getSystemStatus,
-
     refetchInterval: 15000,
   });
 }
-
 // FILE: src/features/admin/system-status/components/SystemStatusDashboard.tsx
 import { Badge } from "@/components/ui/badge";
 import {
@@ -2459,6 +2524,7 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetSystemStatus } from "../api/useGetSystemStatus";
+
 const StatusBadge = ({
   status,
 }: {
@@ -2472,6 +2538,7 @@ const StatusBadge = ({
         : "destructive";
   return <Badge variant={variant}>{status}</Badge>;
 };
+
 export function SystemStatusDashboard() {
   const { data, isLoading, isError, error } = useGetSystemStatus();
   if (isLoading) {
@@ -2553,7 +2620,6 @@ export function SystemStatusDashboard() {
     </div>
   );
 }
-
 // FILE: src/features/admin/UserListPage.tsx
 import { UserList } from "@/features/admin/users/components/UserList";
 import { Button } from "@/components/ui/button";
@@ -2630,12 +2696,12 @@ export function useHardDeleteUser() {
 }
 // FILE: src/features/admin/users/api/useManageUsers.ts
 import { useApiResource } from "@/hooks/useApiResource";
+import { User } from "@/types";
 
 export function useManageUsers() {
-  const resource = useApiResource("admin/users", ["users"]);
+  const resource = useApiResource<User>("admin/users", ["users"]);
   return resource;
 }
-
 // FILE: src/features/admin/users/api/useSetUserStatus.ts
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
@@ -2905,7 +2971,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { SocialProvider } from "@/types";
+import { SocialProvider } from "@/types/api";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { RichTextEditor } from "@/components/ui/RichTextEditor";
@@ -3240,12 +3306,13 @@ import { UserForm } from "./UserForm";
 import { ManageUserRoles } from "./ManageUserRoles";
 import { ProfileAvatar } from "@/features/profile/components/ProfileAvatar";
 import { Card, CardContent } from "@/components/ui/card";
+import { User } from "@/types";
 
 const UserActionsCell = ({
   user,
   onEdit,
 }: {
-  user: any;
+  user: User;
   onEdit: (id: string) => void;
 }) => {
   const userResource = useApiResource("admin/users", ["users"]);
@@ -3299,85 +3366,99 @@ const UserActionsCell = ({
     </DropdownMenu>
   );
 };
+
 export function UserList() {
-  const [page, setPage] = useState(1);
+  const [, setPage] = useState(1);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
-  const userResource = useApiResource("admin/users", ["users"]);
+  const userResource = useApiResource<User>("admin/users", ["users"]);
   const deleteMutation = userResource.useDelete();
   const setUserStatusMutation = useSetUserStatus();
-  const { data, isLoading, isError } = userResource.useGetAll({
-    page,
-    limit: 10,
-  });
+  const { data, isLoading, isError } = userResource.useGetAll();
+
   const handlePageChange = (newPage: number) => {
     if (newPage > 0 && newPage <= (data?.totalPages || 1)) {
       setPage(newPage);
     }
   };
 
-  const columns: ColumnDef<any>[] = [
+  const columns: ColumnDef<User>[] = [
     {
       accessorKey: "name",
       header: "Name",
-      cell: (user) => (
-        <div className="flex items-center gap-3">
-          <Avatar className="h-9 w-9">
-            <AvatarImage src={getAbsoluteUrl(user.avatarUrl)} alt={user.name} />
-            <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
-          </Avatar>
-          <span className="font-semibold">{user.name}</span>
-        </div>
-      ),
+      cell: (row: User) => {
+        const user = row;
+        return (
+          <div className="flex items-center gap-3">
+            <Avatar className="h-9 w-9">
+              <AvatarImage
+                src={getAbsoluteUrl(user.avatarUrl)}
+                alt={user.name}
+              />
+              <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <span className="font-semibold">{user.name}</span>
+          </div>
+        );
+      },
     },
     {
       accessorKey: "email",
       header: "Email",
-      cell: (user) => user.email,
+      cell: (row: User) => row.email,
     },
     {
       accessorKey: "status",
       header: "Status",
-      cell: (user) => (
-        <div className="flex items-center gap-2">
-          <Switch
-            checked={user.isActive}
-            onCheckedChange={(isActive) =>
-              setUserStatusMutation.mutate({ userId: user.id, isActive })
-            }
-          />
-          <Badge
-            variant={user.isActive ? "default" : "destructive"}
-            className={cn(user.isActive ? "bg-green-500" : "")}
-          >
-            {user.isActive ? "Active" : "Inactive"}
-          </Badge>
-        </div>
-      ),
+      cell: (row: User) => {
+        const user = row;
+        return (
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={user.isActive}
+              onCheckedChange={(isActive) =>
+                setUserStatusMutation.mutate({ userId: user.id, isActive })
+              }
+            />
+            <Badge
+              variant={user.isActive ? "default" : "destructive"}
+              className={cn(user.isActive ? "bg-green-500" : "")}
+            >
+              {user.isActive ? "Active" : "Inactive"}
+            </Badge>
+          </div>
+        );
+      },
     },
     {
       accessorKey: "roles",
       header: "Roles",
-      cell: (user) => (
-        <div className="flex flex-wrap gap-1">
-          {user.roles.map((role: string) => (
-            <Badge key={role} variant="secondary">
-              {role}
-            </Badge>
-          ))}
-        </div>
-      ),
+      cell: (row: User) => {
+        const user = row;
+        return (
+          <div className="flex flex-wrap gap-1">
+            {user.roles.map((role: string) => (
+              <Badge key={role} variant="secondary">
+                {role}
+              </Badge>
+            ))}
+          </div>
+        );
+      },
     },
     {
       accessorKey: "createdAt",
       header: "Created At",
-      cell: (user) => new Date(user.createdAt).toLocaleDateString("en-US"),
+      cell: (row: User) => new Date(row.createdAt).toLocaleDateString("en-US"),
     },
     {
       accessorKey: "actions",
       header: "Actions",
-      cell: (user) => <UserActionsCell user={user} onEdit={setEditingUserId} />,
+      cell: (row: User) => (
+        <UserActionsCell user={row} onEdit={setEditingUserId} />
+      ),
     },
   ];
+
   if (isLoading) return <div>Loading users...</div>;
   if (isError) return <div>Error loading users.</div>;
   return (
@@ -3442,10 +3523,10 @@ export function UserList() {
     </>
   );
 }
-
 // FILE: src/features/admin/workflows/api/useGetWorkflowRuns.ts
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
+
 async function getWorkflowRuns(workflowId: string, query: any): Promise<any> {
   const { data } = await api.get(`/admin/workflows/${workflowId}/runs`, {
     params: query,
@@ -3459,6 +3540,13 @@ export function useGetWorkflowRuns(workflowId: string, query: any) {
     queryFn: () => getWorkflowRuns(workflowId, query),
     enabled: !!workflowId,
   });
+}
+// FILE: src/features/admin/workflows/api/useManageWorkflows.ts
+import { useApiResource } from "@/hooks/useApiResource";
+
+export function useManageWorkflows() {
+  const resource = useApiResource("admin/workflows", ["workflows"]);
+  return resource;
 }
 
 // FILE: src/features/admin/workflows/api/useToggleWorkflow.ts
@@ -3486,7 +3574,6 @@ export function useToggleWorkflow() {
     invalidateQueries: [["workflows"]],
   });
 }
-
 // FILE: src/features/admin/workflows/components/action-fields/ActionRepeater.tsx
 import { Control, useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -3504,7 +3591,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { WorkflowActionType } from "@/types";
+import { WorkflowActionType } from "@/types/api";
 import {
   UpdateTaskStatusFields,
   CreateTaskFields,
@@ -3704,7 +3791,6 @@ export * from "./SendEmailBrevoFields.js";
 export * from "./SendTelegramMessageFields.js";
 export * from "./SendWebhookFields.js";
 export * from "./UpdateTaskStatusFields.js";
-
 // FILE: src/features/admin/workflows/components/action-fields/SendEmailBrevoFields.tsx
 import { Control } from "react-hook-form";
 import {
@@ -3872,7 +3958,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { TaskStatus } from "@/types";
+import { TaskStatus } from "@/types/api";
 
 interface ActionFieldProps {
   control: Control<any>;
@@ -3925,7 +4011,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { WorkflowActionType } from "@/types";
+import { WorkflowActionType } from "@/types/api";
 import { UpdateTaskStatusFields } from "./action-fields/UpdateTaskStatusFields";
 import { CreateTaskFields } from "./action-fields/CreateTaskFields";
 import { AddCommentActionFields } from "./action-fields/AddCommentFields";
@@ -4023,7 +4109,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { ActivityActionType, TaskStatus, WorkflowActionType } from "@/types";
+import {
+  ActivityActionType,
+  TaskStatus,
+  WorkflowActionType,
+} from "@/types/api";
 import { useApiResource } from "@/hooks/useApiResource";
 import { ActionRepeater } from "./ActionRepeater";
 import { PlusCircle } from "lucide-react";
@@ -4693,6 +4783,7 @@ export function WorkflowRunsDialog({
 // FILE: src/features/announcements/api/useGetActiveAnnouncements.ts
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
+
 async function getActiveAnnouncements(): Promise<any[]> {
   const { data } = await api.get("/announcements/active");
   return data;
@@ -4702,11 +4793,9 @@ export function useGetActiveAnnouncements() {
   return useQuery({
     queryKey: ["activeAnnouncements"],
     queryFn: getActiveAnnouncements,
-
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 }
-
 // FILE: src/features/announcements/api/useGetAnnouncements.ts
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
@@ -4743,9 +4832,12 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Megaphone, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RichTextOutput } from "@/components/ui/RichTextOutput";
+import { Announcement } from "@/types";
+
 export function ActiveAnnouncements() {
   const { data: announcements, isLoading } = useGetActiveAnnouncements();
   const [dismissedIds, setDismissedIds] = useState<string[]>([]);
+
   if (isLoading || !announcements || announcements.length === 0) {
     return null;
   }
@@ -4753,9 +4845,11 @@ export function ActiveAnnouncements() {
   const handleDismiss = (id: string) => {
     setDismissedIds((prev) => [...prev, id]);
   };
+
   const announcementsToShow = announcements.filter(
-    (ann) => !dismissedIds.includes(ann.id)
+    (ann: Announcement) => !dismissedIds.includes(ann.id)
   );
+
   if (announcementsToShow.length === 0) {
     return null;
   }
@@ -4790,7 +4884,6 @@ export function ActiveAnnouncements() {
     </div>
   );
 }
-
 // FILE: src/features/auth/api/useForgotPassword.ts
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
@@ -4929,7 +5022,6 @@ export function useVerifyResetToken(token: string | null) {
     gcTime: Infinity,
   });
 }
-
 // FILE: src/features/auth/components/ForgotPasswordForm.tsx
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -4991,7 +5083,6 @@ export function ForgotPasswordForm() {
     </div>
   );
 }
-
 // FILE: src/features/auth/components/LoginForm.tsx
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -5291,6 +5382,7 @@ export function SetupPasswordForm() {
 // FILE: src/features/chat/api/useGetChannels.ts
 import { useQuery } from "@tanstack/react-query";
 
+// This is a mock implementation. Replace with actual API call.
 async function getChannels(): Promise<any[]> {
   return Promise.resolve([
     { id: "C1", name: "General", type: "channel" },
@@ -5309,6 +5401,7 @@ export function useGetChannels() {
 // FILE: src/features/chat/api/useGetMessages.ts
 import { useQuery } from "@tanstack/react-query";
 
+// This is a mock implementation. Replace with actual API call.
 async function getMessages(threadId: string): Promise<any[]> {
   if (!threadId) return Promise.resolve([]);
   return Promise.resolve([
@@ -5342,6 +5435,7 @@ interface SendMessageParams {
   content: string;
 }
 
+// This is a mock implementation. Replace with actual API call.
 async function sendMessage({
   threadId,
   content,
@@ -5412,7 +5506,6 @@ export function ChannelList({
     </div>
   );
 }
-
 // FILE: src/features/chat/components/ChatInterface.tsx
 import { useState } from "react";
 import { ChannelList } from "./ChannelList";
@@ -5500,7 +5593,6 @@ export function MessageInput({ threadId }: MessageInputProps) {
     </div>
   );
 }
-
 // FILE: src/features/chat/components/MessageView.tsx
 import { useGetMessages } from "../api/useGetMessages";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -5549,7 +5641,6 @@ export function MessageView({ threadId }: MessageViewProps) {
     </div>
   );
 }
-
 // FILE: src/features/chat/index.ts
 export * from "./api/useGetChannels.js";
 export * from "./api/useGetMessages.js";
@@ -5561,6 +5652,7 @@ export * from "./components/MessageView.js";
 // FILE: src/features/comments/api/useGetComments.ts
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
+
 async function getComments(
   workspaceId: string | undefined,
   projectId: string | undefined,
@@ -5585,7 +5677,6 @@ export function useGetComments(
     enabled: !!taskId,
   });
 }
-
 // FILE: src/features/comments/components/CommentItem.tsx
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -5824,7 +5915,6 @@ export function useManageCompanies() {
   const resource = useApiResource("organizations", ["organizations"]);
   return resource;
 }
-
 // FILE: src/features/crm/api/useManageCompanyPeople.ts
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
@@ -5840,7 +5930,7 @@ async function addPersonToCompany({
   personId,
   role,
 }: AddPersonParams) {
-  const { data } = await api.post(`/companies/${companyId}/people`, {
+  const { data } = await api.post(`/organizations/${companyId}/people`, {
     personId,
     role,
   });
@@ -5857,7 +5947,7 @@ async function removePersonFromCompany({
   personId,
 }: RemovePersonParams) {
   const { data } = await api.delete(
-    `/companies/${companyId}/people/${personId}`
+    `/organizations/${companyId}/people/${personId}`
   );
   return data;
 }
@@ -5869,12 +5959,20 @@ export function useManageCompanyPeople(companyId: string) {
   >({
     mutationFn: (params) => addPersonToCompany({ companyId, ...params }),
     successMessage: "Person added to company.",
-    invalidateQueries: [["companies"], ["company", companyId], ["people"]],
+    invalidateQueries: [
+      ["organizations"],
+      ["organization", companyId],
+      ["people"],
+    ],
   });
   const removePersonMutation = useApiMutation<any, string>({
     mutationFn: (personId) => removePersonFromCompany({ companyId, personId }),
     successMessage: "Person removed from company.",
-    invalidateQueries: [["companies"], ["company", companyId], ["people"]],
+    invalidateQueries: [
+      ["organizations"],
+      ["organization", companyId],
+      ["people"],
+    ],
   });
   return {
     addPerson: addPersonMutation.mutate,
@@ -5889,7 +5987,6 @@ export function useManageDeals() {
   const resource = useApiResource("deals", ["deals"]);
   return resource;
 }
-
 // FILE: src/features/crm/api/useManageDealStages.ts
 import { useApiResource } from "@/hooks/useApiResource";
 
@@ -5897,7 +5994,6 @@ export function useManageDealStages() {
   const resource = useApiResource("deal-stages", ["dealStages"]);
   return resource;
 }
-
 // FILE: src/features/crm/api/useManageInteractions.ts
 import { useApiResource } from "@/hooks/useApiResource";
 
@@ -5905,7 +6001,6 @@ export function useManageInteractions() {
   const resource = useApiResource("/interactions", ["interactions"]);
   return resource;
 }
-
 // FILE: src/features/crm/api/useManagePeople.ts
 import { useApiResource } from "@/hooks/useApiResource";
 
@@ -5913,7 +6008,6 @@ export function useManagePeople() {
   const resource = useApiResource("people", ["people"]);
   return resource;
 }
-
 // FILE: src/features/crm/components/CompanyCard.tsx
 import {
   Card,
@@ -5958,7 +6052,7 @@ export function CompanyCard({ company, onSelect }: CompanyCardProps) {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Globe } from "lucide-react";
 import { RichTextOutput } from "@/components/ui/RichTextOutput";
-import { Company } from "../crm.types";
+import { Company } from "@/types";
 import { ManageCompanyPeople } from "./ManageCompanyPeople";
 import { InteractionTimeline } from "./InteractionTimeline";
 
@@ -6295,7 +6389,6 @@ export function CompanyList({
     </div>
   );
 }
-
 // FILE: src/features/crm/components/DealCard.tsx
 import {
   Card,
@@ -6307,7 +6400,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Deal } from "../crm.types";
+import { Deal } from "@/types";
 
 interface DealCardProps {
   deal: Deal;
@@ -6368,7 +6461,7 @@ export function DealCard({ deal, onSelect }: DealCardProps) {
 // FILE: src/features/crm/components/DealColumn.tsx
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext } from "@dnd-kit/sortable";
-import { Deal, DealStage } from "../crm.types";
+import { Deal, DealStage } from "@/types";
 import { DealCard } from "./DealCard";
 
 interface DealColumnProps {
@@ -6414,7 +6507,7 @@ export function DealColumn({ stage, deals, onDealSelect }: DealColumnProps) {
   );
 }
 // FILE: src/features/crm/components/DealDetailContent.tsx
-import { Deal } from "../crm.types";
+import { Deal } from "@/types";
 
 export function DealDetailContent({ deal }: { deal: Deal }) {
   return <div>Deal Details for {deal.name}</div>;
@@ -6468,7 +6561,7 @@ import {
 import { createPortal } from "react-dom";
 import { useManageDealStages } from "../api/useManageDealStages";
 import { useManageDeals } from "../api/useManageDeals";
-import { Deal } from "../crm.types";
+import { Deal } from "@/types";
 import { DealColumn } from "./DealColumn";
 import { DealCard } from "./DealCard";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -6583,7 +6676,7 @@ import {
 import { useManageInteractions } from "../api/useManageInteractions";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { InteractionType } from "@/types";
+import { InteractionType } from "@/types/api";
 
 const interactionSchema = z.object({
   type: z.nativeEnum(InteractionType),
@@ -6741,7 +6834,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Check, UserPlus, XIcon } from "lucide-react";
 import { getAbsoluteUrl } from "@/lib/utils";
-import { Company } from "../crm.types";
+import { Company, Person } from "@/types";
 
 interface ManageCompanyPeopleProps {
   company: Company;
@@ -6751,7 +6844,7 @@ export function ManageCompanyPeople({ company }: ManageCompanyPeopleProps) {
   const { data: peopleData, isLoading: isLoadingPeople } = useApiResource(
     "people",
     ["people"]
-  ).useGetAll({ limit: 1000 });
+  ).useGetAll();
   const {
     addPerson,
     removePerson,
@@ -6766,7 +6859,7 @@ export function ManageCompanyPeople({ company }: ManageCompanyPeopleProps) {
         <h4 className="font-semibold">Team Members</h4>
         <div className="mt-2 space-y-2">
           {company.people.length > 0 ? (
-            company.people.map((person) => (
+            company.people.map((person: Person) => (
               <div
                 key={person.id}
                 className="flex items-center justify-between"
@@ -6854,6 +6947,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { getAbsoluteUrl } from "@/lib/utils";
+
 interface PersonCardProps {
   person: any;
   onSelect: () => void;
@@ -7283,9 +7377,9 @@ export function PersonForm({ initialData, onSuccess }: PersonFormProps) {
   );
 }
 // FILE: src/features/crm/components/PersonList.tsx
+// FILE: src/features/crm/components/PersonList.tsx
 import { useState } from "react";
 import { useApiResource } from "@/hooks/useApiResource";
-import { useDebounce } from "@/hooks/useDebounce";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -7311,17 +7405,14 @@ const PersonListSkeleton = () => (
     ))}
   </div>
 );
+
 export function PersonList({ onPersonSelect }: PersonListProps) {
   const personResource = useApiResource("people", ["people"]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [page, setPage] = useState(1);
-  const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  const [, setPage] = useState(1);
   const deleteMutation = personResource.useDelete();
-  const { data, isLoading, isError } = personResource.useGetAll({
-    search: debouncedSearchTerm,
-    page,
-    limit: 10,
-  });
+  const { data, isLoading, isError } = personResource.useGetAll();
+
   const handlePageChange = (newPage: number) => {
     if (newPage > 0 && newPage <= (data?.totalPages || 1)) {
       setPage(newPage);
@@ -7332,22 +7423,24 @@ export function PersonList({ onPersonSelect }: PersonListProps) {
     {
       accessorKey: "name",
       header: "Name",
-      cell: (person) => (
-        <div
-          className="flex cursor-pointer items-center gap-3"
-          onClick={() => onPersonSelect(person.id)}
-        >
-          <Avatar className="h-9 w-9">
-            <AvatarImage
-              src={getAbsoluteUrl(person.avatarUrl)}
-              alt={`${person.firstName} ${person.lastName}`}
-              className="h-full w-full object-cover"
-            />
-            <AvatarFallback>{person.firstName?.charAt(0)}</AvatarFallback>
-          </Avatar>
-          <span className="font-medium">{`${person.firstName} ${person.lastName}`}</span>
-        </div>
-      ),
+      cell: (person) => {
+        return (
+          <div
+            className="flex cursor-pointer items-center gap-3"
+            onClick={() => onPersonSelect(person.id)}
+          >
+            <Avatar className="h-9 w-9">
+              <AvatarImage
+                src={getAbsoluteUrl(person.avatarUrl)}
+                alt={`${person.firstName} ${person.lastName}`}
+                className="h-full w-full object-cover"
+              />
+              <AvatarFallback>{person.firstName?.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <span className="font-medium">{`${person.firstName} ${person.lastName}`}</span>
+          </div>
+        );
+      },
     },
     {
       accessorKey: "email",
@@ -7359,37 +7452,42 @@ export function PersonList({ onPersonSelect }: PersonListProps) {
     {
       accessorKey: "roles",
       header: "Roles",
-      cell: (person) => (
-        <div
-          className="flex flex-wrap gap-1"
-          onClick={() => onPersonSelect(person.id)}
-        >
-          {person.roles.map((role: string) => (
-            <Badge key={role} variant="secondary">
-              {role}
-            </Badge>
-          ))}
-        </div>
-      ),
+      cell: (person) => {
+        return (
+          <div
+            className="flex flex-wrap gap-1"
+            onClick={() => onPersonSelect(person.id)}
+          >
+            {person.roles.map((role: string) => (
+              <Badge key={role} variant="secondary">
+                {role}
+              </Badge>
+            ))}
+          </div>
+        );
+      },
     },
     {
       accessorKey: "status",
       header: "Status",
-      cell: (person) => (
-        <div onClick={() => onPersonSelect(person.id)}>
-          <Badge
-            variant={person.isActive ? "default" : "destructive"}
-            className={cn(
-              "pointer-events-none",
-              person.isActive ? "bg-green-500" : ""
-            )}
-          >
-            {person.isActive ? "Active" : "Inactive"}
-          </Badge>
-        </div>
-      ),
+      cell: (person) => {
+        return (
+          <div onClick={() => onPersonSelect(person.id)}>
+            <Badge
+              variant={person.isActive ? "default" : "destructive"}
+              className={cn(
+                "pointer-events-none",
+                person.isActive ? "bg-green-500" : ""
+              )}
+            >
+              {person.isActive ? "Active" : "Inactive"}
+            </Badge>
+          </div>
+        );
+      },
     },
   ];
+
   if (isLoading) return <PersonListSkeleton />;
 
   if (!isLoading && (!data || data.data.length === 0)) {
@@ -7445,106 +7543,7 @@ export function PersonList({ onPersonSelect }: PersonListProps) {
     </div>
   );
 }
-// FILE: src/features/crm/crm.types.ts
-import { z } from "zod";
-import { InteractionType, SkillCategory, SocialProvider } from "@/types/api";
 
-export const SkillSchema = z.object({
-  id: z.string().uuid(),
-  name: z.string(),
-  description: z.string().nullable(),
-  category: z.nativeEnum(SkillCategory),
-  createdAt: z.coerce.date(),
-  updatedAt: z.coerce.date(),
-});
-
-export const SocialLinkSchema = z.object({
-  id: z.string().uuid(),
-  provider: z.nativeEnum(SocialProvider),
-  url: z.string().url(),
-  personId: z.string().uuid(),
-  createdAt: z.coerce.date(),
-});
-
-export const PersonSchema = z.object({
-  id: z.string().uuid(),
-  firstName: z.string(),
-  lastName: z.string(),
-  email: z.string().email().nullable(),
-  avatarUrl: z.string().nullable(),
-  biography: z.string().nullable(),
-  phoneNumber: z.string().nullable(),
-  birthday: z.coerce.date().nullable(),
-  socialLinks: z.array(SocialLinkSchema),
-  skills: z.array(SkillSchema),
-  createdAt: z.coerce.date(),
-  updatedAt: z.coerce.date(),
-  authId: z.string().uuid().nullable(),
-  isActive: z.boolean(),
-  roles: z.array(z.string()),
-  name: z.string(),
-});
-
-export const PersonInCompanySchema = z.object({
-  id: z.string().uuid(),
-  firstName: z.string(),
-  lastName: z.string(),
-  email: z.string().email().nullable(),
-  avatarUrl: z.string().url().nullable(),
-  roleInCompany: z.string().nullable(),
-});
-
-export const CompanySchema = z.object({
-  id: z.string().uuid(),
-  name: z.string(),
-  description: z.string().nullable(),
-  domain: z.string().nullable(),
-  logoUrl: z.string().url().nullable(),
-  createdAt: z.coerce.date(),
-  updatedAt: z.coerce.date(),
-  people: z.array(PersonInCompanySchema),
-});
-export type Company = z.infer<typeof CompanySchema>;
-
-export const DealStageSchema = z.object({
-  id: z.string().uuid(),
-  name: z.string(),
-  order: z.number().int(),
-  projectId: z.string().uuid(),
-});
-export type DealStage = z.infer<typeof DealStageSchema>;
-
-const DealContactSchema = z.object({
-  id: z.string().uuid(),
-  name: z.string(),
-  email: z.string().email().nullable(),
-});
-
-export const DealSchema = z.object({
-  id: z.string().uuid(),
-  name: z.string(),
-  value: z.number(),
-  stageId: z.string().uuid(),
-  stage: DealStageSchema,
-  companyId: z.string().uuid(),
-  company: CompanySchema.pick({ name: true }),
-  ownerId: z.string().uuid(),
-  ownerName: z.string(),
-  createdById: z.string().uuid(),
-  createdAt: z.coerce.date(),
-  updatedAt: z.coerce.date(),
-  contacts: z.array(DealContactSchema),
-});
-export type Deal = z.infer<typeof DealSchema>;
-
-export const InteractionSchema = z.object({
-  id: z.string().uuid(),
-  type: z.nativeEnum(InteractionType),
-  notes: z.string(),
-  date: z.coerce.date(),
-  actor: z.object({ name: z.string().nullable() }).nullable(),
-});
-export type Interaction = z.infer<typeof InteractionSchema>;
 // FILE: src/features/crm/index.ts
 export * from "./api/useManageCompanies";
 export * from "./api/useManageCompanyPeople";
@@ -7568,7 +7567,6 @@ export * from "./components/PersonDetailContent";
 export * from "./components/PersonDetailPanel";
 export * from "./components/PersonForm";
 export * from "./components/PersonList";
-export * from "./crm.types";
 
 // FILE: src/features/custom-fields/components/CustomFieldDefinitionForm.tsx
 import { useForm, FormProvider } from "react-hook-form";
@@ -7579,7 +7577,7 @@ import {
   FormSelect,
   FormTextarea,
 } from "@/components/form/FormFields";
-import { CustomFieldType } from "@/types";
+import { CustomFieldType } from "@/types/api";
 import { useApiResource } from "@/hooks/useApiResource";
 import { useEffect } from "react";
 
@@ -7704,7 +7702,6 @@ export function CustomFieldDefinitionForm({
     </FormProvider>
   );
 }
-
 // FILE: src/features/custom-fields/components/CustomFieldDefinitionList.tsx
 import { useState } from "react";
 import { useApiResource } from "@/hooks/useApiResource";
@@ -7825,7 +7822,6 @@ export function CustomFieldDefinitionList({
     </>
   );
 }
-
 // FILE: src/features/dashboards/components/CreateDashboardForm.tsx
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -8115,9 +8111,9 @@ import { EntityCard } from "@/components/ui/EntityCard";
 import { Progress } from "@/components/ui/progress";
 import { useManageGoals } from "../api/useManageGoals";
 import { Badge } from "@/components/ui/badge";
-import { KeyResultType } from "@/types";
+import { KeyResultType } from "@/types/api";
 import { Target } from "lucide-react";
-import { Goal, KeyResult } from "../goal.types";
+import { Goal, KeyResult } from "@/types";
 
 interface GoalCardProps {
   goal: Goal;
@@ -8215,7 +8211,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
 import { nameSchema, descriptionSchema } from "@/lib/schemas";
-import { GoalStatus, KeyResultType } from "@/types";
+import { GoalStatus, KeyResultType } from "@/types/api";
 import { KeyResultInput } from "./KeyResultInput";
 import { useGetProjectMembers } from "@/features/projects/api/useGetProjectMembers";
 const keyResultSchema = z.object({
@@ -8360,6 +8356,7 @@ import { Target } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { GoalCard } from "./GoalCard";
 import { GoalForm } from "./GoalForm";
+import { Goal } from "@/types";
 
 interface GoalListProps {
   workspaceId: string;
@@ -8418,7 +8415,7 @@ export function GoalList({ workspaceId, projectId }: GoalListProps) {
           />
         ) : (
           <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2">
-            {goals.map((goal: any) => (
+            {goals.map((goal: Goal) => (
               <GoalCard
                 key={goal.id}
                 goal={goal}
@@ -8462,7 +8459,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { KeyResultType } from "@/types";
+import { KeyResultType } from "@/types/api";
 import { PlusCircle, Trash2 } from "lucide-react";
 
 interface KeyResultInputProps {
@@ -8616,34 +8613,13 @@ export function KeyResultInput({ control }: KeyResultInputProps) {
     </div>
   );
 }
-// FILE: src/features/goals/goal.types.ts
-import { GoalStatus, KeyResultType } from "@/types";
-
-export interface KeyResult {
-  id: string;
-  name: string;
-  type: KeyResultType;
-  startValue: number;
-  targetValue: number;
-  currentValue: number;
-}
-
-export interface Goal {
-  id: string;
-  name: string;
-  description: string | null;
-  status: GoalStatus;
-  workspaceId?: string;
-  projectId?: string;
-  keyResults: KeyResult[];
-}
 // FILE: src/features/goals/index.ts
 export * from "./api/useManageGoals.js";
 export * from "./components/GoalCard.js";
 export * from "./components/GoalForm.js";
 export * from "./components/GoalList.js";
 export * from "./components/KeyResultInput.js";
-export * from "./goal.types.js";
+
 // FILE: src/features/home/api/useGetUserDashboard.ts
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
@@ -8684,7 +8660,6 @@ export function DashboardWidget({
     </Card>
   );
 }
-
 // FILE: src/features/home/components/HomeDashboard.tsx
 import GridLayout from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
@@ -8697,7 +8672,6 @@ export function HomeDashboard() {
     { i: "my-tasks", x: 0, y: 0, w: 6, h: 10 },
     { i: "mentions", x: 6, y: 0, w: 6, h: 10 },
   ];
-
   return (
     <GridLayout
       className="layout"
@@ -8720,14 +8694,14 @@ export function HomeDashboard() {
 // FILE: src/features/home/components/MyTasksWidget.tsx
 import { DashboardWidget } from "./DashboardWidget";
 import { useApiResource } from "@/hooks/useApiResource";
-import { TaskStatus } from "@/types";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Task } from "@/types";
 
 export function MyTasksWidget() {
-  const { data, isLoading } = useApiResource("tasks/my-tasks", [
+  const { data, isLoading } = useApiResource<Task>("tasks/my-tasks", [
     "myTasks",
-  ]).useGetAll({ limit: 10, status: TaskStatus.IN_PROGRESS });
+  ]).useGetAll();
 
   return (
     <DashboardWidget title="My Open Tasks">
@@ -8766,7 +8740,6 @@ export * from "./components/DashboardWidget.js";
 export * from "./components/HomeDashboard.js";
 export * from "./components/MyTasksWidget.js";
 export * from "./components/RecentMentionsWidget.js";
-
 // FILE: src/features/knowledge-base/api/useManageKnowledgeBase.ts
 import { useApiResource } from "@/hooks/useApiResource";
 export function useManageKnowledgeBase(workspaceId: string) {
@@ -9013,9 +8986,6 @@ export * from "./api/useManageKnowledgeBase.js";
 export * from "./components/KnowledgeBaseCard.js";
 export * from "./components/KnowledgeBaseForm.js";
 export * from "./components/KnowledgeBaseList.js";
-
-// FILE: src/features/knowledge-base/knowledge-base.types.ts
-
 // FILE: src/features/notifications/api/useBroadcastNotification.ts
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
@@ -9030,7 +9000,6 @@ export function useBroadcastNotification() {
     successMessage: (data) => `Broadcast sent to ${data.count} user(s).`,
   });
 }
-
 // FILE: src/features/notifications/api/useGetNotificationPreferences.ts
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
@@ -9145,7 +9114,6 @@ export function BroadcastNotificationDialog() {
     </Dialog>
   );
 }
-
 // FILE: src/features/notifications/components/BroadcastNotificationForm.tsx
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -9167,7 +9135,7 @@ import {
 import { RichTextEditor } from "@/components/ui/RichTextEditor";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { NotificationSeverity, NotificationType } from "@/types";
+import { NotificationSeverity, NotificationType } from "@/types/api";
 import { useBroadcastNotification } from "../api/useBroadcastNotification";
 
 const broadcastSchema = z.object({
@@ -9283,7 +9251,6 @@ export function BroadcastNotificationForm({ onSuccess }: BroadcastFormProps) {
     </Form>
   );
 }
-
 // FILE: src/features/notifications/components/NotificationBell.tsx
 import {
   Popover,
@@ -9557,7 +9524,8 @@ export function NotificationPreferencesForm() {
 // FILE: src/features/profile/api/useGetProfile.ts
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
-async function getProfile(): Promise<any> {
+import { User } from "@/types";
+async function getProfile(): Promise<User> {
   const { data } = await api.get("/users/me");
   return data;
 }
@@ -9568,7 +9536,6 @@ export function useGetProfile() {
     queryFn: getProfile,
   });
 }
-
 // FILE: src/features/profile/api/useUpdateProfile.ts
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
@@ -9624,8 +9591,9 @@ import {
 import { useUpdateProfile } from "../api/useUpdateProfile";
 import { useAdminUploadAvatar } from "@/features/admin/users/api/useAdminUploadAvatar";
 import { useApiResource } from "@/hooks/useApiResource";
+import { User } from "@/types";
 interface ProfileAvatarProps {
-  user: any;
+  user: User;
   isSelfProfile?: boolean;
 }
 
@@ -9762,7 +9730,6 @@ export function ProfileAvatar({
     </div>
   );
 }
-
 // FILE: src/features/project-roles/api/useManageProjectRoles.ts
 import { useApiResource } from "@/hooks/useApiResource";
 
@@ -9773,7 +9740,6 @@ export function useManageProjectRoles(workspaceId: string, projectId: string) {
   );
   return resource;
 }
-
 // FILE: src/features/project-roles/components/CreateProjectRoleForm.tsx
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -9853,7 +9819,6 @@ export function CreateProjectRoleForm({
     </Form>
   );
 }
-
 // FILE: src/features/project-roles/components/EditProjectRoleDialog.tsx
 import {
   Dialog,
@@ -9886,7 +9851,7 @@ export function EditProjectRoleDialog({
     "permissions",
   ]);
   const { data: permissionsData, isLoading: isLoadingPermissions } =
-    permissionResource.useGetAll({ limit: 100 });
+    permissionResource.useGetAll();
   const assignMutation = useApiMutation({
     mutationFn: (permissionId: string) =>
       api.post(
@@ -9951,7 +9916,6 @@ export function EditProjectRoleDialog({
     </Dialog>
   );
 }
-
 // FILE: src/features/project-roles/components/ProjectRoleList.tsx
 import { useState } from "react";
 import { useApiResource } from "@/hooks/useApiResource";
@@ -9960,6 +9924,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Edit, Trash2 } from "lucide-react";
 import { EditProjectRoleDialog } from "./EditProjectRoleDialog";
+
 interface Props {
   workspaceId: string;
   projectId: string;
@@ -10037,7 +10002,6 @@ export function ProjectRoleList({ workspaceId, projectId }: Props) {
     </>
   );
 }
-
 // FILE: src/features/projects/api/useCreateProjectFromTemplate.ts
 import { useApiMutation } from "@/hooks/useApiMutation";
 import api from "@/lib/api";
@@ -10049,7 +10013,6 @@ interface CreateFromTemplateParams {
 }
 
 async function createProjectFromTemplate({
-  workspaceId,
   templateId,
   name,
 }: CreateFromTemplateParams): Promise<any> {
@@ -10068,7 +10031,6 @@ export function useCreateProjectFromTemplate(workspaceId: string) {
     invalidateQueries: [["projects", workspaceId]],
   });
 }
-
 // FILE: src/features/projects/api/useGetProjectMembers.ts
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
@@ -10093,6 +10055,16 @@ export function useGetProjectMembers(
     queryFn: () => getProjectMembers(workspaceId, projectId),
     enabled: !!workspaceId && !!projectId && !!options.enabled,
   });
+}
+// FILE: src/features/projects/api/useManageProjects.ts
+import { useApiResource } from "@/hooks/useApiResource";
+
+export function useManageProjects(workspaceId: string) {
+  const resource = useApiResource(`/workspaces/${workspaceId}/projects`, [
+    "projects",
+    workspaceId,
+  ]);
+  return resource;
 }
 
 // FILE: src/features/projects/api/useManageProjectTemplates.ts
@@ -10208,7 +10180,6 @@ const templateSchema = z.object({
 type TemplateFormValues = z.infer<typeof templateSchema>;
 
 interface CreateTemplateFormProps {
-  workspaceId: string;
   projectId: string;
   sourceProjectId: string;
   initialData?: any;
@@ -10216,7 +10187,6 @@ interface CreateTemplateFormProps {
 }
 
 export function CreateTemplateForm({
-  workspaceId,
   projectId,
   sourceProjectId,
   initialData,
@@ -10341,7 +10311,6 @@ export function InviteProjectMember({
   const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null);
   const [isGuest, setIsGuest] = useState(false);
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
-  const [userSearch, setUserSearch] = useState("");
 
   const userResource = useApiResource("admin/users", ["users"]);
   const teamResource = useApiResource(`/workspaces/${workspaceId}/teams`, [
@@ -10353,12 +10322,8 @@ export function InviteProjectMember({
     ["projectRoles", projectId]
   );
 
-  const { data: usersData, isLoading: isLoadingUsers } = userResource.useGetAll(
-    {
-      search: userSearch,
-      limit: 1000,
-    }
-  );
+  const { data: usersData, isLoading: isLoadingUsers } =
+    userResource.useGetAll();
   const { data: rolesData, isLoading: isLoadingRoles } =
     projectRoleResource.useGetAll();
   const { data: teamsData, isLoading: isLoadingTeams } =
@@ -10404,7 +10369,6 @@ export function InviteProjectMember({
         {
           onSuccess: () => {
             setSelectedUserId(null);
-            setUserSearch("");
           },
         }
       );
@@ -10458,10 +10422,7 @@ export function InviteProjectMember({
                 </PopoverTrigger>
                 <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
                   <Command>
-                    <CommandInput
-                      placeholder="Search by name or email..."
-                      onValueChange={setUserSearch}
-                    />
+                    <CommandInput placeholder="Search by name or email..." />
                     <CommandList>
                       {isLoadingUsers && <CommandItem>Loading...</CommandItem>}
                       <CommandEmpty>No users found.</CommandEmpty>
@@ -10579,7 +10540,6 @@ export function InviteProjectMember({
     </Card>
   );
 }
-
 // FILE: src/features/projects/components/ProjectCard.tsx
 import { useApiResource } from "@/hooks/useApiResource";
 import { getIcon } from "@/lib/icons";
@@ -10768,22 +10728,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ErrorState } from "@/components/ui/error-state";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
 import { FolderKanban } from "lucide-react";
 import { useState } from "react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { ProjectForm } from "./ProjectForm";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { CreateProjectFromTemplateForm } from "./CreateProjectFromTemplateForm";
+import { Project } from "@/types";
 
 const ProjectListSkeleton = () => (
-  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+  <div className="grid gap-4 pt-6 md:grid-cols-2 lg:grid-cols-3">
     {Array.from({ length: 3 }).map((_, i) => (
       <Card key={i}>
         <CardHeader>
@@ -10798,15 +10750,12 @@ const ProjectListSkeleton = () => (
   </div>
 );
 export function ProjectList({ workspaceId }: { workspaceId: string }) {
-  const projectResource = useApiResource(
+  const projectResource = useApiResource<Project>(
     `/workspaces/${workspaceId}/projects`,
     ["projects", workspaceId]
   );
   const { data, isLoading, isError, error } = projectResource.useGetAll();
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [isCreateFromTemplateOpen, setIsCreateFromTemplateOpen] =
-    useState(false);
 
   if (isLoading) {
     return <ProjectListSkeleton />;
@@ -10830,74 +10779,19 @@ export function ProjectList({ workspaceId }: { workspaceId: string }) {
 
   if (!data || data.data.length === 0) {
     return (
-      <EmptyState
-        icon={<FolderKanban className="text-primary h-10 w-10" />}
-        title="This workspace has no projects yet."
-        description="Create the first project in this workspace to get started."
-        action={
-          <ResourceCrudDialog
-            isOpen={isCreateOpen}
-            onOpenChange={setIsCreateOpen}
-            trigger={
-              <Button onClick={() => setIsCreateOpen(true)}>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                New Project
-              </Button>
-            }
-            title="Create a new project"
-            description="Projects live inside workspaces and contain your tasks."
-            form={ProjectForm}
-            formProps={{ workspaceId }}
-            resourcePath={`/workspaces/${workspaceId}/projects`}
-            resourceKey={["projects", workspaceId]}
-          />
-        }
-      />
+      <div className="pt-6">
+        <EmptyState
+          icon={<FolderKanban className="text-primary h-10 w-10" />}
+          title="This workspace has no projects yet."
+          description="Create the first project in this workspace to get started."
+        />
+      </div>
     );
   }
 
   return (
     <>
-      <div className="flex justify-end">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              New Project
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => setIsCreateOpen(true)}>
-              New Blank Project
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setIsCreateFromTemplateOpen(true)}>
-              New from Template
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        <ResourceCrudDialog
-          isOpen={isCreateOpen}
-          onOpenChange={setIsCreateOpen}
-          title="Create a new project"
-          description="Projects live inside workspaces and contain your tasks."
-          form={ProjectForm}
-          formProps={{ workspaceId }}
-          resourcePath={`/workspaces/${workspaceId}/projects`}
-          resourceKey={["projects", workspaceId]}
-        />
-        <ResourceCrudDialog
-          isOpen={isCreateFromTemplateOpen}
-          onOpenChange={setIsCreateFromTemplateOpen}
-          title="Create from Template"
-          description="Create a new project based on an existing template."
-          form={CreateProjectFromTemplateForm}
-          formProps={{ workspaceId }}
-          resourcePath={""}
-          resourceKey={[]}
-        />
-      </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 pt-6 md:grid-cols-2 lg:grid-cols-3">
         {data.data.map((project: any) => (
           <ProjectCard project={project} key={project.id} onEdit={handleEdit} />
         ))}
@@ -11084,7 +10978,6 @@ export function ProjectMemberList({
     </Card>
   );
 }
-
 // FILE: src/features/projects/components/ProjectTemplateCard.tsx
 import { EntityCard } from "@/components/ui/EntityCard";
 import { useManageProjectTemplates } from "../api/useManageProjectTemplates";
@@ -11207,77 +11100,6 @@ export function ProjectTemplateList({ workspaceId, projectId }: ListProps) {
     </>
   );
 }
-// FILE: src/features/projects/project.types.ts
-import { z } from "zod";
-import { ProjectStatus } from "@/types";
-import {
-  createPaginationSchema,
-  createPaginatedResponseSchema,
-  createUuidParamSchema,
-} from "@/lib/zod";
-
-export const WorkspaceIdParamsSchema = createUuidParamSchema(
-  "workspaceId",
-  "Workspace"
-);
-export type WorkspaceIdParams = z.infer<typeof WorkspaceIdParamsSchema>;
-
-export const ProjectIdParamsSchema = createUuidParamSchema(
-  "projectId",
-  "Project"
-);
-export type ProjectIdParams = z.infer<typeof ProjectIdParamsSchema>;
-
-export const ProjectSchema = z.object({
-  __typename: z.literal("Project"),
-  id: z.string().uuid(),
-  name: z.string(),
-  description: z.string().nullable(),
-  icon: z.string().nullable(),
-  status: z.nativeEnum(ProjectStatus),
-  isPrivate: z.boolean(),
-  workspaceId: z.string().uuid(),
-  leadId: z.string().uuid().nullable(),
-  startDate: z.date().nullable(),
-  endDate: z.date().nullable(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-  taskCounter: z.number().int(),
-});
-export type Project = z.infer<typeof ProjectSchema>;
-export const CreateProjectDtoSchema = z.object({
-  name: z.string().min(3, "Project name must be at least 3 characters long."),
-  description: z.string().optional().nullable(),
-  icon: z.string().optional().nullable(),
-  status: z.nativeEnum(ProjectStatus).default(ProjectStatus.IN_PROGRESS),
-  isPrivate: z.boolean().default(false),
-  startDate: z.coerce.date().optional().nullable(),
-  endDate: z.coerce.date().optional().nullable(),
-  workspaceId: z.string().uuid(),
-});
-export type CreateProjectDto = z.infer<typeof CreateProjectDtoSchema>;
-
-export const UpdateProjectDtoSchema = CreateProjectDtoSchema.omit({
-  workspaceId: true,
-}).partial();
-export type UpdateProjectDto = z.infer<typeof UpdateProjectDtoSchema>;
-
-export const ListProjectsQuerySchema = createPaginationSchema().extend({
-  status: z.nativeEnum(ProjectStatus).optional(),
-  search: z.string().optional(),
-  sortBy: z
-    .enum(["createdAt", "updatedAt", "name", "status"])
-    .default("createdAt"),
-  sortOrder: z.enum(["asc", "desc"]).default("desc"),
-});
-export type ListProjectsQuery = z.infer<typeof ListProjectsQuerySchema>;
-
-export const PaginatedProjectsResponseSchema =
-  createPaginatedResponseSchema(ProjectSchema);
-export type PaginatedProjectsResponse = z.infer<
-  typeof PaginatedProjectsResponseSchema
->;
-
 // FILE: src/features/publications/api/useManagePublications.ts
 import { useApiResource } from "@/hooks/useApiResource";
 
@@ -11285,7 +11107,6 @@ export function useManagePublications() {
   const resource = useApiResource("publications", ["publications"]);
   return resource;
 }
-
 // FILE: src/features/publications/components/CreatePublicationForm.tsx
 import { useForm, FormProvider } from "react-hook-form";
 import { useApiResource } from "@/hooks/useApiResource";
@@ -11299,11 +11120,13 @@ import {
 import { useEffect } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { PublicationStatus } from "@/types/api";
+
 const publicationSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters."),
   excerpt: z.string().optional(),
   authorIds: z.array(z.string().uuid()),
-  status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]),
+  status: z.nativeEnum(PublicationStatus),
 });
 type PublicationFormValues = z.infer<typeof publicationSchema>;
 
@@ -11330,7 +11153,7 @@ export function CreatePublicationForm({
       title: "",
       excerpt: "",
       authorIds: [],
-      status: "DRAFT",
+      status: PublicationStatus.DRAFT,
     },
   });
   useEffect(() => {
@@ -11389,7 +11212,6 @@ export function CreatePublicationForm({
     </FormProvider>
   );
 }
-
 // FILE: src/features/publications/components/PublicationCard.tsx
 import {
   Card,
@@ -11479,7 +11301,6 @@ export function PublicationCard({ publication, onEdit }: PublicationCardProps) {
     </Card>
   );
 }
-
 // FILE: src/features/publications/components/PublicationList.tsx
 import { useState } from "react";
 import { useApiResource } from "@/hooks/useApiResource";
@@ -11487,6 +11308,8 @@ import { PublicationCard } from "./PublicationCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { CreatePublicationForm } from "./CreatePublicationForm";
+import { AnyValue } from "@/types";
+
 const PublicationListSkeleton = () => (
   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
     {Array.from({ length: 6 }).map((_, i) => (
@@ -11500,13 +11323,11 @@ const PublicationListSkeleton = () => (
     ))}
   </div>
 );
+
 export function PublicationList() {
   const publicationResource = useApiResource("publications", ["publications"]);
-  const { data, isLoading, isError } = publicationResource.useGetAll({
-    page: 1,
-    limit: 12,
-  });
-  const [editingPublication, setEditingPublication] = useState<any | null>(
+  const { data, isLoading, isError } = publicationResource.useGetAll();
+  const [editingPublication, setEditingPublication] = useState<AnyValue | null>(
     null
   );
 
@@ -11538,7 +11359,6 @@ export function PublicationList() {
     </>
   );
 }
-
 // FILE: src/features/reporting/api/useGetWorkloadReport.ts
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
@@ -11652,7 +11472,6 @@ export function WorkloadView({ workspaceId }: { workspaceId: string }) {
 // FILE: src/features/reporting/index.ts
 export * from "./api/useGetWorkloadReport.js";
 export * from "./components/WorkloadView.js";
-
 // FILE: src/features/search/api/useSearch.ts
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
@@ -11975,7 +11794,7 @@ import { useManageTaskTemplates } from "../api/useManageTaskTemplates";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
-import { Task } from "@/features/tasks/task.types";
+import { Task } from "@/types";
 
 const formSchema = z.object({
   name: z.string().min(1, "Template name is required."),
@@ -12131,35 +11950,7 @@ export * from "./api/useInstantiateTaskTemplate.js";
 export * from "./api/useManageTaskTemplates.js";
 export * from "./components/CreateTemplateFromTaskDialog.js";
 export * from "./components/TemplateSelectorDialog.js";
-export * from "./task-template.types.js";
 
-// FILE: src/features/task-templates/task-template.types.ts
-import { z } from "zod";
-import { createUuidParamSchema } from "@/lib/zod";
-import { UpdateTaskDtoSchema } from "@/features/tasks/task.types";
-export const TaskTemplateIdParamsSchema = createUuidParamSchema(
-  "templateId",
-  "Task Template"
-);
-export const TaskTemplateSchema = z.object({
-  id: z.string().uuid(),
-  name: z.string(),
-  description: z.string().nullable(),
-  projectId: z.string().uuid(),
-  templateData: z.any(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-});
-export type TaskTemplate = z.infer<typeof TaskTemplateSchema>;
-
-export const CreateTaskTemplateDtoSchema = z.object({
-  name: z.string().min(1, "Template name is required."),
-  description: z.string().optional().nullable(),
-  templateData: UpdateTaskDtoSchema.extend({
-    title: z.string().optional(),
-  }),
-});
-export type CreateTaskTemplateDto = z.infer<typeof CreateTaskTemplateDtoSchema>;
 // FILE: src/features/task-types/api/useManageTaskTypes.ts
 import { useApiResource } from "@/hooks/useApiResource";
 export function useManageTaskTypes(workspaceId: string, projectId: string) {
@@ -12169,9 +11960,7 @@ export function useManageTaskTypes(workspaceId: string, projectId: string) {
   );
   return resource;
 }
-
 // FILE: src/features/task-types/components/TaskTypeForm.tsx
-
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
@@ -12180,7 +11969,12 @@ import { useManageTaskTypes } from "../api/useManageTaskTypes";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
-import { CreateTaskTypeDtoSchema } from "../task-type.types";
+
+const CreateTaskTypeDtoSchema = z.object({
+  name: z.string().min(1, "Type name is required."),
+  icon: z.string().optional().nullable(),
+  color: z.string().optional().nullable(),
+});
 
 type TaskTypeFormValues = z.infer<typeof CreateTaskTypeDtoSchema>;
 
@@ -12392,7 +12186,6 @@ export function TaskTypeList({ workspaceId, projectId }: ListProps) {
     </>
   );
 }
-
 // FILE: src/features/task-types/components/TaskTypeSelector.tsx
 import {
   Select,
@@ -12402,7 +12195,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useManageTaskTypes } from "../api/useManageTaskTypes";
-import { TaskType } from "../task-type.types";
+import { TaskType } from "@/types";
 
 interface TaskTypeSelectorProps {
   workspaceId: string;
@@ -12454,47 +12247,6 @@ export * from "./api/useManageTaskTypes.js";
 export * from "./components/TaskTypeForm.js";
 export * from "./components/TaskTypeList.js";
 export * from "./components/TaskTypeSelector.js";
-export * from "./task-type.types.js";
-
-// FILE: src/features/task-types/task-type.types.ts
-import { z } from "zod";
-import {
-  createPaginationSchema,
-  createPaginatedResponseSchema,
-  createUuidParamSchema,
-} from "@/lib/zod";
-
-export const TaskTypeIdParamsSchema = createUuidParamSchema(
-  "taskTypeId",
-  "Task Type"
-);
-export const TaskTypeSchema = z.object({
-  id: z.string().uuid(),
-  name: z.string(),
-  icon: z.string().nullable(),
-  color: z.string().nullable(),
-  projectId: z.string().uuid(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-});
-
-export type TaskType = z.infer<typeof TaskTypeSchema>;
-
-export const CreateTaskTypeDtoSchema = z.object({
-  name: z.string().min(1, "Type name is required."),
-  icon: z.string().optional().nullable(),
-  color: z.string().optional().nullable(),
-});
-export type CreateTaskTypeDto = z.infer<typeof CreateTaskTypeDtoSchema>;
-
-export const UpdateTaskTypeDtoSchema = CreateTaskTypeDtoSchema.partial();
-export type UpdateTaskTypeDto = z.infer<typeof UpdateTaskTypeDtoSchema>;
-
-export const ListTaskTypesQuerySchema = createPaginationSchema();
-export type ListTaskTypesQuery = z.infer<typeof ListTaskTypesQuerySchema>;
-
-export const PaginatedTaskTypesResponseSchema =
-  createPaginatedResponseSchema(TaskTypeSchema);
 
 // FILE: src/features/tasks/api/useAttachDocument.ts
 import api from "@/lib/api";
@@ -12536,12 +12288,10 @@ export function useAttachDocument(
     invalidateQueries: [["task", taskId]],
   });
 }
-
 // FILE: src/features/tasks/api/useDetachDocument.ts
-
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
-import { DocumentType } from "@/types";
+import { DocumentType } from "@/types/api";
 
 interface DetachDocumentParams {
   workspaceId?: string;
@@ -12577,10 +12327,11 @@ export function useDetachDocument(
     invalidateQueries: [["task", taskId]],
   });
 }
+
 // FILE: src/features/tasks/api/useManageTaskLinks.ts
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
-import { TaskLinkType } from "@/types";
+import { TaskLinkType } from "@/types/api";
 
 interface AddLinkParams {
   workspaceId?: string;
@@ -12699,7 +12450,6 @@ export function useManageTaskLinks(
       updateLinkMutation.isPending,
   };
 }
-
 // FILE: src/features/tasks/api/useManageTasks.ts
 import { useApiResource } from "@/hooks/useApiResource";
 
@@ -12725,14 +12475,13 @@ interface WatcherParams {
   workspaceId?: string | null;
   projectId?: string | null;
   taskId: string;
-  userId: string;
 }
 
 async function addWatcher({
   workspaceId,
   projectId,
   taskId,
-}: Omit<WatcherParams, "userId">): Promise<any> {
+}: WatcherParams): Promise<any> {
   const url =
     workspaceId && projectId
       ? `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/watch`
@@ -12745,7 +12494,7 @@ async function removeWatcher({
   workspaceId,
   projectId,
   taskId,
-}: Omit<WatcherParams, "userId">): Promise<any> {
+}: WatcherParams): Promise<any> {
   const url =
     workspaceId && projectId
       ? `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/watch`
@@ -12779,12 +12528,11 @@ export function useManageTaskWatchers(
     isPending: addWatcherMutation.isPending || removeWatcherMutation.isPending,
   };
 }
-
 // FILE: src/features/tasks/api/useMoveTask.ts
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
-import { TaskStatus } from "@/types";
-import { Task } from "../task.types";
+import { TaskStatus } from "@/types/api";
+import { Task } from "@/types";
 import { useQueryClient, QueryKey } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -12887,11 +12635,10 @@ export function useMoveTask(projectId: string) {
     },
   });
 }
-
 // FILE: src/features/tasks/api/useUpdateMyTask.ts
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
-import { Task } from "../task.types";
+import { Task } from "@/types";
 import { useQueryClient, QueryKey } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -12978,7 +12725,7 @@ export function useUpdateMyTask() {
 // FILE: src/features/tasks/api/useUpdateTask.ts
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
-import { Task } from "../task.types";
+import { Task } from "@/types";
 
 interface UpdateTaskParams {
   taskId: string;
@@ -13011,7 +12758,6 @@ export function useUpdateTask() {
     ],
   });
 }
-
 // FILE: src/features/tasks/api/useUpdateTaskCustomValues.ts
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
@@ -13101,7 +12847,6 @@ export function AssigneeSelector({
   const userResource = useApiResource("admin/users", ["users"]);
   const { data: allUsersData, isLoading: isLoadingAllUsers } =
     userResource.useGetAll({
-      limit: 1000,
       enabled: !projectId,
     });
 
@@ -13225,14 +12970,13 @@ export function AssigneeSelector({
     </FormControl>
   );
 }
-
 // FILE: src/features/tasks/components/ChecklistItem.tsx
 import { useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
-import { ChecklistItem as ChecklistItemType } from "../task.types";
+import { ChecklistItem as ChecklistItemType } from "@/types";
 interface ChecklistItemProps {
   item: ChecklistItemType;
   onUpdate: (id: string, updates: Partial<ChecklistItemType>) => void;
@@ -13295,7 +13039,7 @@ import {
 import { useApiResource } from "@/hooks/useApiResource";
 import { useGetProfile } from "@/features/profile/api/useGetProfile";
 import { AxiosError } from "axios";
-import { TaskStatus, TaskPriority } from "@/types";
+import { TaskStatus, TaskPriority } from "@/types/api";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
@@ -13497,8 +13241,8 @@ import { useApiResource } from "@/hooks/useApiResource";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { Task } from "@/features/tasks/task.types";
-import { TaskStatus } from "@/types";
+import { Task } from "@/types";
+import { TaskStatus } from "@/types/api";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
@@ -13668,8 +13412,8 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { createPortal } from "react-dom";
-import { Task } from "../task.types";
-import { TaskStatus } from "@/types";
+import { Task } from "@/types";
+import { TaskStatus } from "@/types/api";
 import { KanbanColumn } from "@/features/views/components/KanbanColumn";
 import { KanbanTaskCard } from "@/features/views/components/KanbanTaskCard";
 import { useUpdateMyTask } from "../api/useUpdateMyTask";
@@ -13680,14 +13424,34 @@ interface MyTasksKanbanBoardProps {
 }
 
 const KANBAN_COLUMNS = [
-  { id: "col-todo", name: "To Do", status: TaskStatus.TODO },
+  {
+    id: "col-todo",
+    name: "To Do",
+    status: TaskStatus.TODO,
+    order: 1,
+    viewId: "my-tasks-view",
+  },
   {
     id: "col-in-progress",
     name: "In Progress",
     status: TaskStatus.IN_PROGRESS,
+    order: 2,
+    viewId: "my-tasks-view",
   },
-  { id: "col-in-review", name: "In Review", status: TaskStatus.IN_REVIEW },
-  { id: "col-done", name: "Done", status: TaskStatus.DONE },
+  {
+    id: "col-in-review",
+    name: "In Review",
+    status: TaskStatus.IN_REVIEW,
+    order: 3,
+    viewId: "my-tasks-view",
+  },
+  {
+    id: "col-done",
+    name: "Done",
+    status: TaskStatus.DONE,
+    order: 4,
+    viewId: "my-tasks-view",
+  },
 ];
 
 export function MyTasksKanbanBoard({
@@ -13704,7 +13468,6 @@ export function MyTasksKanbanBoard({
       },
     })
   );
-
   const tasksByColumn = useMemo(() => {
     const grouped: Record<string, Task[]> = {};
     KANBAN_COLUMNS.forEach((col) => (grouped[col.id] = []));
@@ -13960,9 +13723,9 @@ import {
   Eye,
   OctagonAlert,
 } from "lucide-react";
-import { TaskStatus } from "@/types";
+import { TaskStatus } from "@/types/api";
 import React from "react";
-import { Task } from "../task.types";
+import { Task } from "@/types";
 interface SubtaskItemProps {
   task: Task;
   onTaskSelect: (taskId: string) => void;
@@ -14077,6 +13840,7 @@ import api from "@/lib/api";
 import { cn, getAbsoluteUrl } from "@/lib/utils";
 import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
+
 export function TaskAssignees({ task }: any) {
   const [popoverOpen, setPopoverOpen] = useState(false);
 
@@ -14112,7 +13876,6 @@ export function TaskAssignees({ task }: any) {
     "admin/users",
     ["users"]
   ).useGetAll({
-    limit: 1000,
     enabled: !isProjectTask,
   });
   const isLoading = isLoadingProjectMembers || isLoadingAllUsers;
@@ -14231,7 +13994,6 @@ export function TaskAssignees({ task }: any) {
     </div>
   );
 }
-
 // FILE: src/features/tasks/components/TaskChecklist.tsx
 
 import { useState, useEffect } from "react";
@@ -14240,7 +14002,7 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { ChecklistItem } from "./ChecklistItem";
-import { ChecklistItem as ChecklistItemType } from "../task.types";
+import { ChecklistItem as ChecklistItemType } from "@/types";
 
 interface TaskChecklistProps {
   initialItems: ChecklistItemType[];
@@ -14463,7 +14225,7 @@ import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { CreateTaskForm } from "@/features/tasks/components/CreateTaskForm";
 import { TaskLinks } from "./TaskLinks";
 import { TaskChecklist } from "./TaskChecklist";
-import { ChecklistItem } from "../task.types";
+import { ChecklistItem } from "@/types";
 export function TaskDetailBody({
   task,
   workspaceId,
@@ -14687,7 +14449,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useApiResource } from "@/hooks/useApiResource";
-import { TaskStatus, TaskPriority } from "@/types";
+import { TaskStatus, TaskPriority } from "@/types/api";
 import {
   Popover,
   PopoverContent,
@@ -14702,7 +14464,16 @@ import { TaskDocuments } from "./TaskDocuments";
 import { EditableField } from "@/components/ui/EditableField";
 import { RecurrenceSelector } from "./RecurrenceSelector";
 import { TaskTypeSelector } from "@/features/task-types/components/TaskTypeSelector";
-export function TaskDetailSidebar({ task, workspaceId, projectId }: any) {
+import { Task } from "@/types";
+export function TaskDetailSidebar({
+  task,
+  workspaceId,
+  projectId,
+}: {
+  task: Task;
+  workspaceId: string;
+  projectId: string;
+}) {
   const taskResource = useApiResource(
     projectId
       ? `/workspaces/${workspaceId}/projects/${projectId}/tasks`
@@ -14750,7 +14521,7 @@ export function TaskDetailSidebar({ task, workspaceId, projectId }: any) {
           <TaskTypeSelector
             workspaceId={workspaceId}
             projectId={projectId}
-            value={task.taskTypeId}
+            value={task.taskTypeId ?? null}
             onValueChange={(value) => handleUpdate("taskTypeId", value)}
           />
         </div>
@@ -14789,7 +14560,7 @@ export function TaskDetailSidebar({ task, workspaceId, projectId }: any) {
       <div>
         <h3 className="mb-2 text-sm font-semibold">Recurrence</h3>
         <RecurrenceSelector
-          value={task.recurrenceRule}
+          value={task.recurrenceRule ?? null}
           onSave={(value) => handleUpdate("recurrenceRule", value)}
         />
       </div>
@@ -14886,11 +14657,10 @@ export function TaskDetailSidebarSkeleton() {
     </div>
   );
 }
-
 // FILE: src/features/tasks/components/TaskDocuments.tsx
 import { useRef, useMemo } from "react";
-import { DocumentType } from "@/types";
-import { Task } from "../task.types";
+import { DocumentType } from "@/types/api";
+import { Task } from "@/types";
 import { Button } from "@/components/ui/button";
 import {
   Paperclip,
@@ -15132,7 +14902,7 @@ import {
 } from "@/components/ui/select";
 import { Link2, Trash2 } from "lucide-react";
 import { useManageTaskLinks } from "../api/useManageTaskLinks";
-import { TaskLinkType } from "@/types";
+import { TaskLinkType } from "@/types/api";
 
 function TaskLinkItem({ link, onRemove, onUpdateType }: any) {
   const target = link.targetTask ?? link.sourceTask;
@@ -15242,7 +15012,6 @@ export function TaskLinks({ task, workspaceId, projectId }: any) {
     </div>
   );
 }
-
 // FILE: src/features/tasks/components/TaskList.tsx
 import {
   DataTable,
@@ -15266,8 +15035,8 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { useApiResource } from "@/hooks/useApiResource";
-import { Task } from "../task.types";
-import { TaskStatus, TaskPriority } from "@/types";
+import { Task } from "@/types";
+import { TaskStatus, TaskPriority } from "@/types/api";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { MoreHorizontal, Edit, Copy, Trash2 } from "lucide-react";
@@ -15472,256 +15241,6 @@ export * from "./components/TaskDetailSidebar.js";
 export * from "./components/TaskDocuments.js";
 export * from "./components/TaskLinks.js";
 export * from "./components/TaskList.js";
-
-// FILE: src/features/tasks/task.types.ts
-import { z, type ZodType } from "zod";
-import {
-  TaskStatus,
-  TaskPriority,
-  TaskLinkType,
-  CustomFieldType,
-  DocumentType,
-  SocialProvider,
-} from "@/types";
-import {
-  createPaginationSchema,
-  createPaginatedResponseSchema,
-  createUuidParamSchema,
-} from "@/lib/zod";
-import { TaskTypeSchema } from "../task-types/task-type.types";
-export const ProjectIdParamsSchema = createUuidParamSchema(
-  "projectId",
-  "Project"
-);
-export type ProjectIdParams = z.infer<typeof ProjectIdParamsSchema>;
-export const TaskIdParamsSchema = createUuidParamSchema("taskId", "Task");
-export type TaskIdParams = z.infer<typeof TaskIdParamsSchema>;
-
-export const TaskLinkIdParamsSchema = TaskIdParamsSchema.extend({
-  linkId: z.string().uuid(),
-});
-export interface TaskLinkIdParams {
-  taskId: string;
-  linkId: string;
-}
-export const TaskDocumentParamsSchema = TaskIdParamsSchema.extend({
-  documentId: z.string().uuid(),
-  type: z.nativeEnum(DocumentType),
-});
-export type TaskDocumentParams = z.infer<typeof TaskDocumentParamsSchema>;
-export const TaskAssigneeParamsSchema = TaskIdParamsSchema.extend({
-  userId: z.string().uuid(),
-});
-export interface TaskAssigneeParams {
-  taskId: string;
-  userId: string;
-}
-
-const TaskAssigneeSchema = z.object({
-  id: z.string().uuid(),
-  name: z.string(),
-  avatarUrl: z.string().url().nullable(),
-});
-
-const TaskLinkSchema = z.object({
-  id: z.string().uuid(),
-  type: z.nativeEnum(TaskLinkType),
-  targetTask: z
-    .object({
-      id: z.string().uuid(),
-      title: z.string(),
-      status: z.nativeEnum(TaskStatus),
-    })
-    .optional(),
-  sourceTask: z
-    .object({
-      id: z.string().uuid(),
-      title: z.string(),
-      status: z.nativeEnum(TaskStatus),
-    })
-    .optional(),
-});
-
-const CustomFieldDefinitionForTaskSchema = z.object({
-  id: z.string().uuid(),
-  name: z.string(),
-  type: z.nativeEnum(CustomFieldType),
-  options: z.any().nullable(),
-});
-
-const TaskCustomFieldSchema = z.object({
-  fieldId: z.string().uuid(),
-  value: z.any(),
-  definition: CustomFieldDefinitionForTaskSchema,
-});
-const TaskDocumentSchema = z.object({
-  documentId: z.string().uuid(),
-  type: z.nativeEnum(DocumentType),
-  title: z.string(),
-  url: z.string(),
-  fileType: z.string().nullable(),
-  createdAt: z.coerce.date(),
-  externalUrl: z.string().url().nullable(),
-  provider: z.nativeEnum(SocialProvider).nullable(),
-});
-
-export const ChecklistItemSchema = z.object({
-  id: z.string(),
-  text: z.string(),
-  completed: z.boolean(),
-});
-export type ChecklistItem = z.infer<typeof ChecklistItemSchema>;
-const BaseTaskSchema = z.object({
-  __typename: z.literal("Task"),
-  id: z.string().uuid(),
-  shortId: z.string().nullable(),
-  title: z.string(),
-  description: z.string().nullable(),
-  status: z.nativeEnum(TaskStatus),
-  priority: z.nativeEnum(TaskPriority),
-  projectId: z.string().uuid().nullable(),
-  taskTypeId: z.string().uuid().nullable().optional(),
-  taskType: TaskTypeSchema.nullable().optional(),
-  workspaceId: z.string().uuid().nullable(),
-  projectName: z.string().nullable(),
-  ownerId: z.string().uuid().nullable(),
-  creatorId: z.string().uuid().nullable(),
-  startDate: z.coerce.date().nullable(),
-  dueDate: z.coerce.date().nullable(),
-  timeEstimate: z.number().int().nullable(),
-  storyPoints: z.number().int().nullable().optional(),
-  epicId: z.string().uuid().nullable(),
-  sprintId: z.string().uuid().nullable().optional(),
-  boardColumnId: z.string().uuid().nullable(),
-  orderInColumn: z.number().int().nullable(),
-  recurrenceRule: z.string().nullable().optional(),
-  createdAt: z.coerce.date(),
-  updatedAt: z.coerce.date(),
-  assignees: z.array(TaskAssigneeSchema),
-  watchers: z.array(TaskAssigneeSchema),
-  links: z.array(TaskLinkSchema),
-  linkedToBy: z.array(TaskLinkSchema),
-  customFields: z.array(TaskCustomFieldSchema),
-  documents: z.array(TaskDocumentSchema),
-  parentId: z.string().uuid().nullable(),
-  checklist: z.array(ChecklistItemSchema).nullable().optional(),
-});
-
-export type Task = z.infer<typeof BaseTaskSchema> & {
-  subtasks: Task[];
-};
-
-export const TaskSchema: ZodType<Task> = BaseTaskSchema.extend({
-  subtasks: z.lazy(() => z.array(TaskSchema)),
-});
-
-export type TaskLink = z.infer<typeof TaskLinkSchema>;
-export const CreateTaskDtoSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  description: z.string().optional().nullable(),
-  status: z.nativeEnum(TaskStatus).default(TaskStatus.TODO),
-  priority: z.nativeEnum(TaskPriority).default(TaskPriority.NONE),
-  startDate: z.coerce.date().optional().nullable(),
-  dueDate: z.coerce.date().optional().nullable(),
-  timeEstimate: z.number().int().positive().optional().nullable(),
-  storyPoints: z.number().int().positive().optional().nullable(),
-  projectId: z.string().uuid().optional().nullable(),
-  taskTypeId: z.string().uuid().optional().nullable(),
-  epicId: z.string().uuid().optional().nullable(),
-  sprintId: z.string().uuid().optional().nullable(),
-  boardColumnId: z.string().uuid().optional().nullable(),
-  parentId: z.string().uuid().optional().nullable(),
-  assigneeIds: z.array(z.string().uuid()).optional(),
-  watcherIds: z.array(z.string().uuid()).optional(),
-  checklist: z.array(ChecklistItemSchema).optional().nullable(),
-});
-export type CreateTaskDto = z.infer<typeof CreateTaskDtoSchema>;
-
-export const CreateTaskBodySchema = CreateTaskDtoSchema.omit({
-  projectId: true,
-});
-export type CreateTaskBody = z.infer<typeof CreateTaskBodySchema>;
-export const UpdateTaskDtoSchema = CreateTaskDtoSchema.omit({
-  projectId: true,
-  parentId: true,
-}).partial();
-export type UpdateTaskDto = z.infer<typeof UpdateTaskDtoSchema>;
-export const MoveTaskDtoSchema = z.object({
-  targetColumnId: z.string().uuid(),
-  orderInColumn: z.number().int(),
-});
-export type MoveTaskDto = z.infer<typeof MoveTaskDtoSchema>;
-export const CreateTaskLinkDtoSchema = z.object({
-  targetTaskId: z.string().uuid(),
-  type: z.nativeEnum(TaskLinkType),
-});
-export type CreateTaskLinkDto = z.infer<typeof CreateTaskLinkDtoSchema>;
-export const UpdateTaskLinkDtoSchema = z.object({
-  type: z.nativeEnum(TaskLinkType),
-});
-export type UpdateTaskLinkDto = z.infer<typeof UpdateTaskLinkDtoSchema>;
-
-export const AssignUserToTaskDtoSchema = z.object({
-  userId: z.string().uuid(),
-});
-export type AssignUserToTaskDto = z.infer<typeof AssignUserToTaskDtoSchema>;
-export const UpdateTaskCustomValuesDtoSchema = z.object({
-  updates: z.array(
-    z.object({
-      fieldId: z.string().uuid(),
-      value: z.any().optional(),
-    })
-  ),
-});
-export type UpdateTaskCustomValuesDto = z.infer<
-  typeof UpdateTaskCustomValuesDtoSchema
->;
-
-export const ListTasksQuerySchema = createPaginationSchema().extend({
-  status: z.nativeEnum(TaskStatus).optional(),
-  priority: z.nativeEnum(TaskPriority).optional(),
-  search: z.string().optional(),
-  startDate: z.coerce.date().optional(),
-  endDate: z.coerce.date().optional(),
-  includeSubtasks: z
-    .preprocess((val) => val === "true", z.boolean())
-    .default(false),
-  sortBy: z
-    .enum([
-      "createdAt",
-      "updatedAt",
-      "title",
-      "status",
-      "priority",
-      "dueDate",
-      "orderInColumn",
-    ])
-    .default("orderInColumn"),
-  sortOrder: z.enum(["asc", "desc"]).default("asc"),
-  taskOrigin: z.enum(["project", "standalone"]).optional(),
-  userRole: z.enum(["creator", "assignee"]).optional(),
-});
-export type ListTasksQuery = z.infer<typeof ListTasksQuerySchema>;
-
-export const PaginatedTasksResponseSchema =
-  createPaginatedResponseSchema(TaskSchema);
-
-export type PaginatedTasksResponse = z.infer<
-  typeof PaginatedTasksResponseSchema
->;
-export const BulkDeleteTasksDtoSchema = z.object({
-  ids: z
-    .array(z.string().uuid())
-    .min(1, "At least one task ID must be provided."),
-});
-export type BulkDeleteTasksDto = z.infer<typeof BulkDeleteTasksDtoSchema>;
-
-export const BulkDeleteTasksResponseSchema = z.object({
-  count: z.number().int(),
-});
-export type BulkDeleteTasksResponse = z.infer<
-  typeof BulkDeleteTasksResponseSchema
->;
 // FILE: src/features/teams/api/useManageTeams.ts
 import { useApiResource } from "@/hooks/useApiResource";
 
@@ -15732,9 +15251,7 @@ export function useManageTeams(workspaceId: string) {
   ]);
   return resource;
 }
-
 // FILE: src/features/teams/components/ManageTeamMembers.tsx
-
 import { useApiResource } from "@/hooks/useApiResource";
 import { useApiMutation } from "@/hooks/useApiMutation";
 import api from "@/lib/api";
@@ -15769,9 +15286,7 @@ export function ManageTeamMembers({
   const { data: usersData, isLoading: isLoadingUsers } = useApiResource(
     "admin/users",
     ["users"]
-  ).useGetAll({
-    limit: 1000,
-  });
+  ).useGetAll();
   const invalidateQueries = [
     ["teams", workspaceId],
     ["team", team.id],
@@ -15871,12 +15386,13 @@ export function ManageTeamMembers({
 }
 
 // FILE: src/features/teams/components/TeamCard.tsx
-
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useApiResource } from "@/hooks/useApiResource";
 import { getAbsoluteUrl } from "@/lib/utils";
 import { EntityCard } from "@/components/ui/EntityCard";
-export function TeamCard({ team, onEdit }: { team: any; onEdit: () => void }) {
+import { Team } from "@/types";
+
+export function TeamCard({ team, onEdit }: { team: Team; onEdit: () => void }) {
   const teamResource = useApiResource(`/workspaces/${team.workspaceId}/teams`, [
     "teams",
     team.workspaceId,
@@ -16030,18 +15546,17 @@ import { useState } from "react";
 import { useApiResource } from "@/hooks/useApiResource";
 import { TeamCard } from "./TeamCard";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ErrorState } from "@/components/ui/error-state";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
 import { Users } from "lucide-react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { TeamForm } from "./TeamForm";
 import { ManageTeamMembers } from "./ManageTeamMembers";
+import { Team } from "@/types";
 
 const TeamListSkeleton = () => (
-  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+  <div className="grid gap-4 pt-6 md:grid-cols-2 lg:grid-cols-3">
     {Array.from({ length: 3 }).map((_, i) => (
       <Card key={i}>
         <CardHeader>
@@ -16056,13 +15571,12 @@ const TeamListSkeleton = () => (
   </div>
 );
 export function TeamList({ workspaceId }: { workspaceId: string }) {
-  const teamResource = useApiResource(`/workspaces/${workspaceId}/teams`, [
-    "teams",
-    workspaceId,
-  ]);
+  const teamResource = useApiResource<Team>(
+    `/workspaces/${workspaceId}/teams`,
+    ["teams", workspaceId]
+  );
   const { data, isLoading, isError, error } = teamResource.useGetAll();
   const [editingTeamId, setEditingTeamId] = useState<string | null>(null);
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   if (isLoading) {
     return <TeamListSkeleton />;
@@ -16082,36 +15596,20 @@ export function TeamList({ workspaceId }: { workspaceId: string }) {
 
   if (!data || data.data.length === 0) {
     return (
-      <EmptyState
-        icon={<Users className="text-primary h-10 w-10" />}
-        title="This workspace has no teams yet."
-        description="Create the first team to start organizing users."
-        action={
-          <ResourceCrudDialog
-            isOpen={isCreateOpen}
-            onOpenChange={setIsCreateOpen}
-            trigger={
-              <Button onClick={() => setIsCreateOpen(true)}>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                New Team
-              </Button>
-            }
-            title="Create a new team"
-            description="Teams help you group users within a workspace."
-            form={TeamForm}
-            formProps={{ workspaceId }}
-            resourcePath={`/workspaces/${workspaceId}/teams`}
-            resourceKey={["teams", workspaceId]}
-          />
-        }
-      />
+      <div className="pt-6">
+        <EmptyState
+          icon={<Users className="text-primary h-10 w-10" />}
+          title="This workspace has no teams yet."
+          description="Create the first team to start organizing users."
+        />
+      </div>
     );
   }
 
   return (
     <>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {data.data.map((team: any) => (
+      <div className="grid gap-4 pt-6 md:grid-cols-2 lg:grid-cols-3">
+        {data.data.map((team) => (
           <TeamCard
             team={{ ...team, workspaceId }}
             key={team.id}
@@ -16138,10 +15636,10 @@ export function TeamList({ workspaceId }: { workspaceId: string }) {
     </>
   );
 }
-
 // FILE: src/features/timelogs/api/useAddTimeLog.ts
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
+
 async function addTimeLog({
   workspaceId,
   projectId,
@@ -16167,7 +15665,6 @@ export function useAddTimeLog(
     invalidateQueries: [["timeLogs", taskId]],
   });
 }
-
 // FILE: src/features/timelogs/api/useDeleteTimeLog.ts
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
@@ -16202,10 +15699,10 @@ export function useDeleteTimeLog(
     invalidateQueries: [["timeLogs", taskId]],
   });
 }
-
 // FILE: src/features/timelogs/api/useGetTimeLogs.ts
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
+
 async function getTimeLogs(
   workspaceId: string,
   projectId: string,
@@ -16228,7 +15725,6 @@ export function useGetTimeLogs(
     enabled: !!workspaceId && !!projectId && !!taskId,
   });
 }
-
 // FILE: src/features/timelogs/api/useUpdateTimeLog.ts
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
@@ -16488,6 +15984,7 @@ export function useDeleteView(workspaceId: string, projectId: string) {
 // FILE: src/features/views/api/useGetProjectViews.ts
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
+
 async function getProjectViews(
   workspaceId: string,
   projectId: string
@@ -16505,7 +16002,6 @@ export function useGetProjectViews(workspaceId: string, projectId: string) {
     enabled: !!workspaceId && !!projectId,
   });
 }
-
 // FILE: src/features/views/api/useGetView.ts
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
@@ -16535,7 +16031,8 @@ export function useGetView(
 // FILE: src/features/views/api/useGetViewData.ts
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
-import { ListTasksQuery } from "@/features/tasks/task.types";
+import { ListTasksQuery } from "@/types";
+
 async function getViewData(
   workspaceId: string,
   projectId: string,
@@ -16562,7 +16059,6 @@ export function useGetViewData(
     enabled: !!workspaceId && !!projectId && !!viewId && options.enabled,
   });
 }
-
 // FILE: src/features/views/api/useManageViews.ts
 import { useApiResource } from "@/hooks/useApiResource";
 
@@ -16573,7 +16069,6 @@ export function useManageViews(workspaceId: string, projectId: string) {
   );
   return resource;
 }
-
 // FILE: src/features/views/api/useUpdateView.ts
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
@@ -16614,7 +16109,7 @@ export function useUpdateView(workspaceId: string, projectId: string) {
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Card } from "@/components/ui/card";
-import { Task } from "@/features/tasks/task.types";
+import { Task } from "@/types";
 
 interface BacklogTaskItemProps {
   task: Task;
@@ -16653,7 +16148,6 @@ export function BacklogTaskItem({ task, onTaskSelect }: BacklogTaskItemProps) {
     </div>
   );
 }
-
 // FILE: src/features/views/components/BacklogView.tsx
 import {
   DndContext,
@@ -16665,12 +16159,9 @@ import {
   DragStartEvent,
 } from "@dnd-kit/core";
 import { createPortal } from "react-dom";
-import { Task } from "@/features/tasks/task.types";
-import { useApiResource } from "@/hooks/useApiResource";
-import { useUpdateMyTask } from "@/features/tasks/api/useUpdateMyTask";
-import { EpicDropzone } from "./EpicDropzone";
+import { Task } from "@/types";
 import { KanbanTaskCard } from "./KanbanTaskCard";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 
 interface BacklogViewProps {
   tasks: Task[];
@@ -16679,19 +16170,9 @@ interface BacklogViewProps {
   onTaskSelect: (taskId: string) => void;
 }
 
-export function BacklogView({
-  tasks,
-  workspaceId,
-  projectId,
-  onTaskSelect,
-}: BacklogViewProps) {
+export function BacklogView({ tasks }: BacklogViewProps) {
   const [activeTask, setActiveTask] = useState<Task | null>(null);
-  const updateTaskMutation = useUpdateMyTask();
 
-  const { data: epicsData } = useApiResource(
-    `/workspaces/${workspaceId}/projects/${projectId}/epics`,
-    ["epics", projectId]
-  ).useGetAll();
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -16699,21 +16180,6 @@ export function BacklogView({
       },
     })
   );
-  const { tasksWithoutEpic, tasksByEpic } = useMemo(() => {
-    const tasksWithoutEpic: Task[] = [];
-    const tasksByEpic: Record<string, Task[]> = {};
-    tasks.forEach((task) => {
-      if (task.epicId) {
-        if (!tasksByEpic[task.epicId]) {
-          tasksByEpic[task.epicId] = [];
-        }
-        tasksByEpic[task.epicId].push(task);
-      } else {
-        tasksWithoutEpic.push(task);
-      }
-    });
-    return { tasksWithoutEpic, tasksByEpic };
-  }, [tasks]);
   const onDragStart = (event: DragStartEvent) => {
     if (event.active.data.current?.type === "Task") {
       setActiveTask(event.active.data.current.task);
@@ -16726,23 +16192,11 @@ export function BacklogView({
     if (!over) return;
 
     const taskId = active.id as string;
-    const task = tasks.find((t) => t.id === taskId);
+    const task = tasks.find((t) => t.id === taskId) as Task & {
+      epicId?: string;
+    };
     if (!task) return;
-
-    const targetIsEpic = over.data.current?.type === "Epic";
-    const newEpicId = targetIsEpic
-      ? (over.id as string).replace("epic-", "")
-      : null;
-    if (task.epicId !== newEpicId) {
-      updateTaskMutation.mutate({
-        taskId,
-        workspaceId,
-        projectId,
-        taskData: { epicId: newEpicId },
-      });
-    }
   };
-
   return (
     <DndContext
       onDragStart={onDragStart}
@@ -16752,22 +16206,8 @@ export function BacklogView({
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         <div className="space-y-4">
           <h2 className="text-lg font-semibold">Backlog</h2>
-          <EpicDropzone
-            epic={{ id: "backlog", name: "Tasks without Epic" }}
-            tasks={tasksWithoutEpic}
-            onTaskSelect={onTaskSelect}
-          />
         </div>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:col-span-2">
-          {epicsData?.data?.map((epic: any) => (
-            <EpicDropzone
-              key={epic.id}
-              epic={epic}
-              tasks={tasksByEpic[epic.id] || []}
-              onTaskSelect={onTaskSelect}
-            />
-          ))}
-        </div>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:col-span-2"></div>
       </div>
       {createPortal(
         <DragOverlay>
@@ -16784,7 +16224,8 @@ export function BacklogView({
 import { Calendar, dateFnsLocalizer, Event } from "react-big-calendar";
 import { format, parse, startOfWeek, getDay } from "date-fns";
 import { enUS } from "date-fns/locale/en-US";
-import { Task } from "@/features/tasks/task.types";
+import { Task } from "@/types";
+import "react-big-calendar/lib/css/react-big-calendar.css";
 
 interface CalendarViewProps {
   tasks: Task[];
@@ -16823,57 +16264,11 @@ export function CalendarView({ tasks, onTaskSelect }: CalendarViewProps) {
     </div>
   );
 }
-
-// FILE: src/features/views/components/EpicDropzone.tsx
-import { useDroppable } from "@dnd-kit/core";
-import { SortableContext } from "@dnd-kit/sortable";
-import { Task } from "@/features/tasks/task.types";
-import { BacklogTaskItem } from "./BacklogTaskItem";
-
-interface EpicDropzoneProps {
-  epic: { id: string; name: string };
-  tasks: Task[];
-  onTaskSelect: (taskId: string) => void;
-}
-
-export function EpicDropzone({ epic, tasks, onTaskSelect }: EpicDropzoneProps) {
-  const { setNodeRef } = useDroppable({
-    id: `epic-${epic.id}`,
-    data: {
-      type: "Epic",
-      epic,
-    },
-  });
-  const taskIds = tasks.map((t) => t.id);
-
-  return (
-    <div className="rounded-lg bg-gray-100/60 p-4">
-      <h3 className="mb-2 font-semibold">{epic.name}</h3>
-      <div ref={setNodeRef} className="min-h-[100px] space-y-2">
-        <SortableContext items={taskIds}>
-          {tasks.map((task) => (
-            <BacklogTaskItem
-              key={task.id}
-              task={task}
-              onTaskSelect={onTaskSelect}
-            />
-          ))}
-        </SortableContext>
-        {tasks.length === 0 && (
-          <div className="text-muted-foreground flex h-24 items-center justify-center rounded-md border-2 border-dashed text-sm">
-            Drag tasks here to add to this epic
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
 // FILE: src/features/views/components/GanttChartView.tsx
 import { useEffect, useRef } from "react";
 import { gantt } from "dhtmlx-gantt";
 import "dhtmlx-gantt/codebase/dhtmlxgantt.css";
-import { Task } from "@/features/tasks/task.types";
+import { Task } from "@/types";
 import { useApiResource } from "@/hooks/useApiResource";
 import { useParams } from "react-router-dom";
 interface GanttChartViewProps {
@@ -16903,7 +16298,7 @@ export function GanttChartView({ tasks }: GanttChartViewProps) {
 
     gantt.init(ganttContainer.current);
 
-    const onAfterTaskDrag = (id: string, mode: string) => {
+    const onAfterTaskDrag = (id: string | number, mode: string) => {
       const task = gantt.getTask(id);
       const updates: { startDate?: Date; dueDate?: Date } = {};
 
@@ -16967,7 +16362,6 @@ export function GanttChartView({ tasks }: GanttChartViewProps) {
     ></div>
   );
 }
-
 // FILE: src/features/views/components/KanbanBoard.tsx
 import {
   DndContext,
@@ -16980,13 +16374,15 @@ import {
 } from "@dnd-kit/core";
 import { KanbanColumn } from "./KanbanColumn";
 import { useMoveTask } from "@/features/tasks/api/useMoveTask";
-import { Task } from "@/features/tasks/task.types";
-import { TaskStatus, View, ViewColumn } from "@/types";
+import { Task } from "@/types";
+import { View, ViewColumn } from "@/types";
+import { TaskStatus } from "@/types/api";
 import { createPortal } from "react-dom";
 import { KanbanTaskCard } from "./KanbanTaskCard";
 import { useMemo, useState } from "react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Kanban } from "lucide-react";
+
 interface KanbanBoardProps {
   workspaceId: string;
   projectId: string;
@@ -17186,14 +16582,25 @@ export function KanbanBoard({
     </DndContext>
   );
 }
-
 // FILE: src/features/views/components/KanbanColumn.tsx
 import { SortableContext } from "@dnd-kit/sortable";
 import { KanbanTaskCard } from "./KanbanTaskCard";
 import { useMemo } from "react";
 import { useDroppable } from "@dnd-kit/core";
+import { Task } from "@/types";
+import { ViewColumn } from "@/types";
 
-export function KanbanColumn({ column, tasks, onTaskSelect }: any) {
+interface KanbanColumnProps {
+  column: ViewColumn;
+  tasks: Task[];
+  onTaskSelect: (taskId: string) => void;
+}
+
+export function KanbanColumn({
+  column,
+  tasks,
+  onTaskSelect,
+}: KanbanColumnProps) {
   const { setNodeRef } = useDroppable({
     id: column.id,
     data: { type: "Column", column },
@@ -17207,7 +16614,7 @@ export function KanbanColumn({ column, tasks, onTaskSelect }: any) {
       className="flex w-72 shrink-0 flex-col rounded-lg bg-gray-100/60 p-2"
     >
       <h3 className="p-2 font-semibold text-gray-700">{column.name}</h3>
-      <div className="flex-grow space-y-2">
+      <div className="flex-grow space-y-2 overflow-y-auto">
         <SortableContext items={tasksIds}>
           {tasks.map((task: any) => (
             <KanbanTaskCard
@@ -17248,13 +16655,14 @@ import { useApiResource } from "@/hooks/useApiResource";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { Task } from "@/features/tasks/task.types";
-import { TaskStatus } from "@/types";
+import { Task } from "@/types";
+import { TaskStatus } from "@/types/api";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { CreateTemplateFromTaskForm } from "@/features/task-templates/components/CreateTemplateFromTaskDialog";
 import { getIcon } from "@/lib/icons";
+
 export function KanbanTaskCard({
   task,
   onTaskSelect,
@@ -17278,17 +16686,20 @@ export function KanbanTaskCard({
     transition,
     transform: CSS.Transform.toString(transform),
   };
+
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (window.confirm(`Delete task "${task.title}"?`)) {
       deleteTaskMutation.mutate(task.id);
     }
   };
+
   const handleCopyId = (e: React.MouseEvent) => {
     e.stopPropagation();
-    navigator.clipboard.writeText(task.id);
+    navigator.clipboard.writeText(task.shortId || task.id);
     toast.success("Task ID copied to clipboard.");
   };
+
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
     onTaskSelect(task.id);
@@ -17424,7 +16835,7 @@ import { Settings, CheckSquare, PlusCircle } from "lucide-react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { CreateTaskForm } from "@/features/tasks/components/CreateTaskForm";
 import { CreateDashboardForm } from "@/features/dashboards/components/CreateDashboardForm";
-import { Task } from "@/features/tasks/task.types";
+import { Task } from "@/types";
 import { View } from "@/types";
 import { ProjectActivityLog } from "@/features/activities/components/ProjectActivityLog";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -17613,7 +17024,7 @@ import { useApiResource } from "@/hooks/useApiResource";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { nameSchema } from "@/lib/schemas";
-import { ViewType } from "@/types";
+import { ViewType } from "@/types/api";
 
 const viewSchema = z.object({
   name: nameSchema("View"),
@@ -17691,9 +17102,10 @@ export function SaveViewForm({
 import { EntityCard } from "@/components/ui/EntityCard";
 import { useManageViews } from "../api/useManageViews";
 import { getIcon } from "@/lib/icons";
+import { View } from "@/types";
 
 interface ViewCardProps {
-  view: any;
+  view: View;
   workspaceId: string;
   projectId: string;
   onEdit: () => void;
@@ -17742,19 +17154,19 @@ export function ViewCard({
   );
 }
 // FILE: src/features/views/components/ViewForm.tsx
-
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { FormInput, FormSelect } from "@/components/form/FormFields";
 import { useManageViews } from "../api/useManageViews";
 import { useEffect } from "react";
-import { ViewType } from "@/types";
+import { ViewType } from "@/types/api";
+import { View } from "@/types";
 
 interface ViewFormProps {
   workspaceId: string;
   projectId: string;
-  initialData?: any;
+  initialData?: View;
   onSuccess?: () => void;
 }
 
@@ -17825,14 +17237,15 @@ export function ViewForm({
             {mutation.isPending
               ? "Saving..."
               : isEditMode
-              ? "Save Changes"
-              : "Create View"}
+                ? "Save Changes"
+                : "Create View"}
           </Button>
         </form>
       </Form>
     </FormProvider>
   );
 }
+
 // FILE: src/features/views/components/ViewList.tsx
 import { useState } from "react";
 import { useManageViews } from "../api/useManageViews";
@@ -17879,7 +17292,6 @@ export function ViewList({ workspaceId, projectId }: ViewListProps) {
     </>
   );
 }
-
 // FILE: src/features/views/components/WhiteboardView.tsx
 import { Tldraw } from "tldraw";
 import "tldraw/tldraw.css";
@@ -17902,7 +17314,6 @@ export * from "./api/useUpdateView.js";
 export * from "./components/BacklogTaskItem.js";
 export * from "./components/BacklogView.js";
 export * from "./components/CalendarView.js";
-export * from "./components/EpicDropzone.js";
 export * from "./components/GanttChartView.js";
 export * from "./components/KanbanBoard.js";
 export * from "./components/KanbanColumn.js";
@@ -17911,136 +17322,6 @@ export * from "./components/ProjectDetailView.js";
 export * from "./components/ViewCard.js";
 export * from "./components/ViewForm.js";
 export * from "./components/ViewList.js";
-export * from "./view.types.js";
-
-// FILE: src/features/views/view.types.ts
-import { z } from "zod";
-import { ViewType } from "@/types";
-import {
-  createPaginationSchema,
-  createPaginatedResponseSchema,
-  createUuidParamSchema,
-} from "@/lib/zod";
-
-export const ProjectIdParamsSchema = createUuidParamSchema(
-  "projectId",
-  "Project"
-);
-export const ViewIdParamsSchema = createUuidParamSchema("viewId", "View");
-export type ViewIdParams = z.infer<typeof ViewIdParamsSchema>;
-
-export const ViewColumnSchema = z.object({
-  id: z.string().uuid(),
-  name: z.string(),
-  order: z.number().int(),
-  viewId: z.string().uuid(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-});
-
-const KanbanConfigSchema = z.object({});
-
-const ListConfigSchema = z.object({
-  visibleFields: z.array(z.string()).optional(),
-});
-
-const CalendarConfigSchema = z.object({
-  dateField: z.enum(["dueDate", "startDate"]),
-});
-const GanttConfigSchema = z.object({});
-const BacklogConfigSchema = z.object({});
-const WhiteboardConfigSchema = z.object({});
-
-export const ViewConfigSchema = z.discriminatedUnion("type", [
-  z.object({
-    type: z.literal(ViewType.KANBAN),
-    settings: KanbanConfigSchema.optional(),
-  }),
-  z.object({
-    type: z.literal(ViewType.LIST),
-    settings: ListConfigSchema.optional(),
-  }),
-  z.object({
-    type: z.literal(ViewType.CALENDAR),
-    settings: CalendarConfigSchema,
-  }),
-  z.object({
-    type: z.literal(ViewType.GANTT),
-    settings: GanttConfigSchema.optional(),
-  }),
-  z.object({
-    type: z.literal(ViewType.BACKLOG),
-    settings: BacklogConfigSchema.optional(),
-  }),
-  z.object({
-    type: z.literal(ViewType.WHITEBOARD),
-    settings: WhiteboardConfigSchema.optional(),
-  }),
-]);
-export type ViewConfig = z.infer<typeof ViewConfigSchema>;
-
-export const ViewSchema = z.object({
-  __typename: z.literal("View"),
-  id: z.string().uuid(),
-  name: z.string(),
-  type: z.nativeEnum(ViewType),
-  config: ViewConfigSchema.nullable(),
-  projectId: z.string().uuid(),
-  columns: z.array(ViewColumnSchema),
-  filters: z.any().nullable(),
-  sorting: z.any().nullable(),
-  grouping: z.any().nullable(),
-  isPublic: z.boolean(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-});
-
-export type View = z.infer<typeof ViewSchema>;
-export type ViewColumn = z.infer<typeof ViewColumnSchema>;
-
-export const CreateViewColumnDtoSchema = z.object({
-  name: z.string().min(1, "Column name cannot be empty."),
-  order: z.number().int().optional(),
-});
-
-export const CreateViewDtoSchema = z.object({
-  name: z.string().min(1, "View name cannot be empty."),
-  type: z.nativeEnum(ViewType),
-  config: ViewConfigSchema.optional(),
-  projectId: z.string().uuid(),
-  columns: z.array(CreateViewColumnDtoSchema).optional(),
-  filters: z.any().optional(),
-  sorting: z.any().optional(),
-  grouping: z.any().optional(),
-  isPublic: z.boolean().optional(),
-});
-export type CreateViewDto = z.infer<typeof CreateViewDtoSchema>;
-
-export const UpdateViewDtoSchema = z.object({
-  name: z.string().min(1).optional(),
-  config: ViewConfigSchema.optional(),
-  columns: z.array(CreateViewColumnDtoSchema).optional(),
-  filters: z.any().optional(),
-  sorting: z.any().optional(),
-  grouping: z.any().optional(),
-  isPublic: z.boolean().optional(),
-});
-export type UpdateViewDto = z.infer<typeof UpdateViewDtoSchema>;
-
-export const ListViewsQuerySchema = createPaginationSchema().extend({
-  sortBy: z.enum(["createdAt", "updatedAt", "name"]).default("createdAt"),
-  sortOrder: z.enum(["asc", "desc"]).default("asc"),
-
-  startDate: z.coerce.date().optional(),
-  endDate: z.coerce.date().optional(),
-});
-export type ListViewsQuery = z.infer<typeof ListViewsQuerySchema>;
-
-export const PaginatedViewsResponseSchema =
-  createPaginatedResponseSchema(ViewSchema);
-export type PaginatedViewsResponse = z.infer<
-  typeof PaginatedViewsResponseSchema
->;
 // FILE: src/features/widgets/api/useCreateWidget.ts
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
@@ -18345,7 +17626,7 @@ export function PieChartConfigFields() {
 
 // FILE: src/features/widgets/components/config-fields/StatsCounterConfigFields.tsx
 import { FormInput, FormSelect } from "@/components/form/FormFields";
-import { TaskStatus } from "@/types";
+import { TaskStatus } from "@/types/api";
 
 export function StatsCounterConfigFields() {
   const statusOptions = Object.values(TaskStatus).map((status) => ({
@@ -18489,7 +17770,7 @@ export function TimeTrackingReportConfigFields() {
 }
 
 // FILE: src/features/widgets/components/CreateWidgetForm.tsx
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
@@ -18502,7 +17783,7 @@ import { TimeTrackingReportConfigFields } from "./config-fields/TimeTrackingRepo
 import { PieChartConfigFields } from "./config-fields/PieChartConfigFields";
 import { GoalTrackingConfigFields } from "./config-fields/GoalTrackingConfigFields";
 import { LeadCycleTimeConfigFields } from "./config-fields/LeadCycleTimeConfigFields";
-import { WidgetType } from "@/types";
+import { WidgetType } from "@/types/api";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -18656,7 +17937,7 @@ export function CreateWidgetForm({
 import { useGetWidgetData } from "../api/useGetWidgetData";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
-import { KeyResultType } from "@/types";
+import { KeyResultType } from "@/types/api";
 
 const formatKeyResultValue = (value: number, type: KeyResultType) => {
   switch (type) {
@@ -19020,7 +18301,7 @@ import { PieChartWidget } from "./PieChartWidget";
 import { GoalTrackingWidget } from "./GoalTrackingWidget";
 import { LeadCycleTimeChartWidget } from "./LeadCycleTimeChartWidget";
 import { WidgetWrapper } from "./WidgetWrapper";
-import { WidgetType } from "@/types";
+import { WidgetType } from "@/types/api";
 
 export function WidgetRenderer({ widget, workspaceId, projectId }: any) {
   const renderWidgetContent = () => {
@@ -19167,14 +18448,14 @@ export function useManageWorkspaces() {
   const resource = useApiResource("workspaces", ["workspaces"]);
   return resource;
 }
-
 // FILE: src/features/workspaces/components/WorkspaceCard.tsx
 import { useApiResource } from "@/hooks/useApiResource";
 import { EntityCard } from "@/components/ui/EntityCard";
 import { CardContent } from "@/components/ui/card";
+import { Workspace } from "@/types";
 
 interface WorkspaceCardProps {
-  workspace: any;
+  workspace: Workspace;
   onEdit: (workspaceId: string) => void;
 }
 
@@ -19214,7 +18495,6 @@ export function WorkspaceCard({ workspace, onEdit }: WorkspaceCardProps) {
     </EntityCard>
   );
 }
-
 // FILE: src/features/workspaces/components/WorkspaceForm.tsx
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -19317,7 +18597,6 @@ export function WorkspaceForm({ initialData, onSuccess }: WorkspaceFormProps) {
     </FormProvider>
   );
 }
-
 // FILE: src/features/workspaces/components/WorkspaceList.tsx
 import { useApiResource } from "@/hooks/useApiResource";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -19329,6 +18608,7 @@ import { useState } from "react";
 import { WorkspaceCard } from "./WorkspaceCard";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { WorkspaceForm } from "./WorkspaceForm";
+import { Workspace } from "@/types";
 
 const WorkspaceListSkeleton = () => (
   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -19346,7 +18626,9 @@ const WorkspaceListSkeleton = () => (
   </div>
 );
 export function WorkspaceList() {
-  const workspaceResource = useApiResource("workspaces", ["workspaces"]);
+  const workspaceResource = useApiResource<Workspace>("workspaces", [
+    "workspaces",
+  ]);
   const { data, isLoading, isError, error } = workspaceResource.useGetAll();
   const [editingWorkspaceId, setEditingWorkspaceId] = useState<string | null>(
     null
@@ -19408,7 +18690,6 @@ export function WorkspaceList() {
     </>
   );
 }
-
 // FILE: src/hooks/useApiMutation.ts
 import {
   useMutation,
@@ -19436,7 +18717,7 @@ export interface UseApiMutationOptions<TData, TVariables, TContext>
 export function useApiMutation<
   TData = any,
   TVariables = any,
-  TContext = unknown,
+  TContext = unknown
 >({
   mutationFn,
   successMessage,
@@ -19466,7 +18747,7 @@ export function useApiMutation<
 
       if (keysToInvalidate.length) {
         keysToInvalidate.forEach((key) => {
-          if (key.length > 0) {
+          if (key && key.length > 0) {
             queryClient.invalidateQueries({ queryKey: key });
           }
         });
@@ -19491,7 +18772,6 @@ export function useApiMutation<
     ...options,
   });
 }
-
 // FILE: src/hooks/useApiResource.ts
 import api from "@/lib/api";
 import { useQuery, QueryKey } from "@tanstack/react-query";
@@ -19559,12 +18839,16 @@ export function useApiResource<TData = any, TQuery = object>(
   resourceUrl: string,
   resourceKey: QueryKey
 ) {
-  const resourceName = String(resourceKey[0]);
+  const resourceName =
+    String(resourceKey[0]).charAt(0).toUpperCase() +
+    String(resourceKey[0]).slice(1);
 
-  const useGetAll = (query?: TQuery) => {
+  const useGetAll = (query?: TQuery & { enabled?: boolean }) => {
+    const { enabled = true, ...queryParams } = query || {};
     return useQuery<PaginatedResponse<TData>>({
-      queryKey: [...resourceKey, query],
-      queryFn: () => fetchResourceList<TData>(resourceUrl, query),
+      queryKey: [...resourceKey, queryParams],
+      queryFn: () => fetchResourceList<TData>(resourceUrl, queryParams),
+      enabled,
     });
   };
 
@@ -19589,7 +18873,7 @@ export function useApiResource<TData = any, TQuery = object>(
       mutationFn: (variables) =>
         updateResource<TData>({ resourceUrl, ...variables }),
       successMessage: `${resourceName} updated successfully.`,
-      invalidateQueries: [resourceKey],
+      invalidateQueries: (data: any) => [resourceKey, ["task", data.id]],
     });
   };
 
@@ -19612,7 +18896,6 @@ export function useApiResource<TData = any, TQuery = object>(
     useDelete,
   };
 }
-
 // FILE: src/hooks/useDebounce.ts
 import { useState, useEffect } from "react";
 
@@ -19843,7 +19126,6 @@ export function useSocketSubscription(
 }
 
 // FILE: src/lib/api.ts
-
 import axios, { InternalAxiosRequestConfig } from "axios";
 import { useAuthStore } from "@/store/auth";
 
@@ -19870,11 +19152,6 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    console.log("Axios Interceptor: Caught an error.", {
-      url: originalRequest.url,
-      status: error.response?.status,
-    });
-
     const isAuthEndpoint =
       originalRequest.url?.includes("/auth/login") ||
       originalRequest.url?.includes("/auth/refresh-token");
@@ -19884,9 +19161,6 @@ api.interceptors.response.use(
       !originalRequest._retry &&
       !isAuthEndpoint
     ) {
-      console.log(
-        "Axios Interceptor: Intercepted 401. Attempting token refresh."
-      );
       originalRequest._retry = true;
       try {
         const { data } = await api.post("/auth/refresh-token");
@@ -19895,16 +19169,16 @@ api.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return api(originalRequest);
       } catch (refreshError) {
-        console.error("Axios Interceptor: Token refresh failed.", refreshError);
         useAuthStore.getState().setAccessToken(null);
-        console.error("Session expired. Please log in again.");
+        // Using window.location to force a full page reload to the login page
+        // which clears all state and avoids inconsistent states.
+        if (window.location.pathname !== "/login") {
+          window.location.href = "/login";
+        }
         return Promise.reject(refreshError);
       }
     }
 
-    console.log(
-      "Axios Interceptor: Error was not a 401 or was an auth endpoint. Rejecting promise."
-    );
     return Promise.reject(error);
   }
 );
@@ -19932,6 +19206,16 @@ import {
   Bug,
   Lightbulb,
   Flame,
+  Kanban,
+  List,
+  Calendar,
+  AreaChart,
+  GitBranch,
+  LayoutDashboard,
+  Building2,
+  Contact,
+  Handshake,
+  BookOpen,
 } from "lucide-react";
 
 export const ICONS: Record<string, LucideIcon> = {
@@ -19939,6 +19223,11 @@ export const ICONS: Record<string, LucideIcon> = {
   Task: CheckSquare,
   Publication: FileText,
   User: User,
+  Person: Contact,
+  Company: Building2,
+  Organization: Building2,
+  Deal: Handshake,
+  KnowledgeBase: BookOpen,
   Book,
   FlaskConical,
   BarChart,
@@ -19948,6 +19237,13 @@ export const ICONS: Record<string, LucideIcon> = {
   Story: Book,
   Idea: Lightbulb,
   ProjectTemplate: FileText,
+  KANBAN: Kanban,
+  LIST: List,
+  CALENDAR: Calendar,
+  GANTT: AreaChart,
+  BACKLOG: GitBranch,
+  DASHBOARD: LayoutDashboard,
+  WHITEBOARD: LayoutDashboard,
   Default: FileText,
 };
 
@@ -19962,115 +19258,33 @@ export function getIcon(typeName: string | null | undefined): LucideIcon {
   return foundIcon ? ICONS[foundIcon] : ICONS.Default;
 }
 // FILE: src/lib/schemas.ts
-import { SocialProvider, JobStatus } from "@/types";
 import { z } from "zod";
+import { SocialProvider } from "../types/api";
 
-export const phoneRegex = new RegExp(/^[+]*[(]?[0-9]{1,4}[)]?[-\s./0-9]*$/);
-export const nameSchema = (entity: string, min = 2) =>
-  z.string().min(min, `${entity} name must be at least ${min} characters.`);
-export const descriptionSchema = z.string().optional().nullable();
-
-export const requiredStringSchema = (fieldName: string) =>
-  z.string().min(1, `${fieldName} is required.`);
+// Reusable Schemas
+export const phoneRegex = /^[+]*[(]?[0-9]{1,4}[)]?[-\s./0-9]*$/;
 export const phoneNumberSchema = z
   .string()
   .refine((val) => {
-    if (!val) return true;
+    if (!val || val.length === 0) return true;
     return phoneRegex.test(val);
   }, "Invalid phone number format.")
   .optional()
   .nullable();
+
+export const nameSchema = (entity: string, min = 2) =>
+  z.string().min(min, `${entity} name must be at least ${min} characters.`);
+export const descriptionSchema = z.string().optional().nullable();
+export const requiredStringSchema = (fieldName: string) =>
+  z.string().min(1, `${fieldName} is required.`);
+
+// User & Profile Schemas
 export const socialLinkSchema = z.object({
   id: z.string().uuid().optional(),
   provider: z.nativeEnum(SocialProvider),
   url: z.string().url("Please enter a valid URL."),
 });
-const BaseProfileUpdateSchema = z.object({
-  firstName: z.string().min(1).optional(),
-  lastName: z.string().min(1).optional(),
-  email: z.string().email().optional(),
-  avatarUrl: z.string().url().optional().nullable(),
-  phoneNumber: phoneNumberSchema,
-  birthday: z.date().optional().nullable(),
-  socialLinks: z.array(socialLinkSchema).optional(),
-  skillIds: z.array(z.string().uuid()).optional(),
-});
-const BiographyUpdateSchema = z.object({
-  biography: z
-    .string()
-    .nullable()
-    .optional()
-    .transform((val) => {
-      if (typeof document !== "undefined") {
-        const tempDiv = document.createElement("div");
-        tempDiv.innerHTML = val || "";
-        if (!val || tempDiv.textContent?.trim() === "") {
-          return null;
-        }
-      }
-      return val;
-    }),
-});
-export const UpdateUserProfileDtoSchema = BaseProfileUpdateSchema.merge(
-  BiographyUpdateSchema
-);
-export type UpdateUserProfileDto = z.infer<typeof UpdateUserProfileDtoSchema>;
-export const UpdateAvatarDtoSchema = z.object({
-  avatarUrl: z.string().url(),
-});
-export type UpdateAvatarDto = z.infer<typeof UpdateAvatarDtoSchema>;
-export const JobIdParamsSchema = z.object({
-  jobId: z.string().uuid(),
-});
 
-export const JobScheduleIdParamsSchema = z.object({
-  scheduleId: z.string().uuid(),
-});
-export const JobSchema = z.object({
-  id: z.string().uuid(),
-  type: z.string(),
-  payload: z.record(z.string(), z.unknown()),
-  status: z.nativeEnum(JobStatus),
-  priority: z.number().int(),
-  attempts: z.number().int(),
-  maxAttempts: z.number().int(),
-  scheduledAt: z.coerce.date().nullable(),
-  startedAt: z.coerce.date().nullable(),
-  completedAt: z.coerce.date().nullable(),
-  failedAt: z.coerce.date().nullable(),
-  nextRetryAt: z.coerce.date().nullable(),
-  error: z.string().nullable(),
-  result: z.record(z.string(), z.unknown()).nullable(),
-  createdAt: z.coerce.date(),
-  updatedAt: z.coerce.date(),
-});
-export type Job = z.infer<typeof JobSchema>;
-
-export const JobAttemptSchema = z.object({
-  id: z.string().uuid(),
-  jobId: z.string().uuid(),
-  attemptNumber: z.number().int(),
-  startedAt: z.coerce.date(),
-  completedAt: z.coerce.date().nullable(),
-  error: z.string().nullable(),
-  duration: z.number().int().nullable(),
-});
-export const JobWithAttemptsSchema = JobSchema.extend({
-  attempts_log: z.array(JobAttemptSchema),
-});
-
-export const JobScheduleSchema = z.object({
-  id: z.string().uuid(),
-  name: z.string(),
-  jobType: z.string(),
-  cronExpression: z.string(),
-  payload: z.record(z.string(), z.unknown()),
-  isActive: z.boolean(),
-  lastRunAt: z.coerce.date().nullable(),
-  nextRunAt: z.coerce.date().nullable(),
-  createdAt: z.coerce.date(),
-  updatedAt: z.coerce.date(),
-});
 // FILE: src/lib/utils.ts
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -20101,21 +19315,15 @@ export const parseServerDate = (
 ): Date | null => {
   if (!dateString) return null;
   const date = new Date(dateString);
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  // This removes the time part, which can cause off-by-one day errors with timezones
+  return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
 };
 
-export const formatDateForServer = (
-  date: Date | null | undefined
-): string | null => {
+export const formatDateForServer = (date: Date | null | undefined): string | null => {
   if (!date) return null;
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}T00:00:00.000Z`;
+  return date.toISOString();
 };
-
 // FILE: src/lib/zod.ts
-
 import { z, ZodType } from "zod";
 
 export const createPaginationSchema = (defaultLimit = 10) =>
@@ -20183,7 +19391,6 @@ export function AccountSettingsPage() {
     </div>
   );
 }
-
 // FILE: src/pages/admin/AnnouncementListPage.tsx
 import { AnnouncementList } from "@/features/admin/announcements/components/AnnouncementList";
 import { BroadcastNotificationDialog } from "@/features/notifications/components/BroadcastNotificationDialog";
@@ -20229,7 +19436,6 @@ export function AnnouncementListPage() {
     </div>
   );
 }
-
 // FILE: src/pages/admin/JobMonitoringPage.tsx
 import {
   Card,
@@ -20315,7 +19521,6 @@ export function JobMonitoringPage() {
     </div>
   );
 }
-
 // FILE: src/pages/admin/PermissionListPage.tsx
 import { PermissionList } from "@/features/admin/permissions/components/PermissionList";
 import { Button } from "@/components/ui/button";
@@ -20397,7 +19602,6 @@ export function RoleListPage() {
     </div>
   );
 }
-
 // FILE: src/pages/admin/SystemStatusPage.tsx
 import { SystemStatusDashboard } from "@/features/admin/system-status/components/SystemStatusDashboard";
 
@@ -20415,7 +19619,6 @@ export function SystemStatusPage() {
     </div>
   );
 }
-
 // FILE: src/pages/admin/UserListPage.tsx
 import { UserList } from "@/features/admin/users/components/UserList";
 import { Button } from "@/components/ui/button";
@@ -20453,7 +19656,6 @@ export function UserListPage() {
     </div>
   );
 }
-
 // FILE: src/pages/admin/WorkflowListPage.tsx
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { WorkflowList } from "@/features/admin/workflows/components/WorkflowList";
@@ -20494,7 +19696,6 @@ export function WorkflowListPage() {
     </div>
   );
 }
-
 // FILE: src/pages/ChatPage.tsx
 import { ChatInterface } from "@/features/chat";
 
@@ -20615,20 +19816,11 @@ export function CrmPage() {
     </div>
   );
 }
-
 // FILE: src/pages/Dashboard.tsx
+import { HomePage } from "./HomePage";
+
 export function DashboardPage() {
-  return (
-    <div>
-      <h1 className="text-3xl font-bold tracking-tight">
-        Welcome to your Dashboard
-      </h1>
-      <p className="text-muted-foreground mt-2">
-        This is your central hub. Select an option from the sidebar to get
-        started.
-      </p>
-    </div>
-  );
+  return <HomePage />;
 }
 
 // FILE: src/pages/DashboardDetailPage.tsx
@@ -20783,7 +19975,6 @@ export function ForgotPasswordPage() {
     </div>
   );
 }
-
 // FILE: src/pages/HomePage.tsx
 import { HomeDashboard } from "@/features/home/components/HomeDashboard";
 
@@ -20911,7 +20102,6 @@ export function LoginPage() {
     </div>
   );
 }
-
 // FILE: src/pages/MyTasksPage.tsx
 import { TaskList } from "@/features/tasks/components/TaskList";
 import { TaskDetailModal } from "@/features/tasks/components/TaskDetailModal";
@@ -20925,7 +20115,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { ListTasksQuery } from "@/features/tasks/task.types";
+import { ListTasksQuery } from "@/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useApiResource } from "@/hooks/useApiResource";
 import { MyTasksKanbanBoard } from "@/features/tasks/components/MyTasksKanbanBoard";
@@ -21331,7 +20521,6 @@ export function ProjectCustomFieldsPage() {
   );
 }
 // FILE: src/pages/ProjectDetailPage.tsx
-
 import { useParams, useSearchParams } from "react-router-dom";
 import { useEffect, useMemo } from "react";
 import { TaskDetailModal } from "@/features/tasks/components/TaskDetailModal";
@@ -21341,7 +20530,7 @@ import { usePresence } from "@/hooks/usePresence";
 import { ErrorState } from "@/components/ui/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProjectDetailView } from "@/features/views/components/ProjectDetailView";
-import { ListTasksQuery } from "@/features/tasks/task.types";
+import { ListTasksQuery } from "@/types";
 import { View } from "@/types";
 import { useGetViewData } from "@/features/views/api/useGetViewData";
 
@@ -21369,8 +20558,8 @@ export function ProjectDetailPage() {
   );
   const viewDataQuery: ListTasksQuery = {
     page: 1,
-    limit: 100,
-    includeSubtasks: false,
+    limit: 1000, // Fetch more for client-side filtering in views like Kanban/Backlog
+    includeSubtasks: true,
     sortBy: "orderInColumn" as const,
     sortOrder: "asc" as const,
   };
@@ -21385,29 +20574,40 @@ export function ProjectDetailPage() {
   usePresence("Project", projectId!);
 
   const handleTabChange = (newTab: string) => {
-    setSearchParams((params) => {
-      params.set("view", newTab);
-      return params;
-    });
+    setSearchParams(
+      (params) => {
+        params.set("view", newTab);
+        return params;
+      },
+      { replace: true }
+    );
   };
 
   useEffect(() => {
     if (!isLoadingViews && viewsData && !activeTabId) {
-      const listTabView = viewsData.data?.find((v: any) => v.name === "List");
-      const defaultViewId =
-        listTabView?.id || viewsData.data?.[0]?.id || "dashboards";
-      handleTabChange(defaultViewId);
-    }
-  }, [isLoadingViews, viewsData, activeTabId, handleTabChange]);
-  const handleTaskSelect = (taskId: string | null) => {
-    setSearchParams((params) => {
-      if (taskId) {
-        params.set("taskId", taskId);
+      const defaultView =
+        viewsData.data?.find((v: any) => v.type === "LIST") ||
+        viewsData.data?.[0];
+      if (defaultView) {
+        handleTabChange(defaultView.id);
       } else {
-        params.delete("taskId");
+        handleTabChange("dashboards"); // Fallback if no views exist
       }
-      return params;
-    });
+    }
+  }, [isLoadingViews, viewsData, activeTabId, setSearchParams]);
+
+  const handleTaskSelect = (taskId: string | null) => {
+    setSearchParams(
+      (params) => {
+        if (taskId) {
+          params.set("taskId", taskId);
+        } else {
+          params.delete("taskId");
+        }
+        return params;
+      },
+      { replace: true }
+    );
   };
 
   if (!workspaceId || !projectId) {
@@ -21463,8 +20663,8 @@ export function ProjectDetailPage() {
     </>
   );
 }
-// FILE: src/pages/ProjectGeneralSettingsPage.tsx
 
+// FILE: src/pages/ProjectGeneralSettingsPage.tsx
 import { useParams } from "react-router-dom";
 import { useApiResource } from "@/hooks/useApiResource";
 import { ProjectForm } from "@/features/projects/components/ProjectForm";
@@ -21552,10 +20752,19 @@ import { PlusCircle } from "lucide-react";
 import { useState } from "react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { ProjectForm } from "@/features/projects/components/ProjectForm";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { CreateProjectFromTemplateForm } from "@/features/projects/components/CreateProjectFromTemplateForm";
 
 export function ProjectListPage() {
   const { workspaceId } = useParams<{ workspaceId: string }>();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isCreateFromTemplateOpen, setIsCreateFromTemplateOpen] =
+    useState(false);
 
   if (!workspaceId) {
     return <div>Invalid Workspace ID</div>;
@@ -21570,15 +20779,26 @@ export function ProjectListPage() {
             A list of all projects within this workspace.
           </p>
         </div>
-        <ResourceCrudDialog
-          isOpen={isCreateOpen}
-          onOpenChange={setIsCreateOpen}
-          trigger={
-            <Button onClick={() => setIsCreateOpen(true)}>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button>
               <PlusCircle className="mr-2 h-4 w-4" />
               New Project
             </Button>
-          }
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem onClick={() => setIsCreateOpen(true)}>
+              New Blank Project
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setIsCreateFromTemplateOpen(true)}>
+              New from Template
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <ResourceCrudDialog
+          isOpen={isCreateOpen}
+          onOpenChange={setIsCreateOpen}
           title="Create a new project"
           description="Projects live inside workspaces and contain your tasks."
           form={ProjectForm}
@@ -21586,12 +20806,21 @@ export function ProjectListPage() {
           resourcePath={`/workspaces/${workspaceId}/projects`}
           resourceKey={["projects", workspaceId]}
         />
+        <ResourceCrudDialog
+          isOpen={isCreateFromTemplateOpen}
+          onOpenChange={setIsCreateFromTemplateOpen}
+          title="Create from Template"
+          description="Create a new project based on an existing template."
+          form={CreateProjectFromTemplateForm}
+          formProps={{ workspaceId }}
+          resourcePath={""} // Not a standard CRUD, handled by the form's mutation
+          resourceKey={[]} //
+        />
       </div>
       <ProjectList workspaceId={workspaceId} />
     </div>
   );
 }
-
 // FILE: src/pages/ProjectSettingsPage.tsx
 import { NavLink, Outlet, useLocation, useParams } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -21612,7 +20841,6 @@ export function ProjectSettingsPage() {
   const currentTab = location.pathname.split("/").pop() || "general";
 
   const basePath = `/workspaces/${workspaceId}/projects/${projectId}/settings`;
-
   return (
     <div className="space-y-6">
       <div>
@@ -21626,7 +20854,11 @@ export function ProjectSettingsPage() {
         <TabsList>
           {settingsNavItems.map((item) => (
             <NavLink to={`${basePath}/${item.to}`} key={item.to} end>
-              <TabsTrigger value={item.to}>{item.label}</TabsTrigger>
+              {({ isActive }) => (
+                <TabsTrigger value={item.to} disabled={isActive}>
+                  {item.label}
+                </TabsTrigger>
+              )}
             </NavLink>
           ))}
         </TabsList>
@@ -21635,7 +20867,6 @@ export function ProjectSettingsPage() {
     </div>
   );
 }
-
 // FILE: src/pages/ProjectTaskTypesPage.tsx
 import { TaskTypeList } from "@/features/task-types/components/TaskTypeList";
 import { useParams } from "react-router-dom";
@@ -21817,7 +21048,6 @@ export function PublicationsPage() {
     </div>
   );
 }
-
 // FILE: src/pages/ResetPasswordPage.tsx
 import { ResetPasswordForm } from "@/features/auth/components/ResetPasswordForm";
 
@@ -21828,7 +21058,6 @@ export function ResetPasswordPage() {
     </div>
   );
 }
-
 // FILE: src/pages/SettingsPage.tsx
 import { NavLink, Outlet } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -21876,9 +21105,7 @@ export function SetupPasswordPage() {
     </div>
   );
 }
-
 // FILE: src/pages/TeamsPage.tsx
-
 import { TeamList } from "@/features/teams/components/TeamList";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -21952,7 +21179,6 @@ export function WorkloadPage() {
   );
 }
 // FILE: src/pages/WorkspaceDashboardListPage.tsx
-
 import { DashboardList } from "@/features/dashboards/components/DashboardList";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -22056,7 +21282,6 @@ export function WorkspaceLayout() {
     </div>
   );
 }
-
 // FILE: src/pages/Workspaces.tsx
 import { WorkspaceList } from "@/features/workspaces/components/WorkspaceList";
 import { Button } from "@/components/ui/button";
@@ -22097,7 +21322,6 @@ export function WorkspacesPage() {
     </div>
   );
 }
-
 // FILE: src/providers/AuthProvider.tsx
 import { useAuthStore } from "@/store/auth";
 import { ReactNode, useEffect } from "react";
@@ -22164,7 +21388,6 @@ export function ProtectedLayout() {
     </div>
   );
 }
-
 // FILE: src/routes/WorkspaceLayout.tsx
 import { NavLink, Outlet, useLocation, useParams } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -22221,6 +21444,7 @@ export function WorkspaceLayout() {
     </div>
   );
 }
+
 // FILE: src/store/auth.ts
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
@@ -22485,174 +21709,234 @@ export enum IntegrationHealthStatus {
   DISABLED = "DISABLED",
 }
 
-export enum IntegrationCategory {
-  OAUTH = "OAUTH",
-  API_KEY = "API_KEY",
-  WEBHOOK = "WEBHOOK",
+export enum ApiCallStatus {
+  SUCCESS = "SUCCESS",
+  FAILED = "FAILED",
 }
 
 export enum WebhookAction {
   CREATE_TASK = "CREATE_TASK",
 }
 
+export enum IntegrationCategory {
+  OAUTH = "OAUTH",
+  API_KEY = "API_KEY",
+  WEBHOOK = "WEBHOOK",
+}
 // FILE: src/types/index.ts
-export enum TaskStatus {
-  TODO = "TODO",
-  IN_PROGRESS = "IN_PROGRESS",
-  IN_REVIEW = "IN_REVIEW",
-  DONE = "DONE",
-  BLOCKED = "BLOCKED",
-  CANCELLED = "CANCELLED",
+import {
+  ViewType,
+  ProjectStatus,
+  TaskStatus,
+  TaskPriority,
+  TaskLinkType,
+  CustomFieldType,
+  SocialProvider,
+  DocumentType,
+  GoalStatus,
+  KeyResultType,
+  InteractionType,
+  JobStatus,
+  PublicationStatus,
+  AnnouncementSeverity,
+  SkillCategory,
+} from "./api";
+
+export type AnyValue = Record<string, any>;
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
 }
 
-export enum TaskPriority {
-  NONE = "NONE",
-  LOW = "LOW",
-  MEDIUM = "MEDIUM",
-  HIGH = "HIGH",
-  URGENT = "URGENT",
+export interface User {
+  id: string;
+  name: string;
+  firstName: string;
+  lastName: string;
+  email: string | null;
+  avatarUrl: string | null;
+  isActive: boolean;
+  roles: string[];
+  createdAt: string;
+  updatedAt: string;
+  biography?: string | null;
+  phoneNumber?: string | null;
+  birthday?: string | null;
+  socialLinks?: SocialLink[];
+  skills?: Skill[];
 }
 
-export enum EpicStatus {
-  TODO = "TODO",
-  IN_PROGRESS = "IN_PROGRESS",
-  DONE = "DONE",
-  ARCHIVED = "ARCHIVED",
+export interface RoleWithPermissions {
+  id: string;
+  name: string;
+  description: string | null;
+  permissions: Permission[];
 }
 
-export enum SprintStatus {
-  PLANNING = "PLANNING",
-  ACTIVE = "ACTIVE",
-  COMPLETED = "COMPLETED",
+export interface Permission {
+  id: string;
+  action: string;
+  subject: string;
+  description: string | null;
 }
 
-export enum TaskLinkType {
-  RELATES_TO = "RELATES_TO",
-  BLOCKS = "BLOCKS",
-  IS_BLOCKED_BY = "IS_BLOCKED_BY",
+export interface Announcement {
+  id: string;
+  title: string;
+  content: { message: string };
+  status: PublicationStatus;
+  severity: AnnouncementSeverity;
+  isPinned: boolean;
+  publishedAt: string | null;
 }
 
-export enum ActivityActionType {
-  TASK_CREATED = "TASK_CREATED",
-  TASK_UPDATED = "TASK_UPDATED",
-  TASK_DELETED = "TASK_DELETED",
-  PROJECT_CREATED = "PROJECT_CREATED",
-  PROJECT_UPDATED = "PROJECT_UPDATED",
-  USER_JOINED = "USER_JOINED",
-  COMMENT_ADDED = "COMMENT_ADDED",
+export interface Job {
+  id: string;
+  type: string;
+  status: JobStatus;
+  attempts: number;
+  maxAttempts: number;
+  createdAt: string;
 }
 
-export enum WorkflowActionType {
-  UPDATE_TASK_STATUS = "UPDATE_TASK_STATUS",
-  CREATE_TASK = "CREATE_TASK",
-  SEND_NOTIFICATION = "SEND_NOTIFICATION",
-  ASSIGN_TASK = "ASSIGN_TASK",
-  ADD_COMMENT = "ADD_COMMENT",
-  SEND_TELEGRAM_MESSAGE = "SEND_TELEGRAM_MESSAGE",
-  SEND_EMAIL_BREVO = "SEND_EMAIL_BREVO",
-  SEND_WEBHOOK = "SEND_WEBHOOK",
+export interface Workspace {
+  id: string;
+  name: string;
+  description: string | null;
+  logoUrl: string | null;
+  ownerId: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export enum WidgetType {
-  STATS_COUNTER = "STATS_COUNTER",
-  TASK_LIST = "TASK_LIST",
-  BURNDOWN_CHART = "BURNDOWN_CHART",
-  TIME_TRACKING_REPORT = "TIME_TRACKING_REPORT",
-  PIE_CHART = "PIE_CHART",
-  GOAL_TRACKING = "GOAL_TRACKING",
-  LEAD_CYCLE_TIME_CHART = "LEAD_CYCLE_TIME_CHART",
-  CHART = "CHART",
-  TABLE = "TABLE",
+export interface Project {
+  id: string;
+  name: string;
+  description: string | null;
+  icon: string | null;
+  status: ProjectStatus;
+  isPrivate: boolean;
+  workspaceId: string;
+  leadId: string | null;
+  startDate: string | null;
+  endDate: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export enum SocialProvider {
-  GOOGLE = "GOOGLE",
-  LINKEDIN = "LINKEDIN",
-  TWITTER = "TWITTER",
-  FACEBOOK = "FACEBOOK",
-  NEXTCLOUD = "NEXTCLOUD",
-  TELEGRAM = "TELEGRAM",
-  GITHUB = "GITHUB",
-  WEBSITE = "WEBSITE",
-  OTHER = "OTHER",
+export interface Team {
+  id: string;
+  name: string;
+  description: string | null;
+  workspaceId: string;
+  members: {
+    id: string;
+    name: string;
+    avatarUrl: string | null;
+  }[];
 }
 
-export enum CustomFieldType {
-  TEXT = "TEXT",
-  NUMBER = "NUMBER",
-  DATE = "DATE",
-  SELECT = "SELECT",
+export interface TaskType {
+  id: string;
+  name: string;
+  icon: string | null;
+  color: string | null;
 }
 
-export enum DocumentType {
-  INPUT = "INPUT",
-  OUTPUT = "OUTPUT",
+export interface TaskAssignee {
+  id: string;
+  name: string;
+  avatarUrl: string | null;
 }
 
-export enum NotificationType {
-  SYSTEM_BROADCAST = "SYSTEM_BROADCAST",
-  TASK_ASSIGNMENT = "TASK_ASSIGNMENT",
-  COMMENT_MENTION = "COMMENT_MENTION",
-  PROJECT_INVITE = "PROJECT_INVITE",
+export interface TaskLink {
+  id: string;
+  type: TaskLinkType;
+  targetTask?: {
+    id: string;
+    title: string;
+    status: TaskStatus;
+  };
+  sourceTask?: {
+    id: string;
+    title: string;
+    status: TaskStatus;
+  };
 }
 
-export enum NotificationSeverity {
-  LOW = "LOW",
-  MEDIUM = "MEDIUM",
-  HIGH = "HIGH",
-  CRITICAL = "CRITICAL",
+export interface CustomFieldDefinitionForTask {
+  id: string;
+  name: string;
+  type: CustomFieldType;
+  options: any | null;
 }
 
-export enum ViewType {
-  KANBAN = "KANBAN",
-  LIST = "LIST",
-  CALENDAR = "CALENDAR",
-  GANTT = "GANTT",
-  BACKLOG = "BACKLOG",
-  WHITEBOARD = "WHITEBOARD",
+export interface TaskCustomField {
+  fieldId: string;
+  value: any;
+  definition: CustomFieldDefinitionForTask;
 }
 
-export enum JobStatus {
-  PENDING = "PENDING",
-  RUNNING = "RUNNING",
-  COMPLETED = "COMPLETED",
-  FAILED = "FAILED",
-  CANCELLED = "CANCELLED",
+export interface TaskDocument {
+  documentId: string;
+  type: DocumentType;
+  title: string;
+  url: string;
+  fileType: string | null;
+  createdAt: string;
+  externalUrl: string | null;
+  provider: SocialProvider | null;
 }
 
-export enum GoalStatus {
-  ON_TRACK = "ON_TRACK",
-  AT_RISK = "AT_RISK",
-  OFF_TRACK = "OFF_TRACK",
-  ACHIEVED = "ACHIEVED",
-  NOT_STARTED = "NOT_STARTED",
+export interface ChecklistItem {
+  id: string;
+  text: string;
+  completed: boolean;
 }
 
-export enum KeyResultType {
-  NUMBER = "NUMBER",
-  PERCENTAGE = "PERCENTAGE",
-  CURRENCY = "CURRENCY",
-  BOOLEAN = "BOOLEAN",
-}
-
-export enum InteractionType {
-  MEETING = "MEETING",
-  CALL = "CALL",
-  EMAIL = "EMAIL",
-}
-
-export enum ProjectStatus {
-  PLANNING = "PLANNING",
-  IN_PROGRESS = "IN_PROGRESS",
-  COMPLETED = "COMPLETED",
-  ON_HOLD = "ON_HOLD",
-  CANCELLED = "CANCELLED",
+export interface Task {
+  id: string;
+  shortId: string | null;
+  title: string;
+  description: string | null;
+  status: TaskStatus;
+  priority: TaskPriority;
+  projectId: string | null;
+  workspaceId: string | null;
+  projectName: string | null;
+  taskTypeId?: string | null;
+  taskType?: TaskType | null;
+  ownerId: string | null;
+  creatorId: string | null;
+  startDate: string | null;
+  dueDate: string | null;
+  timeEstimate: number | null;
+  storyPoints: number | null;
+  boardColumnId: string | null;
+  orderInColumn: number | null;
+  recurrenceRule?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  assignees: TaskAssignee[];
+  watchers: TaskAssignee[];
+  links: TaskLink[];
+  linkedToBy: TaskLink[];
+  customFields: TaskCustomField[];
+  documents: TaskDocument[];
+  parentId: string | null;
+  subtasks: Task[];
+  checklist?: ChecklistItem[] | null;
 }
 
 export interface ViewColumn {
   id: string;
   name: string;
   order: number;
+  viewId: string;
 }
 
 export interface View {
@@ -22660,7 +21944,124 @@ export interface View {
   name: string;
   type: ViewType;
   columns: ViewColumn[];
+  config?: any;
+  filters?: any;
+  sorting?: any;
+  grouping?: any;
+  isPublic: boolean;
 }
+
+export interface Goal {
+  id: string;
+  name: string;
+  description: string | null;
+  status: GoalStatus;
+  workspaceId?: string;
+  projectId?: string;
+  keyResults: KeyResult[];
+}
+
+export interface KeyResult {
+  id: string;
+  name: string;
+  type: KeyResultType;
+  startValue: number;
+  targetValue: number;
+  currentValue: number;
+}
+
+export interface Interaction {
+  id: string;
+  type: InteractionType;
+  notes: string;
+  date: string;
+  actor?: { name: string | null } | null;
+}
+
+export interface Person {
+  id: string;
+  firstName: string;
+  lastName: string;
+  name: string;
+  email: string | null;
+  avatarUrl: string | null;
+  biography: string | null;
+  phoneNumber: string | null;
+  birthday: string | null;
+  socialLinks: SocialLink[];
+  skills: Skill[];
+  roles: string[];
+  companies: {
+    companyId: string;
+    company: { name: string };
+    role: string | null;
+  }[];
+  roleInCompany?: string | null;
+}
+
+export interface Organization {
+  id: string;
+  name: string;
+  description: string | null;
+  domain: string | null;
+  people: Person[];
+}
+export type Company = Organization;
+
+export interface Deal {
+  id: string;
+  name: string;
+  value: number;
+  stageId: string;
+  stage: DealStage;
+  company: {
+    id: string;
+    name: string;
+  };
+  ownerId: string;
+  ownerName: string;
+}
+
+export interface DealStage {
+  id: string;
+  name: string;
+  order: number;
+}
+
+export interface Skill {
+  id: string;
+  name: string;
+  category: SkillCategory;
+}
+
+export interface SocialLink {
+  id: string;
+  provider: SocialProvider;
+  url: string;
+}
+
+export interface ListTasksQuery {
+  page?: number;
+  limit?: number;
+  status?: TaskStatus;
+  priority?: TaskPriority;
+  search?: string;
+  startDate?: Date;
+  endDate?: Date;
+  includeSubtasks?: boolean;
+  sortBy?:
+    | "createdAt"
+    | "updatedAt"
+    | "title"
+    | "status"
+    | "priority"
+    | "dueDate"
+    | "orderInColumn";
+  sortOrder?: "asc" | "desc";
+  taskOrigin?: "project" | "standalone";
+  userRole?: "creator" | "assignee";
+}
+
 // FILE: src/vite-env.d.ts
 /// <reference types="vite/client" />
 

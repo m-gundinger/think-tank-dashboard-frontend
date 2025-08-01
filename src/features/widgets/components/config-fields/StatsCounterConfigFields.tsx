@@ -1,5 +1,5 @@
 import { FormInput, FormSelect } from "@/components/form/FormFields";
-import { TaskStatus } from "@/types";
+import { TaskStatus } from "@/types/api";
 
 export function StatsCounterConfigFields() {
   const statusOptions = Object.values(TaskStatus).map((status) => ({

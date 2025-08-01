@@ -48,7 +48,6 @@ export function AssigneeSelector({
   const userResource = useApiResource("admin/users", ["users"]);
   const { data: allUsersData, isLoading: isLoadingAllUsers } =
     userResource.useGetAll({
-      limit: 1000,
       enabled: !projectId,
     });
 

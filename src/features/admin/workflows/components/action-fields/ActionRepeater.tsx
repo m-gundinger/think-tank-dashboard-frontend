@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { WorkflowActionType } from "@/types";
+import { WorkflowActionType } from "@/types/api";
 import {
   UpdateTaskStatusFields,
   CreateTaskFields,

@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Globe } from "lucide-react";
 import { RichTextOutput } from "@/components/ui/RichTextOutput";
-import { Company } from "../crm.types";
+import { Company } from "@/types";
 import { ManageCompanyPeople } from "./ManageCompanyPeople";
 import { InteractionTimeline } from "./InteractionTimeline";
 

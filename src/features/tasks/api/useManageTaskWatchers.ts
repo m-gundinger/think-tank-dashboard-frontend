@@ -5,14 +5,13 @@ interface WatcherParams {
   workspaceId?: string | null;
   projectId?: string | null;
   taskId: string;
-  userId: string;
 }
 
 async function addWatcher({
   workspaceId,
   projectId,
   taskId,
-}: Omit<WatcherParams, "userId">): Promise<any> {
+}: WatcherParams): Promise<any> {
   const url =
     workspaceId && projectId
       ? `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/watch`
@@ -25,7 +24,7 @@ async function removeWatcher({
   workspaceId,
   projectId,
   taskId,
-}: Omit<WatcherParams, "userId">): Promise<any> {
+}: WatcherParams): Promise<any> {
   const url =
     workspaceId && projectId
       ? `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/watch`

@@ -64,12 +64,16 @@ export function useApiResource<TData = any, TQuery = object>(
   resourceUrl: string,
   resourceKey: QueryKey
 ) {
-  const resourceName = String(resourceKey[0]);
+  const resourceName =
+    String(resourceKey[0]).charAt(0).toUpperCase() +
+    String(resourceKey[0]).slice(1);
 
-  const useGetAll = (query?: TQuery) => {
+  const useGetAll = (query?: TQuery & { enabled?: boolean }) => {
+    const { enabled = true, ...queryParams } = query || {};
     return useQuery<PaginatedResponse<TData>>({
-      queryKey: [...resourceKey, query],
-      queryFn: () => fetchResourceList<TData>(resourceUrl, query),
+      queryKey: [...resourceKey, queryParams],
+      queryFn: () => fetchResourceList<TData>(resourceUrl, queryParams),
+      enabled,
     });
   };
 
@@ -94,7 +98,7 @@ export function useApiResource<TData = any, TQuery = object>(
       mutationFn: (variables) =>
         updateResource<TData>({ resourceUrl, ...variables }),
       successMessage: `${resourceName} updated successfully.`,
-      invalidateQueries: [resourceKey],
+      invalidateQueries: (data: any) => [resourceKey, ["task", data.id]],
     });
   };
 

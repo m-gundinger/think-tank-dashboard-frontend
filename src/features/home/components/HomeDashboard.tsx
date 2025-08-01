@@ -9,7 +9,6 @@ export function HomeDashboard() {
     { i: "my-tasks", x: 0, y: 0, w: 6, h: 10 },
     { i: "mentions", x: 6, y: 0, w: 6, h: 10 },
   ];
-
   return (
     <GridLayout
       className="layout"

@@ -1,9 +1,10 @@
 import { Badge } from "@/components/ui/badge";
 import { useApiResource } from "@/hooks/useApiResource";
 import { EntityCard } from "@/components/ui/EntityCard";
+import { RoleWithPermissions } from "@/types";
 
 interface RoleCardProps {
-  role: any;
+  role: RoleWithPermissions;
   onEdit: (roleId: string) => void;
 }
 
@@ -39,7 +40,7 @@ export function RoleCard({ role, onEdit }: RoleCardProps) {
         <div className="flex flex-wrap items-center gap-1">
           <span className="text-sm font-semibold">Permissions:</span>
           {role.permissions?.length > 0 ? (
-            role.permissions.map((p: any) => (
+            role.permissions.map((p) => (
               <Badge variant="outline" key={p.id}>
                 {p.action} on {p.subject}
               </Badge>

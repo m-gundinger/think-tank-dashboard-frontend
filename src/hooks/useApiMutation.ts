@@ -24,7 +24,7 @@ export interface UseApiMutationOptions<TData, TVariables, TContext>
 export function useApiMutation<
   TData = any,
   TVariables = any,
-  TContext = unknown,
+  TContext = unknown
 >({
   mutationFn,
   successMessage,
@@ -54,7 +54,7 @@ export function useApiMutation<
 
       if (keysToInvalidate.length) {
         keysToInvalidate.forEach((key) => {
-          if (key.length > 0) {
+          if (key && key.length > 0) {
             queryClient.invalidateQueries({ queryKey: key });
           }
         });

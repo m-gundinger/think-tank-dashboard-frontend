@@ -19,14 +19,13 @@ import {
 import { Check, ChevronsUpDown, XIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { AnyValue } from "@/types";
 
-export function ManageRolePermissions({ role }: { role: any }) {
+export function ManageRolePermissions({ role }: { role: AnyValue }) {
   const permissionResource = useApiResource("admin/permissions", [
     "permissions",
   ]);
-  const { data: permissionsData, isLoading } = permissionResource.useGetAll({
-    limit: 100,
-  });
+  const { data: permissionsData, isLoading } = permissionResource.useGetAll();
   const assignMutation = useAssignPermissionToRole(role.id);
   const revokeMutation = useRevokePermissionFromRole(role.id);
   const [popoverOpen, setPopoverOpen] = useState(false);

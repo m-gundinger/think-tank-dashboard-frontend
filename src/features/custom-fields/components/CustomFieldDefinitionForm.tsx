@@ -6,7 +6,7 @@ import {
   FormSelect,
   FormTextarea,
 } from "@/components/form/FormFields";
-import { CustomFieldType } from "@/types";
+import { CustomFieldType } from "@/types/api";
 import { useApiResource } from "@/hooks/useApiResource";
 import { useEffect } from "react";
 

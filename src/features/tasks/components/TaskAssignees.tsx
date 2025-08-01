@@ -21,6 +21,7 @@ import api from "@/lib/api";
 import { cn, getAbsoluteUrl } from "@/lib/utils";
 import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
+
 export function TaskAssignees({ task }: any) {
   const [popoverOpen, setPopoverOpen] = useState(false);
 
@@ -56,7 +57,6 @@ export function TaskAssignees({ task }: any) {
     "admin/users",
     ["users"]
   ).useGetAll({
-    limit: 1000,
     enabled: !isProjectTask,
   });
   const isLoading = isLoadingProjectMembers || isLoadingAllUsers;

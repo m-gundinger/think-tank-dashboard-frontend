@@ -2,9 +2,9 @@ import { EntityCard } from "@/components/ui/EntityCard";
 import { Progress } from "@/components/ui/progress";
 import { useManageGoals } from "../api/useManageGoals";
 import { Badge } from "@/components/ui/badge";
-import { KeyResultType } from "@/types";
+import { KeyResultType } from "@/types/api";
 import { Target } from "lucide-react";
-import { Goal, KeyResult } from "../goal.types";
+import { Goal, KeyResult } from "@/types";
 
 interface GoalCardProps {
   goal: Goal;

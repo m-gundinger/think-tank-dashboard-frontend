@@ -28,7 +28,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { SocialProvider } from "@/types";
+import { SocialProvider } from "@/types/api";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { RichTextEditor } from "@/components/ui/RichTextEditor";

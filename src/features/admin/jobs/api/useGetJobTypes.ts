@@ -1,5 +1,6 @@
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
+
 async function getJobTypes(): Promise<any> {
   const { data } = await api.get("/admin/jobs/system/job-types");
   return data;

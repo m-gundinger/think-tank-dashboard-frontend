@@ -8,6 +8,7 @@ import { useState } from "react";
 import { WorkspaceCard } from "./WorkspaceCard";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { WorkspaceForm } from "./WorkspaceForm";
+import { Workspace } from "@/types";
 
 const WorkspaceListSkeleton = () => (
   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -25,7 +26,9 @@ const WorkspaceListSkeleton = () => (
   </div>
 );
 export function WorkspaceList() {
-  const workspaceResource = useApiResource("workspaces", ["workspaces"]);
+  const workspaceResource = useApiResource<Workspace>("workspaces", [
+    "workspaces",
+  ]);
   const { data, isLoading, isError, error } = workspaceResource.useGetAll();
   const [editingWorkspaceId, setEditingWorkspaceId] = useState<string | null>(
     null

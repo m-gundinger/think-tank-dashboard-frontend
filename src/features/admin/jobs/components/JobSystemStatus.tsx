@@ -5,6 +5,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+
 const StatCard = ({
   title,
   value,
@@ -27,6 +28,7 @@ const StatCard = ({
     </CardContent>
   </Card>
 );
+
 export function JobSystemStatus() {
   const { data: statusData, isLoading: isLoadingStatus } =
     useGetJobSystemStatus();

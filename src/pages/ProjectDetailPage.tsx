@@ -1,4 +1,3 @@
-
 import { useParams, useSearchParams } from "react-router-dom";
 import { useEffect, useMemo } from "react";
 import { TaskDetailModal } from "@/features/tasks/components/TaskDetailModal";
@@ -8,9 +7,10 @@ import { usePresence } from "@/hooks/usePresence";
 import { ErrorState } from "@/components/ui/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProjectDetailView } from "@/features/views/components/ProjectDetailView";
-import { ListTasksQuery } from "@/features/tasks/task.types";
+import { ListTasksQuery } from "@/types";
 import { View } from "@/types";
 import { useGetViewData } from "@/features/views/api/useGetViewData";
+import { WhiteboardView } from "@/features/views/components/WhiteboardView";
 
 export function ProjectDetailPage() {
   const { workspaceId, projectId } = useParams<{
@@ -36,8 +36,8 @@ export function ProjectDetailPage() {
   );
   const viewDataQuery: ListTasksQuery = {
     page: 1,
-    limit: 100,
-    includeSubtasks: false,
+    limit: 1000, // Fetch more for client-side filtering in views like Kanban/Backlog
+    includeSubtasks: true,
     sortBy: "orderInColumn" as const,
     sortOrder: "asc" as const,
   };
@@ -52,33 +52,48 @@ export function ProjectDetailPage() {
   usePresence("Project", projectId!);
 
   const handleTabChange = (newTab: string) => {
-    setSearchParams((params) => {
-      params.set("view", newTab);
-      return params;
-    });
+    setSearchParams(
+      (params) => {
+        params.set("view", newTab);
+        return params;
+      },
+      { replace: true }
+    );
   };
 
   useEffect(() => {
     if (!isLoadingViews && viewsData && !activeTabId) {
-      const listTabView = viewsData.data?.find((v: any) => v.name === "List");
-      const defaultViewId =
-        listTabView?.id || viewsData.data?.[0]?.id || "dashboards";
-      handleTabChange(defaultViewId);
-    }
-  }, [isLoadingViews, viewsData, activeTabId, handleTabChange]);
-  const handleTaskSelect = (taskId: string | null) => {
-    setSearchParams((params) => {
-      if (taskId) {
-        params.set("taskId", taskId);
+      const defaultView =
+        viewsData.data?.find((v: any) => v.type === "LIST") ||
+        viewsData.data?.[0];
+      if (defaultView) {
+        handleTabChange(defaultView.id);
       } else {
-        params.delete("taskId");
+        handleTabChange("dashboards"); // Fallback if no views exist
       }
-      return params;
-    });
+    }
+  }, [isLoadingViews, viewsData, activeTabId, setSearchParams]);
+
+  const handleTaskSelect = (taskId: string | null) => {
+    setSearchParams(
+      (params) => {
+        if (taskId) {
+          params.set("taskId", taskId);
+        } else {
+          params.delete("taskId");
+        }
+        return params;
+      },
+      { replace: true }
+    );
   };
 
   if (!workspaceId || !projectId) {
     return <div>Invalid Project ID</div>;
+  }
+
+  if (activeView?.type === "WHITEBOARD") {
+    return <WhiteboardView />;
   }
 
   if (isViewsError || isViewDataError) {

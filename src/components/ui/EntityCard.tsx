@@ -1,6 +1,5 @@
 import {
   Card,
-  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
@@ -12,19 +11,18 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
+import { MoreHorizontal, Edit, Trash2, type LucideIcon } from "lucide-react";
 import { Link } from "react-router-dom";
-import { LucideIcon } from "lucide-react";
 
 interface EntityCardProps {
   title: string;
-  description?: string;
+  description?: string | null;
   linkTo?: string;
-  onEdit: (e: React.MouseEvent) => void;
-  onDelete: (e: React.MouseEvent) => void;
+  onEdit?: (e: React.MouseEvent) => void;
+  onDelete?: (e: React.MouseEvent) => void;
   deleteDisabled?: boolean;
-  icon?: LucideIcon;
   children: React.ReactNode;
+  icon?: LucideIcon;
 }
 
 export function EntityCard({
@@ -34,53 +32,61 @@ export function EntityCard({
   onEdit,
   onDelete,
   deleteDisabled,
-  icon: Icon,
   children,
+  icon: Icon,
 }: EntityCardProps) {
-  const cardContent = (
+  const CardBody = (
     <Card className="hover:border-primary flex h-full flex-col transition-colors">
-      <CardHeader className="flex flex-row items-start justify-between">
+      <CardHeader className="flex-row items-start justify-between">
         <div className="flex items-center gap-3">
           {Icon && <Icon className="h-6 w-6 text-gray-400" />}
-          <div className="flex-1">
+          <div className="flex-grow">
             <CardTitle>{title}</CardTitle>
             {description && <CardDescription>{description}</CardDescription>}
           </div>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 shrink-0 p-0"
-              onClick={(e) => e.preventDefault()}
-            >
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={onEdit}>
-              <Edit className="mr-2 h-4 w-4" />
-              <span>Edit</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="text-red-600 focus:text-red-600"
-              onClick={onDelete}
-              disabled={deleteDisabled}
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              <span>Delete</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {(onEdit || onDelete) && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 flex-shrink-0 p-0"
+                onClick={(e) => e.preventDefault()}
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {onEdit && (
+                <DropdownMenuItem onClick={onEdit}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  <span>Edit</span>
+                </DropdownMenuItem>
+              )}
+              {onDelete && (
+                <DropdownMenuItem
+                  className="text-red-600 focus:text-red-600"
+                  onClick={onDelete}
+                  disabled={deleteDisabled}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  <span>Delete</span>
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </CardHeader>
-      <CardContent className="flex-grow">{children}</CardContent>
+      {children}
     </Card>
   );
 
-  if (linkTo) {
-    return <Link to={linkTo}>{cardContent}</Link>;
-  }
-
-  return cardContent;
+  return linkTo ? (
+    <Link to={linkTo} className="block h-full">
+      {CardBody}
+    </Link>
+  ) : (
+    CardBody
+  );
 }

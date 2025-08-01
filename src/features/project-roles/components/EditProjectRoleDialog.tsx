@@ -29,7 +29,7 @@ export function EditProjectRoleDialog({
     "permissions",
   ]);
   const { data: permissionsData, isLoading: isLoadingPermissions } =
-    permissionResource.useGetAll({ limit: 100 });
+    permissionResource.useGetAll();
   const assignMutation = useApiMutation({
     mutationFn: (permissionId: string) =>
       api.post(

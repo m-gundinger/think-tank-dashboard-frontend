@@ -27,12 +27,13 @@ import { UserForm } from "./UserForm";
 import { ManageUserRoles } from "./ManageUserRoles";
 import { ProfileAvatar } from "@/features/profile/components/ProfileAvatar";
 import { Card, CardContent } from "@/components/ui/card";
+import { User } from "@/types";
 
 const UserActionsCell = ({
   user,
   onEdit,
 }: {
-  user: any;
+  user: User;
   onEdit: (id: string) => void;
 }) => {
   const userResource = useApiResource("admin/users", ["users"]);
@@ -86,85 +87,99 @@ const UserActionsCell = ({
     </DropdownMenu>
   );
 };
+
 export function UserList() {
-  const [page, setPage] = useState(1);
+  const [, setPage] = useState(1);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
-  const userResource = useApiResource("admin/users", ["users"]);
+  const userResource = useApiResource<User>("admin/users", ["users"]);
   const deleteMutation = userResource.useDelete();
   const setUserStatusMutation = useSetUserStatus();
-  const { data, isLoading, isError } = userResource.useGetAll({
-    page,
-    limit: 10,
-  });
+  const { data, isLoading, isError } = userResource.useGetAll();
+
   const handlePageChange = (newPage: number) => {
     if (newPage > 0 && newPage <= (data?.totalPages || 1)) {
       setPage(newPage);
     }
   };
 
-  const columns: ColumnDef<any>[] = [
+  const columns: ColumnDef<User>[] = [
     {
       accessorKey: "name",
       header: "Name",
-      cell: (user) => (
-        <div className="flex items-center gap-3">
-          <Avatar className="h-9 w-9">
-            <AvatarImage src={getAbsoluteUrl(user.avatarUrl)} alt={user.name} />
-            <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
-          </Avatar>
-          <span className="font-semibold">{user.name}</span>
-        </div>
-      ),
+      cell: (row: User) => {
+        const user = row;
+        return (
+          <div className="flex items-center gap-3">
+            <Avatar className="h-9 w-9">
+              <AvatarImage
+                src={getAbsoluteUrl(user.avatarUrl)}
+                alt={user.name}
+              />
+              <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <span className="font-semibold">{user.name}</span>
+          </div>
+        );
+      },
     },
     {
       accessorKey: "email",
       header: "Email",
-      cell: (user) => user.email,
+      cell: (row: User) => row.email,
     },
     {
       accessorKey: "status",
       header: "Status",
-      cell: (user) => (
-        <div className="flex items-center gap-2">
-          <Switch
-            checked={user.isActive}
-            onCheckedChange={(isActive) =>
-              setUserStatusMutation.mutate({ userId: user.id, isActive })
-            }
-          />
-          <Badge
-            variant={user.isActive ? "default" : "destructive"}
-            className={cn(user.isActive ? "bg-green-500" : "")}
-          >
-            {user.isActive ? "Active" : "Inactive"}
-          </Badge>
-        </div>
-      ),
+      cell: (row: User) => {
+        const user = row;
+        return (
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={user.isActive}
+              onCheckedChange={(isActive) =>
+                setUserStatusMutation.mutate({ userId: user.id, isActive })
+              }
+            />
+            <Badge
+              variant={user.isActive ? "default" : "destructive"}
+              className={cn(user.isActive ? "bg-green-500" : "")}
+            >
+              {user.isActive ? "Active" : "Inactive"}
+            </Badge>
+          </div>
+        );
+      },
     },
     {
       accessorKey: "roles",
       header: "Roles",
-      cell: (user) => (
-        <div className="flex flex-wrap gap-1">
-          {user.roles.map((role: string) => (
-            <Badge key={role} variant="secondary">
-              {role}
-            </Badge>
-          ))}
-        </div>
-      ),
+      cell: (row: User) => {
+        const user = row;
+        return (
+          <div className="flex flex-wrap gap-1">
+            {user.roles.map((role: string) => (
+              <Badge key={role} variant="secondary">
+                {role}
+              </Badge>
+            ))}
+          </div>
+        );
+      },
     },
     {
       accessorKey: "createdAt",
       header: "Created At",
-      cell: (user) => new Date(user.createdAt).toLocaleDateString("en-US"),
+      cell: (row: User) => new Date(row.createdAt).toLocaleDateString("en-US"),
     },
     {
       accessorKey: "actions",
       header: "Actions",
-      cell: (user) => <UserActionsCell user={user} onEdit={setEditingUserId} />,
+      cell: (row: User) => (
+        <UserActionsCell user={row} onEdit={setEditingUserId} />
+      ),
     },
   ];
+
   if (isLoading) return <div>Loading users...</div>;
   if (isError) return <div>Error loading users.</div>;
   return (

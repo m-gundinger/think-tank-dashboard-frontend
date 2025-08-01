@@ -1,6 +1,6 @@
 import { useRef, useMemo } from "react";
-import { DocumentType } from "@/types";
-import { Task } from "../task.types";
+import { DocumentType } from "@/types/api";
+import { Task } from "@/types";
 import { Button } from "@/components/ui/button";
 import {
   Paperclip,

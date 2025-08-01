@@ -1,9 +1,10 @@
 import { useApiResource } from "@/hooks/useApiResource";
 import { EntityCard } from "@/components/ui/EntityCard";
 import { CardContent } from "@/components/ui/card";
+import { Workspace } from "@/types";
 
 interface WorkspaceCardProps {
-  workspace: any;
+  workspace: Workspace;
   onEdit: (workspaceId: string) => void;
 }
 

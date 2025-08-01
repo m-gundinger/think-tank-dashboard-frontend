@@ -1,4 +1,3 @@
-
 import { useParams } from "react-router-dom";
 import { useApiResource } from "@/hooks/useApiResource";
 import { ProjectForm } from "@/features/projects/components/ProjectForm";

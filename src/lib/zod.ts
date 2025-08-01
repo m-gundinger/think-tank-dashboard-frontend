@@ -1,4 +1,3 @@
-
 import { z, ZodType } from "zod";
 
 export const createPaginationSchema = (defaultLimit = 10) =>

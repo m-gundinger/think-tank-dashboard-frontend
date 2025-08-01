@@ -1,6 +1,6 @@
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
-import { Task } from "../task.types";
+import { Task } from "@/types";
 import { useQueryClient, QueryKey } from "@tanstack/react-query";
 import { toast } from "sonner";
 

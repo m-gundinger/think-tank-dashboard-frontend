@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { ListTasksQuery } from "@/features/tasks/task.types";
+import { ListTasksQuery } from "@/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useApiResource } from "@/hooks/useApiResource";
 import { MyTasksKanbanBoard } from "@/features/tasks/components/MyTasksKanbanBoard";

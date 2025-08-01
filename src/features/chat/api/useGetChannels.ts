@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
+// This is a mock implementation. Replace with actual API call.
 async function getChannels(): Promise<any[]> {
   return Promise.resolve([
     { id: "C1", name: "General", type: "channel" },

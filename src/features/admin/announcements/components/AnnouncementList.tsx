@@ -16,16 +16,15 @@ import {
 } from "@/components/ui/DataTable";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { AnnouncementForm } from "./AnnouncementForm";
+import { Announcement } from "@/types";
+
 export function AnnouncementList() {
-  const [page, setPage] = useState(1);
+  const [, setPage] = useState(1);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const announcementResource = useApiResource("announcements", [
+  const announcementResource = useApiResource<Announcement>("announcements", [
     "announcements",
   ]);
-  const { data, isLoading, isError } = announcementResource.useGetAll({
-    page,
-    limit: 10,
-  });
+  const { data, isLoading, isError } = announcementResource.useGetAll();
   const deleteMutation = announcementResource.useDelete();
 
   const handlePageChange = (newPage: number) => {
@@ -34,74 +33,77 @@ export function AnnouncementList() {
     }
   };
 
-  const columns: ColumnDef<any>[] = [
+  const columns: ColumnDef<Announcement>[] = [
     {
       accessorKey: "title",
       header: "Title",
-      cell: (announcement) => (
-        <span className="font-medium">{announcement.title}</span>
+      cell: (row: Announcement) => (
+        <span className="font-medium">{row.title}</span>
       ),
     },
     {
       accessorKey: "status",
       header: "Status",
-      cell: (announcement) => (
-        <Badge variant="outline">{announcement.status}</Badge>
+      cell: (row: Announcement) => (
+        <Badge variant="outline">{row.status}</Badge>
       ),
     },
     {
       accessorKey: "severity",
       header: "Severity",
-      cell: (announcement) => (
-        <Badge variant="secondary">{announcement.severity}</Badge>
+      cell: (row: Announcement) => (
+        <Badge variant="secondary">{row.severity}</Badge>
       ),
     },
     {
       accessorKey: "isPinned",
       header: "Pinned",
-      cell: (announcement) => (announcement.isPinned ? "Yes" : "No"),
+      cell: (row: Announcement) => (row.isPinned ? "Yes" : "No"),
     },
     {
       accessorKey: "publishedAt",
       header: "Published",
-      cell: (announcement) =>
-        announcement.publishedAt
-          ? new Date(announcement.publishedAt).toLocaleDateString("en-US")
+      cell: (row: Announcement) =>
+        row.publishedAt
+          ? new Date(row.publishedAt).toLocaleDateString("en-US")
           : "N/A",
     },
     {
       accessorKey: "actions",
       header: "Actions",
-      cell: (announcement) => (
-        <div className="text-right">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setEditingId(announcement.id)}>
-                <Edit className="mr-2 h-4 w-4" /> Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="text-red-600"
-                onClick={() => {
-                  if (
-                    window.confirm(
-                      `Delete announcement "${announcement.title}"?`
-                    )
-                  ) {
-                    deleteMutation.mutate(announcement.id);
-                  }
-                }}
-              >
-                <Trash2 className="mr-2 h-4 w-4" /> Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      ),
+      cell: (row: Announcement) => {
+        const announcement = row;
+        return (
+          <div className="text-right">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setEditingId(announcement.id)}>
+                  <Edit className="mr-2 h-4 w-4" /> Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="text-red-600"
+                  onClick={() => {
+                    if (
+                      window.confirm(
+                        `Delete announcement "${announcement.title}"?`
+                      )
+                    ) {
+                      deleteMutation.mutate(announcement.id);
+                    }
+                  }}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" /> Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        );
+      },
     },
   ];
 

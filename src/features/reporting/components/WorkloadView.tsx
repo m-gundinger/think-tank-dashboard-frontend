@@ -12,7 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getAbsoluteUrl } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export function WorkloadView({ workspaceId }: { workspaceId: string }) {
+export function WorkloadView({ workspaceId }: { workspaceId?: string }) {
   const { data, isLoading, isError } = useGetWorkloadReport(workspaceId);
 
   if (isLoading) {

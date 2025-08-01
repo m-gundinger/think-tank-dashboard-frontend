@@ -18,7 +18,7 @@ import { Settings, CheckSquare, PlusCircle } from "lucide-react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { CreateTaskForm } from "@/features/tasks/components/CreateTaskForm";
 import { CreateDashboardForm } from "@/features/dashboards/components/CreateDashboardForm";
-import { Task } from "@/features/tasks/task.types";
+import { Task } from "@/types";
 import { View } from "@/types";
 import { ProjectActivityLog } from "@/features/activities/components/ProjectActivityLog";
 import { EmptyState } from "@/components/ui/empty-state";

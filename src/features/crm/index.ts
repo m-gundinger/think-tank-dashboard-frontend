@@ -20,4 +20,3 @@ export * from "./components/PersonDetailContent";
 export * from "./components/PersonDetailPanel";
 export * from "./components/PersonForm";
 export * from "./components/PersonList";
-export * from "./crm.types";

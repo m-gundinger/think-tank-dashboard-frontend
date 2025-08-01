@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
@@ -11,7 +11,7 @@ import { TimeTrackingReportConfigFields } from "./config-fields/TimeTrackingRepo
 import { PieChartConfigFields } from "./config-fields/PieChartConfigFields";
 import { GoalTrackingConfigFields } from "./config-fields/GoalTrackingConfigFields";
 import { LeadCycleTimeConfigFields } from "./config-fields/LeadCycleTimeConfigFields";
-import { WidgetType } from "@/types";
+import { WidgetType } from "@/types/api";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 

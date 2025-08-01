@@ -1,7 +1,6 @@
-
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
-import { DocumentType } from "@/types";
+import { DocumentType } from "@/types/api";
 
 interface DetachDocumentParams {
   workspaceId?: string;

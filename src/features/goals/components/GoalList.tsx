@@ -8,6 +8,7 @@ import { Target } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { GoalCard } from "./GoalCard";
 import { GoalForm } from "./GoalForm";
+import { Goal } from "@/types";
 
 interface GoalListProps {
   workspaceId: string;
@@ -66,7 +67,7 @@ export function GoalList({ workspaceId, projectId }: GoalListProps) {
           />
         ) : (
           <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2">
-            {goals.map((goal: any) => (
+            {goals.map((goal: Goal) => (
               <GoalCard
                 key={goal.id}
                 goal={goal}

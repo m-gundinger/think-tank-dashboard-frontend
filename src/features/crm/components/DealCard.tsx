@@ -8,7 +8,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Deal } from "../crm.types";
+import { Deal } from "@/types";
 
 interface DealCardProps {
   deal: Deal;

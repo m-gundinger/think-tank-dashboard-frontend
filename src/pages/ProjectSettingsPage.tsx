@@ -17,7 +17,6 @@ export function ProjectSettingsPage() {
   const currentTab = location.pathname.split("/").pop() || "general";
 
   const basePath = `/workspaces/${workspaceId}/projects/${projectId}/settings`;
-
   return (
     <div className="space-y-6">
       <div>
@@ -31,7 +30,11 @@ export function ProjectSettingsPage() {
         <TabsList>
           {settingsNavItems.map((item) => (
             <NavLink to={`${basePath}/${item.to}`} key={item.to} end>
-              <TabsTrigger value={item.to}>{item.label}</TabsTrigger>
+              {({ isActive }) => (
+                <TabsTrigger value={item.to} disabled={isActive}>
+                  {item.label}
+                </TabsTrigger>
+              )}
             </NavLink>
           ))}
         </TabsList>

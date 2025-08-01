@@ -1,160 +1,216 @@
-export enum TaskStatus {
-  TODO = "TODO",
-  IN_PROGRESS = "IN_PROGRESS",
-  IN_REVIEW = "IN_REVIEW",
-  DONE = "DONE",
-  BLOCKED = "BLOCKED",
-  CANCELLED = "CANCELLED",
+import {
+  ViewType,
+  ProjectStatus,
+  TaskStatus,
+  TaskPriority,
+  TaskLinkType,
+  CustomFieldType,
+  SocialProvider,
+  DocumentType,
+  GoalStatus,
+  KeyResultType,
+  InteractionType,
+  JobStatus,
+  PublicationStatus,
+  AnnouncementSeverity,
+  SkillCategory,
+} from "./api";
+
+export type AnyValue = Record<string, any>;
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
 }
 
-export enum TaskPriority {
-  NONE = "NONE",
-  LOW = "LOW",
-  MEDIUM = "MEDIUM",
-  HIGH = "HIGH",
-  URGENT = "URGENT",
+export interface User {
+  id: string;
+  name: string;
+  firstName: string;
+  lastName: string;
+  email: string | null;
+  avatarUrl: string | null;
+  isActive: boolean;
+  roles: string[];
+  createdAt: string;
+  updatedAt: string;
+  biography?: string | null;
+  phoneNumber?: string | null;
+  birthday?: string | null;
+  socialLinks?: SocialLink[];
+  skills?: Skill[];
 }
 
-export enum EpicStatus {
-  TODO = "TODO",
-  IN_PROGRESS = "IN_PROGRESS",
-  DONE = "DONE",
-  ARCHIVED = "ARCHIVED",
+export interface RoleWithPermissions {
+  id: string;
+  name: string;
+  description: string | null;
+  permissions: Permission[];
 }
 
-export enum SprintStatus {
-  PLANNING = "PLANNING",
-  ACTIVE = "ACTIVE",
-  COMPLETED = "COMPLETED",
+export interface Permission {
+  id: string;
+  action: string;
+  subject: string;
+  description: string | null;
 }
 
-export enum TaskLinkType {
-  RELATES_TO = "RELATES_TO",
-  BLOCKS = "BLOCKS",
-  IS_BLOCKED_BY = "IS_BLOCKED_BY",
+export interface Announcement {
+  id: string;
+  title: string;
+  content: { message: string };
+  status: PublicationStatus;
+  severity: AnnouncementSeverity;
+  isPinned: boolean;
+  publishedAt: string | null;
 }
 
-export enum ActivityActionType {
-  TASK_CREATED = "TASK_CREATED",
-  TASK_UPDATED = "TASK_UPDATED",
-  TASK_DELETED = "TASK_DELETED",
-  PROJECT_CREATED = "PROJECT_CREATED",
-  PROJECT_UPDATED = "PROJECT_UPDATED",
-  USER_JOINED = "USER_JOINED",
-  COMMENT_ADDED = "COMMENT_ADDED",
+export interface Job {
+  id: string;
+  type: string;
+  status: JobStatus;
+  attempts: number;
+  maxAttempts: number;
+  createdAt: string;
 }
 
-export enum WorkflowActionType {
-  UPDATE_TASK_STATUS = "UPDATE_TASK_STATUS",
-  CREATE_TASK = "CREATE_TASK",
-  SEND_NOTIFICATION = "SEND_NOTIFICATION",
-  ASSIGN_TASK = "ASSIGN_TASK",
-  ADD_COMMENT = "ADD_COMMENT",
-  SEND_TELEGRAM_MESSAGE = "SEND_TELEGRAM_MESSAGE",
-  SEND_EMAIL_BREVO = "SEND_EMAIL_BREVO",
-  SEND_WEBHOOK = "SEND_WEBHOOK",
+export interface Workspace {
+  id: string;
+  name: string;
+  description: string | null;
+  logoUrl: string | null;
+  ownerId: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export enum WidgetType {
-  STATS_COUNTER = "STATS_COUNTER",
-  TASK_LIST = "TASK_LIST",
-  BURNDOWN_CHART = "BURNDOWN_CHART",
-  TIME_TRACKING_REPORT = "TIME_TRACKING_REPORT",
-  PIE_CHART = "PIE_CHART",
-  GOAL_TRACKING = "GOAL_TRACKING",
-  LEAD_CYCLE_TIME_CHART = "LEAD_CYCLE_TIME_CHART",
-  CHART = "CHART",
-  TABLE = "TABLE",
+export interface Project {
+  id: string;
+  name: string;
+  description: string | null;
+  icon: string | null;
+  status: ProjectStatus;
+  isPrivate: boolean;
+  workspaceId: string;
+  leadId: string | null;
+  startDate: string | null;
+  endDate: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export enum SocialProvider {
-  GOOGLE = "GOOGLE",
-  LINKEDIN = "LINKEDIN",
-  TWITTER = "TWITTER",
-  FACEBOOK = "FACEBOOK",
-  NEXTCLOUD = "NEXTCLOUD",
-  TELEGRAM = "TELEGRAM",
-  GITHUB = "GITHUB",
-  WEBSITE = "WEBSITE",
-  OTHER = "OTHER",
+export interface Team {
+  id: string;
+  name: string;
+  description: string | null;
+  workspaceId: string;
+  members: {
+    id: string;
+    name: string;
+    avatarUrl: string | null;
+  }[];
 }
 
-export enum CustomFieldType {
-  TEXT = "TEXT",
-  NUMBER = "NUMBER",
-  DATE = "DATE",
-  SELECT = "SELECT",
+export interface TaskType {
+  id: string;
+  name: string;
+  icon: string | null;
+  color: string | null;
 }
 
-export enum DocumentType {
-  INPUT = "INPUT",
-  OUTPUT = "OUTPUT",
+export interface TaskAssignee {
+  id: string;
+  name: string;
+  avatarUrl: string | null;
 }
 
-export enum NotificationType {
-  SYSTEM_BROADCAST = "SYSTEM_BROADCAST",
-  TASK_ASSIGNMENT = "TASK_ASSIGNMENT",
-  COMMENT_MENTION = "COMMENT_MENTION",
-  PROJECT_INVITE = "PROJECT_INVITE",
+export interface TaskLink {
+  id: string;
+  type: TaskLinkType;
+  targetTask?: {
+    id: string;
+    title: string;
+    status: TaskStatus;
+  };
+  sourceTask?: {
+    id: string;
+    title: string;
+    status: TaskStatus;
+  };
 }
 
-export enum NotificationSeverity {
-  LOW = "LOW",
-  MEDIUM = "MEDIUM",
-  HIGH = "HIGH",
-  CRITICAL = "CRITICAL",
+export interface CustomFieldDefinitionForTask {
+  id: string;
+  name: string;
+  type: CustomFieldType;
+  options: any | null;
 }
 
-export enum ViewType {
-  KANBAN = "KANBAN",
-  LIST = "LIST",
-  CALENDAR = "CALENDAR",
-  GANTT = "GANTT",
-  BACKLOG = "BACKLOG",
-  WHITEBOARD = "WHITEBOARD",
+export interface TaskCustomField {
+  fieldId: string;
+  value: any;
+  definition: CustomFieldDefinitionForTask;
 }
 
-export enum JobStatus {
-  PENDING = "PENDING",
-  RUNNING = "RUNNING",
-  COMPLETED = "COMPLETED",
-  FAILED = "FAILED",
-  CANCELLED = "CANCELLED",
+export interface TaskDocument {
+  documentId: string;
+  type: DocumentType;
+  title: string;
+  url: string;
+  fileType: string | null;
+  createdAt: string;
+  externalUrl: string | null;
+  provider: SocialProvider | null;
 }
 
-export enum GoalStatus {
-  ON_TRACK = "ON_TRACK",
-  AT_RISK = "AT_RISK",
-  OFF_TRACK = "OFF_TRACK",
-  ACHIEVED = "ACHIEVED",
-  NOT_STARTED = "NOT_STARTED",
+export interface ChecklistItem {
+  id: string;
+  text: string;
+  completed: boolean;
 }
 
-export enum KeyResultType {
-  NUMBER = "NUMBER",
-  PERCENTAGE = "PERCENTAGE",
-  CURRENCY = "CURRENCY",
-  BOOLEAN = "BOOLEAN",
-}
-
-export enum InteractionType {
-  MEETING = "MEETING",
-  CALL = "CALL",
-  EMAIL = "EMAIL",
-}
-
-export enum ProjectStatus {
-  PLANNING = "PLANNING",
-  IN_PROGRESS = "IN_PROGRESS",
-  COMPLETED = "COMPLETED",
-  ON_HOLD = "ON_HOLD",
-  CANCELLED = "CANCELLED",
+export interface Task {
+  id: string;
+  shortId: string | null;
+  title: string;
+  description: string | null;
+  status: TaskStatus;
+  priority: TaskPriority;
+  projectId: string | null;
+  workspaceId: string | null;
+  projectName: string | null;
+  taskTypeId?: string | null;
+  taskType?: TaskType | null;
+  ownerId: string | null;
+  creatorId: string | null;
+  startDate: string | null;
+  dueDate: string | null;
+  timeEstimate: number | null;
+  storyPoints: number | null;
+  boardColumnId: string | null;
+  orderInColumn: number | null;
+  recurrenceRule?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  assignees: TaskAssignee[];
+  watchers: TaskAssignee[];
+  links: TaskLink[];
+  linkedToBy: TaskLink[];
+  customFields: TaskCustomField[];
+  documents: TaskDocument[];
+  parentId: string | null;
+  subtasks: Task[];
+  checklist?: ChecklistItem[] | null;
 }
 
 export interface ViewColumn {
   id: string;
   name: string;
   order: number;
+  viewId: string;
 }
 
 export interface View {
@@ -162,4 +218,120 @@ export interface View {
   name: string;
   type: ViewType;
   columns: ViewColumn[];
+  config?: any;
+  filters?: any;
+  sorting?: any;
+  grouping?: any;
+  isPublic: boolean;
+}
+
+export interface Goal {
+  id: string;
+  name: string;
+  description: string | null;
+  status: GoalStatus;
+  workspaceId?: string;
+  projectId?: string;
+  keyResults: KeyResult[];
+}
+
+export interface KeyResult {
+  id: string;
+  name: string;
+  type: KeyResultType;
+  startValue: number;
+  targetValue: number;
+  currentValue: number;
+}
+
+export interface Interaction {
+  id: string;
+  type: InteractionType;
+  notes: string;
+  date: string;
+  actor?: { name: string | null } | null;
+}
+
+export interface Person {
+  id: string;
+  firstName: string;
+  lastName: string;
+  name: string;
+  email: string | null;
+  avatarUrl: string | null;
+  biography: string | null;
+  phoneNumber: string | null;
+  birthday: string | null;
+  socialLinks: SocialLink[];
+  skills: Skill[];
+  roles: string[];
+  companies: {
+    companyId: string;
+    company: { name: string };
+    role: string | null;
+  }[];
+  roleInCompany?: string | null;
+}
+
+export interface Organization {
+  id: string;
+  name: string;
+  description: string | null;
+  domain: string | null;
+  people: Person[];
+}
+export type Company = Organization;
+
+export interface Deal {
+  id: string;
+  name: string;
+  value: number;
+  stageId: string;
+  stage: DealStage;
+  company: {
+    id: string;
+    name: string;
+  };
+  ownerId: string;
+  ownerName: string;
+}
+
+export interface DealStage {
+  id: string;
+  name: string;
+  order: number;
+}
+
+export interface Skill {
+  id: string;
+  name: string;
+  category: SkillCategory;
+}
+
+export interface SocialLink {
+  id: string;
+  provider: SocialProvider;
+  url: string;
+}
+
+export interface ListTasksQuery {
+  page?: number;
+  limit?: number;
+  status?: TaskStatus;
+  priority?: TaskPriority;
+  search?: string;
+  startDate?: Date;
+  endDate?: Date;
+  includeSubtasks?: boolean;
+  sortBy?:
+    | "createdAt"
+    | "updatedAt"
+    | "title"
+    | "status"
+    | "priority"
+    | "dueDate"
+    | "orderInColumn";
+  sortOrder?: "asc" | "desc";
+  taskOrigin?: "project" | "standalone";
+  userRole?: "creator" | "assignee";
 }

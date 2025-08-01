@@ -8,7 +8,6 @@ interface CreateFromTemplateParams {
 }
 
 async function createProjectFromTemplate({
-  workspaceId,
   templateId,
   name,
 }: CreateFromTemplateParams): Promise<any> {

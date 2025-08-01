@@ -4,9 +4,11 @@ import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { RoleCard } from "./RoleCard";
 import { RoleForm } from "./RoleForm";
 import { ManageRolePermissions } from "./ManageRolePermissions";
-
+import { RoleWithPermissions } from "@/types";
 export function RoleList() {
-  const roleResource = useApiResource("admin/roles", ["roles"]);
+  const roleResource = useApiResource<RoleWithPermissions>("admin/roles", [
+    "roles",
+  ]);
   const { data, isLoading, isError } = roleResource.useGetAll();
   const [editingRoleId, setEditingRoleId] = useState<string | null>(null);
 
@@ -16,7 +18,7 @@ export function RoleList() {
   return (
     <>
       <div className="grid gap-4 md:grid-cols-2">
-        {data?.data?.map((role: any) => (
+        {data?.data?.map((role) => (
           <RoleCard key={role.id} role={role} onEdit={setEditingRoleId} />
         ))}
       </div>
@@ -33,7 +35,7 @@ export function RoleList() {
         }}
         dialogClassName="sm:max-w-4xl"
       >
-        {(role: any) => <ManageRolePermissions role={role} />}
+        {(role) => <ManageRolePermissions role={role} />}
       </ResourceCrudDialog>
     </>
   );

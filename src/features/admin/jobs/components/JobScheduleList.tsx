@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useApiResource } from "@/hooks/useApiResource";
 import {
   Table,
@@ -11,15 +10,13 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
+import { AnyValue } from "@/types";
+
 export function JobScheduleList() {
   const jobScheduleResource = useApiResource("admin/jobs/schedules", [
     "jobSchedules",
   ]);
-  const [page] = useState(1);
-  const { data, isLoading, isError } = jobScheduleResource.useGetAll({
-    page,
-    limit: 20,
-  });
+  const { data, isLoading, isError } = jobScheduleResource.useGetAll();
   const updateMutation = jobScheduleResource.useUpdate();
   const deleteMutation = jobScheduleResource.useDelete();
 
@@ -39,7 +36,7 @@ export function JobScheduleList() {
       </TableHeader>
       <TableBody>
         {data && data.data && data.data.length > 0 ? (
-          data.data.map((schedule: any) => (
+          data.data.map((schedule: AnyValue) => (
             <TableRow key={schedule.id}>
               <TableCell className="font-medium">{schedule.name}</TableCell>
               <TableCell className="font-mono text-xs">

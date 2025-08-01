@@ -34,7 +34,7 @@ export function CompanyDetailPanel({
   companyId,
   onOpenChange,
 }: CompanyDetailPanelProps) {
-  const companyResource = useApiResource("companies", ["companies"]);
+  const companyResource = useApiResource("organizations", ["organizations"]);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const { data: company, isLoading } = companyResource.useGetOne(companyId);
   const deleteMutation = companyResource.useDelete();
@@ -94,8 +94,8 @@ export function CompanyDetailPanel({
         title="Edit Company"
         description="Make changes to the company's details."
         form={CompanyForm}
-        resourcePath="companies"
-        resourceKey={["companies"]}
+        resourcePath="organizations"
+        resourceKey={["organizations"]}
         resourceId={company?.id}
       />
     </>

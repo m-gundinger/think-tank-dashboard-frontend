@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { gantt } from "dhtmlx-gantt";
 import "dhtmlx-gantt/codebase/dhtmlxgantt.css";
-import { Task } from "@/features/tasks/task.types";
+import { Task } from "@/types";
 import { useApiResource } from "@/hooks/useApiResource";
 import { useParams } from "react-router-dom";
 interface GanttChartViewProps {
@@ -31,7 +31,7 @@ export function GanttChartView({ tasks }: GanttChartViewProps) {
 
     gantt.init(ganttContainer.current);
 
-    const onAfterTaskDrag = (id: string, mode: string) => {
+    const onAfterTaskDrag = (id: string | number, mode: string) => {
       const task = gantt.getTask(id);
       const updates: { startDate?: Date; dueDate?: Date } = {};
 

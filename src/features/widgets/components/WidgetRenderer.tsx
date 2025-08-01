@@ -6,7 +6,7 @@ import { PieChartWidget } from "./PieChartWidget";
 import { GoalTrackingWidget } from "./GoalTrackingWidget";
 import { LeadCycleTimeChartWidget } from "./LeadCycleTimeChartWidget";
 import { WidgetWrapper } from "./WidgetWrapper";
-import { WidgetType } from "@/types";
+import { WidgetType } from "@/types/api";
 
 export function WidgetRenderer({ widget, workspaceId, projectId }: any) {
   const renderWidgetContent = () => {

@@ -4,22 +4,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ErrorState } from "@/components/ui/error-state";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
 import { FolderKanban } from "lucide-react";
 import { useState } from "react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { ProjectForm } from "./ProjectForm";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { CreateProjectFromTemplateForm } from "./CreateProjectFromTemplateForm";
+import { Project } from "@/types";
 
 const ProjectListSkeleton = () => (
-  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+  <div className="grid gap-4 pt-6 md:grid-cols-2 lg:grid-cols-3">
     {Array.from({ length: 3 }).map((_, i) => (
       <Card key={i}>
         <CardHeader>
@@ -34,15 +26,12 @@ const ProjectListSkeleton = () => (
   </div>
 );
 export function ProjectList({ workspaceId }: { workspaceId: string }) {
-  const projectResource = useApiResource(
+  const projectResource = useApiResource<Project>(
     `/workspaces/${workspaceId}/projects`,
     ["projects", workspaceId]
   );
   const { data, isLoading, isError, error } = projectResource.useGetAll();
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [isCreateFromTemplateOpen, setIsCreateFromTemplateOpen] =
-    useState(false);
 
   if (isLoading) {
     return <ProjectListSkeleton />;
@@ -66,74 +55,19 @@ export function ProjectList({ workspaceId }: { workspaceId: string }) {
 
   if (!data || data.data.length === 0) {
     return (
-      <EmptyState
-        icon={<FolderKanban className="text-primary h-10 w-10" />}
-        title="This workspace has no projects yet."
-        description="Create the first project in this workspace to get started."
-        action={
-          <ResourceCrudDialog
-            isOpen={isCreateOpen}
-            onOpenChange={setIsCreateOpen}
-            trigger={
-              <Button onClick={() => setIsCreateOpen(true)}>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                New Project
-              </Button>
-            }
-            title="Create a new project"
-            description="Projects live inside workspaces and contain your tasks."
-            form={ProjectForm}
-            formProps={{ workspaceId }}
-            resourcePath={`/workspaces/${workspaceId}/projects`}
-            resourceKey={["projects", workspaceId]}
-          />
-        }
-      />
+      <div className="pt-6">
+        <EmptyState
+          icon={<FolderKanban className="text-primary h-10 w-10" />}
+          title="This workspace has no projects yet."
+          description="Create the first project in this workspace to get started."
+        />
+      </div>
     );
   }
 
   return (
     <>
-      <div className="flex justify-end">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              New Project
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => setIsCreateOpen(true)}>
-              New Blank Project
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setIsCreateFromTemplateOpen(true)}>
-              New from Template
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        <ResourceCrudDialog
-          isOpen={isCreateOpen}
-          onOpenChange={setIsCreateOpen}
-          title="Create a new project"
-          description="Projects live inside workspaces and contain your tasks."
-          form={ProjectForm}
-          formProps={{ workspaceId }}
-          resourcePath={`/workspaces/${workspaceId}/projects`}
-          resourceKey={["projects", workspaceId]}
-        />
-        <ResourceCrudDialog
-          isOpen={isCreateFromTemplateOpen}
-          onOpenChange={setIsCreateFromTemplateOpen}
-          title="Create from Template"
-          description="Create a new project based on an existing template."
-          form={CreateProjectFromTemplateForm}
-          formProps={{ workspaceId }}
-          resourcePath={""}
-          resourceKey={[]}
-        />
-      </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 pt-6 md:grid-cols-2 lg:grid-cols-3">
         {data.data.map((project: any) => (
           <ProjectCard project={project} key={project.id} onEdit={handleEdit} />
         ))}

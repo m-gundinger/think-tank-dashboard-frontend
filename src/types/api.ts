@@ -14,13 +14,6 @@ export enum SocialProvider {
   WHATSAPP = "WHATSAPP",
   OPEN_ROUTER = "OPEN_ROUTER",
   BREVO = "BREVO",
-  GOOGLE_CALENDAR = "GOOGLE_CALENDAR",
-  GOOGLE_DOCS = "GOOGLE_DOCS",
-  GOOGLE_SHEETS = "GOOGLE_SHEETS",
-  GOOGLE_SLIDES = "GOOGLE_SLIDES",
-  GOOGLE_MEET = "GOOGLE_MEET",
-  GOOGLE_CHAT = "GOOGLE_CHAT",
-  GOOGLE_YOUTUBE = "GOOGLE_YOUTUBE",
 }
 
 export enum SkillCategory {
@@ -189,24 +182,19 @@ export enum InteractionType {
 
 export enum IntegrationProvider {
   GOOGLE = "GOOGLE",
+  LINKEDIN = "LINKEDIN",
+  TWITTER = "TWITTER",
+  FACEBOOK = "FACEBOOK",
   NEXTCLOUD = "NEXTCLOUD",
-  BREVO = "BREVO",
+  TELEGRAM = "TELEGRAM",
+  GITHUB = "GITHUB",
+  WEBSITE = "WEBSITE",
   WORDPRESS = "WORDPRESS",
   CANVA = "CANVA",
-  OPEN_ROUTER = "OPEN_ROUTER",
-  LINKEDIN = "LINKEDIN",
-  FACEBOOK = "FACEBOOK",
-  TWITTER = "TWITTER",
   INSTAGRAM = "INSTAGRAM",
   WHATSAPP = "WHATSAPP",
-  TELEGRAM = "TELEGRAM",
-  GOOGLE_CALENDAR = "GOOGLE_CALENDAR",
-  GOOGLE_DOCS = "GOOGLE_DOCS",
-  GOOGLE_SHEETS = "GOOGLE_SHEETS",
-  GOOGLE_SLIDES = "GOOGLE_SLIDES",
-  GOOGLE_MEET = "GOOGLE_MEET",
-  GOOGLE_CHAT = "GOOGLE_CHAT",
-  GOOGLE_YOUTUBE = "GOOGLE_YOUTUBE",
+  OPEN_ROUTER = "OPEN_ROUTER",
+  BREVO = "BREVO",
 }
 
 export enum IntegrationHealthStatus {
@@ -215,12 +203,17 @@ export enum IntegrationHealthStatus {
   DISABLED = "DISABLED",
 }
 
-export enum IntegrationCategory {
-  OAUTH = "OAUTH",
-  API_KEY = "API_KEY",
-  WEBHOOK = "WEBHOOK",
+export enum ApiCallStatus {
+  SUCCESS = "SUCCESS",
+  FAILED = "FAILED",
 }
 
 export enum WebhookAction {
   CREATE_TASK = "CREATE_TASK",
+}
+
+export enum IntegrationCategory {
+  OAUTH = "OAUTH",
+  API_KEY = "API_KEY",
+  WEBHOOK = "WEBHOOK",
 }

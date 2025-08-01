@@ -19,7 +19,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { ActivityActionType, TaskStatus, WorkflowActionType } from "@/types";
+import {
+  ActivityActionType,
+  TaskStatus,
+  WorkflowActionType,
+} from "@/types/api";
 import { useApiResource } from "@/hooks/useApiResource";
 import { ActionRepeater } from "./ActionRepeater";
 import { PlusCircle } from "lucide-react";

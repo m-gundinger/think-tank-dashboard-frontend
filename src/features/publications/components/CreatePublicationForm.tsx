@@ -10,11 +10,13 @@ import {
 import { useEffect } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { PublicationStatus } from "@/types/api";
+
 const publicationSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters."),
   excerpt: z.string().optional(),
   authorIds: z.array(z.string().uuid()),
-  status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]),
+  status: z.nativeEnum(PublicationStatus),
 });
 type PublicationFormValues = z.infer<typeof publicationSchema>;
 
@@ -41,7 +43,7 @@ export function CreatePublicationForm({
       title: "",
       excerpt: "",
       authorIds: [],
-      status: "DRAFT",
+      status: PublicationStatus.DRAFT,
     },
   });
   useEffect(() => {

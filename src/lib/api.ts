@@ -1,4 +1,3 @@
-
 import axios, { InternalAxiosRequestConfig } from "axios";
 import { useAuthStore } from "@/store/auth";
 
@@ -25,11 +24,6 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    console.log("Axios Interceptor: Caught an error.", {
-      url: originalRequest.url,
-      status: error.response?.status,
-    });
-
     const isAuthEndpoint =
       originalRequest.url?.includes("/auth/login") ||
       originalRequest.url?.includes("/auth/refresh-token");
@@ -39,9 +33,6 @@ api.interceptors.response.use(
       !originalRequest._retry &&
       !isAuthEndpoint
     ) {
-      console.log(
-        "Axios Interceptor: Intercepted 401. Attempting token refresh."
-      );
       originalRequest._retry = true;
       try {
         const { data } = await api.post("/auth/refresh-token");
@@ -50,16 +41,16 @@ api.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return api(originalRequest);
       } catch (refreshError) {
-        console.error("Axios Interceptor: Token refresh failed.", refreshError);
         useAuthStore.getState().setAccessToken(null);
-        console.error("Session expired. Please log in again.");
+        // Using window.location to force a full page reload to the login page
+        // which clears all state and avoids inconsistent states.
+        if (window.location.pathname !== "/login") {
+          window.location.href = "/login";
+        }
         return Promise.reject(refreshError);
       }
     }
 
-    console.log(
-      "Axios Interceptor: Error was not a 401 or was an auth endpoint. Rejecting promise."
-    );
     return Promise.reject(error);
   }
 );

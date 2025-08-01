@@ -1,16 +1,16 @@
-
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { FormInput, FormSelect } from "@/components/form/FormFields";
 import { useManageViews } from "../api/useManageViews";
 import { useEffect } from "react";
-import { ViewType } from "@/types";
+import { ViewType } from "@/types/api";
+import { View } from "@/types";
 
 interface ViewFormProps {
   workspaceId: string;
   projectId: string;
-  initialData?: any;
+  initialData?: View;
   onSuccess?: () => void;
 }
 
@@ -81,8 +81,8 @@ export function ViewForm({
             {mutation.isPending
               ? "Saving..."
               : isEditMode
-              ? "Save Changes"
-              : "Create View"}
+                ? "Save Changes"
+                : "Create View"}
           </Button>
         </form>
       </Form>

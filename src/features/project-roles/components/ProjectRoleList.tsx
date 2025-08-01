@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Edit, Trash2 } from "lucide-react";
 import { EditProjectRoleDialog } from "./EditProjectRoleDialog";
+
 interface Props {
   workspaceId: string;
   projectId: string;

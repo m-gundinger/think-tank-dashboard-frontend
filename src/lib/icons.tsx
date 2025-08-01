@@ -11,6 +11,16 @@ import {
   Bug,
   Lightbulb,
   Flame,
+  Kanban,
+  List,
+  Calendar,
+  AreaChart,
+  GitBranch,
+  LayoutDashboard,
+  Building2,
+  Contact,
+  Handshake,
+  BookOpen,
 } from "lucide-react";
 
 export const ICONS: Record<string, LucideIcon> = {
@@ -18,6 +28,11 @@ export const ICONS: Record<string, LucideIcon> = {
   Task: CheckSquare,
   Publication: FileText,
   User: User,
+  Person: Contact,
+  Company: Building2,
+  Organization: Building2,
+  Deal: Handshake,
+  KnowledgeBase: BookOpen,
   Book,
   FlaskConical,
   BarChart,
@@ -27,6 +42,13 @@ export const ICONS: Record<string, LucideIcon> = {
   Story: Book,
   Idea: Lightbulb,
   ProjectTemplate: FileText,
+  KANBAN: Kanban,
+  LIST: List,
+  CALENDAR: Calendar,
+  GANTT: AreaChart,
+  BACKLOG: GitBranch,
+  DASHBOARD: LayoutDashboard,
+  WHITEBOARD: LayoutDashboard,
   Default: FileText,
 };
 

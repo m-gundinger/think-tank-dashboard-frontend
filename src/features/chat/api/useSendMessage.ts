@@ -5,6 +5,7 @@ interface SendMessageParams {
   content: string;
 }
 
+// This is a mock implementation. Replace with actual API call.
 async function sendMessage({
   threadId,
   content,

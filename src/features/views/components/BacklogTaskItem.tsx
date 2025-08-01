@@ -1,7 +1,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Card } from "@/components/ui/card";
-import { Task } from "@/features/tasks/task.types";
+import { Task } from "@/types";
 
 interface BacklogTaskItemProps {
   task: Task;

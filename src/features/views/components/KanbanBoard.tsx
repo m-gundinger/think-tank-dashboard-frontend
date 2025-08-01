@@ -9,13 +9,15 @@ import {
 } from "@dnd-kit/core";
 import { KanbanColumn } from "./KanbanColumn";
 import { useMoveTask } from "@/features/tasks/api/useMoveTask";
-import { Task } from "@/features/tasks/task.types";
-import { TaskStatus, View, ViewColumn } from "@/types";
+import { Task } from "@/types";
+import { View, ViewColumn } from "@/types";
+import { TaskStatus } from "@/types/api";
 import { createPortal } from "react-dom";
 import { KanbanTaskCard } from "./KanbanTaskCard";
 import { useMemo, useState } from "react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Kanban } from "lucide-react";
+
 interface KanbanBoardProps {
   workspaceId: string;
   projectId: string;

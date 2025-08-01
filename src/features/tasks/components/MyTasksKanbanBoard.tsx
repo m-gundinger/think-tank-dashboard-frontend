@@ -9,8 +9,8 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { createPortal } from "react-dom";
-import { Task } from "../task.types";
-import { TaskStatus } from "@/types";
+import { Task } from "@/types";
+import { TaskStatus } from "@/types/api";
 import { KanbanColumn } from "@/features/views/components/KanbanColumn";
 import { KanbanTaskCard } from "@/features/views/components/KanbanTaskCard";
 import { useUpdateMyTask } from "../api/useUpdateMyTask";
@@ -21,14 +21,34 @@ interface MyTasksKanbanBoardProps {
 }
 
 const KANBAN_COLUMNS = [
-  { id: "col-todo", name: "To Do", status: TaskStatus.TODO },
+  {
+    id: "col-todo",
+    name: "To Do",
+    status: TaskStatus.TODO,
+    order: 1,
+    viewId: "my-tasks-view",
+  },
   {
     id: "col-in-progress",
     name: "In Progress",
     status: TaskStatus.IN_PROGRESS,
+    order: 2,
+    viewId: "my-tasks-view",
   },
-  { id: "col-in-review", name: "In Review", status: TaskStatus.IN_REVIEW },
-  { id: "col-done", name: "Done", status: TaskStatus.DONE },
+  {
+    id: "col-in-review",
+    name: "In Review",
+    status: TaskStatus.IN_REVIEW,
+    order: 3,
+    viewId: "my-tasks-view",
+  },
+  {
+    id: "col-done",
+    name: "Done",
+    status: TaskStatus.DONE,
+    order: 4,
+    viewId: "my-tasks-view",
+  },
 ];
 
 export function MyTasksKanbanBoard({
@@ -45,7 +65,6 @@ export function MyTasksKanbanBoard({
       },
     })
   );
-
   const tasksByColumn = useMemo(() => {
     const grouped: Record<string, Task[]> = {};
     KANBAN_COLUMNS.forEach((col) => (grouped[col.id] = []));

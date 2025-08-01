@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useApiResource } from "@/hooks/useApiResource";
-import { TaskStatus, TaskPriority } from "@/types";
+import { TaskStatus, TaskPriority } from "@/types/api";
 import {
   Popover,
   PopoverContent,
@@ -25,7 +25,16 @@ import { TaskDocuments } from "./TaskDocuments";
 import { EditableField } from "@/components/ui/EditableField";
 import { RecurrenceSelector } from "./RecurrenceSelector";
 import { TaskTypeSelector } from "@/features/task-types/components/TaskTypeSelector";
-export function TaskDetailSidebar({ task, workspaceId, projectId }: any) {
+import { Task } from "@/types";
+export function TaskDetailSidebar({
+  task,
+  workspaceId,
+  projectId,
+}: {
+  task: Task;
+  workspaceId: string;
+  projectId: string;
+}) {
   const taskResource = useApiResource(
     projectId
       ? `/workspaces/${workspaceId}/projects/${projectId}/tasks`
@@ -73,7 +82,7 @@ export function TaskDetailSidebar({ task, workspaceId, projectId }: any) {
           <TaskTypeSelector
             workspaceId={workspaceId}
             projectId={projectId}
-            value={task.taskTypeId}
+            value={task.taskTypeId ?? null}
             onValueChange={(value) => handleUpdate("taskTypeId", value)}
           />
         </div>
@@ -112,7 +121,7 @@ export function TaskDetailSidebar({ task, workspaceId, projectId }: any) {
       <div>
         <h3 className="mb-2 text-sm font-semibold">Recurrence</h3>
         <RecurrenceSelector
-          value={task.recurrenceRule}
+          value={task.recurrenceRule ?? null}
           onSave={(value) => handleUpdate("recurrenceRule", value)}
         />
       </div>

@@ -1,4 +1,3 @@
-
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
@@ -7,7 +6,12 @@ import { useManageTaskTypes } from "../api/useManageTaskTypes";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
-import { CreateTaskTypeDtoSchema } from "../task-type.types";
+
+const CreateTaskTypeDtoSchema = z.object({
+  name: z.string().min(1, "Type name is required."),
+  icon: z.string().optional().nullable(),
+  color: z.string().optional().nullable(),
+});
 
 type TaskTypeFormValues = z.infer<typeof CreateTaskTypeDtoSchema>;
 

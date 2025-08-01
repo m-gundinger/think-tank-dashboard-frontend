@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { TaskStatus } from "@/types";
+import { TaskStatus } from "@/types/api";
 
 interface ActionFieldProps {
   control: Control<any>;

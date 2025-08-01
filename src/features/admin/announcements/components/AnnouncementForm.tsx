@@ -9,8 +9,11 @@ import {
   FormSwitch,
 } from "@/components/form/FormFields";
 import { useApiResource } from "@/hooks/useApiResource";
+import { AnnouncementSeverity, PublicationStatus } from "@/types/api";
+import { Announcement } from "@/types";
+
 interface AnnouncementFormProps {
-  initialData?: any;
+  initialData?: Announcement;
   onSuccess?: () => void;
 }
 
@@ -49,12 +52,12 @@ export function AnnouncementForm({
       content: { message: values.content },
     };
     if (isEditMode) {
-      await updateMutation.mutate(
+      await updateMutation.mutateAsync(
         { id: initialData.id, data: finalValues },
         { onSuccess }
       );
     } else {
-      await createMutation.mutate(finalValues, {
+      await createMutation.mutateAsync(finalValues, {
         onSuccess: () => {
           methods.reset();
           onSuccess?.();
@@ -63,18 +66,14 @@ export function AnnouncementForm({
     }
   }
 
-  const statusOptions = [
-    { value: "DRAFT", label: "Draft" },
-    { value: "PUBLISHED", label: "Published" },
-    { value: "ARCHIVED", label: "Archived" },
-  ];
-  const severityOptions = [
-    { value: "INFO", label: "Info" },
-    { value: "LOW", label: "Low" },
-    { value: "MEDIUM", label: "Medium" },
-    { value: "HIGH", label: "High" },
-    { value: "CRITICAL", label: "Critical" },
-  ];
+  const statusOptions = Object.values(PublicationStatus).map((s) => ({
+    value: s,
+    label: s.charAt(0) + s.slice(1).toLowerCase(),
+  }));
+  const severityOptions = Object.values(AnnouncementSeverity).map((s) => ({
+    value: s,
+    label: s.charAt(0) + s.slice(1).toLowerCase(),
+  }));
   return (
     <FormProvider {...methods}>
       <Form {...methods}>

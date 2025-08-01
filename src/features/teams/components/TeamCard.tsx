@@ -1,9 +1,10 @@
-
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useApiResource } from "@/hooks/useApiResource";
 import { getAbsoluteUrl } from "@/lib/utils";
 import { EntityCard } from "@/components/ui/EntityCard";
-export function TeamCard({ team, onEdit }: { team: any; onEdit: () => void }) {
+import { Team } from "@/types";
+
+export function TeamCard({ team, onEdit }: { team: Team; onEdit: () => void }) {
   const teamResource = useApiResource(`/workspaces/${team.workspaceId}/teams`, [
     "teams",
     team.workspaceId,

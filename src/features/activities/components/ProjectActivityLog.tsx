@@ -2,6 +2,7 @@ import { useApiResource } from "@/hooks/useApiResource";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Activity, MessageSquarePlus, SquarePlus, Trash2 } from "lucide-react";
+import { AnyValue } from "@/types";
 
 const activityIconMap: Record<string, React.ElementType> = {
   TASK_CREATED: SquarePlus,
@@ -10,7 +11,8 @@ const activityIconMap: Record<string, React.ElementType> = {
   COMMENT_CREATED: MessageSquarePlus,
   DEFAULT: Activity,
 };
-function formatActivityDetails(activity: any): string {
+
+function formatActivityDetails(activity: AnyValue): string {
   const actorName = activity.actor.name;
   switch (activity.actionType) {
     case "TASK_CREATED":
@@ -29,14 +31,21 @@ function formatActivityDetails(activity: any): string {
   }
 }
 
-export function ProjectActivityLog({ workspaceId, projectId }: any) {
+export function ProjectActivityLog({
+  workspaceId,
+  projectId,
+}: {
+  workspaceId: string;
+  projectId: string;
+}) {
   const activityResource = useApiResource(
     `/workspaces/${workspaceId}/projects/${projectId}/activities`,
     ["activities", projectId]
   );
   const { data, isLoading, isError } = activityResource.useGetAll({
-    limit: 50,
+    enabled: true,
   });
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -51,6 +60,7 @@ export function ProjectActivityLog({ workspaceId, projectId }: any) {
   }
 
   if (isError) return <div>Failed to load project activity.</div>;
+
   return (
     <Card>
       <CardHeader>

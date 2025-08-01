@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
 const JobScheduleFormSchema = z.object({
   name: z.string().min(1, "Schedule name is required."),
   jobType: z.string().min(1, "Job type is required."),
@@ -29,6 +30,7 @@ const JobScheduleFormSchema = z.object({
   payload: z.string(),
   isActive: z.boolean(),
 });
+
 type JobScheduleFormValues = {
   name: string;
   jobType: string;
@@ -36,6 +38,7 @@ type JobScheduleFormValues = {
   payload: string;
   isActive: boolean;
 };
+
 interface CreateJobScheduleFormProps {
   onSuccess?: () => void;
 }
@@ -58,6 +61,7 @@ export function CreateJobScheduleForm({
       isActive: true,
     },
   });
+
   async function onSubmit(values: JobScheduleFormValues) {
     let parsedPayload = {};
     if (values.payload && values.payload.trim()) {

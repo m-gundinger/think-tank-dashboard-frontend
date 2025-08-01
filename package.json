@@ -36,6 +36,7 @@
     "@tailwindcss/postcss": "^4.1.11",
     "@tailwindcss/vite": "^4.1.11",
     "@tanstack/react-query": "^5.83.0",
+    "@tanstack/react-table": "^8.21.3",
     "@tiptap/extension-link": "^3.0.4",
     "@tiptap/extension-mention": "^3.0.7",
     "@tiptap/pm": "^3.0.3",

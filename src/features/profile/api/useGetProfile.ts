@@ -1,6 +1,7 @@
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
-async function getProfile(): Promise<any> {
+import { User } from "@/types";
+async function getProfile(): Promise<User> {
   const { data } = await api.get("/users/me");
   return data;
 }

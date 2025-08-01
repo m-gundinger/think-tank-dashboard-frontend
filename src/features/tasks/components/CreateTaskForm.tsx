@@ -12,7 +12,7 @@ import {
 import { useApiResource } from "@/hooks/useApiResource";
 import { useGetProfile } from "@/features/profile/api/useGetProfile";
 import { AxiosError } from "axios";
-import { TaskStatus, TaskPriority } from "@/types";
+import { TaskStatus, TaskPriority } from "@/types/api";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";

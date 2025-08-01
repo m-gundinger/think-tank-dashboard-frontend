@@ -1,11 +1,10 @@
-
 import { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { ChecklistItem } from "./ChecklistItem";
-import { ChecklistItem as ChecklistItemType } from "../task.types";
+import { ChecklistItem as ChecklistItemType } from "@/types";
 
 interface TaskChecklistProps {
   initialItems: ChecklistItemType[];

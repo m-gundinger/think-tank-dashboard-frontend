@@ -18,7 +18,7 @@ import {
 import { RichTextEditor } from "@/components/ui/RichTextEditor";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { NotificationSeverity, NotificationType } from "@/types";
+import { NotificationSeverity, NotificationType } from "@/types/api";
 import { useBroadcastNotification } from "../api/useBroadcastNotification";
 
 const broadcastSchema = z.object({

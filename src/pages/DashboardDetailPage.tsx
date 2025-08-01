@@ -1,4 +1,3 @@
-
 import { useParams } from "react-router-dom";
 import GridLayout, { Layout } from "react-grid-layout";
 import { useApiResource } from "@/hooks/useApiResource";
@@ -15,7 +14,7 @@ import { CreateWidgetForm } from "@/features/widgets/components/CreateWidgetForm
 export function DashboardDetailPage() {
   const { workspaceId, projectId, dashboardId } = useParams<{
     workspaceId: string;
-    projectId?: string; 
+    projectId?: string;
     dashboardId: string;
   }>();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -37,11 +36,9 @@ export function DashboardDetailPage() {
   const { data: dashboardData, isLoading } =
     dashboardResource.useGetOne(dashboardId);
 
-  
-  
   const updateWidgetMutation = useUpdateWidget(
     workspaceId,
-    projectId!, 
+    projectId!,
     dashboardId
   );
 
@@ -77,7 +74,6 @@ export function DashboardDetailPage() {
 
   if (isLoading) return <div>Loading Dashboard...</div>;
   if (!dashboardData) return <div>Dashboard not found.</div>;
-
   const layout =
     dashboardData.widgets?.map((widget: any) => ({
       ...widget.layout,

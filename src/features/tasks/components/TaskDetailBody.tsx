@@ -6,7 +6,7 @@ import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { CreateTaskForm } from "@/features/tasks/components/CreateTaskForm";
 import { TaskLinks } from "./TaskLinks";
 import { TaskChecklist } from "./TaskChecklist";
-import { ChecklistItem } from "../task.types";
+import { ChecklistItem } from "@/types";
 export function TaskDetailBody({
   task,
   workspaceId,

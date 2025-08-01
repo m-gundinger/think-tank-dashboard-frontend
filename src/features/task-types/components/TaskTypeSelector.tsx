@@ -6,7 +6,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useManageTaskTypes } from "../api/useManageTaskTypes";
-import { TaskType } from "../task-type.types";
+import { TaskType } from "@/types";
 
 interface TaskTypeSelectorProps {
   workspaceId: string;

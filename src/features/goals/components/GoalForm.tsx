@@ -12,7 +12,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
 import { nameSchema, descriptionSchema } from "@/lib/schemas";
-import { GoalStatus, KeyResultType } from "@/types";
+import { GoalStatus, KeyResultType } from "@/types/api";
 import { KeyResultInput } from "./KeyResultInput";
 import { useGetProjectMembers } from "@/features/projects/api/useGetProjectMembers";
 const keyResultSchema = z.object({

@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useApiResource } from "@/hooks/useApiResource";
-import { useDebounce } from "@/hooks/useDebounce";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -26,17 +25,14 @@ const PersonListSkeleton = () => (
     ))}
   </div>
 );
+
 export function PersonList({ onPersonSelect }: PersonListProps) {
   const personResource = useApiResource("people", ["people"]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [page, setPage] = useState(1);
-  const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  const [, setPage] = useState(1);
   const deleteMutation = personResource.useDelete();
-  const { data, isLoading, isError } = personResource.useGetAll({
-    search: debouncedSearchTerm,
-    page,
-    limit: 10,
-  });
+  const { data, isLoading, isError } = personResource.useGetAll();
+
   const handlePageChange = (newPage: number) => {
     if (newPage > 0 && newPage <= (data?.totalPages || 1)) {
       setPage(newPage);
@@ -47,22 +43,24 @@ export function PersonList({ onPersonSelect }: PersonListProps) {
     {
       accessorKey: "name",
       header: "Name",
-      cell: (person) => (
-        <div
-          className="flex cursor-pointer items-center gap-3"
-          onClick={() => onPersonSelect(person.id)}
-        >
-          <Avatar className="h-9 w-9">
-            <AvatarImage
-              src={getAbsoluteUrl(person.avatarUrl)}
-              alt={`${person.firstName} ${person.lastName}`}
-              className="h-full w-full object-cover"
-            />
-            <AvatarFallback>{person.firstName?.charAt(0)}</AvatarFallback>
-          </Avatar>
-          <span className="font-medium">{`${person.firstName} ${person.lastName}`}</span>
-        </div>
-      ),
+      cell: (person) => {
+        return (
+          <div
+            className="flex cursor-pointer items-center gap-3"
+            onClick={() => onPersonSelect(person.id)}
+          >
+            <Avatar className="h-9 w-9">
+              <AvatarImage
+                src={getAbsoluteUrl(person.avatarUrl)}
+                alt={`${person.firstName} ${person.lastName}`}
+                className="h-full w-full object-cover"
+              />
+              <AvatarFallback>{person.firstName?.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <span className="font-medium">{`${person.firstName} ${person.lastName}`}</span>
+          </div>
+        );
+      },
     },
     {
       accessorKey: "email",
@@ -74,37 +72,42 @@ export function PersonList({ onPersonSelect }: PersonListProps) {
     {
       accessorKey: "roles",
       header: "Roles",
-      cell: (person) => (
-        <div
-          className="flex flex-wrap gap-1"
-          onClick={() => onPersonSelect(person.id)}
-        >
-          {person.roles.map((role: string) => (
-            <Badge key={role} variant="secondary">
-              {role}
-            </Badge>
-          ))}
-        </div>
-      ),
+      cell: (person) => {
+        return (
+          <div
+            className="flex flex-wrap gap-1"
+            onClick={() => onPersonSelect(person.id)}
+          >
+            {person.roles.map((role: string) => (
+              <Badge key={role} variant="secondary">
+                {role}
+              </Badge>
+            ))}
+          </div>
+        );
+      },
     },
     {
       accessorKey: "status",
       header: "Status",
-      cell: (person) => (
-        <div onClick={() => onPersonSelect(person.id)}>
-          <Badge
-            variant={person.isActive ? "default" : "destructive"}
-            className={cn(
-              "pointer-events-none",
-              person.isActive ? "bg-green-500" : ""
-            )}
-          >
-            {person.isActive ? "Active" : "Inactive"}
-          </Badge>
-        </div>
-      ),
+      cell: (person) => {
+        return (
+          <div onClick={() => onPersonSelect(person.id)}>
+            <Badge
+              variant={person.isActive ? "default" : "destructive"}
+              className={cn(
+                "pointer-events-none",
+                person.isActive ? "bg-green-500" : ""
+              )}
+            >
+              {person.isActive ? "Active" : "Inactive"}
+            </Badge>
+          </div>
+        );
+      },
     },
   ];
+
   if (isLoading) return <PersonListSkeleton />;
 
   if (!isLoading && (!data || data.data.length === 0)) {

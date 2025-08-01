@@ -2,18 +2,17 @@ import { useState } from "react";
 import { useApiResource } from "@/hooks/useApiResource";
 import { TeamCard } from "./TeamCard";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ErrorState } from "@/components/ui/error-state";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
 import { Users } from "lucide-react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { TeamForm } from "./TeamForm";
 import { ManageTeamMembers } from "./ManageTeamMembers";
+import { Team } from "@/types";
 
 const TeamListSkeleton = () => (
-  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+  <div className="grid gap-4 pt-6 md:grid-cols-2 lg:grid-cols-3">
     {Array.from({ length: 3 }).map((_, i) => (
       <Card key={i}>
         <CardHeader>
@@ -28,13 +27,12 @@ const TeamListSkeleton = () => (
   </div>
 );
 export function TeamList({ workspaceId }: { workspaceId: string }) {
-  const teamResource = useApiResource(`/workspaces/${workspaceId}/teams`, [
-    "teams",
-    workspaceId,
-  ]);
+  const teamResource = useApiResource<Team>(
+    `/workspaces/${workspaceId}/teams`,
+    ["teams", workspaceId]
+  );
   const { data, isLoading, isError, error } = teamResource.useGetAll();
   const [editingTeamId, setEditingTeamId] = useState<string | null>(null);
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   if (isLoading) {
     return <TeamListSkeleton />;
@@ -54,36 +52,20 @@ export function TeamList({ workspaceId }: { workspaceId: string }) {
 
   if (!data || data.data.length === 0) {
     return (
-      <EmptyState
-        icon={<Users className="text-primary h-10 w-10" />}
-        title="This workspace has no teams yet."
-        description="Create the first team to start organizing users."
-        action={
-          <ResourceCrudDialog
-            isOpen={isCreateOpen}
-            onOpenChange={setIsCreateOpen}
-            trigger={
-              <Button onClick={() => setIsCreateOpen(true)}>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                New Team
-              </Button>
-            }
-            title="Create a new team"
-            description="Teams help you group users within a workspace."
-            form={TeamForm}
-            formProps={{ workspaceId }}
-            resourcePath={`/workspaces/${workspaceId}/teams`}
-            resourceKey={["teams", workspaceId]}
-          />
-        }
-      />
+      <div className="pt-6">
+        <EmptyState
+          icon={<Users className="text-primary h-10 w-10" />}
+          title="This workspace has no teams yet."
+          description="Create the first team to start organizing users."
+        />
+      </div>
     );
   }
 
   return (
     <>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {data.data.map((team: any) => (
+      <div className="grid gap-4 pt-6 md:grid-cols-2 lg:grid-cols-3">
+        {data.data.map((team) => (
           <TeamCard
             team={{ ...team, workspaceId }}
             key={team.id}

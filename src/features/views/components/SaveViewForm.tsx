@@ -6,7 +6,7 @@ import { useApiResource } from "@/hooks/useApiResource";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { nameSchema } from "@/lib/schemas";
-import { ViewType } from "@/types";
+import { ViewType } from "@/types/api";
 
 const viewSchema = z.object({
   name: nameSchema("View"),

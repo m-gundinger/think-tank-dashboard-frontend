@@ -4,6 +4,8 @@ import { PublicationCard } from "./PublicationCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { CreatePublicationForm } from "./CreatePublicationForm";
+import { AnyValue } from "@/types";
+
 const PublicationListSkeleton = () => (
   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
     {Array.from({ length: 6 }).map((_, i) => (
@@ -17,13 +19,11 @@ const PublicationListSkeleton = () => (
     ))}
   </div>
 );
+
 export function PublicationList() {
   const publicationResource = useApiResource("publications", ["publications"]);
-  const { data, isLoading, isError } = publicationResource.useGetAll({
-    page: 1,
-    limit: 12,
-  });
-  const [editingPublication, setEditingPublication] = useState<any | null>(
+  const { data, isLoading, isError } = publicationResource.useGetAll();
+  const [editingPublication, setEditingPublication] = useState<AnyValue | null>(
     null
   );
 

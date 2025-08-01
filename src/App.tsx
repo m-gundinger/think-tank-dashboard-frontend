@@ -2,7 +2,6 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { ProtectedLayout } from "./routes/ProtectedLayout";
 import { WorkspaceLayout } from "./routes/WorkspaceLayout";
 import { LoginPage } from "./pages/Login";
-import { DashboardPage } from "./pages/Dashboard";
 import { WorkspacesPage } from "./pages/Workspaces";
 import { ProjectListPage } from "./pages/ProjectListPage";
 import { ProjectDetailPage } from "./pages/ProjectDetailPage";
@@ -41,6 +40,11 @@ import { WorkloadPage } from "./pages/WorkloadPage";
 import { HomePage } from "./pages/HomePage";
 import { ChatPage } from "./pages/ChatPage";
 import { ProjectTemplatesPage } from "./pages/ProjectTemplatesPage";
+import { ReportingPage } from "./pages/ReportingPage";
+import { ActivityLogPage } from "./pages/ActivityLogPage";
+import { KnowledgeBaseDetailPage } from "./pages/KnowledgeBaseDetailPage";
+import { GlobalKnowledgeBasePage } from "./pages/GlobalKnowledgeBasePage";
+import { WhiteboardsPage } from "./pages/WhiteboardsPage";
 
 function App() {
   return (
@@ -60,11 +64,15 @@ function App() {
           <Route index element={<Navigate to="/home" replace />} />
           <Route path="home" element={<HomePage />} />
           <Route path="chat" element={<ChatPage />} />
-          <Route path="dashboard" element={<DashboardPage />} />
           <Route path="my-tasks" element={<MyTasksPage />} />
           <Route path="workspaces" element={<WorkspacesPage />} />
+          <Route path="knowledge-bases" element={<GlobalKnowledgeBasePage />} />
+          <Route path="whiteboards" element={<WhiteboardsPage />} />
           <Route path="publications" element={<PublicationsPage />} />
           <Route path="crm" element={<CrmPage />} />
+          <Route path="reporting" element={<ReportingPage />} />
+          <Route path="activity" element={<ActivityLogPage />} />
+
           <Route path="workspaces/:workspaceId" element={<WorkspaceLayout />}>
             <Route index element={<Navigate to="projects" replace />} />
             <Route path="projects" element={<ProjectListPage />} />
@@ -73,6 +81,10 @@ function App() {
             <Route path="knowledge-bases" element={<KnowledgeBasePage />} />
             <Route path="workload" element={<WorkloadPage />} />
           </Route>
+          <Route
+            path="workspaces/:workspaceId/knowledge-bases/:knowledgeBaseId"
+            element={<KnowledgeBaseDetailPage />}
+          />
           <Route
             path="workspaces/:workspaceId/projects/:projectId"
             element={

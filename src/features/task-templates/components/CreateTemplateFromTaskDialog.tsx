@@ -6,7 +6,7 @@ import { useManageTaskTemplates } from "../api/useManageTaskTemplates";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
-import { Task } from "@/features/tasks/task.types";
+import { Task } from "@/types";
 
 const formSchema = z.object({
   name: z.string().min(1, "Template name is required."),

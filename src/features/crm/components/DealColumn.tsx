@@ -1,6 +1,6 @@
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext } from "@dnd-kit/sortable";
-import { Deal, DealStage } from "../crm.types";
+import { Deal, DealStage } from "@/types";
 import { DealCard } from "./DealCard";
 
 interface DealColumnProps {

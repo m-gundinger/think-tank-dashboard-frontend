@@ -15,7 +15,6 @@ const templateSchema = z.object({
 type TemplateFormValues = z.infer<typeof templateSchema>;
 
 interface CreateTemplateFormProps {
-  workspaceId: string;
   projectId: string;
   sourceProjectId: string;
   initialData?: any;
@@ -23,7 +22,6 @@ interface CreateTemplateFormProps {
 }
 
 export function CreateTemplateForm({
-  workspaceId,
   projectId,
   sourceProjectId,
   initialData,

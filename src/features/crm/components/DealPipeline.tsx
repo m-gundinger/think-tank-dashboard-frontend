@@ -9,12 +9,12 @@ import {
   DragStartEvent,
 } from "@dnd-kit/core";
 import { createPortal } from "react-dom";
-import { useManageDealStages } from "../api/useManageDealStages";
-import { useManageDeals } from "../api/useManageDeals";
-import { Deal } from "../crm.types";
+import { Deal } from "@/types";
 import { DealColumn } from "./DealColumn";
 import { DealCard } from "./DealCard";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useManageDealStages } from "../api/useManageDealStages";
+import { useManageDeals } from "../api/useManageDeals";
 
 interface DealPipelineProps {
   onDealSelect: (dealId: string) => void;
@@ -72,7 +72,6 @@ export function DealPipeline({ onDealSelect }: DealPipelineProps) {
 
     const deal = active.data.current?.deal as Deal;
     const targetStageId = over.id as string;
-
     if (deal && targetStageId && deal.stageId !== targetStageId) {
       updateDealMutation.mutate({
         id: deal.id,

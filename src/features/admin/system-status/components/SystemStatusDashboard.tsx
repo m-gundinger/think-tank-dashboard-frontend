@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetSystemStatus } from "../api/useGetSystemStatus";
+
 const StatusBadge = ({
   status,
 }: {
@@ -29,6 +30,7 @@ const StatusBadge = ({
         : "destructive";
   return <Badge variant={variant}>{status}</Badge>;
 };
+
 export function SystemStatusDashboard() {
   const { data, isLoading, isError, error } = useGetSystemStatus();
   if (isLoading) {

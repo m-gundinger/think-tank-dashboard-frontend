@@ -5,16 +5,14 @@ import {
   DataTableWrapper,
   ColumnDef,
 } from "@/components/ui/DataTable";
+import { Permission } from "@/types";
 
 export function PermissionList() {
-  const [page, setPage] = useState(1);
-  const permissionResource = useApiResource("admin/permissions", [
+  const [, setPage] = useState(1);
+  const permissionResource = useApiResource<Permission>("admin/permissions", [
     "permissions",
   ]);
-  const { data, isLoading, isError } = permissionResource.useGetAll({
-    page,
-    limit: 15,
-  });
+  const { data, isLoading, isError } = permissionResource.useGetAll();
 
   const handlePageChange = (newPage: number) => {
     if (newPage > 0 && newPage <= (data?.totalPages || 1)) {
@@ -22,25 +20,25 @@ export function PermissionList() {
     }
   };
 
-  const columns: ColumnDef<any>[] = [
+  const columns: ColumnDef<Permission>[] = [
     {
       accessorKey: "action",
       header: "Action",
-      cell: (permission) => (
-        <span className="font-mono">{permission.action}</span>
+      cell: (row: Permission) => (
+        <span className="font-mono">{row.action}</span>
       ),
     },
     {
       accessorKey: "subject",
       header: "Subject",
-      cell: (permission) => (
-        <span className="font-mono">{permission.subject}</span>
+      cell: (row: Permission) => (
+        <span className="font-mono">{row.subject}</span>
       ),
     },
     {
       accessorKey: "description",
       header: "Description",
-      cell: (permission) => permission.description,
+      cell: (row: Permission) => row.description,
     },
   ];
 

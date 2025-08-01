@@ -9,7 +9,7 @@ import {
 import { useManageInteractions } from "../api/useManageInteractions";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { InteractionType } from "@/types";
+import { InteractionType } from "@/types/api";
 
 const interactionSchema = z.object({
   type: z.nativeEnum(InteractionType),

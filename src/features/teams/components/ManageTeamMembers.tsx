@@ -1,4 +1,3 @@
-
 import { useApiResource } from "@/hooks/useApiResource";
 import { useApiMutation } from "@/hooks/useApiMutation";
 import api from "@/lib/api";
@@ -33,9 +32,7 @@ export function ManageTeamMembers({
   const { data: usersData, isLoading: isLoadingUsers } = useApiResource(
     "admin/users",
     ["users"]
-  ).useGetAll({
-    limit: 1000,
-  });
+  ).useGetAll();
   const invalidateQueries = [
     ["teams", workspaceId],
     ["team", team.id],

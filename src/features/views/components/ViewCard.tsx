@@ -1,9 +1,10 @@
 import { EntityCard } from "@/components/ui/EntityCard";
 import { useManageViews } from "../api/useManageViews";
 import { getIcon } from "@/lib/icons";
+import { View } from "@/types";
 
 interface ViewCardProps {
-  view: any;
+  view: View;
   workspaceId: string;
   projectId: string;
   onEdit: () => void;

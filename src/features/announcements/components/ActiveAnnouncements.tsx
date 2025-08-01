@@ -4,9 +4,12 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Megaphone, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RichTextOutput } from "@/components/ui/RichTextOutput";
+import { Announcement } from "@/types";
+
 export function ActiveAnnouncements() {
   const { data: announcements, isLoading } = useGetActiveAnnouncements();
   const [dismissedIds, setDismissedIds] = useState<string[]>([]);
+
   if (isLoading || !announcements || announcements.length === 0) {
     return null;
   }
@@ -14,9 +17,11 @@ export function ActiveAnnouncements() {
   const handleDismiss = (id: string) => {
     setDismissedIds((prev) => [...prev, id]);
   };
+
   const announcementsToShow = announcements.filter(
-    (ann) => !dismissedIds.includes(ann.id)
+    (ann: Announcement) => !dismissedIds.includes(ann.id)
   );
+
   if (announcementsToShow.length === 0) {
     return null;
   }

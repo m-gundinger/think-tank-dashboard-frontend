@@ -1,7 +1,7 @@
 import { useGetWidgetData } from "../api/useGetWidgetData";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
-import { KeyResultType } from "@/types";
+import { KeyResultType } from "@/types/api";
 
 const formatKeyResultValue = (value: number, type: KeyResultType) => {
   switch (type) {

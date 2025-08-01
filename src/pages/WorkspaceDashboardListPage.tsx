@@ -1,4 +1,3 @@
-
 import { DashboardList } from "@/features/dashboards/components/DashboardList";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";

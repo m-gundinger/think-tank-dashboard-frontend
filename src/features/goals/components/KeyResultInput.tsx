@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { KeyResultType } from "@/types";
+import { KeyResultType } from "@/types/api";
 import { PlusCircle, Trash2 } from "lucide-react";
 
 interface KeyResultInputProps {

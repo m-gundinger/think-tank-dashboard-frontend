@@ -17,7 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Check, UserPlus, XIcon } from "lucide-react";
 import { getAbsoluteUrl } from "@/lib/utils";
-import { Company } from "../crm.types";
+import { Company, Person } from "@/types";
 
 interface ManageCompanyPeopleProps {
   company: Company;
@@ -27,7 +27,7 @@ export function ManageCompanyPeople({ company }: ManageCompanyPeopleProps) {
   const { data: peopleData, isLoading: isLoadingPeople } = useApiResource(
     "people",
     ["people"]
-  ).useGetAll({ limit: 1000 });
+  ).useGetAll();
   const {
     addPerson,
     removePerson,
@@ -42,7 +42,7 @@ export function ManageCompanyPeople({ company }: ManageCompanyPeopleProps) {
         <h4 className="font-semibold">Team Members</h4>
         <div className="mt-2 space-y-2">
           {company.people.length > 0 ? (
-            company.people.map((person) => (
+            company.people.map((person: Person) => (
               <div
                 key={person.id}
                 className="flex items-center justify-between"

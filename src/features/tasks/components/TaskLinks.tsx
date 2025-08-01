@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/select";
 import { Link2, Trash2 } from "lucide-react";
 import { useManageTaskLinks } from "../api/useManageTaskLinks";
-import { TaskLinkType } from "@/types";
+import { TaskLinkType } from "@/types/api";
 
 function TaskLinkItem({ link, onRemove, onUpdateType }: any) {
   const target = link.targetTask ?? link.sourceTask;

@@ -20,8 +20,8 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { useApiResource } from "@/hooks/useApiResource";
-import { Task } from "../task.types";
-import { TaskStatus, TaskPriority } from "@/types";
+import { Task } from "@/types";
+import { TaskStatus, TaskPriority } from "@/types/api";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { MoreHorizontal, Edit, Copy, Trash2 } from "lucide-react";

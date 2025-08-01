@@ -1,6 +1,7 @@
 import { EntityCard } from "@/components/ui/EntityCard";
 import { useManageKnowledgeBase } from "../api/useManageKnowledgeBase";
 import { BookOpen } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface KnowledgeBaseCardProps {
   knowledgeBase: any;
@@ -29,15 +30,19 @@ export function KnowledgeBaseCard({
     onEdit();
   };
   return (
-    <EntityCard
-      title={knowledgeBase.name}
-      description={knowledgeBase.description || "No description."}
-      onEdit={handleEdit}
-      onDelete={handleDelete}
-      deleteDisabled={deleteMutation.isPending}
-      icon={BookOpen}
+    <Link
+      to={`/workspaces/${knowledgeBase.workspaceId}/knowledge-bases/${knowledgeBase.id}`}
     >
-      <></>
-    </EntityCard>
+      <EntityCard
+        title={knowledgeBase.name}
+        description={knowledgeBase.description || "No description."}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        deleteDisabled={deleteMutation.isPending}
+        icon={BookOpen}
+      >
+        <></>
+      </EntityCard>
+    </Link>
   );
 }

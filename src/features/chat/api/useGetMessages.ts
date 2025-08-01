@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
+// This is a mock implementation. Replace with actual API call.
 async function getMessages(threadId: string): Promise<any[]> {
   if (!threadId) return Promise.resolve([]);
   return Promise.resolve([
