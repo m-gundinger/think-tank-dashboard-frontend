@@ -13,7 +13,7 @@ async function deleteView({
   viewId,
 }: DeleteViewParams): Promise<void> {
   await api.delete(
-    `/workspaces/${workspaceId}/projects/${projectId}/views/${viewId}`
+    `workspaces/${workspaceId}/projects/${projectId}/views/${viewId}`
   );
 }
 

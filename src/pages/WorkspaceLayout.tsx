@@ -44,6 +44,9 @@ export function WorkspaceLayout() {
           <NavLink to={`/workspaces/${workspaceId}/knowledge-bases`}>
             <TabsTrigger value="knowledge-bases">Knowledge Base</TabsTrigger>
           </NavLink>
+          <NavLink to={`/workspaces/${workspaceId}/attachments`}>
+            <TabsTrigger value="attachments">Attachments</TabsTrigger>
+          </NavLink>
           <NavLink to={`/workspaces/${workspaceId}/workload`}>
             <TabsTrigger value="workload">Workload</TabsTrigger>
           </NavLink>

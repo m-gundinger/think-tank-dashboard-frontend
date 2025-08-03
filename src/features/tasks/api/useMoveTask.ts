@@ -18,7 +18,7 @@ async function moveTask(params: MoveTaskParams): Promise<any> {
   const { workspaceId, projectId, taskId, targetColumnId, orderInColumn } =
     params;
   const { data } = await api.patch(
-    `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/move`,
+    `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/move`,
     { targetColumnId, orderInColumn }
   );
   return data;

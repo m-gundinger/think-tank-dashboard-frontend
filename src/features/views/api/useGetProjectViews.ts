@@ -6,7 +6,7 @@ async function getProjectViews(
   projectId: string
 ): Promise<any> {
   const { data } = await api.get(
-    `/workspaces/${workspaceId}/projects/${projectId}/views`
+    `workspaces/${workspaceId}/projects/${projectId}/views`
   );
   return data;
 }

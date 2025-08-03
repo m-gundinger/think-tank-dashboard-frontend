@@ -7,7 +7,7 @@ async function updateDealStageOrder(
     order: number;
   }[]
 ): Promise<any> {
-  const { data } = await api.put("/deal-stages/order", { stages: updates });
+  const { data } = await api.put("deal-stages/order", { stages: updates });
   return data;
 }
 

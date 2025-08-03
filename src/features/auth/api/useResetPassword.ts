@@ -9,7 +9,7 @@ interface ResetPasswordData {
 async function resetPassword(
   resetData: ResetPasswordData
 ): Promise<{ message: string }> {
-  const { data } = await api.post("/auth/reset-password", resetData);
+  const { data } = await api.post("auth/reset-password", resetData);
   return data;
 }
 

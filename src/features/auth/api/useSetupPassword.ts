@@ -9,7 +9,7 @@ interface SetupPasswordData {
 async function setupPassword(
   setupData: SetupPasswordData
 ): Promise<{ message: string }> {
-  const { data } = await api.post("/auth/setup-password", setupData);
+  const { data } = await api.post("auth/setup-password", setupData);
   return data;
 }
 

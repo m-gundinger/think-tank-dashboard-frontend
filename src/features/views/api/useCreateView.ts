@@ -17,7 +17,7 @@ async function createView({
     projectId: projectId,
   };
   const { data } = await api.post(
-    `/workspaces/${workspaceId}/projects/${projectId}/views`,
+    `workspaces/${workspaceId}/projects/${projectId}/views`,
     payload
   );
 

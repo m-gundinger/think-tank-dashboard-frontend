@@ -14,7 +14,7 @@ export function CommentSection({ workspaceId, projectId, taskId }: any) {
 
   const addCommentMutation = useApiMutation({
     mutationFn: (content: string) =>
-      api.post("/comments", { content, entityId: taskId, entityType: "TASK" }),
+      api.post("comments", { content, entityId: taskId, entityType: "TASK" }),
     successMessage: "Comment posted.",
     invalidateQueries: [["comments", taskId]],
   });

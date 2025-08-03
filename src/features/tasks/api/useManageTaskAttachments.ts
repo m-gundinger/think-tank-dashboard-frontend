@@ -13,7 +13,7 @@ interface AttachParams {
 
 async function attachEntity(params: AttachParams): Promise<any> {
   const { workspaceId, projectId, taskId, entityId, plural } = params;
-  const url = `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/${plural}`;
+  const url = `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/${plural}`;
   const { data } = await api.post(url, { entityId });
   return data;
 }
@@ -28,7 +28,7 @@ interface DetachParams {
 
 async function detachEntity(params: DetachParams): Promise<void> {
   const { workspaceId, projectId, taskId, entityId, plural } = params;
-  const url = `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/${plural}/${entityId}`;
+  const url = `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/${plural}/${entityId}`;
   await api.delete(url);
 }
 

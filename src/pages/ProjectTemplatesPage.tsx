@@ -37,7 +37,7 @@ export function ProjectTemplatesPage() {
           description="This will create a new template based on the current project's structure (views, custom fields, etc.). Tasks and other content will not be included."
           form={CreateTemplateForm}
           formProps={{ workspaceId, projectId, sourceProjectId: projectId }}
-          resourcePath={`/admin/project-templates`}
+          resourcePath={`admin/project-templates`}
           resourceKey={["projectTemplates", projectId]}
         />
       </div>

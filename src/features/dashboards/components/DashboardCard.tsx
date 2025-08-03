@@ -22,8 +22,8 @@ interface DashboardCardProps {
 
 export function DashboardCard({ dashboard, onEdit }: DashboardCardProps) {
   const resourceUrl = dashboard.projectId
-    ? `/workspaces/${dashboard.workspaceId}/projects/${dashboard.projectId}/dashboards`
-    : `/workspaces/${dashboard.workspaceId}/dashboards`;
+    ? `workspaces/${dashboard.workspaceId}/projects/${dashboard.projectId}/dashboards`
+    : `workspaces/${dashboard.workspaceId}/dashboards`;
 
   const resourceKey = dashboard.projectId
     ? ["dashboards", dashboard.projectId]

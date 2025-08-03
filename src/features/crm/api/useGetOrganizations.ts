@@ -1,7 +1,7 @@
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 async function getOrganizations(query?: any): Promise<any> {
-  const { data } = await api.get("/organizations", { params: query });
+  const { data } = await api.get("organizations", { params: query });
   return data;
 }
 

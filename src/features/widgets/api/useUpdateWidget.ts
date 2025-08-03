@@ -12,8 +12,8 @@ interface UpdateWidgetParams {
 async function updateWidget(params: UpdateWidgetParams): Promise<any> {
   const { workspaceId, projectId, dashboardId, widgetId, widgetData } = params;
   const url = projectId
-    ? `/workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}/widgets/${widgetId}`
-    : `/workspaces/${workspaceId}/dashboards/${dashboardId}/widgets/${widgetId}`;
+    ? `workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}/widgets/${widgetId}`
+    : `workspaces/${workspaceId}/dashboards/${dashboardId}/widgets/${widgetId}`;
   const { data } = await api.put(url, widgetData);
   return data;
 }

@@ -31,7 +31,7 @@ export function CustomFieldDefinitionList({
   projectId,
 }: ListProps) {
   const customFieldResource = useApiResource(
-    `/workspaces/${workspaceId}/projects/${projectId}/custom-fields`,
+    `workspaces/${workspaceId}/projects/${projectId}/custom-fields`,
     ["customFieldDefinitions", projectId]
   );
   const { data: fieldsData, isLoading } = customFieldResource.useGetAll();
@@ -107,7 +107,7 @@ export function CustomFieldDefinitionList({
         isOpen={!!editingFieldId}
         onOpenChange={(isOpen) => !isOpen && setEditingFieldId(null)}
         resourceId={editingFieldId}
-        resourcePath={`/workspaces/${workspaceId}/projects/${projectId}/custom-fields`}
+        resourcePath={`workspaces/${workspaceId}/projects/${projectId}/custom-fields`}
         resourceKey={["customFieldDefinitions", projectId]}
         title="Edit Custom Field"
         description="Change the name or options for this custom field. The type cannot be changed after creation."

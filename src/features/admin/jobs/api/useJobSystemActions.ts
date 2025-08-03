@@ -1,8 +1,7 @@
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
-
 async function cleanupJobs(): Promise<any> {
-  const { data } = await api.post("/admin/jobs/system/cleanup");
+  const { data } = await api.post("admin/jobs/system/cleanup");
   return data;
 }
 
@@ -16,7 +15,7 @@ export function useCleanupJobs() {
 }
 
 async function emitJobStats(): Promise<any> {
-  const { data } = await api.post("/admin/jobs/system/emit-stats");
+  const { data } = await api.post("admin/jobs/system/emit-stats");
   return data;
 }
 

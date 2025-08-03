@@ -56,7 +56,7 @@ export function ProjectListPage() {
           description="Projects live inside workspaces and contain your tasks."
           form={ProjectForm}
           formProps={{ workspaceId }}
-          resourcePath={`/workspaces/${workspaceId}/projects`}
+          resourcePath={`workspaces/${workspaceId}/projects`}
           resourceKey={["projects", workspaceId]}
         />
         <ResourceCrudDialog

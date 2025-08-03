@@ -4,9 +4,7 @@ import { useApiMutation } from "@/hooks/useApiMutation";
 async function triggerJobSchedule(
   scheduleId: string
 ): Promise<{ jobId: string }> {
-  const { data } = await api.post(
-    `/admin/jobs/schedules/${scheduleId}/trigger`
-  );
+  const { data } = await api.post(`admin/jobs/schedules/${scheduleId}/trigger`);
   return data;
 }
 

@@ -12,7 +12,7 @@ async function createProjectFromTemplate({
   name,
 }: CreateFromTemplateParams): Promise<any> {
   const { data } = await api.post(
-    `/admin/project-templates/${templateId}/create-project`,
+    `admin/project-templates/${templateId}/create-project`,
     { name }
   );
   return data;

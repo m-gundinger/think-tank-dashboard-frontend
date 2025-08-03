@@ -19,10 +19,10 @@ export function ProjectGeneralSettingsPage() {
     return <div>Missing URL parameters.</div>;
   }
 
-  const projectResource = useApiResource(
-    `/workspaces/${workspaceId}/projects`,
-    ["projects", workspaceId]
-  );
+  const projectResource = useApiResource(`workspaces/${workspaceId}/projects`, [
+    "projects",
+    workspaceId,
+  ]);
   const { data: projectData, isLoading } = projectResource.useGetOne(projectId);
 
   if (isLoading) {

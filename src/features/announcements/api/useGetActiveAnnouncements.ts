@@ -2,7 +2,7 @@ import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 
 async function getActiveAnnouncements(): Promise<any[]> {
-  const { data } = await api.get("/announcements/active");
+  const { data } = await api.get("announcements/active");
   return data;
 }
 

@@ -10,7 +10,7 @@ async function setUserStatus({
   userId,
   isActive,
 }: SetStatusParams): Promise<any> {
-  const { data } = await api.patch(`/admin/users/${userId}/status`, {
+  const { data } = await api.patch(`admin/users/${userId}/status`, {
     isActive,
   });
   return data;

@@ -9,7 +9,7 @@ async function revokePermission({
   permissionId: string;
 }): Promise<any> {
   const { data } = await api.delete(
-    `/admin/roles/${roleId}/permissions/${permissionId}`
+    `admin/roles/${roleId}/permissions/${permissionId}`
   );
   return data;
 }

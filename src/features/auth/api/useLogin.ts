@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useApiMutation } from "@/hooks/useApiMutation";
 
 async function login(credentials: any): Promise<any> {
-  const { data } = await api.post("/auth/login", credentials);
+  const { data } = await api.post("auth/login", credentials);
   return data;
 }
 

@@ -19,8 +19,8 @@ async function addLink({
 }: AddLinkParams): Promise<any> {
   const url =
     projectId && workspaceId
-      ? `/workspaces/${workspaceId}/projects/${projectId}/tasks/${sourceTaskId}/links`
-      : `/tasks/${sourceTaskId}/links`;
+      ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${sourceTaskId}/links`
+      : `tasks/${sourceTaskId}/links`;
   const { data } = await api.post(url, { targetTaskId, type });
   return data;
 }
@@ -40,8 +40,8 @@ async function removeLink({
 }: RemoveLinkParams): Promise<any> {
   const url =
     projectId && workspaceId
-      ? `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/links/${linkId}`
-      : `/tasks/${taskId}/links/${linkId}`;
+      ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/links/${linkId}`
+      : `tasks/${taskId}/links/${linkId}`;
   const { data } = await api.delete(url);
   return data;
 }
@@ -63,8 +63,8 @@ async function updateLink({
 }: UpdateLinkParams): Promise<any> {
   const url =
     projectId && workspaceId
-      ? `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/links/${linkId}`
-      : `/tasks/${taskId}/links/${linkId}`;
+      ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/links/${linkId}`
+      : `tasks/${taskId}/links/${linkId}`;
   const { data } = await api.patch(url, { type });
   return data;
 }

@@ -2,7 +2,7 @@ import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 
 async function getMyWhiteboards(): Promise<any> {
-  const { data } = await api.get("/whiteboards");
+  const { data } = await api.get("whiteboards");
   return data;
 }
 

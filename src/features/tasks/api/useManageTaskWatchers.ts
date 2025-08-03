@@ -14,8 +14,8 @@ async function addWatcher({
 }: WatcherParams): Promise<any> {
   const url =
     workspaceId && projectId
-      ? `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/watch`
-      : `/tasks/${taskId}/watch`;
+      ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/watch`
+      : `tasks/${taskId}/watch`;
   const { data } = await api.post(url);
   return data;
 }
@@ -27,8 +27,8 @@ async function removeWatcher({
 }: WatcherParams): Promise<any> {
   const url =
     workspaceId && projectId
-      ? `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/watch`
-      : `/tasks/${taskId}/watch`;
+      ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/watch`
+      : `tasks/${taskId}/watch`;
   const { data } = await api.delete(url);
   return data;
 }

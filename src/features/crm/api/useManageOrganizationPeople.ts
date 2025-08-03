@@ -12,7 +12,7 @@ async function addPersonToOrganization({
   personId,
   role,
 }: AddPersonParams) {
-  const { data } = await api.post(`/organizations/${organizationId}/people`, {
+  const { data } = await api.post(`organizations/${organizationId}/people`, {
     personId,
     role,
   });
@@ -29,7 +29,7 @@ async function removePersonFromOrganization({
   personId,
 }: RemovePersonParams) {
   const { data } = await api.delete(
-    `/organizations/${organizationId}/people/${personId}`
+    `organizations/${organizationId}/people/${personId}`
   );
   return data;
 }

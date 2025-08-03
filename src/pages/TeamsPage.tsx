@@ -36,7 +36,7 @@ export function TeamsPage() {
           description="Teams help you group users within a workspace."
           form={TeamForm}
           formProps={{ workspaceId }}
-          resourcePath={`/workspaces/${workspaceId}/teams`}
+          resourcePath={`workspaces/${workspaceId}/teams`}
           resourceKey={["teams", workspaceId]}
         />
       </div>

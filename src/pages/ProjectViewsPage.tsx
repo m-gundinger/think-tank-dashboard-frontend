@@ -36,7 +36,7 @@ export function ProjectViewsPage() {
           description="Add a new List, Kanban, or other type of view to your project."
           form={ViewForm}
           formProps={{ workspaceId, projectId }}
-          resourcePath={`/workspaces/${workspaceId}/projects/${projectId}/views`}
+          resourcePath={`workspaces/${workspaceId}/projects/${projectId}/views`}
           resourceKey={["views", projectId]}
         />
       </div>

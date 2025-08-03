@@ -36,7 +36,7 @@ export function ProjectCustomFieldsPage() {
           description="This field will be available for all tasks in this project."
           form={CustomFieldDefinitionForm}
           formProps={{ workspaceId, projectId }}
-          resourcePath={`/workspaces/${workspaceId}/projects/${projectId}/custom-fields`}
+          resourcePath={`workspaces/${workspaceId}/projects/${projectId}/custom-fields`}
           resourceKey={["customFieldDefinitions", projectId]}
         />
       </div>

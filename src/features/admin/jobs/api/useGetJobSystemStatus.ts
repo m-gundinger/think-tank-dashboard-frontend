@@ -2,7 +2,7 @@ import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 
 async function getJobSystemStatus(): Promise<any> {
-  const { data } = await api.get("/admin/jobs/system/status");
+  const { data } = await api.get("admin/jobs/system/status");
   return data;
 }
 
@@ -15,7 +15,7 @@ export function useGetJobSystemStatus() {
 }
 
 async function getQueueStats(): Promise<any> {
-  const { data } = await api.get("/admin/jobs/system/queue-stats");
+  const { data } = await api.get("admin/jobs/system/queue-stats");
   return data;
 }
 

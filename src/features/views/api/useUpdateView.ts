@@ -15,7 +15,7 @@ async function updateView({
   viewData,
 }: UpdateViewParams): Promise<any> {
   const { data } = await api.put(
-    `/workspaces/${workspaceId}/projects/${projectId}/views/${viewId}`,
+    `workspaces/${workspaceId}/projects/${projectId}/views/${viewId}`,
     viewData
   );
   return data;

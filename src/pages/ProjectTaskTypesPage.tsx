@@ -37,7 +37,7 @@ export function ProjectTaskTypesPage() {
           description="This type will be available for all tasks in this project."
           form={TaskTypeForm}
           formProps={{ workspaceId, projectId }}
-          resourcePath={`/workspaces/${workspaceId}/projects/${projectId}/task-types`}
+          resourcePath={`workspaces/${workspaceId}/projects/${projectId}/task-types`}
           resourceKey={["taskTypes", projectId]}
         />
       </div>

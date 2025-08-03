@@ -24,8 +24,8 @@ export function DashboardDetailPage() {
   }
 
   const resourceUrl = projectId
-    ? `/workspaces/${workspaceId}/projects/${projectId}/dashboards`
-    : `/workspaces/${workspaceId}/dashboards`;
+    ? `workspaces/${workspaceId}/projects/${projectId}/dashboards`
+    : `workspaces/${workspaceId}/dashboards`;
 
   const resourceKey = projectId
     ? ["dashboards", projectId]
@@ -81,8 +81,8 @@ export function DashboardDetailPage() {
     })) || [];
 
   const widgetResourcePath = projectId
-    ? `/workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}/widgets`
-    : `/workspaces/${workspaceId}/dashboards/${dashboardId}/widgets`;
+    ? `workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}/widgets`
+    : `workspaces/${workspaceId}/dashboards/${dashboardId}/widgets`;
 
   return (
     <div className="space-y-6">

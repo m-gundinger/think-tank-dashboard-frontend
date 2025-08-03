@@ -5,7 +5,7 @@ export function useManageProjectTemplates(
   projectId: string
 ) {
   const resource = useApiResource(
-    `/workspaces/${workspaceId}/projects/${projectId}/templates`,
+    `workspaces/${workspaceId}/projects/${projectId}/templates`,
     ["projectTemplates", projectId]
   );
   return resource;

@@ -5,7 +5,7 @@ export function useManageKnowledgePages(
   knowledgeBaseId: string
 ) {
   const resource = useApiResource(
-    `/workspaces/${workspaceId}/knowledge-bases/${knowledgeBaseId}/pages`,
+    `workspaces/${workspaceId}/knowledge-bases/${knowledgeBaseId}/pages`,
     ["knowledgePages", knowledgeBaseId]
   );
   return resource;

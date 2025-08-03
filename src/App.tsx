@@ -45,6 +45,9 @@ import { ActivityLogPage } from "./pages/ActivityLogPage";
 import { KnowledgeBaseDetailPage } from "./pages/KnowledgeBaseDetailPage";
 import { GlobalKnowledgeBasePage } from "./pages/GlobalKnowledgeBasePage";
 import { WhiteboardsPage } from "./pages/WhiteboardsPage";
+import { ProjectAttachmentsPage } from "./pages/ProjectAttachmentsPage";
+import { WorkspaceAttachmentsPage } from "./pages/WorkspaceAttachmentsPage";
+import { ProjectLeadFormsPage } from "./pages/ProjectLeadFormsPage";
 
 function App() {
   return (
@@ -79,6 +82,7 @@ function App() {
             <Route path="teams" element={<TeamsPage />} />
             <Route path="dashboards" element={<WorkspaceDashboardListPage />} />
             <Route path="knowledge-bases" element={<KnowledgeBasePage />} />
+            <Route path="attachments" element={<WorkspaceAttachmentsPage />} />
             <Route path="workload" element={<WorkloadPage />} />
           </Route>
           <Route
@@ -109,6 +113,8 @@ function App() {
             <Route path="views" element={<ProjectViewsPage />} />
             <Route path="goals" element={<ProjectGoalsPage />} />
             <Route path="templates" element={<ProjectTemplatesPage />} />
+            <Route path="lead-forms" element={<ProjectLeadFormsPage />} />
+            <Route path="attachments" element={<ProjectAttachmentsPage />} />
           </Route>
           <Route
             path="workspaces/:workspaceId/projects/:projectId/:dashboardId"

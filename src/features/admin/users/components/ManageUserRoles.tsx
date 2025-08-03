@@ -24,14 +24,14 @@ export function ManageUserRoles({ user }: ManageUserRolesProps) {
 
   const assignRoleMutation = useApiMutation({
     mutationFn: (roleId: string) =>
-      api.post(`/admin/users/${user.id}/roles`, { roleId }),
+      api.post(`admin/users/${user.id}/roles`, { roleId }),
     successMessage: "Role assigned successfully.",
     invalidateQueries: [["users"], ["user", user.id]],
   });
 
   const removeRoleMutation = useApiMutation({
     mutationFn: (roleId: string) =>
-      api.delete(`/admin/users/${user.id}/roles/${roleId}`),
+      api.delete(`admin/users/${user.id}/roles/${roleId}`),
     successMessage: "Role removed successfully.",
     invalidateQueries: [["users"], ["user", user.id]],
   });

@@ -9,6 +9,8 @@ const settingsNavItems = [
   { to: "views", label: "Views" },
   { to: "goals", label: "Goals" },
   { to: "templates", label: "Templates" },
+  { to: "lead-forms", label: "Lead Forms" },
+  { to: "attachments", label: "Attachments" },
 ];
 
 export function ProjectSettingsPage() {

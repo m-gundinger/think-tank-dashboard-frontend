@@ -16,8 +16,8 @@ async function attachDocument({
 }: AttachDocumentParams): Promise<any> {
   const url =
     projectId && workspaceId
-      ? `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/documents`
-      : `/tasks/${taskId}/documents`;
+      ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/documents`
+      : `tasks/${taskId}/documents`;
 
   const { data } = await api.post(url, formData, {
     headers: { "Content-Type": "multipart/form-data" },

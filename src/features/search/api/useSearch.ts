@@ -8,7 +8,7 @@ interface SearchQuery {
 }
 
 async function performSearch(query: SearchQuery): Promise<any> {
-  const { data } = await api.get("/search", { params: query });
+  const { data } = await api.get("search", { params: query });
   return data;
 }
 

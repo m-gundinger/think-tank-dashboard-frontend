@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useApiMutation } from "@/hooks/useApiMutation";
 
 async function logoutUser() {
-  return api.post("/auth/logout");
+  return api.post("auth/logout");
 }
 
 export function useLogout() {

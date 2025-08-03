@@ -15,8 +15,8 @@ async function createWidget({
   widgetData,
 }: CreateWidgetParams): Promise<any> {
   const url = projectId
-    ? `/workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}/widgets`
-    : `/workspaces/${workspaceId}/dashboards/${dashboardId}/widgets`;
+    ? `workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}/widgets`
+    : `workspaces/${workspaceId}/dashboards/${dashboardId}/widgets`;
 
   const { data } = await api.post(url, widgetData);
   return data;

@@ -13,8 +13,8 @@ async function getDashboard({
   dashboardId,
 }: GetDashboardParams): Promise<any> {
   const url = projectId
-    ? `/workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}`
-    : `/workspaces/${workspaceId}/dashboards/${dashboardId}`;
+    ? `workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}`
+    : `workspaces/${workspaceId}/dashboards/${dashboardId}`;
   const { data } = await api.get(url);
   return data;
 }

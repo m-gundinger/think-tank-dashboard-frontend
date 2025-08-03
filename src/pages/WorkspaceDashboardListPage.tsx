@@ -36,7 +36,7 @@ export function WorkspaceDashboardListPage() {
           description="Dashboards live inside workspaces and contain widgets to visualize your data."
           form={CreateDashboardForm}
           formProps={{ workspaceId }}
-          resourcePath={`/workspaces/${workspaceId}/dashboards`}
+          resourcePath={`workspaces/${workspaceId}/dashboards`}
           resourceKey={["dashboards", workspaceId]}
         />
       </div>

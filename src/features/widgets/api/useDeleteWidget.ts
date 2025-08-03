@@ -15,8 +15,8 @@ async function deleteWidget({
   widgetId,
 }: DeleteParams): Promise<void> {
   const url = projectId
-    ? `/workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}/widgets/${widgetId}`
-    : `/workspaces/${workspaceId}/dashboards/${dashboardId}/widgets/${widgetId}`;
+    ? `workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}/widgets/${widgetId}`
+    : `workspaces/${workspaceId}/dashboards/${dashboardId}/widgets/${widgetId}`;
   await api.delete(url);
 }
 

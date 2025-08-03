@@ -13,6 +13,8 @@ import api from "@/lib/api";
 import { EditableField } from "@/components/ui/EditableField";
 import { RichTextOutput } from "@/components/ui/RichTextOutput";
 import { getAbsoluteUrl } from "@/lib/utils";
+import { CommentAttachments } from "./CommentAttachments";
+
 interface CommentItemProps {
   comment: any;
   taskId: string;
@@ -23,13 +25,13 @@ export function CommentItem({ comment, taskId }: CommentItemProps) {
 
   const updateCommentMutation = useApiMutation({
     mutationFn: (data: { content: string }) =>
-      api.put(`/comments/${comment.id}`, data),
+      api.put(`comments/${comment.id}`, data),
     successMessage: "Comment updated.",
     invalidateQueries: [["comments", taskId]],
   });
 
   const deleteCommentMutation = useApiMutation<void, string>({
-    mutationFn: (commentId: string) => api.delete(`/comments/${commentId}`),
+    mutationFn: (commentId: string) => api.delete(`comments/${commentId}`),
     successMessage: "Comment deleted.",
     invalidateQueries: [["comments", taskId]],
   });
@@ -102,6 +104,7 @@ export function CommentItem({ comment, taskId }: CommentItemProps) {
               className="prose prose-sm max-w-none"
             />
           )}
+          <CommentAttachments comment={comment} taskId={taskId} />
         </div>
       </div>
     </div>

@@ -15,7 +15,7 @@ async function updateTaskCustomValues({
   updates,
 }: UpdateValuesParams): Promise<any> {
   const { data } = await api.patch(
-    `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/custom-fields`,
+    `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/custom-fields`,
     { updates }
   );
   return data;

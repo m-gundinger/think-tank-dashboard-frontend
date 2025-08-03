@@ -39,8 +39,8 @@ export function TaskDetailSidebar({
 }) {
   const taskResource = useApiResource(
     projectId
-      ? `/workspaces/${workspaceId}/projects/${projectId}/tasks`
-      : "/tasks",
+      ? `workspaces/${workspaceId}/projects/${projectId}/tasks`
+      : "tasks",
     projectId ? ["tasks", projectId] : ["myTasks"]
   );
   const updateTaskMutation = taskResource.useUpdate();

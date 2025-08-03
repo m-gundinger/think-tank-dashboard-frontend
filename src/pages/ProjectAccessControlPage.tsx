@@ -59,7 +59,7 @@ export function ProjectAccessControlPage() {
             description="This role will only be available within this project."
             form={CreateProjectRoleForm}
             formProps={{ workspaceId, projectId }}
-            resourcePath={`/workspaces/${workspaceId}/projects/${projectId}/roles`}
+            resourcePath={`workspaces/${workspaceId}/projects/${projectId}/roles`}
             resourceKey={["projectRoles", projectId]}
           />
         </div>

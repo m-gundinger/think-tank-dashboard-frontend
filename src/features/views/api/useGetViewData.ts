@@ -9,7 +9,7 @@ async function getViewData(
   query: ListTasksQuery
 ): Promise<any> {
   const { data } = await api.get(
-    `/workspaces/${workspaceId}/projects/${projectId}/views/${viewId}/data`,
+    `workspaces/${workspaceId}/projects/${projectId}/views/${viewId}/data`,
     { params: query }
   );
   return data;

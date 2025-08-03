@@ -12,8 +12,8 @@ export function DashboardList({
   projectId?: string;
 }) {
   const resourceUrl = projectId
-    ? `/workspaces/${workspaceId}/projects/${projectId}/dashboards`
-    : `/workspaces/${workspaceId}/dashboards`;
+    ? `workspaces/${workspaceId}/projects/${projectId}/dashboards`
+    : `workspaces/${workspaceId}/dashboards`;
   const resourceKey = projectId
     ? ["dashboards", projectId]
     : ["dashboards", workspaceId];

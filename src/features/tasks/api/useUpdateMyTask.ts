@@ -19,8 +19,8 @@ async function updateMyTask({
 }: UpdateMyTaskParams): Promise<Task> {
   const url =
     workspaceId && projectId
-      ? `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}`
-      : `/tasks/${taskId}`;
+      ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}`
+      : `tasks/${taskId}`;
   const { data } = await api.put(url, taskData);
   return data;
 }

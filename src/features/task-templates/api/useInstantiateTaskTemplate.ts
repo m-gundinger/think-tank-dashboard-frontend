@@ -13,7 +13,7 @@ async function instantiateTemplate({
   templateId,
 }: InstantiateParams): Promise<any> {
   const { data } = await api.post(
-    `/workspaces/${workspaceId}/projects/${projectId}/task-templates/${templateId}/instantiate`
+    `workspaces/${workspaceId}/projects/${projectId}/task-templates/${templateId}/instantiate`
   );
   return data;
 }

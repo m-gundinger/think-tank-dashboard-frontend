@@ -8,8 +8,8 @@ async function getWidgetData({
   widgetId,
 }: any): Promise<any> {
   const url = projectId
-    ? `/workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}/widgets/${widgetId}/data`
-    : `/workspaces/${workspaceId}/dashboards/${dashboardId}/widgets/${widgetId}/data`;
+    ? `workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}/widgets/${widgetId}/data`
+    : `workspaces/${workspaceId}/dashboards/${dashboardId}/widgets/${widgetId}/data`;
   const { data } = await api.get(url);
   return data;
 }

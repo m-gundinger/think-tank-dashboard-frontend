@@ -1,7 +1,7 @@
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
 async function uploadAvatar(formData: FormData): Promise<any> {
-  const { data } = await api.patch("/users/me/avatar", formData, {
+  const { data } = await api.patch("users/me/avatar", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },

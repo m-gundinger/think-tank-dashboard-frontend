@@ -19,8 +19,8 @@ async function detachDocument({
 }: DetachDocumentParams): Promise<void> {
   const url =
     projectId && workspaceId
-      ? `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/documents/${documentId}/${type}`
-      : `/tasks/${taskId}/documents/${documentId}/${type}`;
+      ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/documents/${documentId}/${type}`
+      : `tasks/${taskId}/documents/${documentId}/${type}`;
   await api.delete(url);
 }
 

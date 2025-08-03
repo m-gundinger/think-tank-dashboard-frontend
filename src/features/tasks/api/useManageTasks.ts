@@ -6,8 +6,8 @@ export function useManageTasks(
 ) {
   const resourceUrl =
     workspaceId && projectId
-      ? `/workspaces/${workspaceId}/projects/${projectId}/tasks`
-      : "/tasks";
+      ? `workspaces/${workspaceId}/projects/${projectId}/tasks`
+      : "tasks";
   const resourceKey = projectId ? ["tasks", projectId] : ["myTasks"];
 
   const resource = useApiResource(resourceUrl, resourceKey);

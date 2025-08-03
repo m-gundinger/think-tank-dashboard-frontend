@@ -1,7 +1,7 @@
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 async function verifyResetToken(token: string): Promise<{ message: string }> {
-  const { data } = await api.get(`/auth/reset-password/${token}`);
+  const { data } = await api.get(`auth/reset-password/${token}`);
   return data;
 }
 

@@ -28,7 +28,7 @@ export function CreateTemplateForm({
   onSuccess,
 }: CreateTemplateFormProps) {
   const isEditMode = !!initialData;
-  const resource = useApiResource(`/admin/project-templates`, [
+  const resource = useApiResource(`admin/project-templates`, [
     "projectTemplates",
     projectId,
   ]);

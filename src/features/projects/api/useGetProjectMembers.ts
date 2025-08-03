@@ -6,7 +6,7 @@ async function getProjectMembers(
   projectId: string
 ): Promise<any> {
   const { data } = await api.get(
-    `/workspaces/${workspaceId}/projects/${projectId}/members`
+    `workspaces/${workspaceId}/projects/${projectId}/members`
   );
   return data;
 }

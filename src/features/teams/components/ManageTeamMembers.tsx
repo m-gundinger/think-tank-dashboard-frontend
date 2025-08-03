@@ -39,14 +39,14 @@ export function ManageTeamMembers({
   ];
   const addUserMutation = useApiMutation({
     mutationFn: (userId: string) =>
-      api.post(`/workspaces/${workspaceId}/teams/${team.id}/members/${userId}`),
+      api.post(`workspaces/${workspaceId}/teams/${team.id}/members/${userId}`),
     successMessage: "User added to team.",
     invalidateQueries,
   });
   const removeUserMutation = useApiMutation({
     mutationFn: (userId: string) =>
       api.delete(
-        `/workspaces/${workspaceId}/teams/${team.id}/members/${userId}`
+        `workspaces/${workspaceId}/teams/${team.id}/members/${userId}`
       ),
     successMessage: "User removed from team.",
     invalidateQueries,

@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const settingsNavItems = [
@@ -7,6 +7,9 @@ const settingsNavItems = [
 ];
 
 export function SettingsPage() {
+  const location = useLocation();
+  const currentTab = location.pathname;
+
   return (
     <div className="space-y-6">
       <div>
@@ -16,7 +19,7 @@ export function SettingsPage() {
         </p>
       </div>
 
-      <Tabs defaultValue={location.pathname} className="space-y-4">
+      <Tabs defaultValue={currentTab} className="space-y-4">
         <TabsList>
           {settingsNavItems.map((item) => (
             <NavLink to={item.to} key={item.to}>

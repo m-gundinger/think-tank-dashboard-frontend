@@ -8,7 +8,7 @@ async function assignPermission({
   roleId: string;
   permissionId: string;
 }): Promise<any> {
-  const { data } = await api.post(`/admin/roles/${roleId}/permissions`, {
+  const { data } = await api.post(`admin/roles/${roleId}/permissions`, {
     permissionId,
   });
   return data;

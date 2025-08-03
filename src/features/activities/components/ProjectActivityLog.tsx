@@ -39,7 +39,7 @@ export function ProjectActivityLog({
   projectId: string;
 }) {
   const activityResource = useApiResource(
-    `/workspaces/${workspaceId}/projects/${projectId}/activities`,
+    `workspaces/${workspaceId}/projects/${projectId}/activities`,
     ["activities", projectId]
   );
   const { data, isLoading, isError } = activityResource.useGetAll({

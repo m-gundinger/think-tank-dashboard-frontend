@@ -92,6 +92,9 @@ import { ActivityLogPage } from "./pages/ActivityLogPage";
 import { KnowledgeBaseDetailPage } from "./pages/KnowledgeBaseDetailPage";
 import { GlobalKnowledgeBasePage } from "./pages/GlobalKnowledgeBasePage";
 import { WhiteboardsPage } from "./pages/WhiteboardsPage";
+import { ProjectAttachmentsPage } from "./pages/ProjectAttachmentsPage";
+import { WorkspaceAttachmentsPage } from "./pages/WorkspaceAttachmentsPage";
+import { ProjectLeadFormsPage } from "./pages/ProjectLeadFormsPage";
 
 function App() {
   return (
@@ -126,6 +129,7 @@ function App() {
             <Route path="teams" element={<TeamsPage />} />
             <Route path="dashboards" element={<WorkspaceDashboardListPage />} />
             <Route path="knowledge-bases" element={<KnowledgeBasePage />} />
+            <Route path="attachments" element={<WorkspaceAttachmentsPage />} />
             <Route path="workload" element={<WorkloadPage />} />
           </Route>
           <Route
@@ -156,6 +160,8 @@ function App() {
             <Route path="views" element={<ProjectViewsPage />} />
             <Route path="goals" element={<ProjectGoalsPage />} />
             <Route path="templates" element={<ProjectTemplatesPage />} />
+            <Route path="lead-forms" element={<ProjectLeadFormsPage />} />
+            <Route path="attachments" element={<ProjectAttachmentsPage />} />
           </Route>
           <Route
             path="workspaces/:workspaceId/projects/:projectId/:dashboardId"
@@ -920,11 +926,10 @@ import { useApiResource } from "@/hooks/useApiResource";
 
 export function useGetActivities(workspaceId?: string, projectId?: string) {
   const resourceUrl = projectId
-    ? `/workspaces/${workspaceId}/projects/${projectId}/activities`
+    ? `workspaces/${workspaceId}/projects/${projectId}/activities`
     : workspaceId
-      ? `/workspaces/${workspaceId}/activities`
-      : "/activities";
-
+      ? `workspaces/${workspaceId}/activities`
+      : "activities";
   const resourceKey = projectId
     ? ["activities", projectId]
     : workspaceId
@@ -1064,7 +1069,7 @@ export function ProjectActivityLog({
   projectId: string;
 }) {
   const activityResource = useApiResource(
-    `/workspaces/${workspaceId}/projects/${projectId}/activities`,
+    `workspaces/${workspaceId}/projects/${projectId}/activities`,
     ["activities", projectId]
   );
   const { data, isLoading, isError } = activityResource.useGetAll({
@@ -1126,7 +1131,7 @@ import { PaginatedResponse, Announcement } from "@/types";
 async function getAnnouncements(
   query: any
 ): Promise<PaginatedResponse<Announcement>> {
-  const { data } = await api.get("/admin/announcements", { params: query });
+  const { data } = await api.get("admin/announcements", { params: query });
   return data;
 }
 
@@ -1138,7 +1143,7 @@ export function useGetAnnouncements(query: any) {
 }
 
 async function getAnnouncement(id: string): Promise<Announcement> {
-  const { data } = await api.get(`/admin/announcements/${id}`);
+  const { data } = await api.get(`admin/announcements/${id}`);
   return data;
 }
 
@@ -1446,7 +1451,7 @@ import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
 
 async function cancelJob(jobId: string): Promise<any> {
-  const { data } = await api.post(`/admin/jobs/${jobId}/cancel`);
+  const { data } = await api.post(`admin/jobs/${jobId}/cancel`);
   return data;
 }
 
@@ -1457,13 +1462,12 @@ export function useCancelJob() {
     invalidateQueries: (data) => [["jobs"], ["job", data.job.id]],
   });
 }
-
 // FILE: src/features/admin/jobs/api/useGetJobSystemStatus.ts
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 
 async function getJobSystemStatus(): Promise<any> {
-  const { data } = await api.get("/admin/jobs/system/status");
+  const { data } = await api.get("admin/jobs/system/status");
   return data;
 }
 
@@ -1476,7 +1480,7 @@ export function useGetJobSystemStatus() {
 }
 
 async function getQueueStats(): Promise<any> {
-  const { data } = await api.get("/admin/jobs/system/queue-stats");
+  const { data } = await api.get("admin/jobs/system/queue-stats");
   return data;
 }
 
@@ -1492,7 +1496,7 @@ import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 
 async function getJobTypes(): Promise<any> {
-  const { data } = await api.get("/admin/jobs/system/job-types");
+  const { data } = await api.get("admin/jobs/system/job-types");
   return data;
 }
 
@@ -1508,7 +1512,7 @@ import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
 
 async function retryJob(jobId: string): Promise<any> {
-  const { data } = await api.post(`/admin/jobs/${jobId}/retry`);
+  const { data } = await api.post(`admin/jobs/${jobId}/retry`);
   return data;
 }
 
@@ -1521,7 +1525,7 @@ export function useRetryJob() {
 }
 
 async function cancelJob(jobId: string): Promise<any> {
-  const { data } = await api.post(`/admin/jobs/${jobId}/cancel`);
+  const { data } = await api.post(`admin/jobs/${jobId}/cancel`);
   return data;
 }
 
@@ -1532,13 +1536,11 @@ export function useCancelJob() {
     invalidateQueries: (data) => [["jobs"], ["job", data.job.id]],
   });
 }
-
 // FILE: src/features/admin/jobs/api/useJobSystemActions.ts
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
-
 async function cleanupJobs(): Promise<any> {
-  const { data } = await api.post("/admin/jobs/system/cleanup");
+  const { data } = await api.post("admin/jobs/system/cleanup");
   return data;
 }
 
@@ -1552,7 +1554,7 @@ export function useCleanupJobs() {
 }
 
 async function emitJobStats(): Promise<any> {
-  const { data } = await api.post("/admin/jobs/system/emit-stats");
+  const { data } = await api.post("admin/jobs/system/emit-stats");
   return data;
 }
 
@@ -1562,7 +1564,6 @@ export function useEmitJobStats() {
     successMessage: "Job queue stats emitted over WebSocket.",
   });
 }
-
 // FILE: src/features/admin/jobs/api/useManageJobs.ts
 import { useApiResource } from "@/hooks/useApiResource";
 
@@ -1582,7 +1583,7 @@ import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
 
 async function retryJob(jobId: string): Promise<any> {
-  const { data } = await api.post(`/admin/jobs/${jobId}/retry`);
+  const { data } = await api.post(`admin/jobs/${jobId}/retry`);
   return data;
 }
 
@@ -1600,9 +1601,7 @@ import { useApiMutation } from "@/hooks/useApiMutation";
 async function triggerJobSchedule(
   scheduleId: string
 ): Promise<{ jobId: string }> {
-  const { data } = await api.post(
-    `/admin/jobs/schedules/${scheduleId}/trigger`
-  );
+  const { data } = await api.post(`admin/jobs/schedules/${scheduleId}/trigger`);
   return data;
 }
 
@@ -2486,7 +2485,7 @@ async function assignPermission({
   roleId: string;
   permissionId: string;
 }): Promise<any> {
-  const { data } = await api.post(`/admin/roles/${roleId}/permissions`, {
+  const { data } = await api.post(`admin/roles/${roleId}/permissions`, {
     permissionId,
   });
   return data;
@@ -2519,7 +2518,7 @@ async function revokePermission({
   permissionId: string;
 }): Promise<any> {
   const { data } = await api.delete(
-    `/admin/roles/${roleId}/permissions/${permissionId}`
+    `admin/roles/${roleId}/permissions/${permissionId}`
   );
   return data;
 }
@@ -2831,7 +2830,7 @@ import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 
 async function getSystemStatus(): Promise<any> {
-  const { data } = await api.get("/status");
+  const { data } = await api.get("status");
   return data;
 }
 
@@ -3000,7 +2999,7 @@ import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
 
 async function uploadAvatar(userId: string, formData: FormData): Promise<any> {
-  const { data } = await api.patch(`/admin/users/${userId}/avatar`, formData, {
+  const { data } = await api.patch(`admin/users/${userId}/avatar`, formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
@@ -3015,13 +3014,12 @@ export function useAdminUploadAvatar(userId: string) {
     invalidateQueries: [["users"], ["user", userId]],
   });
 }
-
 // FILE: src/features/admin/users/api/useHardDeleteUser.ts
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
 
 async function hardDeleteUser(userId: string): Promise<void> {
-  await api.delete(`/admin/users/${userId}/hard`);
+  await api.delete(`admin/users/${userId}/hard`);
 }
 
 export function useHardDeleteUser() {
@@ -3052,7 +3050,7 @@ async function setUserStatus({
   userId,
   isActive,
 }: SetStatusParams): Promise<any> {
-  const { data } = await api.patch(`/admin/users/${userId}/status`, {
+  const { data } = await api.patch(`admin/users/${userId}/status`, {
     isActive,
   });
   return data;
@@ -3191,14 +3189,14 @@ export function ManageUserRoles({ user }: ManageUserRolesProps) {
 
   const assignRoleMutation = useApiMutation({
     mutationFn: (roleId: string) =>
-      api.post(`/admin/users/${user.id}/roles`, { roleId }),
+      api.post(`admin/users/${user.id}/roles`, { roleId }),
     successMessage: "Role assigned successfully.",
     invalidateQueries: [["users"], ["user", user.id]],
   });
 
   const removeRoleMutation = useApiMutation({
     mutationFn: (roleId: string) =>
-      api.delete(`/admin/users/${user.id}/roles/${roleId}`),
+      api.delete(`admin/users/${user.id}/roles/${roleId}`),
     successMessage: "Role removed successfully.",
     invalidateQueries: [["users"], ["user", user.id]],
   });
@@ -3276,7 +3274,6 @@ export function ManageUserRoles({ user }: ManageUserRolesProps) {
     </div>
   );
 }
-
 // FILE: src/features/admin/users/components/UserForm.tsx
 import { useForm, useFieldArray } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -5121,7 +5118,7 @@ import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 
 async function getActiveAnnouncements(): Promise<any[]> {
-  const { data } = await api.get("/announcements/active");
+  const { data } = await api.get("announcements/active");
   return data;
 }
 
@@ -5224,7 +5221,7 @@ export function ActiveAnnouncements() {
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
 async function forgotPassword(email: string): Promise<{ message: string }> {
-  const { data } = await api.post("/auth/forgot-password", { email });
+  const { data } = await api.post("auth/forgot-password", { email });
   return data;
 }
 
@@ -5234,7 +5231,6 @@ export function useForgotPassword() {
     successMessage: (data) => data.message,
   });
 }
-
 // FILE: src/features/auth/api/useLogin.ts
 import api from "@/lib/api";
 import { useAuthStore } from "@/store/auth";
@@ -5242,7 +5238,7 @@ import { useNavigate } from "react-router-dom";
 import { useApiMutation } from "@/hooks/useApiMutation";
 
 async function login(credentials: any): Promise<any> {
-  const { data } = await api.post("/auth/login", credentials);
+  const { data } = await api.post("auth/login", credentials);
   return data;
 }
 
@@ -5257,7 +5253,6 @@ export function useLogin() {
     },
   });
 }
-
 // FILE: src/features/auth/api/useLogout.ts
 import api from "@/lib/api";
 import { useAuthStore } from "@/store/auth";
@@ -5266,7 +5261,7 @@ import { useNavigate } from "react-router-dom";
 import { useApiMutation } from "@/hooks/useApiMutation";
 
 async function logoutUser() {
-  return api.post("/auth/logout");
+  return api.post("auth/logout");
 }
 
 export function useLogout() {
@@ -5285,7 +5280,6 @@ export function useLogout() {
       "Could not contact the server, but you have been logged out locally.",
   });
 }
-
 // FILE: src/features/auth/api/useResetPassword.ts
 import api from "@/lib/api";
 import { useNavigate } from "react-router-dom";
@@ -5298,7 +5292,7 @@ interface ResetPasswordData {
 async function resetPassword(
   resetData: ResetPasswordData
 ): Promise<{ message: string }> {
-  const { data } = await api.post("/auth/reset-password", resetData);
+  const { data } = await api.post("auth/reset-password", resetData);
   return data;
 }
 
@@ -5312,7 +5306,6 @@ export function useResetPassword() {
     },
   });
 }
-
 // FILE: src/features/auth/api/useSetupPassword.ts
 import api from "@/lib/api";
 import { useNavigate } from "react-router-dom";
@@ -5325,7 +5318,7 @@ interface SetupPasswordData {
 async function setupPassword(
   setupData: SetupPasswordData
 ): Promise<{ message: string }> {
-  const { data } = await api.post("/auth/setup-password", setupData);
+  const { data } = await api.post("auth/setup-password", setupData);
   return data;
 }
 
@@ -5339,12 +5332,11 @@ export function useSetupPassword() {
     },
   });
 }
-
 // FILE: src/features/auth/api/useVerifyResetToken.ts
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 async function verifyResetToken(token: string): Promise<{ message: string }> {
-  const { data } = await api.get(`/auth/reset-password/${token}`);
+  const { data } = await api.get(`auth/reset-password/${token}`);
   return data;
 }
 
@@ -5988,12 +5980,11 @@ export * from "./components/MessageView.js";
 // FILE: src/features/comments/api/useGetComments.ts
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
-
 async function getComments(
   entityId: string,
   entityType: "TASK" // Can be expanded later
 ): Promise<any> {
-  const { data } = await api.get("/comments", {
+  const { data } = await api.get("comments", {
     params: { entityId, entityType },
   });
   return data;
@@ -6006,6 +5997,169 @@ export function useGetComments(entityId: string, entityType: "TASK") {
     enabled: !!entityId,
   });
 }
+// FILE: src/features/comments/api/useManageCommentAttachments.ts
+import api from "@/lib/api";
+import { useApiMutation } from "@/hooks/useApiMutation";
+
+type PluralEntityType = "knowledge-bases" | "whiteboards" | "publications";
+
+interface AttachParams {
+  commentId: string;
+  entityId: string;
+  plural: PluralEntityType;
+}
+
+async function attachEntity(params: AttachParams): Promise<any> {
+  const { commentId, entityId, plural } = params;
+  const url = `comments/${commentId}/${plural}`;
+  const { data } = await api.post(url, { entityId });
+  return data;
+}
+
+interface DetachParams {
+  commentId: string;
+  entityId: string;
+  plural: PluralEntityType;
+}
+
+async function detachEntity(params: DetachParams): Promise<void> {
+  const { commentId, entityId, plural } = params;
+  const url = `comments/${commentId}/${plural}/${entityId}`;
+  await api.delete(url);
+}
+
+export function useManageCommentAttachments(commentId: string, taskId: string) {
+  const invalidateQueries = [
+    ["comments", taskId],
+    ["task", taskId],
+  ];
+
+  const useAttachEntity = () => {
+    return useApiMutation({
+      mutationFn: (data: { entityId: string; plural: PluralEntityType }) =>
+        attachEntity({ commentId, ...data }),
+      successMessage: "Attachment added to comment.",
+      invalidateQueries,
+    });
+  };
+
+  const useDetachEntity = () => {
+    return useApiMutation({
+      mutationFn: (data: { entityId: string; plural: PluralEntityType }) =>
+        detachEntity({ commentId, ...data }),
+      successMessage: "Attachment removed from comment.",
+      invalidateQueries,
+    });
+  };
+
+  return { useAttachEntity, useDetachEntity };
+}
+
+// FILE: src/features/comments/components/CommentAttachments.tsx
+import { useState } from "react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from "@/components/ui/command";
+import { Plus, Trash2 } from "lucide-react";
+import { useManageCommentAttachments } from "../api/useManageCommentAttachments";
+import { useGetAllKnowledgeBases } from "@/features/knowledge-base/api/useGetAllKnowledgeBases";
+import { useManagePublications } from "@/features/publications/api/useManagePublications";
+import { useGetMyWhiteboards } from "@/features/views/api/useGetMyWhiteboards";
+import { getIcon } from "@/lib/icons";
+import { AnyValue } from "@/types";
+
+export function CommentAttachments({
+  comment,
+  taskId,
+}: {
+  comment: AnyValue;
+  taskId: string;
+}) {
+  const [popoverOpen, setPopoverOpen] = useState(false);
+  const { useAttachEntity, useDetachEntity } = useManageCommentAttachments(
+    comment.id,
+    taskId
+  );
+  const attachMutation = useAttachEntity();
+  const detachMutation = useDetachEntity();
+
+  const { data: kbsData } = useGetAllKnowledgeBases();
+  const { data: pubsData } = useManagePublications().useGetAll();
+  const { data: whiteboardsData } = useGetMyWhiteboards();
+
+  const handleAttach = (entityId: string, plural: any) => {
+    attachMutation.mutate({ entityId, plural });
+    setPopoverOpen(false);
+  };
+
+  const handleDetach = (entityId: string, plural: any) => {
+    detachMutation.mutate({ entityId, plural });
+  };
+
+  const attachments = [
+    ...(comment.knowledgeBases || []).map((kb: any) => ({
+      ...kb,
+      type: "KnowledgeBase",
+      plural: "knowledge-bases",
+    })),
+    ...(comment.publications || []).map((p: any) => ({
+      ...p,
+      type: "Publication",
+      plural: "publications",
+    })),
+    ...(comment.whiteboards || []).map((w: any) => ({
+      ...w,
+      type: "Whiteboard",
+      plural: "whiteboards",
+    })),
+  ];
+
+  if (attachments.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="mt-2 space-y-2">
+      <div className="flex flex-wrap items-center gap-1">
+        {attachments.map((item: any) => {
+          const Icon = getIcon(item.type);
+          return (
+            <div
+              key={item.id}
+              className="hover:bg-accent/50 flex items-center justify-between rounded-md border bg-slate-50 p-1 pr-2 text-xs"
+            >
+              <div className="flex min-w-0 items-center gap-1">
+                <Icon className="h-3 w-3 flex-shrink-0" />
+                <span className="truncate">{item.name || item.title}</span>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="ml-1 h-5 w-5"
+                onClick={() => handleDetach(item.id, item.plural)}
+              >
+                <Trash2 className="h-2.5 w-2.5" />
+              </Button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // FILE: src/features/comments/components/CommentItem.tsx
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -6022,6 +6176,8 @@ import api from "@/lib/api";
 import { EditableField } from "@/components/ui/EditableField";
 import { RichTextOutput } from "@/components/ui/RichTextOutput";
 import { getAbsoluteUrl } from "@/lib/utils";
+import { CommentAttachments } from "./CommentAttachments";
+
 interface CommentItemProps {
   comment: any;
   taskId: string;
@@ -6032,13 +6188,13 @@ export function CommentItem({ comment, taskId }: CommentItemProps) {
 
   const updateCommentMutation = useApiMutation({
     mutationFn: (data: { content: string }) =>
-      api.put(`/comments/${comment.id}`, data),
+      api.put(`comments/${comment.id}`, data),
     successMessage: "Comment updated.",
     invalidateQueries: [["comments", taskId]],
   });
 
   const deleteCommentMutation = useApiMutation<void, string>({
-    mutationFn: (commentId: string) => api.delete(`/comments/${commentId}`),
+    mutationFn: (commentId: string) => api.delete(`comments/${commentId}`),
     successMessage: "Comment deleted.",
     invalidateQueries: [["comments", taskId]],
   });
@@ -6111,6 +6267,7 @@ export function CommentItem({ comment, taskId }: CommentItemProps) {
               className="prose prose-sm max-w-none"
             />
           )}
+          <CommentAttachments comment={comment} taskId={taskId} />
         </div>
       </div>
     </div>
@@ -6133,7 +6290,7 @@ export function CommentSection({ workspaceId, projectId, taskId }: any) {
 
   const addCommentMutation = useApiMutation({
     mutationFn: (content: string) =>
-      api.post("/comments", { content, entityId: taskId, entityType: "TASK" }),
+      api.post("comments", { content, entityId: taskId, entityType: "TASK" }),
     successMessage: "Comment posted.",
     invalidateQueries: [["comments", taskId]],
   });
@@ -6206,7 +6363,7 @@ export function CommentSection({ workspaceId, projectId, taskId }: any) {
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 async function getOrganizations(query?: any): Promise<any> {
-  const { data } = await api.get("/organizations", { params: query });
+  const { data } = await api.get("organizations", { params: query });
   return data;
 }
 
@@ -6247,7 +6404,7 @@ export function useManageDealStages(projectId?: string) {
 import { useApiResource } from "@/hooks/useApiResource";
 
 export function useManageInteractions() {
-  const resource = useApiResource("/interactions", ["interactions"]);
+  const resource = useApiResource("interactions", ["interactions"]);
   return resource;
 }
 // FILE: src/features/crm/api/useManageOrganizationPeople.ts
@@ -6265,7 +6422,7 @@ async function addPersonToOrganization({
   personId,
   role,
 }: AddPersonParams) {
-  const { data } = await api.post(`/organizations/${organizationId}/people`, {
+  const { data } = await api.post(`organizations/${organizationId}/people`, {
     personId,
     role,
   });
@@ -6282,7 +6439,7 @@ async function removePersonFromOrganization({
   personId,
 }: RemovePersonParams) {
   const { data } = await api.delete(
-    `/organizations/${organizationId}/people/${personId}`
+    `organizations/${organizationId}/people/${personId}`
   );
   return data;
 }
@@ -6341,7 +6498,7 @@ async function updateDealStageOrder(
     order: number;
   }[]
 ): Promise<any> {
-  const { data } = await api.put("/deal-stages/order", { stages: updates });
+  const { data } = await api.put("deal-stages/order", { stages: updates });
   return data;
 }
 
@@ -6352,7 +6509,6 @@ export function useUpdateDealStageOrder() {
     invalidateQueries: [["dealStages"]],
   });
 }
-
 // FILE: src/features/crm/components/DealCard.tsx
 import {
   Card,
@@ -8484,7 +8640,7 @@ export function CustomFieldDefinitionForm({
 }: FormProps) {
   const isEditMode = !!initialData;
   const customFieldResource = useApiResource(
-    `/workspaces/${workspaceId}/projects/${projectId}/custom-fields`,
+    `workspaces/${workspaceId}/projects/${projectId}/custom-fields`,
     ["customFieldDefinitions", projectId]
   );
   const createMutation = customFieldResource.useCreate();
@@ -8624,7 +8780,7 @@ export function CustomFieldDefinitionList({
   projectId,
 }: ListProps) {
   const customFieldResource = useApiResource(
-    `/workspaces/${workspaceId}/projects/${projectId}/custom-fields`,
+    `workspaces/${workspaceId}/projects/${projectId}/custom-fields`,
     ["customFieldDefinitions", projectId]
   );
   const { data: fieldsData, isLoading } = customFieldResource.useGetAll();
@@ -8700,7 +8856,7 @@ export function CustomFieldDefinitionList({
         isOpen={!!editingFieldId}
         onOpenChange={(isOpen) => !isOpen && setEditingFieldId(null)}
         resourceId={editingFieldId}
-        resourcePath={`/workspaces/${workspaceId}/projects/${projectId}/custom-fields`}
+        resourcePath={`workspaces/${workspaceId}/projects/${projectId}/custom-fields`}
         resourceKey={["customFieldDefinitions", projectId]}
         title="Edit Custom Field"
         description="Change the name or options for this custom field. The type cannot be changed after creation."
@@ -8743,8 +8899,8 @@ export function CreateDashboardForm({
   const isEditMode = !!initialData;
 
   const resourceUrl = projectId
-    ? `/workspaces/${workspaceId}/projects/${projectId}/dashboards`
-    : `/workspaces/${workspaceId}/dashboards`;
+    ? `workspaces/${workspaceId}/projects/${projectId}/dashboards`
+    : `workspaces/${workspaceId}/dashboards`;
   const resourceKey = projectId
     ? ["dashboards", projectId]
     : ["dashboards", workspaceId];
@@ -8820,7 +8976,6 @@ export function CreateDashboardForm({
     </FormProvider>
   );
 }
-
 // FILE: src/features/dashboards/components/DashboardCard.tsx
 import {
   Card,
@@ -8846,8 +9001,8 @@ interface DashboardCardProps {
 
 export function DashboardCard({ dashboard, onEdit }: DashboardCardProps) {
   const resourceUrl = dashboard.projectId
-    ? `/workspaces/${dashboard.workspaceId}/projects/${dashboard.projectId}/dashboards`
-    : `/workspaces/${dashboard.workspaceId}/dashboards`;
+    ? `workspaces/${dashboard.workspaceId}/projects/${dashboard.projectId}/dashboards`
+    : `workspaces/${dashboard.workspaceId}/dashboards`;
 
   const resourceKey = dashboard.projectId
     ? ["dashboards", dashboard.projectId]
@@ -8920,7 +9075,6 @@ export function DashboardCard({ dashboard, onEdit }: DashboardCardProps) {
     </Link>
   );
 }
-
 // FILE: src/features/dashboards/components/DashboardList.tsx
 import { useApiResource } from "@/hooks/useApiResource";
 import { DashboardCard } from "./DashboardCard";
@@ -8936,8 +9090,8 @@ export function DashboardList({
   projectId?: string;
 }) {
   const resourceUrl = projectId
-    ? `/workspaces/${workspaceId}/projects/${projectId}/dashboards`
-    : `/workspaces/${workspaceId}/dashboards`;
+    ? `workspaces/${workspaceId}/projects/${projectId}/dashboards`
+    : `workspaces/${workspaceId}/dashboards`;
   const resourceKey = projectId
     ? ["dashboards", projectId]
     : ["dashboards", workspaceId];
@@ -8986,18 +9140,18 @@ export function DashboardList({
 }
 // FILE: src/features/goals/api/useManageGoals.ts
 import { useApiResource } from "@/hooks/useApiResource";
-
 export function useManageGoals(workspaceId?: string, projectId?: string) {
   const resourceUrl =
     workspaceId && projectId
-      ? `/workspaces/${workspaceId}/projects/${projectId}/goals`
-      : "/goals";
+      ? `workspaces/${workspaceId}/projects/${projectId}/goals`
+      : "goals";
 
   const resourceKey = projectId ? ["goals", projectId] : ["goals"];
 
   const resource = useApiResource(resourceUrl, resourceKey);
   return resource;
 }
+
 // FILE: src/features/goals/components/GoalCard.tsx
 import { EntityCard } from "@/components/ui/EntityCard";
 import { Progress } from "@/components/ui/progress";
@@ -9634,19 +9788,16 @@ export * from "./components/RecentMentionsWidget.js";
 import { useApiResource } from "@/hooks/useApiResource";
 
 export function useGetAllKnowledgeBases() {
-  const resource = useApiResource("/knowledge-bases", [
-    "knowledgeBases",
-    "all",
-  ]);
+  const resource = useApiResource("knowledge-bases", ["knowledgeBases", "all"]);
   return resource.useGetAll();
 }
 // FILE: src/features/knowledge-base/api/useManageKnowledgeBase.ts
 import { useApiResource } from "@/hooks/useApiResource";
 export function useManageKnowledgeBase(workspaceId: string) {
-  const resource = useApiResource(
-    `/workspaces/${workspaceId}/knowledge-bases`,
-    ["knowledgeBases", workspaceId]
-  );
+  const resource = useApiResource(`workspaces/${workspaceId}/knowledge-bases`, [
+    "knowledgeBases",
+    workspaceId,
+  ]);
   return resource;
 }
 // FILE: src/features/knowledge-base/api/useManageKnowledgePages.ts
@@ -9657,7 +9808,7 @@ export function useManageKnowledgePages(
   knowledgeBaseId: string
 ) {
   const resource = useApiResource(
-    `/workspaces/${workspaceId}/knowledge-bases/${knowledgeBaseId}/pages`,
+    `workspaces/${workspaceId}/knowledge-bases/${knowledgeBaseId}/pages`,
     ["knowledgePages", knowledgeBaseId]
   );
   return resource;
@@ -9995,6 +10146,167 @@ export * from "./api/useManageKnowledgeBase.js";
 export * from "./components/KnowledgeBaseCard.js";
 export * from "./components/KnowledgeBaseForm.js";
 export * from "./components/KnowledgeBaseList.js";
+// FILE: src/features/lead-form/api/useManageLeadForms.ts
+import { useApiResource } from "@/hooks/useApiResource";
+
+export function useManageLeadForms(workspaceId: string, projectId: string) {
+  const resource = useApiResource(
+    `workspaces/${workspaceId}/projects/${projectId}/lead-forms`,
+    ["leadForms", projectId]
+  );
+  return resource;
+}
+
+// FILE: src/features/lead-form/components/LeadForm.tsx
+import { useForm, FormProvider } from "react-hook-form";
+import { Button } from "@/components/ui/button";
+import { Form } from "@/components/ui/form";
+import { FormInput } from "@/components/form/FormFields";
+import { useManageLeadForms } from "../api/useManageLeadForms";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect } from "react";
+import { nameSchema } from "@/lib/schemas";
+
+const leadFormSchema = z.object({
+  name: nameSchema("Form"),
+  // Note: Form fields builder UI is complex and out of scope for this task.
+  // We will manage a simple name for now.
+});
+type LeadFormValues = z.infer<typeof leadFormSchema>;
+
+interface LeadFormProps {
+  workspaceId: string;
+  projectId: string;
+  initialData?: any;
+  onSuccess?: () => void;
+}
+
+export function LeadForm({
+  workspaceId,
+  projectId,
+  initialData,
+  onSuccess,
+}: LeadFormProps) {
+  const isEditMode = !!initialData;
+  const { useCreate, useUpdate } = useManageLeadForms(workspaceId, projectId);
+  const createMutation = useCreate();
+  const updateMutation = useUpdate();
+  const mutation = isEditMode ? updateMutation : createMutation;
+
+  const methods = useForm<LeadFormValues>({
+    resolver: zodResolver(leadFormSchema),
+    defaultValues: { name: "" },
+  });
+
+  useEffect(() => {
+    if (isEditMode && initialData) {
+      methods.reset(initialData);
+    }
+  }, [initialData, isEditMode, methods]);
+
+  async function onSubmit(values: LeadFormValues) {
+    const payload = {
+      ...values,
+      fields: initialData?.fields || [
+        { id: "name", label: "Name", type: "TEXT", required: true },
+      ], // Dummy fields data
+    };
+    if (isEditMode) {
+      await updateMutation.mutateAsync(
+        { id: initialData.id, data: payload },
+        { onSuccess }
+      );
+    } else {
+      await createMutation.mutateAsync(payload, {
+        onSuccess: () => {
+          methods.reset();
+          onSuccess?.();
+        },
+      });
+    }
+  }
+
+  return (
+    <FormProvider {...methods}>
+      <Form {...methods}>
+        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
+          <FormInput
+            name="name"
+            label="Form Name"
+            placeholder="e.g., Website Contact Form"
+          />
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={mutation.isPending}
+          >
+            {mutation.isPending
+              ? "Saving..."
+              : isEditMode
+                ? "Save Changes"
+                : "Create Form"}
+          </Button>
+        </form>
+      </Form>
+    </FormProvider>
+  );
+}
+
+// FILE: src/features/lead-form/components/LeadFormList.tsx
+import { useState } from "react";
+import { useManageLeadForms } from "../api/useManageLeadForms";
+import { EntityCard } from "@/components/ui/EntityCard";
+import { ClipboardList } from "lucide-react";
+import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { LeadForm } from "./LeadForm";
+
+interface LeadFormListProps {
+  workspaceId: string;
+  projectId: string;
+}
+
+export function LeadFormList({ workspaceId, projectId }: LeadFormListProps) {
+  const { useGetAll, useDelete } = useManageLeadForms(workspaceId, projectId);
+  const { data, isLoading } = useGetAll();
+  const deleteMutation = useDelete();
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  if (isLoading) return <div>Loading forms...</div>;
+  if (!data?.data || data.data.length === 0)
+    return <div>No lead forms created for this project yet.</div>;
+
+  return (
+    <>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {data.data.map((form: any) => (
+          <EntityCard
+            key={form.id}
+            title={form.name}
+            description={`${form.fields.length} fields`}
+            icon={ClipboardList}
+            onEdit={() => setEditingId(form.id)}
+            onDelete={() => deleteMutation.mutate(form.id)}
+          >
+            <></>
+          </EntityCard>
+        ))}
+      </div>
+      <ResourceCrudDialog
+        isOpen={!!editingId}
+        onOpenChange={(isOpen) => !isOpen && setEditingId(null)}
+        resourceId={editingId}
+        resourcePath={`workspaces/${workspaceId}/projects/${projectId}/lead-forms`}
+        resourceKey={["leadForms", projectId]}
+        title="Edit Lead Form"
+        description="Update the name of your lead form."
+        form={LeadForm}
+        formProps={{ workspaceId, projectId }}
+      />
+    </>
+  );
+}
+
 // FILE: src/features/notifications/api/useBroadcastNotification.ts
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
@@ -10535,7 +10847,7 @@ import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import { User } from "@/types";
 async function getProfile(): Promise<User> {
-  const { data } = await api.get("/users/me");
+  const { data } = await api.get("users/me");
   return data;
 }
 
@@ -10549,7 +10861,7 @@ export function useGetProfile() {
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
 async function updateProfile(profileData: any): Promise<any> {
-  const { data } = await api.put("/users/me/profile", profileData);
+  const { data } = await api.put("users/me/profile", profileData);
 
   return data;
 }
@@ -10561,12 +10873,11 @@ export function useUpdateProfile() {
     invalidateQueries: [["profile"]],
   });
 }
-
 // FILE: src/features/profile/api/useUploadAvatar.ts
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
 async function uploadAvatar(formData: FormData): Promise<any> {
-  const { data } = await api.patch("/users/me/avatar", formData, {
+  const { data } = await api.patch("users/me/avatar", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
@@ -10581,7 +10892,6 @@ export function useUploadAvatar() {
     invalidateQueries: [["profile"]],
   });
 }
-
 // FILE: src/features/profile/components/ProfileAvatar.tsx
 import { useState, useRef } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -11026,7 +11336,7 @@ async function createProjectFromTemplate({
   name,
 }: CreateFromTemplateParams): Promise<any> {
   const { data } = await api.post(
-    `/admin/project-templates/${templateId}/create-project`,
+    `admin/project-templates/${templateId}/create-project`,
     { name }
   );
   return data;
@@ -11049,7 +11359,7 @@ async function getProjectMembers(
   projectId: string
 ): Promise<any> {
   const { data } = await api.get(
-    `/workspaces/${workspaceId}/projects/${projectId}/members`
+    `workspaces/${workspaceId}/projects/${projectId}/members`
   );
   return data;
 }
@@ -11065,17 +11375,79 @@ export function useGetProjectMembers(
     enabled: !!workspaceId && !!projectId && !!options.enabled,
   });
 }
+// FILE: src/features/projects/api/useManageProjectAttachments.ts
+import api from "@/lib/api";
+import { useApiMutation } from "@/hooks/useApiMutation";
+
+type PluralEntityType = "knowledge-bases" | "whiteboards" | "publications";
+
+interface AttachParams {
+  workspaceId: string;
+  projectId: string;
+  entityId: string;
+  plural: PluralEntityType;
+}
+
+async function attachEntity(params: AttachParams): Promise<any> {
+  const { workspaceId, projectId, entityId, plural } = params;
+  const url = `workspaces/${workspaceId}/projects/${projectId}/${plural}`;
+  const { data } = await api.post(url, { entityId });
+  return data;
+}
+
+interface DetachParams {
+  workspaceId: string;
+  projectId: string;
+  entityId: string;
+  plural: PluralEntityType;
+}
+
+async function detachEntity(params: DetachParams): Promise<void> {
+  const { workspaceId, projectId, entityId, plural } = params;
+  const url = `workspaces/${workspaceId}/projects/${projectId}/${plural}/${entityId}`;
+  await api.delete(url);
+}
+
+export function useManageProjectAttachments(
+  workspaceId: string,
+  projectId: string
+) {
+  const invalidateQueries = [
+    ["projects", workspaceId],
+    ["project", projectId],
+  ];
+
+  const useAttachEntity = () => {
+    return useApiMutation({
+      mutationFn: (data: { entityId: string; plural: PluralEntityType }) =>
+        attachEntity({ workspaceId, projectId, ...data }),
+      successMessage: "Attachment added to project.",
+      invalidateQueries,
+    });
+  };
+
+  const useDetachEntity = () => {
+    return useApiMutation({
+      mutationFn: (data: { entityId: string; plural: PluralEntityType }) =>
+        detachEntity({ workspaceId, projectId, ...data }),
+      successMessage: "Attachment removed from project.",
+      invalidateQueries,
+    });
+  };
+
+  return { useAttachEntity, useDetachEntity };
+}
+
 // FILE: src/features/projects/api/useManageProjects.ts
 import { useApiResource } from "@/hooks/useApiResource";
 
 export function useManageProjects(workspaceId: string) {
-  const resource = useApiResource(`/workspaces/${workspaceId}/projects`, [
+  const resource = useApiResource(`workspaces/${workspaceId}/projects`, [
     "projects",
     workspaceId,
   ]);
   return resource;
 }
-
 // FILE: src/features/projects/api/useManageProjectTemplates.ts
 import { useApiResource } from "@/hooks/useApiResource";
 
@@ -11084,7 +11456,7 @@ export function useManageProjectTemplates(
   projectId: string
 ) {
   const resource = useApiResource(
-    `/workspaces/${workspaceId}/projects/${projectId}/templates`,
+    `workspaces/${workspaceId}/projects/${projectId}/templates`,
     ["projectTemplates", projectId]
   );
   return resource;
@@ -11201,7 +11573,7 @@ export function CreateTemplateForm({
   onSuccess,
 }: CreateTemplateFormProps) {
   const isEditMode = !!initialData;
-  const resource = useApiResource(`/admin/project-templates`, [
+  const resource = useApiResource(`admin/project-templates`, [
     "projectTemplates",
     projectId,
   ]);
@@ -11548,6 +11920,163 @@ export function InviteProjectMember({
     </Card>
   );
 }
+// FILE: src/features/projects/components/ProjectAttachments.tsx
+import { useState } from "react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from "@/components/ui/command";
+import { Plus, Trash2 } from "lucide-react";
+import { useManageProjectAttachments } from "../api/useManageProjectAttachments";
+import { useGetAllKnowledgeBases } from "@/features/knowledge-base/api/useGetAllKnowledgeBases";
+import { useManagePublications } from "@/features/publications/api/useManagePublications";
+import { useGetMyWhiteboards } from "@/features/views/api/useGetMyWhiteboards";
+import { getIcon } from "@/lib/icons";
+import { AnyValue } from "@/types";
+
+export function ProjectAttachments({
+  project,
+  workspaceId,
+}: {
+  project: AnyValue;
+  workspaceId: string;
+}) {
+  const [popoverOpen, setPopoverOpen] = useState(false);
+  const { useAttachEntity, useDetachEntity } = useManageProjectAttachments(
+    workspaceId,
+    project.id
+  );
+  const attachMutation = useAttachEntity();
+  const detachMutation = useDetachEntity();
+
+  const { data: kbsData } = useGetAllKnowledgeBases();
+  const { data: pubsData } = useManagePublications().useGetAll();
+  const { data: whiteboardsData } = useGetMyWhiteboards();
+
+  const handleAttach = (entityId: string, plural: any) => {
+    attachMutation.mutate({ entityId, plural });
+    setPopoverOpen(false);
+  };
+
+  const handleDetach = (entityId: string, plural: any) => {
+    detachMutation.mutate({ entityId, plural });
+  };
+
+  const attachments = [
+    ...(project.knowledgeBases || []).map((kb: any) => ({
+      ...kb,
+      type: "KnowledgeBase",
+      plural: "knowledge-bases",
+    })),
+    ...(project.publications || []).map((p: any) => ({
+      ...p,
+      type: "Publication",
+      plural: "publications",
+    })),
+    ...(project.whiteboards || []).map((w: any) => ({
+      ...w,
+      type: "Whiteboard",
+      plural: "whiteboards",
+    })),
+  ];
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold">Attachments</h3>
+        <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+          <PopoverTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-6 w-6">
+              <Plus className="h-4 w-4" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[250px] p-0">
+            <Command>
+              <CommandInput placeholder="Attach..." />
+              <CommandList>
+                <CommandEmpty>No results found.</CommandEmpty>
+                <CommandGroup heading="Knowledge Bases">
+                  {kbsData?.data?.map((kb: any) => (
+                    <CommandItem
+                      key={kb.id}
+                      onSelect={() => handleAttach(kb.id, "knowledge-bases")}
+                    >
+                      {kb.name}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+                <CommandSeparator />
+                <CommandGroup heading="Publications">
+                  {pubsData?.data?.map((pub: any) => (
+                    <CommandItem
+                      key={pub.id}
+                      onSelect={() => handleAttach(pub.id, "publications")}
+                    >
+                      {pub.title}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+                <CommandSeparator />
+                <CommandGroup heading="Whiteboards">
+                  {whiteboardsData?.data?.map((wb: any) => (
+                    <CommandItem
+                      key={wb.id}
+                      onSelect={() => handleAttach(wb.id, "whiteboards")}
+                    >
+                      {wb.name}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+      </div>
+      <div className="max-h-48 space-y-1 overflow-y-auto rounded-md border p-1">
+        {attachments.length > 0 ? (
+          attachments.map((item: any) => {
+            const Icon = getIcon(item.type);
+            return (
+              <div
+                key={item.id}
+                className="hover:bg-accent/50 flex items-center justify-between rounded-md p-2 text-sm"
+              >
+                <div className="flex min-w-0 items-center gap-2">
+                  <Icon className="h-4 w-4 flex-shrink-0" />
+                  <span className="truncate">{item.name || item.title}</span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6"
+                  onClick={() => handleDetach(item.id, item.plural)}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              </div>
+            );
+          })
+        ) : (
+          <p className="text-muted-foreground p-2 text-center text-xs">
+            No attachments.
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // FILE: src/features/projects/components/ProjectCard.tsx
 import { useApiResource } from "@/hooks/useApiResource";
 import { getIcon } from "@/lib/icons";
@@ -12903,7 +13432,7 @@ interface SearchQuery {
 }
 
 async function performSearch(query: SearchQuery): Promise<any> {
-  const { data } = await api.get("/search", { params: query });
+  const { data } = await api.get("search", { params: query });
   return data;
 }
 
@@ -12915,7 +13444,6 @@ export function useSearch(searchTerm: string, limit = 5) {
     enabled: searchTerm.length > 1,
   });
 }
-
 // FILE: src/features/search/components/SearchDialog.tsx
 import { useEffect, useState } from "react";
 import {
@@ -13038,7 +13566,7 @@ import { useNavigate } from "react-router-dom";
 import { useApiMutation } from "@/hooks/useApiMutation";
 import { useQueryClient } from "@tanstack/react-query";
 async function changePassword(passwordData: any): Promise<any> {
-  const { data } = await api.post("/users/me/change-password", passwordData);
+  const { data } = await api.post("users/me/change-password", passwordData);
   return data;
 }
 
@@ -13057,7 +13585,6 @@ export function useChangePassword() {
     },
   });
 }
-
 // FILE: src/features/security/components/ChangePasswordForm.tsx
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13177,7 +13704,7 @@ async function instantiateTemplate({
   templateId,
 }: InstantiateParams): Promise<any> {
   const { data } = await api.post(
-    `/workspaces/${workspaceId}/projects/${projectId}/task-templates/${templateId}/instantiate`
+    `workspaces/${workspaceId}/projects/${projectId}/task-templates/${templateId}/instantiate`
   );
   return data;
 }
@@ -13198,12 +13725,11 @@ import { useApiResource } from "@/hooks/useApiResource";
 
 export function useManageTaskTemplates(workspaceId: string, projectId: string) {
   const resource = useApiResource(
-    `/workspaces/${workspaceId}/projects/${projectId}/task-templates`,
+    `workspaces/${workspaceId}/projects/${projectId}/task-templates`,
     ["taskTemplates", projectId]
   );
   return resource;
 }
-
 // FILE: src/features/task-templates/components/CreateTemplateFromTaskDialog.tsx
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -13374,7 +13900,7 @@ export * from "./components/TemplateSelectorDialog.js";
 import { useApiResource } from "@/hooks/useApiResource";
 export function useManageTaskTypes(workspaceId: string, projectId: string) {
   const resource = useApiResource(
-    `/workspaces/${workspaceId}/projects/${projectId}/task-types`,
+    `workspaces/${workspaceId}/projects/${projectId}/task-types`,
     ["taskTypes", projectId]
   );
   return resource;
@@ -13686,8 +14212,8 @@ async function attachDocument({
 }: AttachDocumentParams): Promise<any> {
   const url =
     projectId && workspaceId
-      ? `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/documents`
-      : `/tasks/${taskId}/documents`;
+      ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/documents`
+      : `tasks/${taskId}/documents`;
 
   const { data } = await api.post(url, formData, {
     headers: { "Content-Type": "multipart/form-data" },
@@ -13729,8 +14255,8 @@ async function detachDocument({
 }: DetachDocumentParams): Promise<void> {
   const url =
     projectId && workspaceId
-      ? `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/documents/${documentId}/${type}`
-      : `/tasks/${taskId}/documents/${documentId}/${type}`;
+      ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/documents/${documentId}/${type}`
+      : `tasks/${taskId}/documents/${documentId}/${type}`;
   await api.delete(url);
 }
 
@@ -13746,18 +14272,16 @@ export function useDetachDocument(
     invalidateQueries: [["task", taskId]],
   });
 }
-
 // FILE: src/features/tasks/api/useGetMyTasks.ts
 import { useApiResource } from "@/hooks/useApiResource";
 import { ListTasksQuery, Task } from "@/types";
 
 export function useGetMyTasks(query: ListTasksQuery) {
-  const resource = useApiResource<Task>("/standalone-tasks/my-tasks", [
+  const resource = useApiResource<Task>("standalone-tasks/my-tasks", [
     "myTasks",
   ]);
   return resource.useGetAll(query);
 }
-
 // FILE: src/features/tasks/api/useManageTaskAttachments.ts
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
@@ -13774,7 +14298,7 @@ interface AttachParams {
 
 async function attachEntity(params: AttachParams): Promise<any> {
   const { workspaceId, projectId, taskId, entityId, plural } = params;
-  const url = `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/${plural}`;
+  const url = `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/${plural}`;
   const { data } = await api.post(url, { entityId });
   return data;
 }
@@ -13789,7 +14313,7 @@ interface DetachParams {
 
 async function detachEntity(params: DetachParams): Promise<void> {
   const { workspaceId, projectId, taskId, entityId, plural } = params;
-  const url = `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/${plural}/${entityId}`;
+  const url = `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/${plural}/${entityId}`;
   await api.delete(url);
 }
 
@@ -13818,7 +14342,6 @@ export function useManageTaskAttachments(
 
   return { useAttachEntity, useDetachEntity };
 }
-
 // FILE: src/features/tasks/api/useManageTaskLinks.ts
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
@@ -13841,8 +14364,8 @@ async function addLink({
 }: AddLinkParams): Promise<any> {
   const url =
     projectId && workspaceId
-      ? `/workspaces/${workspaceId}/projects/${projectId}/tasks/${sourceTaskId}/links`
-      : `/tasks/${sourceTaskId}/links`;
+      ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${sourceTaskId}/links`
+      : `tasks/${sourceTaskId}/links`;
   const { data } = await api.post(url, { targetTaskId, type });
   return data;
 }
@@ -13862,8 +14385,8 @@ async function removeLink({
 }: RemoveLinkParams): Promise<any> {
   const url =
     projectId && workspaceId
-      ? `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/links/${linkId}`
-      : `/tasks/${taskId}/links/${linkId}`;
+      ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/links/${linkId}`
+      : `tasks/${taskId}/links/${linkId}`;
   const { data } = await api.delete(url);
   return data;
 }
@@ -13885,8 +14408,8 @@ async function updateLink({
 }: UpdateLinkParams): Promise<any> {
   const url =
     projectId && workspaceId
-      ? `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/links/${linkId}`
-      : `/tasks/${taskId}/links/${linkId}`;
+      ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/links/${linkId}`
+      : `tasks/${taskId}/links/${linkId}`;
   const { data } = await api.patch(url, { type });
   return data;
 }
@@ -13950,14 +14473,13 @@ export function useManageTasks(
 ) {
   const resourceUrl =
     workspaceId && projectId
-      ? `/workspaces/${workspaceId}/projects/${projectId}/tasks`
-      : "/tasks";
+      ? `workspaces/${workspaceId}/projects/${projectId}/tasks`
+      : "tasks";
   const resourceKey = projectId ? ["tasks", projectId] : ["myTasks"];
 
   const resource = useApiResource(resourceUrl, resourceKey);
   return resource;
 }
-
 // FILE: src/features/tasks/api/useManageTaskWatchers.ts
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
@@ -13975,8 +14497,8 @@ async function addWatcher({
 }: WatcherParams): Promise<any> {
   const url =
     workspaceId && projectId
-      ? `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/watch`
-      : `/tasks/${taskId}/watch`;
+      ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/watch`
+      : `tasks/${taskId}/watch`;
   const { data } = await api.post(url);
   return data;
 }
@@ -13988,8 +14510,8 @@ async function removeWatcher({
 }: WatcherParams): Promise<any> {
   const url =
     workspaceId && projectId
-      ? `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/watch`
-      : `/tasks/${taskId}/watch`;
+      ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/watch`
+      : `tasks/${taskId}/watch`;
   const { data } = await api.delete(url);
   return data;
 }
@@ -14040,7 +14562,7 @@ async function moveTask(params: MoveTaskParams): Promise<any> {
   const { workspaceId, projectId, taskId, targetColumnId, orderInColumn } =
     params;
   const { data } = await api.patch(
-    `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/move`,
+    `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/move`,
     { targetColumnId, orderInColumn }
   );
   return data;
@@ -14148,8 +14670,8 @@ async function updateMyTask({
 }: UpdateMyTaskParams): Promise<Task> {
   const url =
     workspaceId && projectId
-      ? `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}`
-      : `/tasks/${taskId}`;
+      ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}`
+      : `tasks/${taskId}`;
   const { data } = await api.put(url, taskData);
   return data;
 }
@@ -14233,8 +14755,8 @@ async function updateTask({
 }: UpdateTaskParams): Promise<Task> {
   const url =
     workspaceId && projectId
-      ? `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}`
-      : `/tasks/${taskId}`;
+      ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}`
+      : `tasks/${taskId}`;
   const { data } = await api.put(url, taskData);
   return data;
 }
@@ -14267,7 +14789,7 @@ async function updateTaskCustomValues({
   updates,
 }: UpdateValuesParams): Promise<any> {
   const { data } = await api.patch(
-    `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/custom-fields`,
+    `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/custom-fields`,
     { updates }
   );
   return data;
@@ -16120,8 +16642,8 @@ export function TaskDetailSidebar({
 }) {
   const taskResource = useApiResource(
     projectId
-      ? `/workspaces/${workspaceId}/projects/${projectId}/tasks`
-      : "/tasks",
+      ? `workspaces/${workspaceId}/projects/${projectId}/tasks`
+      : "tasks",
     projectId ? ["tasks", projectId] : ["myTasks"]
   );
   const updateTaskMutation = taskResource.useUpdate();
@@ -16894,7 +17416,7 @@ export * from "./components/TaskList.js";
 import { useApiResource } from "@/hooks/useApiResource";
 
 export function useManageTeams(workspaceId: string) {
-  const resource = useApiResource(`/workspaces/${workspaceId}/teams`, [
+  const resource = useApiResource(`workspaces/${workspaceId}/teams`, [
     "teams",
     workspaceId,
   ]);
@@ -16942,14 +17464,14 @@ export function ManageTeamMembers({
   ];
   const addUserMutation = useApiMutation({
     mutationFn: (userId: string) =>
-      api.post(`/workspaces/${workspaceId}/teams/${team.id}/members/${userId}`),
+      api.post(`workspaces/${workspaceId}/teams/${team.id}/members/${userId}`),
     successMessage: "User added to team.",
     invalidateQueries,
   });
   const removeUserMutation = useApiMutation({
     mutationFn: (userId: string) =>
       api.delete(
-        `/workspaces/${workspaceId}/teams/${team.id}/members/${userId}`
+        `workspaces/${workspaceId}/teams/${team.id}/members/${userId}`
       ),
     successMessage: "User removed from team.",
     invalidateQueries,
@@ -17033,7 +17555,6 @@ export function ManageTeamMembers({
     </div>
   );
 }
-
 // FILE: src/features/teams/components/TeamCard.tsx
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useApiResource } from "@/hooks/useApiResource";
@@ -17578,7 +18099,7 @@ async function createView({
     projectId: projectId,
   };
   const { data } = await api.post(
-    `/workspaces/${workspaceId}/projects/${projectId}/views`,
+    `workspaces/${workspaceId}/projects/${projectId}/views`,
     payload
   );
 
@@ -17614,7 +18135,7 @@ async function deleteView({
   viewId,
 }: DeleteViewParams): Promise<void> {
   await api.delete(
-    `/workspaces/${workspaceId}/projects/${projectId}/views/${viewId}`
+    `workspaces/${workspaceId}/projects/${projectId}/views/${viewId}`
   );
 }
 
@@ -17630,7 +18151,7 @@ import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 
 async function getMyWhiteboards(): Promise<any> {
-  const { data } = await api.get("/whiteboards");
+  const { data } = await api.get("whiteboards");
   return data;
 }
 
@@ -17649,7 +18170,7 @@ async function getProjectViews(
   projectId: string
 ): Promise<any> {
   const { data } = await api.get(
-    `/workspaces/${workspaceId}/projects/${projectId}/views`
+    `workspaces/${workspaceId}/projects/${projectId}/views`
   );
   return data;
 }
@@ -17670,7 +18191,7 @@ async function getView(
   viewId: string
 ): Promise<any> {
   const { data } = await api.get(
-    `/workspaces/${workspaceId}/projects/${projectId}/views/${viewId}`
+    `workspaces/${workspaceId}/projects/${projectId}/views/${viewId}`
   );
   return data;
 }
@@ -17686,7 +18207,6 @@ export function useGetView(
     enabled: !!workspaceId && !!projectId && !!viewId,
   });
 }
-
 // FILE: src/features/views/api/useGetViewData.ts
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
@@ -17699,7 +18219,7 @@ async function getViewData(
   query: ListTasksQuery
 ): Promise<any> {
   const { data } = await api.get(
-    `/workspaces/${workspaceId}/projects/${projectId}/views/${viewId}/data`,
+    `workspaces/${workspaceId}/projects/${projectId}/views/${viewId}/data`,
     { params: query }
   );
   return data;
@@ -17723,7 +18243,7 @@ import { useApiResource } from "@/hooks/useApiResource";
 
 export function useManageViews(workspaceId: string, projectId: string) {
   const resource = useApiResource(
-    `/workspaces/${workspaceId}/projects/${projectId}/views`,
+    `workspaces/${workspaceId}/projects/${projectId}/views`,
     ["views", projectId]
   );
   return resource;
@@ -17746,7 +18266,7 @@ async function updateView({
   viewData,
 }: UpdateViewParams): Promise<any> {
   const { data } = await api.put(
-    `/workspaces/${workspaceId}/projects/${projectId}/views/${viewId}`,
+    `workspaces/${workspaceId}/projects/${projectId}/views/${viewId}`,
     viewData
   );
   return data;
@@ -18999,8 +19519,8 @@ async function createWidget({
   widgetData,
 }: CreateWidgetParams): Promise<any> {
   const url = projectId
-    ? `/workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}/widgets`
-    : `/workspaces/${workspaceId}/dashboards/${dashboardId}/widgets`;
+    ? `workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}/widgets`
+    : `workspaces/${workspaceId}/dashboards/${dashboardId}/widgets`;
 
   const { data } = await api.post(url, widgetData);
   return data;
@@ -19036,8 +19556,8 @@ async function deleteWidget({
   widgetId,
 }: DeleteParams): Promise<void> {
   const url = projectId
-    ? `/workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}/widgets/${widgetId}`
-    : `/workspaces/${workspaceId}/dashboards/${dashboardId}/widgets/${widgetId}`;
+    ? `workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}/widgets/${widgetId}`
+    : `workspaces/${workspaceId}/dashboards/${dashboardId}/widgets/${widgetId}`;
   await api.delete(url);
 }
 
@@ -19069,8 +19589,8 @@ async function getDashboard({
   dashboardId,
 }: GetDashboardParams): Promise<any> {
   const url = projectId
-    ? `/workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}`
-    : `/workspaces/${workspaceId}/dashboards/${dashboardId}`;
+    ? `workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}`
+    : `workspaces/${workspaceId}/dashboards/${dashboardId}`;
   const { data } = await api.get(url);
   return data;
 }
@@ -19097,8 +19617,8 @@ async function getWidgetData({
   widgetId,
 }: any): Promise<any> {
   const url = projectId
-    ? `/workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}/widgets/${widgetId}/data`
-    : `/workspaces/${workspaceId}/dashboards/${dashboardId}/widgets/${widgetId}/data`;
+    ? `workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}/widgets/${widgetId}/data`
+    : `workspaces/${workspaceId}/dashboards/${dashboardId}/widgets/${widgetId}/data`;
   const { data } = await api.get(url);
   return data;
 }
@@ -19131,8 +19651,8 @@ interface UpdateWidgetParams {
 async function updateWidget(params: UpdateWidgetParams): Promise<any> {
   const { workspaceId, projectId, dashboardId, widgetId, widgetData } = params;
   const url = projectId
-    ? `/workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}/widgets/${widgetId}`
-    : `/workspaces/${workspaceId}/dashboards/${dashboardId}/widgets/${widgetId}`;
+    ? `workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}/widgets/${widgetId}`
+    : `workspaces/${workspaceId}/dashboards/${dashboardId}/widgets/${widgetId}`;
   const { data } = await api.put(url, widgetData);
   return data;
 }
@@ -20089,6 +20609,61 @@ export function WidgetWrapper({
     </Card>
   );
 }
+// FILE: src/features/workspaces/api/useManageWorkspaceAttachments.ts
+import api from "@/lib/api";
+import { useApiMutation } from "@/hooks/useApiMutation";
+
+type PluralEntityType = "knowledge-bases" | "whiteboards" | "publications";
+
+interface AttachParams {
+  workspaceId: string;
+  entityId: string;
+  plural: PluralEntityType;
+}
+
+async function attachEntity(params: AttachParams): Promise<any> {
+  const { workspaceId, entityId, plural } = params;
+  const url = `workspaces/${workspaceId}/${plural}`;
+  const { data } = await api.post(url, { entityId });
+  return data;
+}
+
+interface DetachParams {
+  workspaceId: string;
+  entityId: string;
+  plural: PluralEntityType;
+}
+
+async function detachEntity(params: DetachParams): Promise<void> {
+  const { workspaceId, entityId, plural } = params;
+  const url = `workspaces/${workspaceId}/${plural}/${entityId}`;
+  await api.delete(url);
+}
+
+export function useManageWorkspaceAttachments(workspaceId: string) {
+  const invalidateQueries = [["workspaces"], ["workspace", workspaceId]];
+
+  const useAttachEntity = () => {
+    return useApiMutation({
+      mutationFn: (data: { entityId: string; plural: PluralEntityType }) =>
+        attachEntity({ workspaceId, ...data }),
+      successMessage: "Attachment added to workspace.",
+      invalidateQueries,
+    });
+  };
+
+  const useDetachEntity = () => {
+    return useApiMutation({
+      mutationFn: (data: { entityId: string; plural: PluralEntityType }) =>
+        detachEntity({ workspaceId, ...data }),
+      successMessage: "Attachment removed from workspace.",
+      invalidateQueries,
+    });
+  };
+
+  return { useAttachEntity, useDetachEntity };
+}
+
 // FILE: src/features/workspaces/api/useManageWorkspaces.ts
 import { useApiResource } from "@/hooks/useApiResource";
 
@@ -20096,6 +20671,156 @@ export function useManageWorkspaces() {
   const resource = useApiResource("workspaces", ["workspaces"]);
   return resource;
 }
+// FILE: src/features/workspaces/components/WorkspaceAttachments.tsx
+import { useState } from "react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from "@/components/ui/command";
+import { Plus, Trash2 } from "lucide-react";
+import { useManageWorkspaceAttachments } from "../api/useManageWorkspaceAttachments";
+import { useGetAllKnowledgeBases } from "@/features/knowledge-base/api/useGetAllKnowledgeBases";
+import { useManagePublications } from "@/features/publications/api/useManagePublications";
+import { useGetMyWhiteboards } from "@/features/views/api/useGetMyWhiteboards";
+import { getIcon } from "@/lib/icons";
+import { AnyValue } from "@/types";
+
+export function WorkspaceAttachments({ workspace }: { workspace: AnyValue }) {
+  const [popoverOpen, setPopoverOpen] = useState(false);
+  const { useAttachEntity, useDetachEntity } = useManageWorkspaceAttachments(
+    workspace.id
+  );
+  const attachMutation = useAttachEntity();
+  const detachMutation = useDetachEntity();
+
+  const { data: kbsData } = useGetAllKnowledgeBases();
+  const { data: pubsData } = useManagePublications().useGetAll();
+  const { data: whiteboardsData } = useGetMyWhiteboards();
+
+  const handleAttach = (entityId: string, plural: any) => {
+    attachMutation.mutate({ entityId, plural });
+    setPopoverOpen(false);
+  };
+
+  const handleDetach = (entityId: string, plural: any) => {
+    detachMutation.mutate({ entityId, plural });
+  };
+
+  const attachments = [
+    ...(workspace.knowledgeBases || []).map((kb: any) => ({
+      ...kb,
+      type: "KnowledgeBase",
+      plural: "knowledge-bases",
+    })),
+    ...(workspace.publications || []).map((p: any) => ({
+      ...p,
+      type: "Publication",
+      plural: "publications",
+    })),
+    ...(workspace.whiteboards || []).map((w: any) => ({
+      ...w,
+      type: "Whiteboard",
+      plural: "whiteboards",
+    })),
+  ];
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold">Attachments</h3>
+        <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+          <PopoverTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-6 w-6">
+              <Plus className="h-4 w-4" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[250px] p-0">
+            <Command>
+              <CommandInput placeholder="Attach..." />
+              <CommandList>
+                <CommandEmpty>No results found.</CommandEmpty>
+                <CommandGroup heading="Knowledge Bases">
+                  {kbsData?.data?.map((kb: any) => (
+                    <CommandItem
+                      key={kb.id}
+                      onSelect={() => handleAttach(kb.id, "knowledge-bases")}
+                    >
+                      {kb.name}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+                <CommandSeparator />
+                <CommandGroup heading="Publications">
+                  {pubsData?.data?.map((pub: any) => (
+                    <CommandItem
+                      key={pub.id}
+                      onSelect={() => handleAttach(pub.id, "publications")}
+                    >
+                      {pub.title}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+                <CommandSeparator />
+                <CommandGroup heading="Whiteboards">
+                  {whiteboardsData?.data?.map((wb: any) => (
+                    <CommandItem
+                      key={wb.id}
+                      onSelect={() => handleAttach(wb.id, "whiteboards")}
+                    >
+                      {wb.name}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+      </div>
+      <div className="max-h-48 space-y-1 overflow-y-auto rounded-md border p-1">
+        {attachments.length > 0 ? (
+          attachments.map((item: any) => {
+            const Icon = getIcon(item.type);
+            return (
+              <div
+                key={item.id}
+                className="hover:bg-accent/50 flex items-center justify-between rounded-md p-2 text-sm"
+              >
+                <div className="flex min-w-0 items-center gap-2">
+                  <Icon className="h-4 w-4 flex-shrink-0" />
+                  <span className="truncate">{item.name || item.title}</span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6"
+                  onClick={() => handleDetach(item.id, item.plural)}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              </div>
+            );
+          })
+        ) : (
+          <p className="text-muted-foreground p-2 text-center text-xs">
+            No attachments.
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // FILE: src/features/workspaces/components/WorkspaceCard.tsx
 import { useApiResource } from "@/hooks/useApiResource";
 import { EntityCard } from "@/components/ui/EntityCard";
@@ -20859,18 +21584,26 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    const isAuthEndpoint =
-      originalRequest.url?.includes("/auth/login") ||
-      originalRequest.url?.includes("/auth/refresh-token");
+    const publicPaths = [
+      "/auth/login",
+      "/auth/refresh-token",
+      "/auth/forgot-password",
+      "/auth/reset-password",
+      "/auth/setup-password",
+    ];
+
+    const isPublicPath = publicPaths.some((path) =>
+      originalRequest.url?.includes(path)
+    );
 
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&
-      !isAuthEndpoint
+      !isPublicPath
     ) {
       originalRequest._retry = true;
       try {
-        const { data } = await api.post("/auth/refresh-token");
+        const { data } = await api.post("auth/refresh-token");
         const { accessToken } = data;
         useAuthStore.getState().setAccessToken(accessToken);
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
@@ -20879,7 +21612,12 @@ api.interceptors.response.use(
         useAuthStore.getState().setAccessToken(null);
         // Using window.location to force a full page reload to the login page
         // which clears all state and avoids inconsistent states.
-        if (window.location.pathname !== "/login") {
+        const currentPath = window.location.pathname;
+        const isAlreadyOnPublicPage = publicPaths.some((path) =>
+          currentPath.startsWith(path)
+        );
+
+        if (!isAlreadyOnPublicPage) {
           window.location.href = "/login";
         }
         return Promise.reject(refreshError);
@@ -20891,7 +21629,6 @@ api.interceptors.response.use(
 );
 
 export default api;
-
 // FILE: src/lib/config.ts
 const config = {
   apiBaseUrl: "http://localhost:3000/api/v1",
@@ -21624,8 +22361,8 @@ export function DashboardDetailPage() {
   }
 
   const resourceUrl = projectId
-    ? `/workspaces/${workspaceId}/projects/${projectId}/dashboards`
-    : `/workspaces/${workspaceId}/dashboards`;
+    ? `workspaces/${workspaceId}/projects/${projectId}/dashboards`
+    : `workspaces/${workspaceId}/dashboards`;
 
   const resourceKey = projectId
     ? ["dashboards", projectId]
@@ -21681,8 +22418,8 @@ export function DashboardDetailPage() {
     })) || [];
 
   const widgetResourcePath = projectId
-    ? `/workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}/widgets`
-    : `/workspaces/${workspaceId}/dashboards/${dashboardId}/widgets`;
+    ? `workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}/widgets`
+    : `workspaces/${workspaceId}/dashboards/${dashboardId}/widgets`;
 
   return (
     <div className="space-y-6">
@@ -21734,7 +22471,6 @@ export function DashboardDetailPage() {
     </div>
   );
 }
-
 // FILE: src/pages/ForgotPasswordPage.tsx
 import { ForgotPasswordForm } from "@/features/auth/components/ForgotPasswordForm";
 
@@ -22336,7 +23072,7 @@ export function ProjectAccessControlPage() {
             description="This role will only be available within this project."
             form={CreateProjectRoleForm}
             formProps={{ workspaceId, projectId }}
-            resourcePath={`/workspaces/${workspaceId}/projects/${projectId}/roles`}
+            resourcePath={`workspaces/${workspaceId}/projects/${projectId}/roles`}
             resourceKey={["projectRoles", projectId]}
           />
         </div>
@@ -22345,6 +23081,68 @@ export function ProjectAccessControlPage() {
     </div>
   );
 }
+// FILE: src/pages/ProjectAttachmentsPage.tsx
+import { useParams } from "react-router-dom";
+import { useApiResource } from "@/hooks/useApiResource";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { ProjectAttachments } from "@/features/projects/components/ProjectAttachments";
+
+export function ProjectAttachmentsPage() {
+  const { workspaceId, projectId } = useParams<{
+    workspaceId: string;
+    projectId: string;
+  }>();
+
+  if (!workspaceId || !projectId) {
+    return <div>Missing URL parameters.</div>;
+  }
+
+  const projectResource = useApiResource(`workspaces/${workspaceId}/projects`, [
+    "projects",
+    workspaceId,
+  ]);
+  const { data: projectData, isLoading } = projectResource.useGetOne(projectId);
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-6 w-1/4" />
+          <Skeleton className="mt-2 h-4 w-1/2" />
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Skeleton className="h-24 w-full" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!projectData) {
+    return <div>Project not found.</div>;
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Project Attachments</CardTitle>
+        <CardDescription>
+          Link Knowledge Bases, Publications, and Whiteboards to this project.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ProjectAttachments project={projectData} workspaceId={workspaceId} />
+      </CardContent>
+    </Card>
+  );
+}
+
 // FILE: src/pages/ProjectCustomFieldsPage.tsx
 import { CustomFieldDefinitionList } from "@/features/custom-fields/components/CustomFieldDefinitionList";
 import { useParams } from "react-router-dom";
@@ -22384,7 +23182,7 @@ export function ProjectCustomFieldsPage() {
           description="This field will be available for all tasks in this project."
           form={CustomFieldDefinitionForm}
           formProps={{ workspaceId, projectId }}
-          resourcePath={`/workspaces/${workspaceId}/projects/${projectId}/custom-fields`}
+          resourcePath={`workspaces/${workspaceId}/projects/${projectId}/custom-fields`}
           resourceKey={["customFieldDefinitions", projectId]}
         />
       </div>
@@ -22566,10 +23364,10 @@ export function ProjectGeneralSettingsPage() {
     return <div>Missing URL parameters.</div>;
   }
 
-  const projectResource = useApiResource(
-    `/workspaces/${workspaceId}/projects`,
-    ["projects", workspaceId]
-  );
+  const projectResource = useApiResource(`workspaces/${workspaceId}/projects`, [
+    "projects",
+    workspaceId,
+  ]);
   const { data: projectData, isLoading } = projectResource.useGetOne(projectId);
 
   if (isLoading) {
@@ -22605,7 +23403,6 @@ export function ProjectGeneralSettingsPage() {
     </Card>
   );
 }
-
 // FILE: src/pages/ProjectGoalsPage.tsx
 import { GoalList } from "@/features/goals/components/GoalList";
 import { useParams } from "react-router-dom";
@@ -22624,6 +23421,55 @@ export function ProjectGoalsPage() {
     </div>
   );
 }
+// FILE: src/pages/ProjectLeadFormsPage.tsx
+import { useParams } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { PlusCircle } from "lucide-react";
+import { useState } from "react";
+import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { LeadForm } from "@/features/lead-form/components/LeadForm";
+import { LeadFormList } from "@/features/lead-form/components/LeadFormList";
+
+export function ProjectLeadFormsPage() {
+  const { workspaceId, projectId } = useParams<{
+    workspaceId: string;
+    projectId: string;
+  }>();
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+
+  if (!workspaceId || !projectId) return <div>Missing URL parameters.</div>;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-semibold">Lead Forms</h2>
+          <p className="text-muted-foreground">
+            Create and manage lead capture forms for this project.
+          </p>
+        </div>
+        <ResourceCrudDialog
+          isOpen={isCreateOpen}
+          onOpenChange={setIsCreateOpen}
+          trigger={
+            <Button onClick={() => setIsCreateOpen(true)}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              New Form
+            </Button>
+          }
+          title="Create New Lead Form"
+          description="Build a form to capture leads directly into your project."
+          form={LeadForm}
+          formProps={{ workspaceId, projectId }}
+          resourcePath={`workspaces/${workspaceId}/projects/${projectId}/lead-forms`}
+          resourceKey={["leadForms", projectId]}
+        />
+      </div>
+      <LeadFormList workspaceId={workspaceId} projectId={projectId} />
+    </div>
+  );
+}
+
 // FILE: src/pages/ProjectListPage.tsx
 import { ProjectList } from "@/features/projects/components/ProjectList";
 import { useParams } from "react-router-dom";
@@ -22683,7 +23529,7 @@ export function ProjectListPage() {
           description="Projects live inside workspaces and contain your tasks."
           form={ProjectForm}
           formProps={{ workspaceId }}
-          resourcePath={`/workspaces/${workspaceId}/projects`}
+          resourcePath={`workspaces/${workspaceId}/projects`}
           resourceKey={["projects", workspaceId]}
         />
         <ResourceCrudDialog
@@ -22713,6 +23559,8 @@ const settingsNavItems = [
   { to: "views", label: "Views" },
   { to: "goals", label: "Goals" },
   { to: "templates", label: "Templates" },
+  { to: "lead-forms", label: "Lead Forms" },
+  { to: "attachments", label: "Attachments" },
 ];
 
 export function ProjectSettingsPage() {
@@ -22787,7 +23635,7 @@ export function ProjectTaskTypesPage() {
           description="This type will be available for all tasks in this project."
           form={TaskTypeForm}
           formProps={{ workspaceId, projectId }}
-          resourcePath={`/workspaces/${workspaceId}/projects/${projectId}/task-types`}
+          resourcePath={`workspaces/${workspaceId}/projects/${projectId}/task-types`}
           resourceKey={["taskTypes", projectId]}
         />
       </div>
@@ -22835,7 +23683,7 @@ export function ProjectTemplatesPage() {
           description="This will create a new template based on the current project's structure (views, custom fields, etc.). Tasks and other content will not be included."
           form={CreateTemplateForm}
           formProps={{ workspaceId, projectId, sourceProjectId: projectId }}
-          resourcePath={`/admin/project-templates`}
+          resourcePath={`admin/project-templates`}
           resourceKey={["projectTemplates", projectId]}
         />
       </div>
@@ -22882,7 +23730,7 @@ export function ProjectViewsPage() {
           description="Add a new List, Kanban, or other type of view to your project."
           form={ViewForm}
           formProps={{ workspaceId, projectId }}
-          resourcePath={`/workspaces/${workspaceId}/projects/${projectId}/views`}
+          resourcePath={`workspaces/${workspaceId}/projects/${projectId}/views`}
           resourceKey={["views", projectId]}
         />
       </div>
@@ -23002,7 +23850,6 @@ export function ReportingPage() {
     </div>
   );
 }
-
 // FILE: src/pages/ResetPasswordPage.tsx
 import { ResetPasswordForm } from "@/features/auth/components/ResetPasswordForm";
 
@@ -23014,7 +23861,7 @@ export function ResetPasswordPage() {
   );
 }
 // FILE: src/pages/SettingsPage.tsx
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const settingsNavItems = [
@@ -23023,6 +23870,9 @@ const settingsNavItems = [
 ];
 
 export function SettingsPage() {
+  const location = useLocation();
+  const currentTab = location.pathname;
+
   return (
     <div className="space-y-6">
       <div>
@@ -23032,7 +23882,7 @@ export function SettingsPage() {
         </p>
       </div>
 
-      <Tabs defaultValue={location.pathname} className="space-y-4">
+      <Tabs defaultValue={currentTab} className="space-y-4">
         <TabsList>
           {settingsNavItems.map((item) => (
             <NavLink to={item.to} key={item.to}>
@@ -23099,7 +23949,7 @@ export function TeamsPage() {
           description="Teams help you group users within a workspace."
           form={TeamForm}
           formProps={{ workspaceId }}
-          resourcePath={`/workspaces/${workspaceId}/teams`}
+          resourcePath={`workspaces/${workspaceId}/teams`}
           resourceKey={["teams", workspaceId]}
         />
       </div>
@@ -23108,7 +23958,6 @@ export function TeamsPage() {
     </div>
   );
 }
-
 // FILE: src/pages/WhiteboardsPage.tsx
 import { useGetMyWhiteboards } from "@/features/views/api/useGetMyWhiteboards";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -23180,7 +24029,6 @@ export function WhiteboardsPage() {
     </div>
   );
 }
-
 // FILE: src/pages/WorkloadPage.tsx
 import { WorkloadView } from "@/features/reporting/components/WorkloadView";
 import { useParams } from "react-router-dom";
@@ -23205,6 +24053,65 @@ export function WorkloadPage() {
     </div>
   );
 }
+// FILE: src/pages/WorkspaceAttachmentsPage.tsx
+import { useParams } from "react-router-dom";
+import { useApiResource } from "@/hooks/useApiResource";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { WorkspaceAttachments } from "@/features/workspaces/components/WorkspaceAttachments";
+
+export function WorkspaceAttachmentsPage() {
+  const { workspaceId } = useParams<{
+    workspaceId: string;
+  }>();
+
+  if (!workspaceId) {
+    return <div>Missing URL parameters.</div>;
+  }
+
+  const workspaceResource = useApiResource(`workspaces`, ["workspaces"]);
+  const { data: workspaceData, isLoading } =
+    workspaceResource.useGetOne(workspaceId);
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-6 w-1/4" />
+          <Skeleton className="mt-2 h-4 w-1/2" />
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Skeleton className="h-24 w-full" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!workspaceData) {
+    return <div>Workspace not found.</div>;
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Workspace Attachments</CardTitle>
+        <CardDescription>
+          Link Knowledge Bases, Publications, and Whiteboards to this workspace.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <WorkspaceAttachments workspace={workspaceData} />
+      </CardContent>
+    </Card>
+  );
+}
+
 // FILE: src/pages/WorkspaceDashboardListPage.tsx
 import { DashboardList } from "@/features/dashboards/components/DashboardList";
 import { useParams } from "react-router-dom";
@@ -23244,7 +24151,7 @@ export function WorkspaceDashboardListPage() {
           description="Dashboards live inside workspaces and contain widgets to visualize your data."
           form={CreateDashboardForm}
           formProps={{ workspaceId }}
-          resourcePath={`/workspaces/${workspaceId}/dashboards`}
+          resourcePath={`workspaces/${workspaceId}/dashboards`}
           resourceKey={["dashboards", workspaceId]}
         />
       </div>
@@ -23252,7 +24159,6 @@ export function WorkspaceDashboardListPage() {
     </div>
   );
 }
-
 // FILE: src/pages/WorkspaceLayout.tsx
 import { NavLink, Outlet, useLocation, useParams } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -23299,6 +24205,9 @@ export function WorkspaceLayout() {
           </NavLink>
           <NavLink to={`/workspaces/${workspaceId}/knowledge-bases`}>
             <TabsTrigger value="knowledge-bases">Knowledge Base</TabsTrigger>
+          </NavLink>
+          <NavLink to={`/workspaces/${workspaceId}/attachments`}>
+            <TabsTrigger value="attachments">Attachments</TabsTrigger>
           </NavLink>
           <NavLink to={`/workspaces/${workspaceId}/workload`}>
             <TabsTrigger value="workload">Workload</TabsTrigger>

@@ -2,7 +2,7 @@ import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
 
 async function retryJob(jobId: string): Promise<any> {
-  const { data } = await api.post(`/admin/jobs/${jobId}/retry`);
+  const { data } = await api.post(`admin/jobs/${jobId}/retry`);
   return data;
 }
 

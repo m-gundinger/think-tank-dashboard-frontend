@@ -25,7 +25,7 @@ export function CustomFieldDefinitionForm({
 }: FormProps) {
   const isEditMode = !!initialData;
   const customFieldResource = useApiResource(
-    `/workspaces/${workspaceId}/projects/${projectId}/custom-fields`,
+    `workspaces/${workspaceId}/projects/${projectId}/custom-fields`,
     ["customFieldDefinitions", projectId]
   );
   const createMutation = customFieldResource.useCreate();

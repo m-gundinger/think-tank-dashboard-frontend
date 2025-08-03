@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useApiMutation } from "@/hooks/useApiMutation";
 import { useQueryClient } from "@tanstack/react-query";
 async function changePassword(passwordData: any): Promise<any> {
-  const { data } = await api.post("/users/me/change-password", passwordData);
+  const { data } = await api.post("users/me/change-password", passwordData);
   return data;
 }
 

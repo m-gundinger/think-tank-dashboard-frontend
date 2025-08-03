@@ -24,18 +24,26 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    const isAuthEndpoint =
-      originalRequest.url?.includes("/auth/login") ||
-      originalRequest.url?.includes("/auth/refresh-token");
+    const publicPaths = [
+      "/auth/login",
+      "/auth/refresh-token",
+      "/auth/forgot-password",
+      "/auth/reset-password",
+      "/auth/setup-password",
+    ];
+
+    const isPublicPath = publicPaths.some((path) =>
+      originalRequest.url?.includes(path)
+    );
 
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&
-      !isAuthEndpoint
+      !isPublicPath
     ) {
       originalRequest._retry = true;
       try {
-        const { data } = await api.post("/auth/refresh-token");
+        const { data } = await api.post("auth/refresh-token");
         const { accessToken } = data;
         useAuthStore.getState().setAccessToken(accessToken);
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
@@ -44,7 +52,12 @@ api.interceptors.response.use(
         useAuthStore.getState().setAccessToken(null);
         // Using window.location to force a full page reload to the login page
         // which clears all state and avoids inconsistent states.
-        if (window.location.pathname !== "/login") {
+        const currentPath = window.location.pathname;
+        const isAlreadyOnPublicPage = publicPaths.some((path) =>
+          currentPath.startsWith(path)
+        );
+
+        if (!isAlreadyOnPublicPage) {
           window.location.href = "/login";
         }
         return Promise.reject(refreshError);
