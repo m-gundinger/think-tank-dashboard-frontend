@@ -100,6 +100,13 @@ export enum JobStatus {
   CANCELLED = "CANCELLED",
 }
 
+export enum JobPriority {
+  LOW = "LOW",
+  NORMAL = "NORMAL",
+  HIGH = "HIGH",
+  CRITICAL = "CRITICAL",
+}
+
 export enum NotificationType {
   SYSTEM_BROADCAST = "SYSTEM_BROADCAST",
   TASK_ASSIGNMENT = "TASK_ASSIGNMENT",

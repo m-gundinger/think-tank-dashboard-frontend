@@ -34,17 +34,20 @@ export function TaskDetailModal({
   onOpenChange,
   onTaskSelect,
 }: TaskDetailModalProps) {
+  // We first fetch the task with a generic endpoint to get its context (projectId)
   const { data: task, isLoading } = useApiResource("tasks", [
     "task",
     taskId,
   ]).useGetOne(taskId);
 
-  const taskResource = useApiResource(
-    task?.projectId
+  // Determine the correct, scoped resource URL once the task data is available
+  const resourceUrl =
+    task?.projectId && task.workspaceId
       ? `/workspaces/${task.workspaceId}/projects/${task.projectId}/tasks`
-      : "/tasks",
-    task?.projectId ? ["tasks", task.projectId] : ["myTasks"]
-  );
+      : "/tasks";
+  const resourceKey = task?.projectId ? ["tasks", task.projectId] : ["myTasks"];
+
+  const taskResource = useApiResource(resourceUrl, resourceKey);
   const updateTaskMutation = taskResource.useUpdate();
 
   const handleSave = (field: string, value: any) => {
@@ -105,7 +108,7 @@ export function TaskDetailModal({
           />
         </DialogTitle>
         <DialogDescription className="text-muted-foreground pr-6 text-xs">
-          Task ID: {task.id}
+          Task ID: {task.shortId || task.id}
         </DialogDescription>
         <div className="flex-1 overflow-y-auto py-4">
           <div className="grid grid-cols-3 gap-6">

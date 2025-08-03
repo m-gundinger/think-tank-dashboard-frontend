@@ -1,7 +1,7 @@
-import { useManageCompanies } from "../api/useManageCompanies";
+import { useManageOrganizations } from "../api/useManageOrganizations";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Building2 } from "lucide-react";
-import { CompanyCard } from "./CompanyCard";
+import { OrganizationCard } from "./OrganizationCard";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const ListSkeleton = () => (
@@ -12,12 +12,12 @@ const ListSkeleton = () => (
   </div>
 );
 
-export function CompanyList({
-  onCompanySelect,
+export function OrganizationList({
+  onOrganizationSelect,
 }: {
-  onCompanySelect: (id: string) => void;
+  onOrganizationSelect: (id: string) => void;
 }) {
-  const { useGetAll } = useManageCompanies();
+  const { useGetAll } = useManageOrganizations();
   const { data, isLoading } = useGetAll();
 
   if (isLoading) return <ListSkeleton />;
@@ -26,19 +26,19 @@ export function CompanyList({
     return (
       <EmptyState
         icon={<Building2 className="h-10 w-10" />}
-        title="No Companies Found"
-        description="Get started by creating your first company."
+        title="No Organizations Found"
+        description="Get started by creating your first organization."
       />
     );
   }
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {data.data.map((company: any) => (
-        <CompanyCard
-          key={company.id}
-          company={company}
-          onSelect={() => onCompanySelect(company.id)}
+      {data.data.map((organization: any) => (
+        <OrganizationCard
+          key={organization.id}
+          organization={organization}
+          onSelect={() => onOrganizationSelect(organization.id)}
         />
       ))}
     </div>

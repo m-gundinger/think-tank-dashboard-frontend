@@ -49,7 +49,7 @@ export function DealCard({ deal, onSelect }: DealCardProps) {
         <CardHeader className="p-3">
           <CardTitle className="text-sm">{deal.name}</CardTitle>
           <CardDescription className="text-xs">
-            {deal.company.name}
+            {deal.organization.name}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex items-center justify-between p-3 pt-0">

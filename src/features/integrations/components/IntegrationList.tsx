@@ -1,152 +1,144 @@
-import { useApiResource } from "@/hooks/useApiResource";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState } from "react";
+import { Globe, MessageSquare } from "lucide-react";
+import { IntegrationCard } from "./IntegrationCard";
+import { useGetUserConnections } from "../api/useGetUserConnections";
+import { useOAuth } from "@/hooks/useOAuth";
+import { useApiMutation } from "@/hooks/useApiMutation";
+import api from "@/lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
-import { IntegrationCategory, IntegrationProvider } from "@/types/api";
+import { useGetProfile } from "@/features/profile/api/useGetProfile";
+import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+import { PlusCircle } from "lucide-react";
+import { IntegrationForm } from "./IntegrationForm";
+import { useManageIntegrations } from "../api/useManageIntegrations";
 
-const INTEGRATIONS = [
+const availableOAuthIntegrations = [
   {
-    provider: IntegrationProvider.GOOGLE,
+    provider: "google",
     name: "Google",
-    description: "Connect Google Drive, Calendar, Docs, and more.",
-    category: IntegrationCategory.OAUTH,
+    description: "Connect Google Drive, Calendar, and more.",
+    icon: Globe,
   },
   {
-    provider: IntegrationProvider.LINKEDIN,
+    provider: "linkedin",
     name: "LinkedIn",
-    description: "Connect your LinkedIn account for social interactions.",
-    category: IntegrationCategory.OAUTH,
-  },
-  {
-    provider: IntegrationProvider.TWITTER,
-    name: "X (Twitter)",
-    description: "Connect your X account for social interactions.",
-    category: IntegrationCategory.OAUTH,
-  },
-  {
-    provider: IntegrationProvider.FACEBOOK,
-    name: "Facebook",
-    description: "Connect your Facebook Pages for social interactions.",
-    category: IntegrationCategory.OAUTH,
-  },
-  {
-    provider: IntegrationProvider.INSTAGRAM,
-    name: "Instagram",
-    description: "Connect your Instagram account.",
-    category: IntegrationCategory.OAUTH,
-  },
-  {
-    provider: IntegrationProvider.GITHUB,
-    name: "GitHub",
-    description: "Link GitHub repositories and issues.",
-    category: IntegrationCategory.OAUTH,
-  },
-  {
-    provider: IntegrationProvider.NEXTCLOUD,
-    name: "Nextcloud",
-    description: "Connect your Nextcloud instance for file management.",
-    category: IntegrationCategory.API_KEY,
-  },
-  {
-    provider: IntegrationProvider.TELEGRAM,
-    name: "Telegram",
-    description: "Send notifications and interact via Telegram bots.",
-    category: IntegrationCategory.API_KEY,
-  },
-  {
-    provider: IntegrationProvider.BREVO,
-    name: "Brevo",
-    description: "Connect your Brevo account for email services.",
-    category: IntegrationCategory.API_KEY,
-  },
-  {
-    provider: IntegrationProvider.WORDPRESS,
-    name: "WordPress",
-    description: "Manage and publish content to your WordPress site.",
-    category: IntegrationCategory.API_KEY,
-  },
-  {
-    provider: IntegrationProvider.CANVA,
-    name: "Canva",
-    description: "Create and manage designs with Canva.",
-    category: IntegrationCategory.API_KEY,
-  },
-  {
-    provider: IntegrationProvider.OPEN_ROUTER,
-    name: "OpenRouter",
-    description: "Leverage various AI models for generative tasks.",
-    category: IntegrationCategory.API_KEY,
+    description: "Connect your LinkedIn account.",
+    icon: Globe,
   },
 ];
 
+const ListSkeleton = () => (
+  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+    {Array.from({ length: 2 }).map((_, i) => (
+      <Skeleton key={i} className="h-40 w-full" />
+    ))}
+  </div>
+);
+
 export function IntegrationList() {
-  const { useGetAll } = useApiResource("integrations/configurations", [
-    "integrations",
-  ]);
-  const { data, isLoading, isError } = useGetAll();
+  const { data: profile } = useGetProfile();
+  const { data: connections, isLoading, refetch } = useGetUserConnections();
+  const { data: configuredIntegrations } = useManageIntegrations(
+    profile?.workspaceId
+  ).useGetAll({ enabled: !!profile?.workspaceId });
+  const { openOAuthPopup } = useOAuth();
+  const [isConnecting, setIsConnecting] = useState<string | null>(null);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
-  const handleConnect = (
-    provider: IntegrationProvider,
-    workspaceId: string
-  ) => {
-    const authUrl = `/api/v1/integrations/connect/${provider.toLowerCase()}?workspaceId=${workspaceId}`;
-    const oauthWindow = window.open(
-      authUrl,
-      "oauth-window",
-      "width=600,height=700"
-    );
+  const disconnectMutation = useApiMutation({
+    mutationFn: (provider: string) =>
+      api.delete(`/users/me/connections/${provider}`),
+    successMessage: "Integration disconnected successfully.",
+    onSuccess: () => {
+      refetch();
+    },
+  });
 
-    const handleMessage = (event: MessageEvent) => {
-      if (
-        event.origin === window.location.origin &&
-        event.data.source === "google-oauth-callback"
-      ) {
-        if (event.data.status === "success") {
-          toast.success(`${provider} account connected successfully!`);
-        } else {
-          toast.error(`Connection failed: ${event.data.message}`);
-        }
-        window.removeEventListener("message", handleMessage);
-        oauthWindow?.close();
-      }
-    };
-
-    window.addEventListener("message", handleMessage);
+  const handleConnect = async (provider: string) => {
+    if (!profile?.workspaceId) return;
+    setIsConnecting(provider);
+    try {
+      await openOAuthPopup(provider, profile.workspaceId);
+      await refetch();
+    } finally {
+      setIsConnecting(null);
+    }
   };
 
-  if (isLoading) return <Skeleton className="h-48 w-full" />;
-  if (isError) return <div>Failed to load integration statuses.</div>;
+  if (isLoading) {
+    return <ListSkeleton />;
+  }
 
-  const connectedProviders = new Set(data?.data?.map((d: any) => d.provider));
-
-  // A bit of a hack until workspace selection is global
-  const workspaceId = data?.data?.[0]?.workspaceId || "default";
+  const connectedProviders = new Set(connections?.map((c) => c.provider));
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {INTEGRATIONS.map((integration) => {
-        const isConnected = connectedProviders.has(integration.provider);
-        return (
-          <Card key={integration.provider}>
-            <CardHeader>
-              <CardTitle className="text-lg">{integration.name}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground mb-4 text-sm">
-                {integration.description}
-              </p>
+    <div className="space-y-8">
+      <div>
+        <h3 className="text-lg font-semibold">Personal Connections</h3>
+        <p className="text-muted-foreground text-sm">
+          Connect your personal accounts to enable integrations.
+        </p>
+        <div className="grid grid-cols-1 gap-4 pt-4 md:grid-cols-2">
+          {availableOAuthIntegrations.map((integration) => (
+            <IntegrationCard
+              key={integration.provider}
+              name={integration.name}
+              description={integration.description}
+              icon={integration.icon}
+              isConnected={connectedProviders.has(
+                integration.provider.toUpperCase()
+              )}
+              isConnecting={isConnecting === integration.provider}
+              onConnect={() => handleConnect(integration.provider)}
+              onDisconnect={() =>
+                disconnectMutation.mutate(integration.provider)
+              }
+            />
+          ))}
+        </div>
+      </div>
+      <div>
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold">Workspace Integrations</h3>
+            <p className="text-muted-foreground text-sm">
+              Configure API-key based integrations for your workspace.
+            </p>
+          </div>
+          <ResourceCrudDialog
+            isOpen={isCreateOpen}
+            onOpenChange={setIsCreateOpen}
+            trigger={
               <Button
-                className="w-full"
-                onClick={() => handleConnect(integration.provider, workspaceId)}
-                disabled={isConnected}
+                onClick={() => setIsCreateOpen(true)}
+                size="sm"
+                disabled={!profile?.workspaceId}
               >
-                {isConnected ? "Connected" : "Connect"}
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Integration
               </Button>
-            </CardContent>
-          </Card>
-        );
-      })}
+            }
+            title="Configure New Integration"
+            description="Set up a new API key-based integration for this workspace."
+            form={IntegrationForm}
+            formProps={{ workspaceId: profile?.workspaceId }}
+            resourcePath="integrations"
+            resourceKey={["integrations", profile?.workspaceId]}
+          />
+        </div>
+        <div className="grid grid-cols-1 gap-4 pt-4 md:grid-cols-2">
+          {configuredIntegrations?.data.map((integration: any) => (
+            <IntegrationCard
+              key={integration.id}
+              name={integration.friendlyName}
+              description={`Provider: ${integration.provider}`}
+              icon={MessageSquare}
+              isConnected={integration.isActive}
+            />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

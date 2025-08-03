@@ -12,7 +12,6 @@ import {
 import { Label } from "@/components/ui/label";
 import { ListTasksQuery } from "@/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useApiResource } from "@/hooks/useApiResource";
 import { MyTasksKanbanBoard } from "@/features/tasks/components/MyTasksKanbanBoard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -20,6 +19,7 @@ import { CheckSquare, PlusCircle } from "lucide-react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { Button } from "@/components/ui/button";
 import { CreateTaskForm } from "@/features/tasks/components/CreateTaskForm";
+import { useGetMyTasks } from "@/features/tasks/api/useGetMyTasks";
 
 const TaskListSkeleton = () => (
   <div className="space-y-2 pt-4">
@@ -85,15 +85,12 @@ export function MyTasksPage() {
     }
   }, [filter, sortBy, activeView, page]);
 
-  const { data, isLoading } = useApiResource("tasks/my-tasks", [
-    "myTasks",
-  ]).useGetAll(queryParams);
+  const { data, isLoading } = useGetMyTasks(queryParams);
   const handlePageChange = (newPage: number) => {
     if (newPage > 0 && newPage <= (data?.totalPages || 1)) {
       setPage(newPage);
     }
   };
-
   const emptyState = (
     <EmptyState
       icon={<CheckSquare className="text-primary h-10 w-10" />}

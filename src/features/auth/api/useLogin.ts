@@ -15,7 +15,7 @@ export function useLogin() {
     mutationFn: login,
     onSuccess: (data) => {
       setAccessToken(data.accessToken);
-      navigate("/dashboard", { replace: true });
+      navigate("/home", { replace: true });
     },
   });
 }

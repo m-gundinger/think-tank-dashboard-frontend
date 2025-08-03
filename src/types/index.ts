@@ -15,7 +15,6 @@ import {
   AnnouncementSeverity,
   SkillCategory,
 } from "./api";
-
 export type AnyValue = Record<string, any>;
 
 export interface PaginatedResponse<T> {
@@ -42,6 +41,7 @@ export interface User {
   birthday?: string | null;
   socialLinks?: SocialLink[];
   skills?: Skill[];
+  workspaceId?: string;
 }
 
 export interface RoleWithPermissions {
@@ -265,12 +265,12 @@ export interface Person {
   socialLinks: SocialLink[];
   skills: Skill[];
   roles: string[];
-  companies: {
-    companyId: string;
-    company: { name: string };
+  organizations: {
+    organizationId: string;
+    organization: { name: string };
     role: string | null;
   }[];
-  roleInCompany?: string | null;
+  roleInOrganization?: string | null;
 }
 
 export interface Organization {
@@ -280,7 +280,6 @@ export interface Organization {
   domain: string | null;
   people: Person[];
 }
-export type Company = Organization;
 
 export interface Deal {
   id: string;
@@ -288,12 +287,14 @@ export interface Deal {
   value: number;
   stageId: string;
   stage: DealStage;
-  company: {
+  organization: {
     id: string;
     name: string;
   };
   ownerId: string;
   ownerName: string;
+  workspaceId: string;
+  projectId: string | null;
 }
 
 export interface DealStage {
@@ -312,6 +313,19 @@ export interface SocialLink {
   id: string;
   provider: SocialProvider;
   url: string;
+}
+
+export interface Report {
+  id: string;
+  title: string;
+  summary: string | null;
+  content: any | null;
+  isPublic: boolean;
+  status: PublicationStatus;
+  ownerId: string;
+  workspaceId: string | null;
+  projectId: string | null;
+  taskId: string | null;
 }
 
 export interface ListTasksQuery {

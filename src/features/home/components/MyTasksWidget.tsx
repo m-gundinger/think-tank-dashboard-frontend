@@ -1,13 +1,10 @@
 import { DashboardWidget } from "./DashboardWidget";
-import { useApiResource } from "@/hooks/useApiResource";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Task } from "@/types";
+import { useGetMyTasks } from "@/features/tasks/api/useGetMyTasks";
 
 export function MyTasksWidget() {
-  const { data, isLoading } = useApiResource<Task>("tasks/my-tasks", [
-    "myTasks",
-  ]).useGetAll();
+  const { data, isLoading } = useGetMyTasks({ limit: 5 });
 
   return (
     <DashboardWidget title="My Open Tasks">

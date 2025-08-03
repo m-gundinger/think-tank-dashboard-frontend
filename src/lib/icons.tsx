@@ -29,7 +29,6 @@ export const ICONS: Record<string, LucideIcon> = {
   Publication: FileText,
   User: User,
   Person: Contact,
-  Company: Building2,
   Organization: Building2,
   Deal: Handshake,
   KnowledgeBase: BookOpen,

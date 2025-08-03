@@ -1,6 +1,6 @@
 import { useApiResource } from "@/hooks/useApiResource";
 
-export function useManageCompanies() {
+export function useManageOrganizations() {
   const resource = useApiResource("organizations", ["organizations"]);
   return resource;
 }

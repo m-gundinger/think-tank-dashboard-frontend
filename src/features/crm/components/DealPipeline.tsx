@@ -18,6 +18,7 @@ import { useManageDeals } from "../api/useManageDeals";
 
 interface DealPipelineProps {
   onDealSelect: (dealId: string) => void;
+  projectId?: string;
 }
 
 const PipelineSkeleton = () => (
@@ -32,10 +33,11 @@ const PipelineSkeleton = () => (
   </div>
 );
 
-export function DealPipeline({ onDealSelect }: DealPipelineProps) {
+export function DealPipeline({ onDealSelect, projectId }: DealPipelineProps) {
   const [activeDeal, setActiveDeal] = useState<Deal | null>(null);
-  const { data: stagesData, isLoading: isLoadingStages } =
-    useManageDealStages().useGetAll();
+  const { data: stagesData, isLoading: isLoadingStages } = useManageDealStages(
+    projectId
+  ).useGetAll({ enabled: !!projectId });
   const { data: dealsData, isLoading: isLoadingDeals } =
     useManageDeals().useGetAll();
   const { useUpdate } = useManageDeals();
@@ -59,6 +61,7 @@ export function DealPipeline({ onDealSelect }: DealPipelineProps) {
     });
     return grouped;
   }, [stagesData, dealsData]);
+
   const onDragStart = (event: DragStartEvent) => {
     if (event.active.data.current?.type === "Deal") {
       setActiveDeal(event.active.data.current.deal);
@@ -72,7 +75,11 @@ export function DealPipeline({ onDealSelect }: DealPipelineProps) {
 
     const deal = active.data.current?.deal as Deal;
     const targetStageId = over.id as string;
-    if (deal && targetStageId && deal.stageId !== targetStageId) {
+
+    const isMovingToDifferentColumn =
+      deal.stageId !== targetStageId && over.data.current?.type === "DealStage";
+
+    if (deal && isMovingToDifferentColumn) {
       updateDealMutation.mutate({
         id: deal.id,
         data: { stageId: targetStageId },
@@ -82,6 +89,17 @@ export function DealPipeline({ onDealSelect }: DealPipelineProps) {
 
   if (isLoadingStages || isLoadingDeals) {
     return <PipelineSkeleton />;
+  }
+
+  if (!stagesData?.data) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <p className="text-muted-foreground">
+          Could not load deal stages. Please select a project context if
+          available.
+        </p>
+      </div>
+    );
   }
 
   return (

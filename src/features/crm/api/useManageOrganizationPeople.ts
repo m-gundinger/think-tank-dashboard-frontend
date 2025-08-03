@@ -2,17 +2,17 @@ import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
 
 interface AddPersonParams {
-  companyId: string;
+  organizationId: string;
   personId: string;
   role?: string;
 }
 
-async function addPersonToCompany({
-  companyId,
+async function addPersonToOrganization({
+  organizationId,
   personId,
   role,
 }: AddPersonParams) {
-  const { data } = await api.post(`/organizations/${companyId}/people`, {
+  const { data } = await api.post(`/organizations/${organizationId}/people`, {
     personId,
     role,
   });
@@ -20,39 +20,41 @@ async function addPersonToCompany({
 }
 
 interface RemovePersonParams {
-  companyId: string;
+  organizationId: string;
   personId: string;
 }
 
-async function removePersonFromCompany({
-  companyId,
+async function removePersonFromOrganization({
+  organizationId,
   personId,
 }: RemovePersonParams) {
   const { data } = await api.delete(
-    `/organizations/${companyId}/people/${personId}`
+    `/organizations/${organizationId}/people/${personId}`
   );
   return data;
 }
 
-export function useManageCompanyPeople(companyId: string) {
+export function useManageOrganizationPeople(organizationId: string) {
   const addPersonMutation = useApiMutation<
     any,
-    Omit<AddPersonParams, "companyId">
+    Omit<AddPersonParams, "organizationId">
   >({
-    mutationFn: (params) => addPersonToCompany({ companyId, ...params }),
-    successMessage: "Person added to company.",
+    mutationFn: (params) =>
+      addPersonToOrganization({ organizationId, ...params }),
+    successMessage: "Person added to organization.",
     invalidateQueries: [
       ["organizations"],
-      ["organization", companyId],
+      ["organization", organizationId],
       ["people"],
     ],
   });
   const removePersonMutation = useApiMutation<any, string>({
-    mutationFn: (personId) => removePersonFromCompany({ companyId, personId }),
-    successMessage: "Person removed from company.",
+    mutationFn: (personId) =>
+      removePersonFromOrganization({ organizationId, personId }),
+    successMessage: "Person removed from organization.",
     invalidateQueries: [
       ["organizations"],
-      ["organization", companyId],
+      ["organization", organizationId],
       ["people"],
     ],
   });

@@ -1,8 +1,9 @@
 import { useApiResource } from "@/hooks/useApiResource";
 
-export function useManageIntegrations() {
-  const resource = useApiResource("integrations/configurations", [
+export function useManageIntegrations(workspaceId?: string) {
+  const resource = useApiResource("integrations", [
     "integrations",
+    workspaceId,
   ]);
   return resource;
 }

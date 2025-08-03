@@ -7,24 +7,20 @@ import { useSocketSubscription } from "@/hooks/useSocketSubscription";
 import { useQueryClient } from "@tanstack/react-query";
 import { CommentItem } from "./CommentItem";
 import { RichTextEditor } from "@/components/ui/RichTextEditor";
+
 export function CommentSection({ workspaceId, projectId, taskId }: any) {
   const queryClient = useQueryClient();
-  const { data: commentsData, isLoading } = useGetComments(
-    workspaceId,
-    projectId,
-    taskId
-  );
-  const getUrl = () =>
-    projectId && workspaceId
-      ? `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/comments`
-      : `/tasks/${taskId}/comments`;
+  const { data: commentsData, isLoading } = useGetComments(taskId, "TASK");
 
   const addCommentMutation = useApiMutation({
-    mutationFn: (content: string) => api.post(getUrl(), { content }),
+    mutationFn: (content: string) =>
+      api.post("/comments", { content, entityId: taskId, entityType: "TASK" }),
     successMessage: "Comment posted.",
     invalidateQueries: [["comments", taskId]],
   });
+
   const [newComment, setNewComment] = useState("");
+
   const handleCommentUpdate = useCallback(
     (event: any) => {
       const { action, comment } = event.payload;
@@ -41,9 +37,11 @@ export function CommentSection({ workspaceId, projectId, taskId }: any) {
     },
     [queryClient, taskId]
   );
+
   useSocketSubscription("Project", projectId, {
     COMMENT_UPDATED: handleCommentUpdate,
   });
+
   const isCommentEmpty = () => {
     if (!newComment) return true;
     const cleaned = newComment.replace(/<p><\/p>/g, "").trim();
@@ -65,13 +63,7 @@ export function CommentSection({ workspaceId, projectId, taskId }: any) {
       <h3 className="text-sm font-semibold">Comments</h3>
       <div className="space-y-4">
         {commentsData?.data?.map((comment: any) => (
-          <CommentItem
-            key={comment.id}
-            comment={comment}
-            workspaceId={workspaceId}
-            projectId={projectId}
-            taskId={taskId}
-          />
+          <CommentItem key={comment.id} comment={comment} taskId={taskId} />
         ))}
       </div>
       <div className="space-y-2">

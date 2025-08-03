@@ -2,36 +2,33 @@ import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { FormInput } from "@/components/form/FormFields";
-import { useManageCompanies } from "../api/useManageCompanies";
+import { useManageReports } from "../api/useManageReports";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
-import { nameSchema, descriptionSchema } from "@/lib/schemas";
+import { nameSchema } from "@/lib/schemas";
 
-const companySchema = z.object({
-  name: nameSchema("Company name"),
-  description: descriptionSchema,
-  domain: z.string().optional().nullable(),
+const reportSchema = z.object({
+  title: nameSchema("Report"),
+  // Additional fields for configuration can be added here later
 });
-type CompanyFormValues = z.infer<typeof companySchema>;
+type ReportFormValues = z.infer<typeof reportSchema>;
 
-interface CompanyFormProps {
+interface ReportFormProps {
   initialData?: any;
   onSuccess?: () => void;
 }
 
-export function CompanyForm({ initialData, onSuccess }: CompanyFormProps) {
-  const { useCreate, useUpdate } = useManageCompanies();
+export function ReportForm({ initialData, onSuccess }: ReportFormProps) {
+  const { useCreate, useUpdate } = useManageReports();
   const isEditMode = !!initialData;
   const createMutation = useCreate();
   const updateMutation = useUpdate();
   const mutation = isEditMode ? updateMutation : createMutation;
-  const methods = useForm<CompanyFormValues>({
-    resolver: zodResolver(companySchema),
+  const methods = useForm<ReportFormValues>({
+    resolver: zodResolver(reportSchema),
     defaultValues: initialData || {
-      name: "",
-      description: "",
-      domain: "",
+      title: "",
     },
   });
   useEffect(() => {
@@ -39,7 +36,7 @@ export function CompanyForm({ initialData, onSuccess }: CompanyFormProps) {
       methods.reset(initialData);
     }
   }, [initialData, methods]);
-  async function onSubmit(values: CompanyFormValues) {
+  async function onSubmit(values: ReportFormValues) {
     if (isEditMode) {
       await updateMutation.mutateAsync(
         { id: initialData.id, data: values },
@@ -59,16 +56,10 @@ export function CompanyForm({ initialData, onSuccess }: CompanyFormProps) {
     <FormProvider {...methods}>
       <Form {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
-          <FormInput name="name" label="Company Name" placeholder="Acme Inc." />
           <FormInput
-            name="domain"
-            label="Website Domain (Optional)"
-            placeholder="acme.com"
-          />
-          <FormInput
-            name="description"
-            label="Description (Optional)"
-            placeholder="A short summary of the company"
+            name="title"
+            label="Report Title"
+            placeholder="e.g., Q3 Project Velocity"
           />
           <Button
             type="submit"
@@ -79,7 +70,7 @@ export function CompanyForm({ initialData, onSuccess }: CompanyFormProps) {
               ? "Saving..."
               : isEditMode
                 ? "Save Changes"
-                : "Create Company"}
+                : "Create Report"}
           </Button>
         </form>
       </Form>

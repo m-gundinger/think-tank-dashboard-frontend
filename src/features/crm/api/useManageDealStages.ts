@@ -1,6 +1,19 @@
 import { useApiResource } from "@/hooks/useApiResource";
+import { DealStage } from "@/types";
 
-export function useManageDealStages() {
-  const resource = useApiResource("deal-stages", ["dealStages"]);
-  return resource;
+type DealStageQuery = {
+  projectId?: string;
+};
+
+export function useManageDealStages(projectId?: string) {
+  const resource = useApiResource<DealStage, DealStageQuery>("deal-stages", [
+    "dealStages",
+    projectId,
+  ]);
+
+  const useGetAll = (options: { enabled?: boolean } = {}) => {
+    return resource.useGetAll({ projectId, ...options });
+  };
+
+  return { ...resource, useGetAll };
 }

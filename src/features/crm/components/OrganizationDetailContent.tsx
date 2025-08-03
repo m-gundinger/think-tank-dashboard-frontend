@@ -1,8 +1,8 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Globe } from "lucide-react";
 import { RichTextOutput } from "@/components/ui/RichTextOutput";
-import { Company } from "@/types";
-import { ManageCompanyPeople } from "./ManageCompanyPeople";
+import { Organization } from "@/types";
+import { ManageOrganizationPeople } from "./ManageOrganizationPeople";
 import { InteractionTimeline } from "./InteractionTimeline";
 
 function InfoItem({
@@ -42,31 +42,35 @@ function InfoItem({
   return <div className="p-2">{content}</div>;
 }
 
-export function CompanyDetailContent({ company }: { company: Company }) {
+export function OrganizationDetailContent({
+  organization,
+}: {
+  organization: Organization;
+}) {
   return (
     <div className="space-y-6">
       <div className="flex flex-col items-center space-y-2 text-center">
         <Avatar className="h-24 w-24 border">
           <AvatarFallback className="text-4xl">
-            {company.name?.charAt(0)}
+            {organization.name?.charAt(0)}
           </AvatarFallback>
         </Avatar>
         <div>
-          <h2 className="text-2xl font-bold">{company.name}</h2>
-          <p className="text-muted-foreground text-sm">{company.domain}</p>
+          <h2 className="text-2xl font-bold">{organization.name}</h2>
+          <p className="text-muted-foreground text-sm">{organization.domain}</p>
         </div>
       </div>
 
       <hr />
 
-      {company.description && (
+      {organization.description && (
         <>
           <div className="space-y-2 px-2">
             <h3 className="text-muted-foreground text-sm font-semibold">
               About
             </h3>
             <div className="prose prose-sm dark:prose-invert max-w-none">
-              <RichTextOutput html={company.description} />
+              <RichTextOutput html={organization.description} />
             </div>
           </div>
           <hr />
@@ -81,19 +85,21 @@ export function CompanyDetailContent({ company }: { company: Company }) {
           <InfoItem
             icon={Globe}
             label="Website"
-            value={company.domain}
-            href={company.domain ? `https://${company.domain}` : undefined}
+            value={organization.domain}
+            href={
+              organization.domain ? `https://${organization.domain}` : undefined
+            }
           />
         </div>
       </div>
       <hr />
 
       <div className="px-2">
-        <ManageCompanyPeople company={company} />
+        <ManageOrganizationPeople organization={organization} />
       </div>
       <hr />
       <div className="px-2">
-        <InteractionTimeline companyId={company.id} />
+        <InteractionTimeline organizationId={organization.id} />
       </div>
     </div>
   );

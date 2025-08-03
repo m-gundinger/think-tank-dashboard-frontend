@@ -1,14 +1,16 @@
 import { useApiResource } from "@/hooks/useApiResource";
 
 export function useGetActivities(workspaceId?: string, projectId?: string) {
-  const resourceUrl =
-    workspaceId && projectId
-      ? `/workspaces/${workspaceId}/projects/${projectId}/activities`
+  const resourceUrl = projectId
+    ? `/workspaces/${workspaceId}/projects/${projectId}/activities`
+    : workspaceId
+      ? `/workspaces/${workspaceId}/activities`
       : "/activities";
 
-  const resourceKey =
-    workspaceId && projectId
-      ? ["activities", projectId]
+  const resourceKey = projectId
+    ? ["activities", projectId]
+    : workspaceId
+      ? ["activities", workspaceId]
       : ["activities", "global"];
 
   return useApiResource(resourceUrl, resourceKey);

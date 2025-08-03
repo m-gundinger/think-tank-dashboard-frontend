@@ -1,5 +1,5 @@
 import { useApiResource } from "@/hooks/useApiResource";
-import { useManageCompanyPeople } from "../api/useManageCompanyPeople";
+import { useManageOrganizationPeople } from "../api/useManageOrganizationPeople";
 import {
   Command,
   CommandEmpty,
@@ -17,13 +17,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Check, UserPlus, XIcon } from "lucide-react";
 import { getAbsoluteUrl } from "@/lib/utils";
-import { Company, Person } from "@/types";
+import { Organization, Person } from "@/types";
 
-interface ManageCompanyPeopleProps {
-  company: Company;
+interface ManageOrganizationPeopleProps {
+  organization: Organization;
 }
 
-export function ManageCompanyPeople({ company }: ManageCompanyPeopleProps) {
+export function ManageOrganizationPeople({
+  organization,
+}: ManageOrganizationPeopleProps) {
   const { data: peopleData, isLoading: isLoadingPeople } = useApiResource(
     "people",
     ["people"]
@@ -32,8 +34,8 @@ export function ManageCompanyPeople({ company }: ManageCompanyPeopleProps) {
     addPerson,
     removePerson,
     isLoading: isMutating,
-  } = useManageCompanyPeople(company.id);
-  const memberIds = new Set(company.people.map((p) => p.id));
+  } = useManageOrganizationPeople(organization.id);
+  const memberIds = new Set(organization.people.map((p) => p.id));
   const availablePeople =
     peopleData?.data.filter((person: any) => !memberIds.has(person.id)) || [];
   return (
@@ -41,8 +43,8 @@ export function ManageCompanyPeople({ company }: ManageCompanyPeopleProps) {
       <div>
         <h4 className="font-semibold">Team Members</h4>
         <div className="mt-2 space-y-2">
-          {company.people.length > 0 ? (
-            company.people.map((person: Person) => (
+          {organization.people.length > 0 ? (
+            organization.people.map((person: Person) => (
               <div
                 key={person.id}
                 className="flex items-center justify-between"
@@ -57,7 +59,7 @@ export function ManageCompanyPeople({ company }: ManageCompanyPeopleProps) {
                   <div>
                     <p className="text-sm font-medium">{`${person.firstName} ${person.lastName}`}</p>
                     <p className="text-muted-foreground text-xs">
-                      {person.roleInCompany || "Member"}
+                      {person.roleInOrganization || "Member"}
                     </p>
                   </div>
                 </div>
@@ -74,7 +76,7 @@ export function ManageCompanyPeople({ company }: ManageCompanyPeopleProps) {
             ))
           ) : (
             <p className="text-muted-foreground text-sm">
-              No people linked to this company.
+              No people linked to this organization.
             </p>
           )}
         </div>

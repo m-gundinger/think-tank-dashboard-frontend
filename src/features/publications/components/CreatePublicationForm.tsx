@@ -6,16 +6,19 @@ import {
   FormInput,
   FormRichTextEditor,
   FormMultiSelectPopover,
+  FormSelect,
 } from "@/components/form/FormFields";
 import { useEffect } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PublicationStatus } from "@/types/api";
+import { useManagePublicationCategories } from "../api/useManagePublicationCategories";
 
 const publicationSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters."),
   excerpt: z.string().optional(),
   authorIds: z.array(z.string().uuid()),
+  categoryIds: z.array(z.string().uuid()).optional(),
   status: z.nativeEnum(PublicationStatus),
 });
 type PublicationFormValues = z.infer<typeof publicationSchema>;
@@ -31,11 +34,14 @@ export function CreatePublicationForm({
 }: PublicationFormProps) {
   const publicationResource = useApiResource("publications", ["publications"]);
   const userResource = useApiResource("admin/users", ["users"]);
+  const categoryResource = useManagePublicationCategories();
+
   const isEditMode = !!initialData;
   const createMutation = publicationResource.useCreate();
   const updateMutation = publicationResource.useUpdate();
   const mutation = isEditMode ? updateMutation : createMutation;
   const { data: usersData } = userResource.useGetAll({});
+  const { data: categoriesData } = categoryResource.useGetAll();
 
   const methods = useForm<PublicationFormValues>({
     resolver: zodResolver(publicationSchema),
@@ -43,6 +49,7 @@ export function CreatePublicationForm({
       title: "",
       excerpt: "",
       authorIds: [],
+      categoryIds: [],
       status: PublicationStatus.DRAFT,
     },
   });
@@ -51,6 +58,7 @@ export function CreatePublicationForm({
       methods.reset({
         ...initialData,
         authorIds: initialData.authors?.map((a: any) => a.id) || [],
+        categoryIds: initialData.categories?.map((c: any) => c.id) || [],
       });
     }
   }, [initialData, isEditMode, methods]);
@@ -70,6 +78,11 @@ export function CreatePublicationForm({
     }
   }
 
+  const statusOptions = Object.values(PublicationStatus).map((s) => ({
+    value: s,
+    label: s.charAt(0) + s.slice(1).toLowerCase(),
+  }));
+
   return (
     <FormProvider {...methods}>
       <Form {...methods}>
@@ -85,6 +98,18 @@ export function CreatePublicationForm({
             label="Authors"
             placeholder="Select authors..."
             options={usersData?.data || []}
+          />
+          <FormMultiSelectPopover
+            name="categoryIds"
+            label="Categories"
+            placeholder="Select categories..."
+            options={categoriesData?.data || []}
+          />
+          <FormSelect
+            name="status"
+            label="Status"
+            placeholder="Select status"
+            options={statusOptions}
           />
           <Button
             type="submit"

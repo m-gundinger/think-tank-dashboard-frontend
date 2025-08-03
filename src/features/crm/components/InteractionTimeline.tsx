@@ -11,14 +11,14 @@ const interactionIcons: Record<string, React.ElementType> = {
 
 export function InteractionTimeline({
   personId,
-  companyId,
+  organizationId,
   dealId,
 }: {
   personId?: string;
-  companyId?: string;
+  organizationId?: string;
   dealId?: string;
 }) {
-  const queryParams = { personId, companyId, dealId };
+  const queryParams = { personId, organizationId, dealId };
   const { useGetAll } = useManageInteractions();
   const { data, isLoading } = useGetAll(queryParams);
 

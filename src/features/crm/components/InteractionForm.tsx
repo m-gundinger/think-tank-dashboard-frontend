@@ -21,14 +21,14 @@ type InteractionFormValues = z.infer<typeof interactionSchema>;
 
 interface InteractionFormProps {
   personId?: string;
-  companyId?: string;
+  organizationId?: string;
   dealId?: string;
   onSuccess?: () => void;
 }
 
 export function InteractionForm({
   personId,
-  companyId,
+  organizationId,
   dealId,
   onSuccess,
 }: InteractionFormProps) {
@@ -45,7 +45,7 @@ export function InteractionForm({
   });
 
   async function onSubmit(values: InteractionFormValues) {
-    const payload = { ...values, personId, companyId, dealId };
+    const payload = { ...values, personId, organizationId, dealId };
     await createMutation.mutateAsync(payload, {
       onSuccess: () => {
         methods.reset();

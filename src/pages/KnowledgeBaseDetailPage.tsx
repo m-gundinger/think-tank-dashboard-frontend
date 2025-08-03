@@ -1,4 +1,5 @@
 import { useParams } from "react-router-dom";
+import { KnowledgeBaseDetailView } from "@/features/knowledge-base/components/KnowledgeBaseDetailView";
 
 export function KnowledgeBaseDetailPage() {
   const { workspaceId, knowledgeBaseId } = useParams<{
@@ -10,14 +11,10 @@ export function KnowledgeBaseDetailPage() {
     return <div>Missing ID parameters</div>;
   }
 
-  // Implementation of the detail view will go here
-  // For now, it's a placeholder.
-
   return (
-    <div>
-      <h1>Knowledge Base: {knowledgeBaseId}</h1>
-      <p>Workspace: {workspaceId}</p>
-      {/* Components for listing pages and viewing a page will be added here */}
-    </div>
+    <KnowledgeBaseDetailView
+      workspaceId={workspaceId}
+      knowledgeBaseId={knowledgeBaseId}
+    />
   );
 }

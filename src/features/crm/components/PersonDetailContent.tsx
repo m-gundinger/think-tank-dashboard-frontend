@@ -111,20 +111,20 @@ export function PersonDetailContent({ person }: { person: any }) {
         </div>
       </div>
 
-      {person.companies?.length > 0 && (
+      {person.organizations?.length > 0 && (
         <>
           <hr />
           <div className="space-y-4">
             <h3 className="text-muted-foreground px-2 text-sm font-semibold">
-              Companies
+              Organizations
             </h3>
             <div className="space-y-1">
-              {person.companies.map((link: any) => (
+              {person.organizations.map((link: any) => (
                 <InfoItem
-                  key={link.companyId}
+                  key={link.organizationId}
                   icon={Building2}
                   label={link.role || "Member"}
-                  value={link.company.name}
+                  value={link.organization.name}
                 />
               ))}
             </div>

@@ -7,12 +7,15 @@ import {
 } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
-interface CompanyCardProps {
-  company: any;
+interface OrganizationCardProps {
+  organization: any;
   onSelect: () => void;
 }
 
-export function CompanyCard({ company, onSelect }: CompanyCardProps) {
+export function OrganizationCard({
+  organization,
+  onSelect,
+}: OrganizationCardProps) {
   return (
     <Card
       className="hover:border-primary cursor-pointer transition-colors"
@@ -20,18 +23,18 @@ export function CompanyCard({ company, onSelect }: CompanyCardProps) {
     >
       <CardHeader className="flex flex-row items-center gap-4">
         <Avatar className="h-12 w-12">
-          <AvatarFallback>{company.name?.charAt(0)}</AvatarFallback>
+          <AvatarFallback>{organization.name?.charAt(0)}</AvatarFallback>
         </Avatar>
         <div className="flex-1">
-          <CardTitle className="text-base">{company.name}</CardTitle>
+          <CardTitle className="text-base">{organization.name}</CardTitle>
           <CardDescription className="text-xs">
-            {company.domain}
+            {organization.domain}
           </CardDescription>
         </div>
       </CardHeader>
       <CardContent>
         <p className="text-muted-foreground truncate text-sm">
-          {company.description || "No description."}
+          {organization.description || "No description."}
         </p>
       </CardContent>
     </Card>

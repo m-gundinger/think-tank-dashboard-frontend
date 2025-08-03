@@ -5,11 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Trash2, Edit } from "lucide-react";
 import { useState } from "react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
-import { CompanyForm } from "./CompanyForm";
-import { CompanyDetailContent } from "./CompanyDetailContent";
+import { OrganizationForm } from "./OrganizationForm";
+import { OrganizationDetailContent } from "./OrganizationDetailContent";
 
-interface CompanyDetailPanelProps {
-  companyId: string | null;
+interface OrganizationDetailPanelProps {
+  organizationId: string | null;
   onOpenChange: (isOpen: boolean) => void;
 }
 
@@ -30,20 +30,23 @@ const PanelSkeleton = () => (
     <Skeleton className="h-12 w-full" />
   </div>
 );
-export function CompanyDetailPanel({
-  companyId,
+export function OrganizationDetailPanel({
+  organizationId,
   onOpenChange,
-}: CompanyDetailPanelProps) {
-  const companyResource = useApiResource("organizations", ["organizations"]);
+}: OrganizationDetailPanelProps) {
+  const organizationResource = useApiResource("organizations", [
+    "organizations",
+  ]);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const { data: company, isLoading } = companyResource.useGetOne(companyId);
-  const deleteMutation = companyResource.useDelete();
+  const { data: organization, isLoading } =
+    organizationResource.useGetOne(organizationId);
+  const deleteMutation = organizationResource.useDelete();
   const handleDelete = () => {
     if (
-      company &&
-      window.confirm(`Are you sure you want to delete ${company.name}?`)
+      organization &&
+      window.confirm(`Are you sure you want to delete ${organization.name}?`)
     ) {
-      deleteMutation.mutate(company.id, {
+      deleteMutation.mutate(organization.id, {
         onSuccess: () => {
           onOpenChange(false);
         },
@@ -53,14 +56,14 @@ export function CompanyDetailPanel({
 
   return (
     <>
-      <Sheet open={!!companyId} onOpenChange={onOpenChange}>
+      <Sheet open={!!organizationId} onOpenChange={onOpenChange}>
         <SheetContent className="flex w-full flex-col p-0 sm:max-w-lg">
           {isLoading ? (
             <PanelSkeleton />
-          ) : company ? (
+          ) : organization ? (
             <>
               <div className="flex-1 overflow-y-auto p-6">
-                <CompanyDetailContent company={company} />
+                <OrganizationDetailContent organization={organization} />
               </div>
               <SheetFooter className="bg-background mt-auto border-t p-4">
                 <div className="flex w-full justify-end gap-2">
@@ -83,7 +86,7 @@ export function CompanyDetailPanel({
             </>
           ) : (
             <div className="flex h-full items-center justify-center">
-              <p>Could not load company details.</p>
+              <p>Could not load organization details.</p>
             </div>
           )}
         </SheetContent>
@@ -91,12 +94,12 @@ export function CompanyDetailPanel({
       <ResourceCrudDialog
         isOpen={isEditDialogOpen}
         onOpenChange={setIsEditDialogOpen}
-        title="Edit Company"
-        description="Make changes to the company's details."
-        form={CompanyForm}
+        title="Edit Organization"
+        description="Make changes to the organization's details."
+        form={OrganizationForm}
         resourcePath="organizations"
         resourceKey={["organizations"]}
-        resourceId={company?.id}
+        resourceId={organization?.id}
       />
     </>
   );

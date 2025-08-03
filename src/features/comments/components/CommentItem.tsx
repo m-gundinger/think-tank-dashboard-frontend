@@ -15,39 +15,28 @@ import { RichTextOutput } from "@/components/ui/RichTextOutput";
 import { getAbsoluteUrl } from "@/lib/utils";
 interface CommentItemProps {
   comment: any;
-  workspaceId: string;
-  projectId: string;
   taskId: string;
 }
 
-export function CommentItem({
-  comment,
-  workspaceId,
-  projectId,
-  taskId,
-}: CommentItemProps) {
+export function CommentItem({ comment, taskId }: CommentItemProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const getUrl = (commentId?: string) => {
-    const base =
-      projectId && workspaceId
-        ? `/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/comments`
-        : `/tasks/${taskId}/comments`;
-    return commentId ? `${base}/${commentId}` : base;
-  };
+
   const updateCommentMutation = useApiMutation({
-    mutationFn: (data: { commentId: string; content: string }) =>
-      api.put(getUrl(data.commentId), { content: data.content }),
+    mutationFn: (data: { content: string }) =>
+      api.put(`/comments/${comment.id}`, data),
     successMessage: "Comment updated.",
     invalidateQueries: [["comments", taskId]],
   });
-  const deleteCommentMutation = useApiMutation({
-    mutationFn: (commentId: string) => api.delete(getUrl(commentId)),
+
+  const deleteCommentMutation = useApiMutation<void, string>({
+    mutationFn: (commentId: string) => api.delete(`/comments/${commentId}`),
     successMessage: "Comment deleted.",
     invalidateQueries: [["comments", taskId]],
   });
+
   const handleSave = (newContent: string) => {
     updateCommentMutation.mutate(
-      { commentId: comment.id, content: newContent },
+      { content: newContent },
       {
         onSuccess: () => setIsEditing(false),
       }
@@ -60,7 +49,7 @@ export function CommentItem({
     }
   };
 
-  const canEdit = true;
+  const canEdit = true; // Replace with actual permission check if needed
 
   return (
     <div className="flex items-start gap-3">

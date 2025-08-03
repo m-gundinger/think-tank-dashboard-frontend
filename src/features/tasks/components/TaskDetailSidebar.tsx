@@ -26,6 +26,8 @@ import { EditableField } from "@/components/ui/EditableField";
 import { RecurrenceSelector } from "./RecurrenceSelector";
 import { TaskTypeSelector } from "@/features/task-types/components/TaskTypeSelector";
 import { Task } from "@/types";
+import { TaskAttachments } from "./TaskAttachments";
+
 export function TaskDetailSidebar({
   task,
   workspaceId,
@@ -175,6 +177,11 @@ export function TaskDetailSidebar({
         projectId={projectId}
       />
       <TaskDocuments
+        task={task}
+        workspaceId={workspaceId}
+        projectId={projectId}
+      />
+      <TaskAttachments
         task={task}
         workspaceId={workspaceId}
         projectId={projectId}
