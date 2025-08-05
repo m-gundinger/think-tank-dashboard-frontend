@@ -20,7 +20,7 @@ async function addLink({
   const url =
     projectId && workspaceId
       ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${sourceTaskId}/links`
-      : `standalone-tasks/${sourceTaskId}/links`;
+      : `tasks/${sourceTaskId}/links`;
   const { data } = await api.post(url, { targetTaskId, type });
   return data;
 }
@@ -41,7 +41,7 @@ async function removeLink({
   const url =
     projectId && workspaceId
       ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/links/${linkId}`
-      : `standalone-tasks/${taskId}/links/${linkId}`;
+      : `tasks/${taskId}/links/${linkId}`;
   const { data } = await api.delete(url);
   return data;
 }
@@ -64,7 +64,7 @@ async function updateLink({
   const url =
     projectId && workspaceId
       ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/links/${linkId}`
-      : `standalone-tasks/${taskId}/links/${linkId}`;
+      : `tasks/${taskId}/links/${linkId}`;
   const { data } = await api.patch(url, { type });
   return data;
 }

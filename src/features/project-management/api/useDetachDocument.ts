@@ -20,7 +20,7 @@ async function detachDocument({
   const url =
     projectId && workspaceId
       ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/documents/${documentId}/${type}`
-      : `standalone-tasks/${taskId}/documents/${documentId}/${type}`;
+      : `tasks/${taskId}/documents/${documentId}/${type}`;
   await api.delete(url);
 }
 

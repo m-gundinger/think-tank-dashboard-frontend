@@ -8,7 +8,7 @@ export function useManageTimeLogs(
   const resourceUrl =
     workspaceId && projectId
       ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/timelogs`
-      : `standalone-tasks/${taskId}/timelogs`;
+      : `tasks/${taskId}/timelogs`;
 
   const resourceKey = ["timeLogs", taskId];
 

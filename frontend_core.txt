@@ -80,7 +80,6 @@ import { JobMonitoringPage } from "./pages/admin/JobMonitoringPage";
 import { SystemStatusPage } from "./pages/admin/SystemStatusPage";
 import { CrmPage } from "./pages/CrmPage";
 import { MyTasksPage } from "./pages/MyTasksPage";
-import { WorkspaceDashboardListPage } from "./pages/WorkspaceDashboardListPage";
 import { ProjectGoalsPage } from "./pages/ProjectGoalsPage";
 import { HomePage } from "./pages/HomePage";
 import { ChatPage } from "./pages/ChatPage";
@@ -96,8 +95,6 @@ import { ActivitiesPage } from "./pages/analytics/ActivitiesPage";
 import { DashboardsPage } from "./pages/analytics/DashboardsPage";
 import { ReportingPage } from "./pages/analytics/ReportingPage";
 import { ReportsPage } from "./pages/analytics/ReportsPage";
-import { WorkspaceActivityLogPage } from "./pages/WorkspaceActivityLogPage";
-import { WorkspaceReportingPage } from "./pages/WorkspaceReportingPage";
 
 function App() {
   return (
@@ -136,10 +133,13 @@ function App() {
             <Route index element={<Navigate to="projects" replace />} />
             <Route path="projects" element={<ProjectListPage />} />
             <Route path="teams" element={<TeamsPage />} />
-            <Route path="dashboards" element={<WorkspaceDashboardListPage />} />
             <Route path="attachments" element={<WorkspaceAttachmentsPage />} />
-            <Route path="reporting" element={<WorkspaceReportingPage />} />
-            <Route path="activity" element={<WorkspaceActivityLogPage />} />
+            <Route path="analytics" element={<AnalyticsLayout />}>
+              <Route index element={<Navigate to="dashboards" replace />} />
+              <Route path="dashboards" element={<DashboardsPage />} />
+              <Route path="reporting" element={<ReportingPage />} />
+              <Route path="activity" element={<ActivitiesPage />} />
+            </Route>
           </Route>
           <Route
             path="workspaces/:workspaceId/knowledge-bases/:knowledgeBaseId"
@@ -173,7 +173,7 @@ function App() {
             <Route path="attachments" element={<ProjectAttachmentsPage />} />
           </Route>
           <Route
-            path="workspaces/:workspaceId/projects/:projectId/:dashboardId"
+            path="workspaces/:workspaceId/projects/:projectId/dashboards/:dashboardId"
             element={<DashboardDetailPage />}
           />
           <Route path="profile" element={<ProfilePage />} />
@@ -10961,7 +10961,7 @@ async function attachDocument({
   const url =
     projectId && workspaceId
       ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/documents`
-      : `standalone-tasks/${taskId}/documents`;
+      : `tasks/${taskId}/documents`;
 
   const { data } = await api.post(url, formData, {
     headers: { "Content-Type": "multipart/form-data" },
@@ -11135,7 +11135,7 @@ async function detachDocument({
   const url =
     projectId && workspaceId
       ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/documents/${documentId}/${type}`
-      : `standalone-tasks/${taskId}/documents/${documentId}/${type}`;
+      : `tasks/${taskId}/documents/${documentId}/${type}`;
   await api.delete(url);
 }
 
@@ -11157,9 +11157,7 @@ import { useApiResource } from "@/hooks/useApiResource";
 import { ListTasksQuery, Task } from "@/types";
 
 export function useGetMyTasks(query: ListTasksQuery) {
-  const resource = useApiResource<Task>("standalone-tasks/my-tasks", [
-    "myTasks",
-  ]);
+  const resource = useApiResource<Task>("tasks/my-tasks", ["myTasks"]);
   return resource.useGetAll(query);
 }
 // FILE: src/features/project-management/api/useGetProjectMembers.ts
@@ -11666,7 +11664,7 @@ async function attachDocument({
   const url =
     projectId && workspaceId
       ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/documents`
-      : `standalone-tasks/${taskId}/documents`;
+      : `tasks/${taskId}/documents`;
 
   const { data } = await api.post(url, formData, {
     headers: { "Content-Type": "multipart/form-data" },
@@ -11706,7 +11704,7 @@ async function detachDocument({
   const url =
     projectId && workspaceId
       ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/documents/${documentId}/${type}`
-      : `standalone-tasks/${taskId}/documents/${documentId}/${type}`;
+      : `tasks/${taskId}/documents/${documentId}/${type}`;
   await api.delete(url);
 }
 
@@ -11738,7 +11736,7 @@ async function linkDocument(params: LinkDocumentParams): Promise<any> {
   const url =
     projectId && workspaceId
       ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/documents`
-      : `standalone-tasks/${taskId}/documents`;
+      : `tasks/${taskId}/documents`;
 
   // Sending as JSON, not multipart/form-data
   const { data } = await api.post(url, linkData, {
@@ -11786,7 +11784,7 @@ async function addLink({
   const url =
     projectId && workspaceId
       ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${sourceTaskId}/links`
-      : `standalone-tasks/${sourceTaskId}/links`;
+      : `tasks/${sourceTaskId}/links`;
   const { data } = await api.post(url, { targetTaskId, type });
   return data;
 }
@@ -11807,7 +11805,7 @@ async function removeLink({
   const url =
     projectId && workspaceId
       ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/links/${linkId}`
-      : `standalone-tasks/${taskId}/links/${linkId}`;
+      : `tasks/${taskId}/links/${linkId}`;
   const { data } = await api.delete(url);
   return data;
 }
@@ -11830,7 +11828,7 @@ async function updateLink({
   const url =
     projectId && workspaceId
       ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/links/${linkId}`
-      : `standalone-tasks/${taskId}/links/${linkId}`;
+      : `tasks/${taskId}/links/${linkId}`;
   const { data } = await api.patch(url, { type });
   return data;
 }
@@ -12014,7 +12012,7 @@ async function addWatcher({
   const url =
     workspaceId && projectId
       ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/watch`
-      : `standalone-tasks/${taskId}/watch`;
+      : `tasks/${taskId}/watch`;
   const { data } = await api.post(url);
   return data;
 }
@@ -12027,7 +12025,7 @@ async function removeWatcher({
   const url =
     workspaceId && projectId
       ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/watch`
-      : `standalone-tasks/${taskId}/watch`;
+      : `tasks/${taskId}/watch`;
   const { data } = await api.delete(url);
   return data;
 }
@@ -12069,7 +12067,7 @@ export function useManageTimeLogs(
   const resourceUrl =
     workspaceId && projectId
       ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/timelogs`
-      : `standalone-tasks/${taskId}/timelogs`;
+      : `tasks/${taskId}/timelogs`;
 
   const resourceKey = ["timeLogs", taskId];
 
@@ -12216,7 +12214,7 @@ async function updateMyTask({
   const url =
     workspaceId && projectId
       ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}`
-      : `standalone-tasks/${taskId}`;
+      : `tasks/${taskId}`;
   const { data } = await api.put(url, taskData);
   return data;
 }
@@ -12326,7 +12324,7 @@ async function updateTask({
   const url =
     workspaceId && projectId
       ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}`
-      : `standalone-tasks/${taskId}`;
+      : `tasks/${taskId}`;
   const { data } = await api.put(url, taskData);
   return data;
 }
@@ -13165,7 +13163,7 @@ export function CreateTaskForm({
   const taskResource = useApiResource(
     projectId
       ? `/workspaces/${workspaceId}/projects/${projectId}/tasks`
-      : "standalone-tasks",
+      : "tasks",
     projectId ? ["tasks", projectId] : ["myTasks"]
   );
 
@@ -23417,7 +23415,7 @@ export function WorkflowListPage() {
   );
 }
 // FILE: src/pages/analytics/ActivitiesPage.tsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ActivityLog } from "@/features/analytics/components/ActivityLog";
 import {
   Select,
@@ -23429,96 +23427,28 @@ import {
 import { useGetWorkspaces } from "@/features/workspaces/api/useGetWorkspaces";
 import { useGetProjects } from "@/features/project-management/api/useGetProjects";
 import { Label } from "@/components/ui/label";
+import { useParams } from "react-router-dom";
 
 export function ActivitiesPage() {
-  const [workspaceId, setWorkspaceId] = useState<string | undefined>();
-  const [projectId, setProjectId] = useState<string | undefined>();
-
-  const { data: workspacesData } = useGetWorkspaces();
-  const { data: projectsData } = useGetProjects(workspaceId);
-
-  const handleWorkspaceChange = (id: string) => {
-    setWorkspaceId(id === "all" ? undefined : id);
-    setProjectId(undefined);
-  };
-
-  const handleProjectChange = (id: string) => {
-    setProjectId(id === "all" ? undefined : id);
-  };
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-4">
-        <div className="w-64">
-          <Label>Filter by Workspace</Label>
-          <Select onValueChange={handleWorkspaceChange}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select a workspace..." />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Workspaces</SelectItem>
-              {workspacesData?.data.map((ws) => (
-                <SelectItem key={ws.id} value={ws.id}>
-                  {ws.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="w-64">
-          <Label>Filter by Project</Label>
-          <Select
-            onValueChange={handleProjectChange}
-            disabled={!workspaceId || !projectsData?.data}
-            value={projectId}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select a project..." />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Projects in Workspace</SelectItem>
-              {projectsData?.data.map((p) => (
-                <SelectItem key={p.id} value={p.id}>
-                  {p.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-      <ActivityLog scope={{ workspaceId, projectId }} />
-    </div>
+  const params = useParams<{ workspaceId?: string; projectId?: string }>();
+  const [workspaceId, setWorkspaceId] = useState<string | undefined>(
+    params.workspaceId
   );
-}
-
-// FILE: src/pages/analytics/DashboardsPage.tsx
-import { useState } from "react";
-import { DashboardList } from "@/features/analytics/components/DashboardList";
-import { DashboardForm } from "@/features/analytics/components/DashboardForm";
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
-import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useGetWorkspaces } from "@/features/workspaces/api/useGetWorkspaces";
-import { useGetProjects } from "@/features/project-management/api/useGetProjects";
-import { Label } from "@/components/ui/label";
-
-export function DashboardsPage() {
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [workspaceId, setWorkspaceId] = useState<string | undefined>();
-  const [projectId, setProjectId] = useState<string | undefined>();
+  const [projectId, setProjectId] = useState<string | undefined>(
+    params.projectId
+  );
 
   const { data: workspacesData } = useGetWorkspaces();
   const { data: projectsData } = useGetProjects(workspaceId);
 
+  useEffect(() => {
+    setWorkspaceId(params.workspaceId);
+    setProjectId(params.projectId);
+  }, [params.workspaceId, params.projectId]);
+
   const handleWorkspaceChange = (id: string) => {
-    setWorkspaceId(id === "all" ? undefined : id);
+    const newWorkspaceId = id === "all" ? undefined : id;
+    setWorkspaceId(newWorkspaceId);
     setProjectId(undefined);
   };
 
@@ -23526,14 +23456,9 @@ export function DashboardsPage() {
     setProjectId(id === "all" ? undefined : id);
   };
 
-  const scope = {
-    workspaceId: workspaceId,
-    projectId: projectId,
-  };
-
   return (
     <div className="space-y-4">
-      <div className="flex items-end justify-between">
+      {!params.workspaceId && (
         <div className="flex items-center gap-4">
           <div className="w-64">
             <Label>Filter by Workspace</Label>
@@ -23542,7 +23467,7 @@ export function DashboardsPage() {
                 <SelectValue placeholder="Select a workspace..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">My Dashboards</SelectItem>
+                <SelectItem value="all">All Workspaces</SelectItem>
                 {workspacesData?.data.map((ws) => (
                   <SelectItem key={ws.id} value={ws.id}>
                     {ws.name}
@@ -23572,28 +23497,134 @@ export function DashboardsPage() {
             </Select>
           </div>
         </div>
-        <ResourceCrudDialog
-          isOpen={isCreateOpen}
-          onOpenChange={setIsCreateOpen}
-          trigger={
-            <Button onClick={() => setIsCreateOpen(true)}>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              New Dashboard
-            </Button>
-          }
-          title="Create a new dashboard"
-          description="Create a dashboard to track your metrics."
-          form={DashboardForm}
-          formProps={{ scope }}
-          resourcePath={"dashboards"}
-          resourceKey={
-            scope.projectId
-              ? ["dashboards", scope.projectId]
-              : scope.workspaceId
-                ? ["dashboards", scope.workspaceId]
-                : ["dashboards", "user"]
-          }
-        />
+      )}
+      <ActivityLog scope={{ workspaceId, projectId }} />
+    </div>
+  );
+}
+
+// FILE: src/pages/analytics/DashboardsPage.tsx
+import { useState, useEffect } from "react";
+import { DashboardList } from "@/features/analytics/components/DashboardList";
+import { DashboardForm } from "@/features/analytics/components/DashboardForm";
+import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { Button } from "@/components/ui/button";
+import { PlusCircle } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useGetWorkspaces } from "@/features/workspaces/api/useGetWorkspaces";
+import { useGetProjects } from "@/features/project-management/api/useGetProjects";
+import { Label } from "@/components/ui/label";
+import { useParams } from "react-router-dom";
+
+export function DashboardsPage() {
+  const params = useParams<{ workspaceId?: string; projectId?: string }>();
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [workspaceId, setWorkspaceId] = useState<string | undefined>(
+    params.workspaceId
+  );
+  const [projectId, setProjectId] = useState<string | undefined>(
+    params.projectId
+  );
+
+  const { data: workspacesData } = useGetWorkspaces();
+  const { data: projectsData } = useGetProjects(workspaceId);
+
+  useEffect(() => {
+    setWorkspaceId(params.workspaceId);
+    setProjectId(params.projectId);
+  }, [params.workspaceId, params.projectId]);
+
+  const handleWorkspaceChange = (id: string) => {
+    const newWorkspaceId = id === "all" ? undefined : id;
+    setWorkspaceId(newWorkspaceId);
+    setProjectId(undefined);
+  };
+
+  const handleProjectChange = (id: string) => {
+    setProjectId(id === "all" ? undefined : id);
+  };
+
+  const scope = {
+    workspaceId: workspaceId,
+    projectId: projectId,
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-end justify-between">
+        {!params.workspaceId && (
+          <div className="flex items-center gap-4">
+            <div className="w-64">
+              <Label>Filter by Workspace</Label>
+              <Select
+                onValueChange={handleWorkspaceChange}
+                value={workspaceId || "all"}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a workspace..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">My Dashboards</SelectItem>
+                  {workspacesData?.data.map((ws) => (
+                    <SelectItem key={ws.id} value={ws.id}>
+                      {ws.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="w-64">
+              <Label>Filter by Project</Label>
+              <Select
+                onValueChange={handleProjectChange}
+                disabled={!workspaceId || !projectsData?.data}
+                value={projectId || "all"}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a project..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Projects in Workspace</SelectItem>
+                  {projectsData?.data.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        )}
+        <div className={params.workspaceId ? "flex w-full justify-end" : ""}>
+          <ResourceCrudDialog
+            isOpen={isCreateOpen}
+            onOpenChange={setIsCreateOpen}
+            trigger={
+              <Button onClick={() => setIsCreateOpen(true)}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                New Dashboard
+              </Button>
+            }
+            title="Create a new dashboard"
+            description="Create a dashboard to track your metrics."
+            form={DashboardForm}
+            formProps={{ scope }}
+            resourcePath={"dashboards"}
+            resourceKey={
+              scope.projectId
+                ? ["dashboards", scope.projectId]
+                : scope.workspaceId
+                  ? ["dashboards", scope.workspaceId]
+                  : ["dashboards", "user"]
+            }
+          />
+        </div>
       </div>
       <DashboardList {...scope} />
     </div>
@@ -23601,7 +23632,7 @@ export function DashboardsPage() {
 }
 
 // FILE: src/pages/analytics/ReportingPage.tsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ReportingOverview } from "@/features/analytics/components/ReportingOverview";
 import {
   Select,
@@ -23613,16 +23644,28 @@ import {
 import { useGetWorkspaces } from "@/features/workspaces/api/useGetWorkspaces";
 import { useGetProjects } from "@/features/project-management/api/useGetProjects";
 import { Label } from "@/components/ui/label";
+import { useParams } from "react-router-dom";
 
 export function ReportingPage() {
-  const [workspaceId, setWorkspaceId] = useState<string | undefined>();
-  const [projectId, setProjectId] = useState<string | undefined>();
+  const params = useParams<{ workspaceId?: string; projectId?: string }>();
+  const [workspaceId, setWorkspaceId] = useState<string | undefined>(
+    params.workspaceId
+  );
+  const [projectId, setProjectId] = useState<string | undefined>(
+    params.projectId
+  );
 
   const { data: workspacesData } = useGetWorkspaces();
   const { data: projectsData } = useGetProjects(workspaceId);
 
+  useEffect(() => {
+    setWorkspaceId(params.workspaceId);
+    setProjectId(params.projectId);
+  }, [params.workspaceId, params.projectId]);
+
   const handleWorkspaceChange = (id: string) => {
-    setWorkspaceId(id === "all" ? undefined : id);
+    const newWorkspaceId = id === "all" ? undefined : id;
+    setWorkspaceId(newWorkspaceId);
     setProjectId(undefined);
   };
 
@@ -23632,44 +23675,46 @@ export function ReportingPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-4">
-        <div className="w-64">
-          <Label>Filter by Workspace</Label>
-          <Select onValueChange={handleWorkspaceChange}>
-            <SelectTrigger>
-              <SelectValue placeholder="Global Overview" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Global Overview</SelectItem>
-              {workspacesData?.data.map((ws) => (
-                <SelectItem key={ws.id} value={ws.id}>
-                  {ws.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      {!params.workspaceId && (
+        <div className="flex items-center gap-4">
+          <div className="w-64">
+            <Label>Filter by Workspace</Label>
+            <Select onValueChange={handleWorkspaceChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Global Overview" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Global Overview</SelectItem>
+                {workspacesData?.data.map((ws) => (
+                  <SelectItem key={ws.id} value={ws.id}>
+                    {ws.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="w-64">
+            <Label>Filter by Project</Label>
+            <Select
+              onValueChange={handleProjectChange}
+              disabled={!workspaceId || !projectsData?.data}
+              value={projectId}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a project..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Projects in Workspace</SelectItem>
+                {projectsData?.data.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-        <div className="w-64">
-          <Label>Filter by Project</Label>
-          <Select
-            onValueChange={handleProjectChange}
-            disabled={!workspaceId || !projectsData?.data}
-            value={projectId}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select a project..." />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Projects in Workspace</SelectItem>
-              {projectsData?.data.map((p) => (
-                <SelectItem key={p.id} value={p.id}>
-                  {p.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+      )}
       <ReportingOverview scope={{ workspaceId, projectId }} />
     </div>
   );
@@ -23711,26 +23756,40 @@ export function ReportsPage() {
 }
 
 // FILE: src/pages/AnalyticsLayout.tsx
-import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useParams } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-const analyticsNavItems = [
-  { to: "/analytics/activities", label: "Activities" },
-  { to: "/analytics/dashboards", label: "Dashboards" },
-  { to: "/analytics/reporting", label: "Reporting" },
-  { to: "/analytics/reports", label: "Reports" },
-];
 
 export function AnalyticsLayout() {
   const location = useLocation();
-  const currentTab = location.pathname.split("/")[2] || "activities";
+  const { workspaceId } = useParams<{ workspaceId?: string }>();
+
+  const basePath = workspaceId
+    ? `/workspaces/${workspaceId}/analytics`
+    : "/analytics";
+
+  const analyticsNavItems = [
+    ...(workspaceId
+      ? [{ to: `${basePath}/dashboards`, label: "Dashboards" }]
+      : [
+          { to: `${basePath}/activities`, label: "Activities" },
+          { to: `${basePath}/dashboards`, label: "Dashboards" },
+        ]),
+    { to: `${basePath}/reporting`, label: "Reporting" },
+    ...(workspaceId
+      ? [{ to: `${basePath}/activity`, label: "Activity" }]
+      : [{ to: `${basePath}/reports`, label: "Reports" }]),
+  ];
+
+  const currentTab = location.pathname.split("/").pop() || "activities";
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
         <p className="text-muted-foreground">
-          Explore global insights and trends across all your work.
+          {workspaceId
+            ? "Explore insights and trends for this workspace."
+            : "Explore global insights and trends across all your work."}
         </p>
       </div>
 
@@ -23739,7 +23798,10 @@ export function AnalyticsLayout() {
           {analyticsNavItems.map((item) => (
             <NavLink to={item.to} key={item.to} end>
               {({ isActive }) => (
-                <TabsTrigger value={item.to.split("/")[2]} disabled={isActive}>
+                <TabsTrigger
+                  value={item.to.split("/").pop()!}
+                  disabled={isActive}
+                >
                   {item.label}
                 </TabsTrigger>
               )}
@@ -24481,7 +24543,7 @@ export function MyTasksPage() {
                 title="Create a new task"
                 description="Fill in the details below to add a new task."
                 form={CreateTaskForm}
-                resourcePath="/standalone-tasks"
+                resourcePath="/tasks"
                 resourceKey={["myTasks"]}
               />
             </div>
@@ -25909,17 +25971,11 @@ export function WorkspaceLayout() {
           <NavLink to={`/workspaces/${workspaceId}/teams`}>
             <TabsTrigger value="teams">Teams</TabsTrigger>
           </NavLink>
-          <NavLink to={`/workspaces/${workspaceId}/dashboards`}>
-            <TabsTrigger value="dashboards">Dashboards</TabsTrigger>
+          <NavLink to={`/workspaces/${workspaceId}/analytics/dashboards`}>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </NavLink>
           <NavLink to={`/workspaces/${workspaceId}/attachments`}>
             <TabsTrigger value="attachments">Attachments</TabsTrigger>
-          </NavLink>
-          <NavLink to={`/workspaces/${workspaceId}/reporting`}>
-            <TabsTrigger value="reporting">Reporting</TabsTrigger>
-          </NavLink>
-          <NavLink to={`/workspaces/${workspaceId}/activity`}>
-            <TabsTrigger value="activity">Activity</TabsTrigger>
           </NavLink>
         </TabsList>
         <Outlet />

@@ -19,7 +19,7 @@ async function attachDocument({
   const url =
     projectId && workspaceId
       ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/documents`
-      : `standalone-tasks/${taskId}/documents`;
+      : `tasks/${taskId}/documents`;
 
   const { data } = await api.post(url, formData, {
     headers: { "Content-Type": "multipart/form-data" },
@@ -59,7 +59,7 @@ async function detachDocument({
   const url =
     projectId && workspaceId
       ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/documents/${documentId}/${type}`
-      : `standalone-tasks/${taskId}/documents/${documentId}/${type}`;
+      : `tasks/${taskId}/documents/${documentId}/${type}`;
   await api.delete(url);
 }
 
@@ -91,7 +91,7 @@ async function linkDocument(params: LinkDocumentParams): Promise<any> {
   const url =
     projectId && workspaceId
       ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/documents`
-      : `standalone-tasks/${taskId}/documents`;
+      : `tasks/${taskId}/documents`;
 
   // Sending as JSON, not multipart/form-data
   const { data } = await api.post(url, linkData, {

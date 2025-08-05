@@ -51,7 +51,7 @@ export function CreateTaskForm({
   const taskResource = useApiResource(
     projectId
       ? `/workspaces/${workspaceId}/projects/${projectId}/tasks`
-      : "standalone-tasks",
+      : "tasks",
     projectId ? ["tasks", projectId] : ["myTasks"]
   );
 

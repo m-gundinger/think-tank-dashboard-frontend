@@ -163,7 +163,7 @@ export function MyTasksPage() {
                 title="Create a new task"
                 description="Fill in the details below to add a new task."
                 form={CreateTaskForm}
-                resourcePath="/standalone-tasks"
+                resourcePath="/tasks"
                 resourceKey={["myTasks"]}
               />
             </div>

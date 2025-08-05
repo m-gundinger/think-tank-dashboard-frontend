@@ -15,7 +15,7 @@ async function addWatcher({
   const url =
     workspaceId && projectId
       ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/watch`
-      : `standalone-tasks/${taskId}/watch`;
+      : `tasks/${taskId}/watch`;
   const { data } = await api.post(url);
   return data;
 }
@@ -28,7 +28,7 @@ async function removeWatcher({
   const url =
     workspaceId && projectId
       ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/watch`
-      : `standalone-tasks/${taskId}/watch`;
+      : `tasks/${taskId}/watch`;
   const { data } = await api.delete(url);
   return data;
 }

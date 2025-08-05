@@ -17,7 +17,7 @@ async function attachDocument({
   const url =
     projectId && workspaceId
       ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/documents`
-      : `standalone-tasks/${taskId}/documents`;
+      : `tasks/${taskId}/documents`;
 
   const { data } = await api.post(url, formData, {
     headers: { "Content-Type": "multipart/form-data" },
