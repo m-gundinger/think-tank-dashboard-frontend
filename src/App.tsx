@@ -34,20 +34,23 @@ import { SystemStatusPage } from "./pages/admin/SystemStatusPage";
 import { CrmPage } from "./pages/CrmPage";
 import { MyTasksPage } from "./pages/MyTasksPage";
 import { WorkspaceDashboardListPage } from "./pages/WorkspaceDashboardListPage";
-import { KnowledgeBasePage } from "./pages/KnowledgeBasePage";
 import { ProjectGoalsPage } from "./pages/ProjectGoalsPage";
-import { WorkloadPage } from "./pages/WorkloadPage";
 import { HomePage } from "./pages/HomePage";
 import { ChatPage } from "./pages/ChatPage";
 import { ProjectTemplatesPage } from "./pages/ProjectTemplatesPage";
-import { ReportingPage } from "./pages/ReportingPage";
-import { ActivityLogPage } from "./pages/ActivityLogPage";
 import { KnowledgeBaseDetailPage } from "./pages/KnowledgeBaseDetailPage";
 import { GlobalKnowledgeBasePage } from "./pages/GlobalKnowledgeBasePage";
 import { WhiteboardsPage } from "./pages/WhiteboardsPage";
 import { ProjectAttachmentsPage } from "./pages/ProjectAttachmentsPage";
 import { WorkspaceAttachmentsPage } from "./pages/WorkspaceAttachmentsPage";
 import { ProjectLeadFormsPage } from "./pages/ProjectLeadFormsPage";
+import { AnalyticsLayout } from "./pages/AnalyticsLayout";
+import { ActivitiesPage } from "./pages/analytics/ActivitiesPage";
+import { DashboardsPage } from "./pages/analytics/DashboardsPage";
+import { ReportingPage } from "./pages/analytics/ReportingPage";
+import { ReportsPage } from "./pages/analytics/ReportsPage";
+import { WorkspaceActivityLogPage } from "./pages/WorkspaceActivityLogPage";
+import { WorkspaceReportingPage } from "./pages/WorkspaceReportingPage";
 
 function App() {
   return (
@@ -73,17 +76,23 @@ function App() {
           <Route path="whiteboards" element={<WhiteboardsPage />} />
           <Route path="publications" element={<PublicationsPage />} />
           <Route path="crm" element={<CrmPage />} />
-          <Route path="reporting" element={<ReportingPage />} />
-          <Route path="activity" element={<ActivityLogPage />} />
+
+          <Route path="analytics" element={<AnalyticsLayout />}>
+            <Route index element={<Navigate to="activities" replace />} />
+            <Route path="activities" element={<ActivitiesPage />} />
+            <Route path="dashboards" element={<DashboardsPage />} />
+            <Route path="reporting" element={<ReportingPage />} />
+            <Route path="reports" element={<ReportsPage />} />
+          </Route>
 
           <Route path="workspaces/:workspaceId" element={<WorkspaceLayout />}>
             <Route index element={<Navigate to="projects" replace />} />
             <Route path="projects" element={<ProjectListPage />} />
             <Route path="teams" element={<TeamsPage />} />
             <Route path="dashboards" element={<WorkspaceDashboardListPage />} />
-            <Route path="knowledge-bases" element={<KnowledgeBasePage />} />
             <Route path="attachments" element={<WorkspaceAttachmentsPage />} />
-            <Route path="workload" element={<WorkloadPage />} />
+            <Route path="reporting" element={<WorkspaceReportingPage />} />
+            <Route path="activity" element={<WorkspaceActivityLogPage />} />
           </Route>
           <Route
             path="workspaces/:workspaceId/knowledge-bases/:knowledgeBaseId"

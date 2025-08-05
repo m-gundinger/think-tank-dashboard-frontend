@@ -23,7 +23,7 @@ import {
   SendEmailBrevoFields,
   SendTelegramMessageFields,
   SendWebhookFields,
-} from "./index.js";
+} from "./index";
 
 interface ActionRepeaterProps {
   control: Control<any>;
@@ -32,13 +32,13 @@ interface ActionRepeaterProps {
 }
 
 const actionFieldComponents: Record<string, React.FC<any>> = {
-  UPDATE_TASK_STATUS: UpdateTaskStatusFields,
-  CREATE_TASK: CreateTaskFields,
-  ADD_COMMENT: AddCommentActionFields,
-  ASSIGN_TASK: AssignTaskActionFields,
-  SEND_EMAIL_BREVO: SendEmailBrevoFields,
-  SEND_TELEGRAM_MESSAGE: SendTelegramMessageFields,
-  SEND_WEBHOOK: SendWebhookFields,
+  [WorkflowActionType.UPDATE_TASK_STATUS]: UpdateTaskStatusFields,
+  [WorkflowActionType.CREATE_TASK]: CreateTaskFields,
+  [WorkflowActionType.ADD_COMMENT]: AddCommentActionFields,
+  [WorkflowActionType.ASSIGN_TASK]: AssignTaskActionFields,
+  [WorkflowActionType.SEND_EMAIL_BREVO]: SendEmailBrevoFields,
+  [WorkflowActionType.SEND_TELEGRAM_MESSAGE]: SendTelegramMessageFields,
+  [WorkflowActionType.SEND_WEBHOOK]: SendWebhookFields,
 };
 
 export function ActionRepeater({

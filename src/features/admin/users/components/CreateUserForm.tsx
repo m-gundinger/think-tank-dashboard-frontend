@@ -9,6 +9,7 @@ import { useApiResource } from "@/hooks/useApiResource";
 import { AxiosError } from "axios";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+
 const createUserSchema = z.object({
   person: z.object({
     firstName: z.string().min(1, "First name is required."),
@@ -27,7 +28,9 @@ export function CreateUserForm({ onSuccess }: CreateUserFormProps) {
   const userResource = useApiResource("admin/users", ["users"]);
   const roleResource = useApiResource("admin/roles", ["roles"]);
   const createMutation = userResource.useCreate();
-  const { data: rolesData } = roleResource.useGetAll();
+  const { data: rolesData, isLoading: isLoadingRoles } =
+    roleResource.useGetAll();
+
   const methods = useForm<CreateUserFormValues>({
     resolver: zodResolver(createUserSchema),
     defaultValues: {
@@ -39,18 +42,34 @@ export function CreateUserForm({ onSuccess }: CreateUserFormProps) {
       roles: [],
     },
   });
+
   async function onSubmit(values: CreateUserFormValues) {
-    await createMutation.mutateAsync(values, {
-      onSuccess: () => {
-        methods.reset();
-        onSuccess?.();
-      },
-    });
+    const roleNames =
+      rolesData?.data
+        .filter((r: any) => values.roles?.includes(r.id))
+        .map((r: any) => r.name) || [];
+
+    await createMutation.mutateAsync(
+      { ...values, roles: roleNames },
+      {
+        onSuccess: () => {
+          methods.reset();
+          onSuccess?.();
+        },
+      }
+    );
   }
 
   const errorMessage = (
     createMutation.error as AxiosError<{ message?: string }>
   )?.response?.data?.message;
+
+  const roleOptions =
+    rolesData?.data.map((role: any) => ({
+      id: role.id,
+      name: role.name,
+    })) || [];
+
   return (
     <FormProvider {...methods}>
       <Form {...methods}>
@@ -73,8 +92,8 @@ export function CreateUserForm({ onSuccess }: CreateUserFormProps) {
           <FormMultiSelectPopover
             name="roles"
             label="Roles"
-            placeholder="Select roles"
-            options={rolesData?.data || []}
+            placeholder={isLoadingRoles ? "Loading roles..." : "Select roles"}
+            options={roleOptions}
           />
 
           {errorMessage && (

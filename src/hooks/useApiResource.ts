@@ -98,7 +98,10 @@ export function useApiResource<TData = any, TQuery = object>(
       mutationFn: (variables) =>
         updateResource<TData>({ resourceUrl, ...variables }),
       successMessage: `${resourceName} updated successfully.`,
-      invalidateQueries: (data: any) => [resourceKey, ["task", data.id]],
+      invalidateQueries: (data: any) => [
+        resourceKey,
+        [...resourceKey, data.id],
+      ],
     });
   };
 

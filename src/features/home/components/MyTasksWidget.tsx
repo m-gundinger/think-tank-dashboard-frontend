@@ -1,7 +1,7 @@
 import { DashboardWidget } from "./DashboardWidget";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { useGetMyTasks } from "@/features/tasks/api/useGetMyTasks";
+import { useGetMyTasks } from "@/features/project-management/api/useGetMyTasks";
 
 export function MyTasksWidget() {
   const { data, isLoading } = useGetMyTasks({ limit: 5 });

@@ -15,12 +15,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { WorkflowActionType } from "@/types/api";
-import { UpdateTaskStatusFields } from "./action-fields/UpdateTaskStatusFields";
-import { CreateTaskFields } from "./action-fields/CreateTaskFields";
-import { AddCommentActionFields } from "./action-fields/AddCommentFields";
-import { AssignTaskActionFields } from "./action-fields/AssignTaskFields";
-import { SendEmailBrevoFields } from "./action-fields/SendEmailBrevoFields";
-import { SendTelegramMessageFields } from "./action-fields/SendTelegramMessageFields";
+import {
+  UpdateTaskStatusFields,
+  CreateTaskFields,
+  AddCommentActionFields,
+  AssignTaskActionFields,
+  SendEmailBrevoFields,
+  SendTelegramMessageFields,
+  SendWebhookFields,
+} from "./action-fields";
 
 interface ActionRepeaterProps {
   control: Control<any>;
@@ -29,12 +32,13 @@ interface ActionRepeaterProps {
 }
 
 const actionFieldComponents: Record<string, React.FC<any>> = {
-  UPDATE_TASK_STATUS: UpdateTaskStatusFields,
-  CREATE_TASK: CreateTaskFields,
-  ADD_COMMENT: AddCommentActionFields,
-  ASSIGN_TASK: AssignTaskActionFields,
-  SEND_EMAIL_BREVO: SendEmailBrevoFields,
-  SEND_TELEGRAM_MESSAGE: SendTelegramMessageFields,
+  [WorkflowActionType.UPDATE_TASK_STATUS]: UpdateTaskStatusFields,
+  [WorkflowActionType.CREATE_TASK]: CreateTaskFields,
+  [WorkflowActionType.ADD_COMMENT]: AddCommentActionFields,
+  [WorkflowActionType.ASSIGN_TASK]: AssignTaskActionFields,
+  [WorkflowActionType.SEND_EMAIL_BREVO]: SendEmailBrevoFields,
+  [WorkflowActionType.SEND_TELEGRAM_MESSAGE]: SendTelegramMessageFields,
+  [WorkflowActionType.SEND_WEBHOOK]: SendWebhookFields,
 };
 
 export function ActionRepeater({

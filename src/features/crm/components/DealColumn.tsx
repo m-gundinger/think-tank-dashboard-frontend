@@ -18,7 +18,6 @@ export function DealColumn({ stage, deals, onDealSelect }: DealColumnProps) {
     },
   });
   const dealIds = deals.map((d) => d.id);
-
   const totalValue = deals.reduce((sum, deal) => sum + deal.value, 0);
   const currencyFormatter = new Intl.NumberFormat("en-US", {
     style: "currency",

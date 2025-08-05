@@ -16,8 +16,11 @@ import { useManagePublicationCategories } from "../api/useManagePublicationCateg
 
 const publicationSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters."),
+  slug: z.string().min(3, "Slug must be at least 3 characters."),
   excerpt: z.string().optional(),
-  authorIds: z.array(z.string().uuid()),
+  authorIds: z
+    .array(z.string().uuid())
+    .min(1, "At least one author is required."),
   categoryIds: z.array(z.string().uuid()).optional(),
   status: z.nativeEnum(PublicationStatus),
 });
@@ -47,6 +50,7 @@ export function CreatePublicationForm({
     resolver: zodResolver(publicationSchema),
     defaultValues: {
       title: "",
+      slug: "",
       excerpt: "",
       authorIds: [],
       categoryIds: [],
@@ -83,6 +87,15 @@ export function CreatePublicationForm({
     label: s.charAt(0) + s.slice(1).toLowerCase(),
   }));
 
+  const userOptions =
+    usersData?.data?.map((user: any) => ({ id: user.id, name: user.name })) ||
+    [];
+  const categoryOptions =
+    categoriesData?.data?.map((cat: any) => ({
+      id: cat.id,
+      name: cat.name,
+    })) || [];
+
   return (
     <FormProvider {...methods}>
       <Form {...methods}>
@@ -92,18 +105,23 @@ export function CreatePublicationForm({
             label="Title"
             placeholder="The Future of AI in Research..."
           />
+          <FormInput
+            name="slug"
+            label="Slug"
+            placeholder="the-future-of-ai-in-research"
+          />
           <FormRichTextEditor name="excerpt" label="Excerpt (Optional)" />
           <FormMultiSelectPopover
             name="authorIds"
             label="Authors"
             placeholder="Select authors..."
-            options={usersData?.data || []}
+            options={userOptions}
           />
           <FormMultiSelectPopover
             name="categoryIds"
             label="Categories"
             placeholder="Select categories..."
-            options={categoriesData?.data || []}
+            options={categoryOptions}
           />
           <FormSelect
             name="status"

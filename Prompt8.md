@@ -2,8 +2,218 @@ You are an expert AI full-stack developer. Your mission is to analyze the provid
 
 ### **1. The Task**
 
-- Make sure all the listed endpoints in the attached document are properly implemented in the frontend. Dont skip a single one.
-- Make sure that all endpoint implementations are functional and working (currently not the case).
+- when updating a task status or priority in the modal, the changes are not seen in the list view - only after reloading. For the kanban view, it is working.
+- recurrence is not working.
+- Solve these issues:
+[21:03:55 UTC] INFO: incoming request
+    requestId: "req-g4"
+    req: {
+      "method": "OPTIONS",
+      "url": "/api/v1/workspaces/a728315c-7edc-4f9d-b398-9c5e9c416331/projects",
+      "host": "localhost:3000",
+      "remoteAddress": "127.0.0.1",
+      "remotePort": 64301
+    }
+[21:03:55 UTC] INFO: request completed
+    requestId: "req-g4"
+    res: {
+      "statusCode": 204
+    }
+    responseTime: 0.2695000171661377
+[21:03:55 UTC] INFO: incoming request
+    requestId: "req-g5"
+    req: {
+      "method": "POST",
+      "url": "/api/v1/workspaces/a728315c-7edc-4f9d-b398-9c5e9c416331/projects",
+      "host": "localhost:3000",
+      "remoteAddress": "127.0.0.1",
+      "remotePort": 64326
+    }
+[21:03:55 UTC] ERROR: Unhandled error: Cannot read properties of null (reading 'id')
+    requestId: "req-g5"
+    err: {
+      "type": "TypeError",
+      "message": "Cannot read properties of null (reading 'id')",
+      "stack":
+          TypeError: Cannot read properties of null (reading 'id')
+              at ProjectController.createInWorkspace (file:///C:/Users/User/Documents/VSC/think-tank-dashboard-backend/dist/src/modules/project-management/projects/project.controller.js:29:60)
+              at Object.<anonymous> (file:///C:/Users/User/Documents/VSC/think-tank-dashboard-backend/dist/src/core/domain/factories/route.factory.js:19:30)
+              at preHandlerCallbackInner (C:\Users\User\Documents\VSC\think-tank-dashboard-backend\node_modules\fastify\lib\handleRequest.js:161:24)
+              at preHandlerCallback (C:\Users\User\Documents\VSC\think-tank-dashboard-backend\node_modules\fastify\lib\handleRequest.js:129:5)
+              at validationCompleted (C:\Users\User\Documents\VSC\think-tank-dashboard-backend\node_modules\fastify\lib\handleRequest.js:119:5)
+              at preValidationCallback (C:\Users\User\Documents\VSC\think-tank-dashboard-backend\node_modules\fastify\lib\handleRequest.js:96:5)
+              at handler (C:\Users\User\Documents\VSC\think-tank-dashboard-backend\node_modules\fastify\lib\handleRequest.js:73:7)
+              at C:\Users\User\Documents\VSC\think-tank-dashboard-backend\node_modules\fastify\lib\contentTypeParser.js:214:9
+              at AsyncResource.runInAsyncScope (node:async_hooks:214:14)
+              at done (C:\Users\User\Documents\VSC\think-tank-dashboard-backend\node_modules\fastify\lib\contentTypeParser.js:207:14)
+    }
+[21:03:55 UTC] INFO: request completed
+    requestId: "req-g5"
+    res: {
+      "statusCode": 500
+    }
+    responseTime: 0.7129998207092285
+[21:04:30 UTC] INFO: incoming request
+    requestId: "req-g9"
+    req: {
+      "method": "GET",
+      "url": "/api/v1/workspaces/a728315c-7edc-4f9d-b398-9c5e9c416331/dashboards",
+      "host": "localhost:3000",
+      "remoteAddress": "127.0.0.1",
+      "remotePort": 64326
+    }
+[21:04:30 UTC] INFO: Route GET:/api/v1/workspaces/a728315c-7edc-4f9d-b398-9c5e9c416331/dashboards not found
+    requestId: "req-g9"
+[21:04:30 UTC] INFO: request completed
+    requestId: "req-g9"
+    res: {
+      "statusCode": 404
+    }
+    responseTime: 0.38030004501342773
+[21:04:31 UTC] INFO: incoming request
+    requestId: "req-ga"
+    req: {
+      "method": "GET",
+      "url": "/api/v1/workspaces/a728315c-7edc-4f9d-b398-9c5e9c416331/dashboards",
+      "host": "localhost:3000",
+      "remoteAddress": "127.0.0.1",
+      "remotePort": 64326
+    }
+[21:04:31 UTC] INFO: Route GET:/api/v1/workspaces/a728315c-7edc-4f9d-b398-9c5e9c416331/dashboards not found
+    requestId: "req-ga"
+[21:04:31 UTC] INFO: request completed
+    requestId: "req-ga"
+    res: {
+      "statusCode": 404
+    }
+    responseTime: 0.3547999858856201
+[21:04:33 UTC] INFO: incoming request
+    requestId: "req-gb"
+    req: {
+      "method": "GET",
+      "url": "/api/v1/workspaces/a728315c-7edc-4f9d-b398-9c5e9c416331/dashboards",
+      "host": "localhost:3000",
+      "remoteAddress": "127.0.0.1",
+      "remotePort": 64326
+    }
+[21:04:33 UTC] INFO: Route GET:/api/v1/workspaces/a728315c-7edc-4f9d-b398-9c5e9c416331/dashboards not found
+    requestId: "req-gb"
+[21:04:33 UTC] INFO: request completed
+    requestId: "req-gb"
+    res: {
+      "statusCode": 404
+    }
+    responseTime: 0.32580018043518066
+[21:04:37 UTC] INFO: incoming request
+    requestId: "req-gc"
+    req: {
+      "method": "OPTIONS",
+      "url": "/api/v1/workspaces/a728315c-7edc-4f9d-b398-9c5e9c416331/dashboards",
+      "host": "localhost:3000",
+      "remoteAddress": "127.0.0.1",
+      "remotePort": 64301
+    }
+[21:04:37 UTC] INFO: request completed
+    requestId: "req-gc"
+    res: {
+      "statusCode": 204
+    }
+    responseTime: 0.260699987411499
+[21:04:37 UTC] INFO: incoming request
+    requestId: "req-gd"
+    req: {
+      "method": "GET",
+      "url": "/api/v1/workspaces/a728315c-7edc-4f9d-b398-9c5e9c416331/dashboards",
+      "host": "localhost:3000",
+      "remoteAddress": "127.0.0.1",
+      "remotePort": 64326
+    }
+[21:04:37 UTC] INFO: Route GET:/api/v1/workspaces/a728315c-7edc-4f9d-b398-9c5e9c416331/dashboards not found
+    requestId: "req-gd"
+[21:04:37 UTC] INFO: request completed
+    requestId: "req-gd"
+    res: {
+      "statusCode": 404
+    }
+    responseTime: 0.34759998321533203
+[21:05:40 UTC] INFO: incoming request
+    requestId: "req-h8"
+    req: {
+      "method": "OPTIONS",
+      "url": "/api/v1/standalone-tasks/935bed6b-708a-4fde-b2b1-9afc680b1933/links/undefined",
+      "host": "localhost:3000",
+      "remoteAddress": "127.0.0.1",
+      "remotePort": 49329
+    }
+[21:05:40 UTC] INFO: request completed
+    requestId: "req-h8"
+    res: {
+      "statusCode": 204
+    }
+    responseTime: 0.25390005111694336
+[21:05:40 UTC] INFO: incoming request
+    requestId: "req-h9"
+    req: {
+      "method": "DELETE",
+      "url": "/api/v1/standalone-tasks/935bed6b-708a-4fde-b2b1-9afc680b1933/links/undefined",
+      "host": "localhost:3000",
+      "remoteAddress": "127.0.0.1",
+      "remotePort": 49332
+    }
+[21:05:40 UTC] INFO: Attempting: find Task by ID '935bed6b-708a-4fde-b2b1-9afc680b1933'
+    repositoryContext: "PrismaTaskRepository"
+    repoContext: "PrismaTaskRepository"
+    action: "find Task by ID '935bed6b-708a-4fde-b2b1-9afc680b1933'"
+    taskId: "935bed6b-708a-4fde-b2b1-9afc680b1933"
+[21:05:40 UTC] INFO: Success: find Task by ID '935bed6b-708a-4fde-b2b1-9afc680b1933'
+    repositoryContext: "PrismaTaskRepository"
+    repoContext: "PrismaTaskRepository"
+    action: "find Task by ID '935bed6b-708a-4fde-b2b1-9afc680b1933'"
+    taskId: "935bed6b-708a-4fde-b2b1-9afc680b1933"
+[21:05:40 UTC] ERROR: Unhandled error: params/linkId Invalid uuid
+    requestId: "req-h9"
+    err: {
+      "type": "Error",
+      "message": "params/linkId Invalid uuid",
+      "stack":
+          Error: params/linkId Invalid uuid
+              at defaultSchemaErrorFormatter (C:\Users\User\Documents\VSC\think-tank-dashboard-backend\node_modules\fastify\lib\context.js:92:10)
+              at wrapValidationError (C:\Users\User\Documents\VSC\think-tank-dashboard-backend\node_modules\fastify\lib\validation.js:249:17)
+              at validate (C:\Users\User\Documents\VSC\think-tank-dashboard-backend\node_modules\fastify\lib\validation.js:145:16)
+              at preValidationCallback (C:\Users\User\Documents\VSC\think-tank-dashboard-backend\node_modules\fastify\lib\handleRequest.js:89:25)
+              at handler (C:\Users\User\Documents\VSC\think-tank-dashboard-backend\node_modules\fastify\lib\handleRequest.js:73:7)
+              at Object.handleRequest (C:\Users\User\Documents\VSC\think-tank-dashboard-backend\node_modules\fastify\lib\handleRequest.js:44:9)
+              at runPreParsing (C:\Users\User\Documents\VSC\think-tank-dashboard-backend\node_modules\fastify\lib\route.js:571:19)
+              at next (C:\Users\User\Documents\VSC\think-tank-dashboard-backend\node_modules\fastify\lib\hooks.js:236:9)
+              at handleResolve (C:\Users\User\Documents\VSC\think-tank-dashboard-backend\node_modules\fastify\lib\hooks.js:253:7)
+      "statusCode": 400,
+      "code": "FST_ERR_VALIDATION",
+      "validation": [
+        {
+          "keyword": "invalid_string",
+          "instancePath": "/linkId",
+          "schemaPath": "#/linkId/invalid_string",
+          "params": {
+            "issue": {
+              "validation": "uuid",
+              "code": "invalid_string",
+              "message": "Invalid uuid",
+              "path": [
+                "linkId"
+              ]
+            }
+          },
+          "message": "Invalid uuid"
+        }
+      ],
+      "validationContext": "params"
+    }
+[21:05:40 UTC] INFO: request completed
+    requestId: "req-h9"
+    res: {
+      "statusCode": 500
+    }
+    responseTime: 9.874799966812134
 
 ---
 
@@ -35,3 +245,6 @@ You must adhere to the following rules throughout the entire process:
 3.  Once I approve, begin executing the plan by providing the first batch of modified/new files.
 4.  I will reply with "continue" to receive the next batch of files.
 5.  Do not stop until you have fully implemented the entire plan.
+
+
+**OVERRULING**: IMPLEMENT THE FIXES FOR FRONT- AND BACKEND!!!

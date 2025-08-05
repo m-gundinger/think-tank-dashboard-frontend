@@ -1,7 +1,7 @@
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import { FormInput } from "@/components/form/FormFields";
+import { FormInput, FormTextarea } from "@/components/form/FormFields";
 import { useManageOrganizations } from "../api/useManageOrganizations";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,6 +12,7 @@ const organizationSchema = z.object({
   name: nameSchema("Organization name"),
   description: descriptionSchema,
   domain: z.string().optional().nullable(),
+  logoUrl: z.string().url().optional().nullable(),
 });
 type OrganizationFormValues = z.infer<typeof organizationSchema>;
 
@@ -35,6 +36,7 @@ export function OrganizationForm({
       name: "",
       description: "",
       domain: "",
+      logoUrl: "",
     },
   });
   useEffect(() => {
@@ -72,7 +74,7 @@ export function OrganizationForm({
             label="Website Domain (Optional)"
             placeholder="acme.com"
           />
-          <FormInput
+          <FormTextarea
             name="description"
             label="Description (Optional)"
             placeholder="A short summary of the organization"

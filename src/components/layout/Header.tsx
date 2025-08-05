@@ -8,12 +8,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useGetProfile } from "@/features/profile/api/useGetProfile";
-import { useLogout } from "@/features/auth/api/useLogout";
+import { useGetProfile } from "@/features/user-management/api/useGetProfile";
+import { useLogout } from "@/features/user-management/api/useLogout";
 import { LogOut, User, Search, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
-import { SearchDialog } from "@/features/search/components/SearchDialog";
-import { NotificationBell } from "@/features/notifications/components/NotificationBell";
+import { SearchDialog } from "@/features/system/components/SearchDialog";
+import { NotificationBell } from "@/features/system/components/NotificationBell";
 import { useState } from "react";
 import { getAbsoluteUrl } from "@/lib/utils";
 

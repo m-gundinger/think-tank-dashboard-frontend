@@ -1,16 +1,16 @@
 import { useParams, useSearchParams } from "react-router-dom";
 import { useEffect, useMemo } from "react";
-import { TaskDetailModal } from "@/features/tasks/components/TaskDetailModal";
+import { TaskDetailModal } from "@/features/project-management/components/TaskDetailModal";
 import { useApiResource } from "@/hooks/useApiResource";
 import { useProjectSocket } from "@/hooks/useProjectSocket";
 import { usePresence } from "@/hooks/usePresence";
 import { ErrorState } from "@/components/ui/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ProjectDetailView } from "@/features/views/components/ProjectDetailView";
+import { ProjectDetailView } from "@/features/project-management/components/ProjectDetailView";
 import { ListTasksQuery } from "@/types";
 import { View } from "@/types";
-import { useGetViewData } from "@/features/views/api/useGetViewData";
-import { WhiteboardView } from "@/features/views/components/WhiteboardView";
+import { useGetViewData } from "@/features/project-management/api/useGetViewData";
+import { WhiteboardView } from "@/features/project-management/components/WhiteboardView";
 
 export function ProjectDetailPage() {
   const { workspaceId, projectId } = useParams<{

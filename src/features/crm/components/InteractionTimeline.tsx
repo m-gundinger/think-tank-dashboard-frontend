@@ -1,12 +1,13 @@
 import { useManageInteractions } from "../api/useManageInteractions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mail, Phone, Users } from "lucide-react";
+import { Mail, Phone, Users, MessageSquare } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const interactionIcons: Record<string, React.ElementType> = {
   EMAIL: Mail,
   CALL: Phone,
   MEETING: Users,
+  SOCIAL: MessageSquare,
 };
 
 export function InteractionTimeline({

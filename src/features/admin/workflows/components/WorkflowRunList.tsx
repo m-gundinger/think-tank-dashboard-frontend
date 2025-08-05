@@ -12,13 +12,14 @@ import { useGetWorkflowRuns } from "../api/useGetWorkflowRuns";
 import { WorkflowRunDetail } from "./WorkflowRunDetail";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { WorkflowRun } from "@/types";
 const statusColors: Record<string, string> = {
   SUCCESS: "bg-green-100 text-green-800",
   FAILED: "bg-red-100 text-red-800",
   RUNNING: "bg-blue-100 text-blue-800",
 };
 export function WorkflowRunList({ workflowId }: { workflowId: string }) {
-  const [selectedRun, setSelectedRun] = useState<any | null>(null);
+  const [selectedRun, setSelectedRun] = useState<WorkflowRun | null>(null);
   const { data, isLoading, isError } = useGetWorkflowRuns(workflowId, {
     page: 1,
     limit: 50,
@@ -45,7 +46,7 @@ export function WorkflowRunList({ workflowId }: { workflowId: string }) {
                 </TableCell>
               </TableRow>
             ) : (
-              data?.data.map((run: any) => (
+              data?.data.map((run: WorkflowRun) => (
                 <TableRow key={run.id}>
                   <TableCell>
                     <Badge

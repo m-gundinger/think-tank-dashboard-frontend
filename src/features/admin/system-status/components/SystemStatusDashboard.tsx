@@ -20,12 +20,12 @@ import { useGetSystemStatus } from "../api/useGetSystemStatus";
 const StatusBadge = ({
   status,
 }: {
-  status: "ok" | "degraded" | "down" | string;
+  status: "ok" | "partial_outage" | "major_outage" | string;
 }) => {
   const variant =
     status === "ok"
       ? "default"
-      : status === "degraded"
+      : status === "partial_outage"
         ? "secondary"
         : "destructive";
   return <Badge variant={variant}>{status}</Badge>;

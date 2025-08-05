@@ -6,9 +6,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Organization } from "@/types";
 
 interface OrganizationCardProps {
-  organization: any;
+  organization: Organization;
   onSelect: () => void;
 }
 

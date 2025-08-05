@@ -16,9 +16,9 @@ import {
 } from "@/components/ui/command";
 import { Plus, Trash2 } from "lucide-react";
 import { useManageWorkspaceAttachments } from "../api/useManageWorkspaceAttachments";
-import { useGetAllKnowledgeBases } from "@/features/knowledge-base/api/useGetAllKnowledgeBases";
+import { useManageKnowledgeBases } from "@/features/collaboration/api/useManageKnowledgeBases";
 import { useManagePublications } from "@/features/publications/api/useManagePublications";
-import { useGetMyWhiteboards } from "@/features/views/api/useGetMyWhiteboards";
+import { useManageWhiteboards } from "@/features/collaboration/api/useManageWhiteboards";
 import { getIcon } from "@/lib/icons";
 import { AnyValue } from "@/types";
 
@@ -30,9 +30,9 @@ export function WorkspaceAttachments({ workspace }: { workspace: AnyValue }) {
   const attachMutation = useAttachEntity();
   const detachMutation = useDetachEntity();
 
-  const { data: kbsData } = useGetAllKnowledgeBases();
+  const { data: kbsData } = useManageKnowledgeBases().useGetAll();
   const { data: pubsData } = useManagePublications().useGetAll();
-  const { data: whiteboardsData } = useGetMyWhiteboards();
+  const { data: whiteboardsData } = useManageWhiteboards().useGetAll();
 
   const handleAttach = (entityId: string, plural: any) => {
     attachMutation.mutate({ entityId, plural });

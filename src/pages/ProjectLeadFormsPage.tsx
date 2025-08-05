@@ -3,8 +3,8 @@ import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { useState } from "react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
-import { LeadForm } from "@/features/lead-form/components/LeadForm";
-import { LeadFormList } from "@/features/lead-form/components/LeadFormList";
+import { LeadForm } from "@/features/project-management/components/LeadForm";
+import { LeadFormList } from "@/features/project-management/components/LeadFormList";
 
 export function ProjectLeadFormsPage() {
   const { workspaceId, projectId } = useParams<{
@@ -12,7 +12,6 @@ export function ProjectLeadFormsPage() {
     projectId: string;
   }>();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-
   if (!workspaceId || !projectId) return <div>Missing URL parameters.</div>;
 
   return (
@@ -37,7 +36,7 @@ export function ProjectLeadFormsPage() {
           description="Build a form to capture leads directly into your project."
           form={LeadForm}
           formProps={{ workspaceId, projectId }}
-          resourcePath={`workspaces/${workspaceId}/projects/${projectId}/lead-forms`}
+          resourcePath={`projects/${projectId}/lead-forms`}
           resourceKey={["leadForms", projectId]}
         />
       </div>

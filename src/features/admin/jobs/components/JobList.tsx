@@ -23,10 +23,10 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
+  Trash2,
 } from "lucide-react";
 import { JobStatus } from "@/types/api";
 import { Job } from "@/types";
-
 const statusVariantMap: Record<
   JobStatus,
   "default" | "secondary" | "destructive" | "outline"
@@ -51,6 +51,7 @@ export function JobList() {
   const { data, isLoading, isError } = jobResource.useGetAll();
   const retryMutation = useRetryJob();
   const cancelMutation = useCancelJob();
+  const deleteMutation = jobResource.useDelete();
 
   if (isLoading) return <div>Loading jobs...</div>;
   if (isError) return <div>Error loading jobs.</div>;
@@ -108,6 +109,12 @@ export function JobList() {
                         }
                       >
                         <XCircle className="mr-2 h-4 w-4" /> Cancel
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="text-red-600"
+                        onClick={() => deleteMutation.mutate(job.id)}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" /> Delete
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>

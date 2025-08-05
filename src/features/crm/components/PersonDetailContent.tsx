@@ -13,8 +13,10 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { RichTextOutput } from "@/components/ui/RichTextOutput";
-import { getAbsoluteUrl } from "@/lib/utils";
+import { getAbsoluteUrl, parseServerDate } from "@/lib/utils";
 import { InteractionTimeline } from "./InteractionTimeline";
+import { CrmAttachments } from "./CrmAttachments";
+import { Person } from "@/types";
 
 const socialIcons: Record<string, React.ElementType> = {
   LINKEDIN: Linkedin,
@@ -61,9 +63,10 @@ function InfoItem({
   return <div className="p-2">{content}</div>;
 }
 
-export function PersonDetailContent({ person }: { person: any }) {
+export function PersonDetailContent({ person }: { person: Person }) {
   const name = `${person.firstName} ${person.lastName}`;
   const roles = person.roles?.join(", ") || "Contact";
+  const birthday = parseServerDate(person.birthday);
 
   return (
     <div className="space-y-6">
@@ -106,7 +109,7 @@ export function PersonDetailContent({ person }: { person: any }) {
           <InfoItem
             icon={Cake}
             label="Birthday"
-            value={person.birthday && format(new Date(person.birthday), "PPP")}
+            value={birthday && format(birthday, "PPP")}
           />
         </div>
       </div>
@@ -188,7 +191,8 @@ export function PersonDetailContent({ person }: { person: any }) {
           </div>
         </>
       )}
-
+      <hr />
+      <CrmAttachments entity={person} entityType="people" />
       <hr />
       <div className="px-2">
         <InteractionTimeline personId={person.id} />

@@ -39,8 +39,8 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Badge } from "@/components/ui/badge";
-import { AssigneeSelector } from "@/features/tasks/components/AssigneeSelector";
-import { TaskTypeSelector } from "@/features/task-types/components/TaskTypeSelector";
+import { AssigneeSelector } from "@/features/project-management/components/AssigneeSelector";
+import { TaskTypeSelector } from "@/features/project-management/components/TaskTypeSelector";
 
 interface FormInputProps extends ComponentProps<typeof Input> {
   name: string;

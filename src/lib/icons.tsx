@@ -21,6 +21,7 @@ import {
   Contact,
   Handshake,
   BookOpen,
+  ClipboardList,
 } from "lucide-react";
 
 export const ICONS: Record<string, LucideIcon> = {
@@ -32,6 +33,7 @@ export const ICONS: Record<string, LucideIcon> = {
   Organization: Building2,
   Deal: Handshake,
   KnowledgeBase: BookOpen,
+  LeadForm: ClipboardList,
   Book,
   FlaskConical,
   BarChart,

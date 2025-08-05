@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useApiResource } from "@/hooks/useApiResource";
+import { useManagePeople } from "../api/useManagePeople";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -12,7 +12,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { cn, getAbsoluteUrl } from "@/lib/utils";
+import { getAbsoluteUrl } from "@/lib/utils";
+import { Person } from "@/types";
 
 interface PersonListProps {
   onPersonSelect: (personId: string) => void;
@@ -27,11 +28,14 @@ const PersonListSkeleton = () => (
 );
 
 export function PersonList({ onPersonSelect }: PersonListProps) {
-  const personResource = useApiResource("people", ["people"]);
+  const { useGetAll, useBulkDelete } = useManagePeople();
   const [searchTerm, setSearchTerm] = useState("");
-  const [, setPage] = useState(1);
-  const deleteMutation = personResource.useDelete();
-  const { data, isLoading, isError } = personResource.useGetAll();
+  const [page, setPage] = useState(1);
+  const bulkDeleteMutation = useBulkDelete();
+  const { data, isLoading, isError } = useGetAll({
+    page,
+    search: searchTerm,
+  });
 
   const handlePageChange = (newPage: number) => {
     if (newPage > 0 && newPage <= (data?.totalPages || 1)) {
@@ -39,11 +43,11 @@ export function PersonList({ onPersonSelect }: PersonListProps) {
     }
   };
 
-  const columns: ColumnDef<any>[] = [
+  const columns: ColumnDef<Person>[] = [
     {
       accessorKey: "name",
       header: "Name",
-      cell: (person) => {
+      cell: (person: Person) => {
         return (
           <div
             className="flex cursor-pointer items-center gap-3"
@@ -65,14 +69,14 @@ export function PersonList({ onPersonSelect }: PersonListProps) {
     {
       accessorKey: "email",
       header: "Email",
-      cell: (person) => (
+      cell: (person: Person) => (
         <div onClick={() => onPersonSelect(person.id)}>{person.email}</div>
       ),
     },
     {
       accessorKey: "roles",
       header: "Roles",
-      cell: (person) => {
+      cell: (person: Person) => {
         return (
           <div
             className="flex flex-wrap gap-1"
@@ -83,25 +87,6 @@ export function PersonList({ onPersonSelect }: PersonListProps) {
                 {role}
               </Badge>
             ))}
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: "status",
-      header: "Status",
-      cell: (person) => {
-        return (
-          <div onClick={() => onPersonSelect(person.id)}>
-            <Badge
-              variant={person.isActive ? "default" : "destructive"}
-              className={cn(
-                "pointer-events-none",
-                person.isActive ? "bg-green-500" : ""
-              )}
-            >
-              {person.isActive ? "Active" : "Inactive"}
-            </Badge>
           </div>
         );
       },
@@ -149,10 +134,10 @@ export function PersonList({ onPersonSelect }: PersonListProps) {
                     `Delete ${selectedIds.length} selected people? This may include users and cannot be undone.`
                   )
                 ) {
-                  deleteMutation.mutate(selectedIds);
+                  bulkDeleteMutation.mutate({ ids: selectedIds });
                 }
               }}
-              disabled={deleteMutation.isPending}
+              disabled={bulkDeleteMutation.isPending}
             >
               <Trash2 className="mr-2 h-4 w-4" />
               Delete ({selectedIds.length})

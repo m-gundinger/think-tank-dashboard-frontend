@@ -1,15 +1,15 @@
 import { useParams } from "react-router-dom";
 import GridLayout, { Layout } from "react-grid-layout";
-import { useApiResource } from "@/hooks/useApiResource";
-import { WidgetRenderer } from "@/features/widgets/components/WidgetRenderer";
+import { WidgetRenderer } from "@/features/analytics/components/WidgetRenderer";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
-import { useUpdateWidget } from "@/features/widgets/api/useUpdateWidget";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { useState } from "react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
-import { CreateWidgetForm } from "@/features/widgets/components/CreateWidgetForm";
+import { CreateWidgetForm } from "@/features/analytics/components/CreateWidgetForm";
+import { useGetDashboard } from "@/features/analytics/api/useGetDashboard";
+import { useUpdateWidget } from "@/features/analytics/api/useUpdateWidget";
 
 export function DashboardDetailPage() {
   const { workspaceId, projectId, dashboardId } = useParams<{
@@ -23,24 +23,8 @@ export function DashboardDetailPage() {
     return <div>Missing ID parameter.</div>;
   }
 
-  const resourceUrl = projectId
-    ? `workspaces/${workspaceId}/projects/${projectId}/dashboards`
-    : `workspaces/${workspaceId}/dashboards`;
-
-  const resourceKey = projectId
-    ? ["dashboards", projectId]
-    : ["dashboards", workspaceId];
-
-  const dashboardResource = useApiResource(resourceUrl, resourceKey);
-
-  const { data: dashboardData, isLoading } =
-    dashboardResource.useGetOne(dashboardId);
-
-  const updateWidgetMutation = useUpdateWidget(
-    workspaceId,
-    projectId!,
-    dashboardId
-  );
+  const { data: dashboardData, isLoading } = useGetDashboard(dashboardId);
+  const updateWidgetMutation = useUpdateWidget(dashboardId);
 
   const handleLayoutChange = (newLayout: Layout[]) => {
     if (!dashboardData?.widgets) return;
@@ -80,10 +64,6 @@ export function DashboardDetailPage() {
       i: widget.id,
     })) || [];
 
-  const widgetResourcePath = projectId
-    ? `workspaces/${workspaceId}/projects/${projectId}/dashboards/${dashboardId}/widgets`
-    : `workspaces/${workspaceId}/dashboards/${dashboardId}/widgets`;
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -106,7 +86,7 @@ export function DashboardDetailPage() {
           description="Select a widget type and configure it to visualize your data."
           form={CreateWidgetForm}
           formProps={{ workspaceId, projectId, dashboardId }}
-          resourcePath={widgetResourcePath}
+          resourcePath={`dashboards/${dashboardId}/widgets`}
           resourceKey={["dashboard", dashboardId]}
         />
       </div>

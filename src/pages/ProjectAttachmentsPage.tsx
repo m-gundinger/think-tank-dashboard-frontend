@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { useApiResource } from "@/hooks/useApiResource";
+import { useManageProjects } from "@/features/project-management/api/useManageProjects";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Card,
@@ -8,8 +8,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { ProjectAttachments } from "@/features/projects/components/ProjectAttachments";
-
+import { ProjectAttachments } from "@/features/project-management/components/ProjectAttachments";
 export function ProjectAttachmentsPage() {
   const { workspaceId, projectId } = useParams<{
     workspaceId: string;
@@ -20,11 +19,8 @@ export function ProjectAttachmentsPage() {
     return <div>Missing URL parameters.</div>;
   }
 
-  const projectResource = useApiResource(`workspaces/${workspaceId}/projects`, [
-    "projects",
-    workspaceId,
-  ]);
-  const { data: projectData, isLoading } = projectResource.useGetOne(projectId);
+  const { useGetOne } = useManageProjects(workspaceId);
+  const { data: projectData, isLoading } = useGetOne(projectId);
 
   if (isLoading) {
     return (

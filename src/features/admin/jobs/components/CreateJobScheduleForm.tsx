@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { JobSchedule } from "@/types";
 
 const JobScheduleFormSchema = z.object({
   name: z.string().min(1, "Schedule name is required."),
@@ -31,35 +32,40 @@ const JobScheduleFormSchema = z.object({
   isActive: z.boolean(),
 });
 
-type JobScheduleFormValues = {
-  name: string;
-  jobType: string;
-  cronExpression: string;
-  payload: string;
-  isActive: boolean;
-};
+type JobScheduleFormValues = z.infer<typeof JobScheduleFormSchema>;
 
 interface CreateJobScheduleFormProps {
   onSuccess?: () => void;
+  initialData?: JobSchedule;
 }
 
 export function CreateJobScheduleForm({
   onSuccess,
+  initialData,
 }: CreateJobScheduleFormProps) {
+  const isEditMode = !!initialData;
   const jobScheduleResource = useApiResource("admin/jobs/schedules", [
     "jobSchedules",
   ]);
-  const createMutation = jobScheduleResource.useCreate();
+  const mutation = isEditMode
+    ? jobScheduleResource.useUpdate()
+    : jobScheduleResource.useCreate();
+
   const { data: jobTypesData, isLoading: isLoadingJobTypes } = useGetJobTypes();
   const form = useForm<JobScheduleFormValues>({
     resolver: zodResolver(JobScheduleFormSchema),
-    defaultValues: {
-      name: "",
-      jobType: "",
-      cronExpression: "",
-      payload: "",
-      isActive: true,
-    },
+    defaultValues: initialData
+      ? {
+          ...initialData,
+          payload: JSON.stringify(initialData.payload, null, 2),
+        }
+      : {
+          name: "",
+          jobType: "",
+          cronExpression: "",
+          payload: "{}",
+          isActive: true,
+        },
   });
 
   async function onSubmit(values: JobScheduleFormValues) {
@@ -80,12 +86,28 @@ export function CreateJobScheduleForm({
       ...values,
       payload: parsedPayload,
     };
-    await createMutation.mutateAsync(submitData, {
-      onSuccess: () => {
-        form.reset();
-        onSuccess?.();
-      },
-    });
+
+    if (isEditMode) {
+      await (
+        mutation as ReturnType<typeof jobScheduleResource.useUpdate>
+      ).mutateAsync(
+        { id: initialData.id, data: submitData },
+        {
+          onSuccess: () => {
+            onSuccess?.();
+          },
+        }
+      );
+    } else {
+      await (
+        mutation as ReturnType<typeof jobScheduleResource.useCreate>
+      ).mutateAsync(submitData, {
+        onSuccess: () => {
+          form.reset();
+          onSuccess?.();
+        },
+      });
+    }
   }
 
   return (
@@ -169,12 +191,14 @@ export function CreateJobScheduleForm({
             </FormItem>
           )}
         />
-        <Button
-          type="submit"
-          className="w-full"
-          disabled={createMutation.isPending}
-        >
-          {createMutation.isPending ? "Creating..." : "Create Schedule"}
+        <Button type="submit" className="w-full" disabled={mutation.isPending}>
+          {mutation.isPending
+            ? isEditMode
+              ? "Saving..."
+              : "Creating..."
+            : isEditMode
+              ? "Save Changes"
+              : "Create Schedule"}
         </Button>
       </form>
     </Form>

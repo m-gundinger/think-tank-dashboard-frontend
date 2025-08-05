@@ -18,19 +18,22 @@ import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { AnnouncementForm } from "./AnnouncementForm";
 import { Announcement } from "@/types";
 
+interface AnnouncementQuery {
+  page?: number;
+}
+
 export function AnnouncementList() {
-  const [, setPage] = useState(1);
+  const [page, setPage] = useState(1);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const announcementResource = useApiResource<Announcement>("announcements", [
+  const announcementResource = useApiResource<Announcement, AnnouncementQuery>(
     "announcements",
-  ]);
-  const { data, isLoading, isError } = announcementResource.useGetAll();
+    ["announcements"]
+  );
+  const { data, isLoading, isError } = announcementResource.useGetAll({ page });
   const deleteMutation = announcementResource.useDelete();
 
   const handlePageChange = (newPage: number) => {
-    if (newPage > 0 && newPage <= (data?.totalPages || 1)) {
-      setPage(newPage);
-    }
+    setPage(newPage);
   };
 
   const columns: ColumnDef<Announcement>[] = [

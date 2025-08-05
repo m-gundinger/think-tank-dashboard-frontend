@@ -2,7 +2,7 @@ import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import {
-  FormInput,
+  FormTextarea,
   FormSelect,
   FormDatePicker,
 } from "@/components/form/FormFields";
@@ -70,7 +70,7 @@ export function InteractionForm({
             placeholder="Select type"
           />
           <FormDatePicker name="date" label="Date of Interaction" />
-          <FormInput
+          <FormTextarea
             name="notes"
             label="Notes"
             placeholder="Log details about the interaction..."

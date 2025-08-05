@@ -1,7 +1,7 @@
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import { FormInput } from "@/components/form/FormFields";
+import { FormInput, FormTextarea } from "@/components/form/FormFields";
 import { useApiResource } from "@/hooks/useApiResource";
 import { useEffect } from "react";
 import { z } from "zod";
@@ -65,7 +65,7 @@ export function RoleForm({ initialData, onSuccess }: RoleFormProps) {
             label="Role Name"
             placeholder="e.g., Content Manager"
           />
-          <FormInput
+          <FormTextarea
             name="description"
             label="Description"
             placeholder="What this role can do"

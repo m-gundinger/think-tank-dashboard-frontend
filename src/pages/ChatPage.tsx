@@ -1,4 +1,4 @@
-import { ChatInterface } from "@/features/chat";
+import { ChatInterface } from "@/features/collaboration/components/ChatInterface";
 
 export function ChatPage() {
   return (

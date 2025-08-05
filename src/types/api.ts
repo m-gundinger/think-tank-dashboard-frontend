@@ -14,6 +14,10 @@ export enum SocialProvider {
   WHATSAPP = "WHATSAPP",
   OPEN_ROUTER = "OPEN_ROUTER",
   BREVO = "BREVO",
+  GOOGLE_DOCS = "GOOGLE_DOCS",
+  GOOGLE_SHEETS = "GOOGLE_SHEETS",
+  GOOGLE_SLIDES = "GOOGLE_SLIDES",
+  GOOGLE_YOUTUBE = "GOOGLE_YOUTUBE",
 }
 
 export enum SkillCategory {
@@ -223,4 +227,10 @@ export enum IntegrationCategory {
   OAUTH = "OAUTH",
   API_KEY = "API_KEY",
   WEBHOOK = "WEBHOOK",
+}
+
+export enum AccessRole {
+  OWNER = "OWNER",
+  EDITOR = "EDITOR",
+  VIEWER = "VIEWER",
 }

@@ -6,9 +6,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useGetProfile } from "@/features/profile/api/useGetProfile";
+import { useGetProfile } from "@/features/user-management/api/useGetProfile";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ProfileAvatar } from "@/features/profile/components/ProfileAvatar";
+import { ProfileAvatar } from "@/features/user-management/components/ProfileAvatar";
+
 export function ProfilePage() {
   const { data: profile, isLoading } = useGetProfile();
   return (
@@ -62,7 +63,11 @@ export function ProfilePage() {
                   <Skeleton className="h-10 w-full" />
                 </div>
               ) : (
-                <UserForm user={profile} onSuccess={() => {}} isSelfProfile />
+                <UserForm
+                  initialData={profile}
+                  onSuccess={() => {}}
+                  isSelfProfile
+                />
               )}
             </CardContent>
           </Card>

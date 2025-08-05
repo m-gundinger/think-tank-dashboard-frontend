@@ -25,9 +25,13 @@ import { useHardDeleteUser } from "../api/useHardDeleteUser";
 import { cn, getAbsoluteUrl } from "@/lib/utils";
 import { UserForm } from "./UserForm";
 import { ManageUserRoles } from "./ManageUserRoles";
-import { ProfileAvatar } from "@/features/profile/components/ProfileAvatar";
+import { ProfileAvatar } from "@/features/user-management/components/ProfileAvatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { User } from "@/types";
+
+interface UserQuery {
+  page?: number;
+}
 
 const UserActionsCell = ({
   user,
@@ -89,17 +93,17 @@ const UserActionsCell = ({
 };
 
 export function UserList() {
-  const [, setPage] = useState(1);
+  const [page, setPage] = useState(1);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
-  const userResource = useApiResource<User>("admin/users", ["users"]);
+  const userResource = useApiResource<User, UserQuery>("admin/users", [
+    "users",
+  ]);
   const deleteMutation = userResource.useDelete();
   const setUserStatusMutation = useSetUserStatus();
-  const { data, isLoading, isError } = userResource.useGetAll();
+  const { data, isLoading, isError } = userResource.useGetAll({ page });
 
   const handlePageChange = (newPage: number) => {
-    if (newPage > 0 && newPage <= (data?.totalPages || 1)) {
-      setPage(newPage);
-    }
+    setPage(newPage);
   };
 
   const columns: ColumnDef<User>[] = [
@@ -224,7 +228,7 @@ export function UserList() {
         formProps={{ isSelfProfile: false }}
         isOpen={!!editingUserId}
         onOpenChange={(isOpen) => !isOpen && setEditingUserId(null)}
-        dialogClassName="flex h-full max-h-[90vh] flex-col sm:max-w-5xl"
+        dialogClassName="grid h-full max-h-[90vh] grid-cols-1 gap-8 p-6 sm:max-w-4xl lg:grid-cols-3"
       >
         {(user) => (
           <div className="space-y-6 lg:col-span-1">

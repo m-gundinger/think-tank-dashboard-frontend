@@ -32,10 +32,18 @@ const statusVariantMap: Record<
 export function PublicationCard({ publication, onEdit }: PublicationCardProps) {
   const publicationResource = useApiResource("publications", ["publications"]);
   const deleteMutation = publicationResource.useDelete();
-  const handleDelete = () => {
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
     if (window.confirm(`Delete publication "${publication.title}"?`)) {
       deleteMutation.mutate(publication.id);
     }
+  };
+
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    onEdit(publication);
   };
 
   return (
@@ -53,12 +61,13 @@ export function PublicationCard({ publication, onEdit }: PublicationCardProps) {
               variant="ghost"
               size="icon"
               className="h-8 w-8 flex-shrink-0"
+              onClick={(e) => e.stopPropagation()}
             >
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onEdit(publication)}>
+            <DropdownMenuItem onClick={handleEdit}>
               <Edit className="mr-2 h-4 w-4" /> Edit
             </DropdownMenuItem>
             <DropdownMenuItem

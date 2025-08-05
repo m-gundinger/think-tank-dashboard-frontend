@@ -21,6 +21,16 @@ import {
   DialogTrigger,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { useGetProjects } from "@/features/project-management/api/useGetProjects";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { useGetWorkspaces } from "@/features/workspaces/api/useGetWorkspaces";
 
 export function CrmPage() {
   const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
@@ -32,6 +42,11 @@ export function CrmPage() {
   const [isCreateOrganizationOpen, setIsCreateOrganizationOpen] =
     useState(false);
   const [isCreateDealOpen, setIsCreateDealOpen] = useState(false);
+  const [workspaceId, setWorkspaceId] = useState<string | undefined>();
+  const [projectId, setProjectId] = useState<string | undefined>();
+
+  const { data: workspacesData } = useGetWorkspaces();
+  const { data: projectsData } = useGetProjects(workspaceId);
 
   return (
     <div className="space-y-6">
@@ -68,7 +83,7 @@ export function CrmPage() {
               </Button>
             }
             title="Create New Organization"
-            description="Add a new organization or organization to the CRM."
+            description="Add a new organization or company to the CRM."
             form={OrganizationForm}
             resourcePath="organizations"
             resourceKey={["organizations"]}
@@ -85,6 +100,7 @@ export function CrmPage() {
             title="Create New Deal"
             description="Add a new deal to your pipeline."
             form={DealForm}
+            formProps={{ workspaceId, projectId }}
             resourcePath="deals"
             resourceKey={["deals"]}
           />
@@ -98,10 +114,52 @@ export function CrmPage() {
           <TabsTrigger value="organizations">Organizations</TabsTrigger>
         </TabsList>
         <TabsContent value="deals" className="mt-4">
-          <div className="mb-4 flex justify-end">
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-end gap-4">
+              <div className="w-64">
+                <Label>Workspace</Label>
+                <Select
+                  value={workspaceId}
+                  onValueChange={(id) => {
+                    setWorkspaceId(id);
+                    setProjectId(undefined);
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a workspace" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {workspacesData?.data.map((ws) => (
+                      <SelectItem key={ws.id} value={ws.id}>
+                        {ws.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="w-64">
+                <Label>Project</Label>
+                <Select
+                  value={projectId}
+                  onValueChange={setProjectId}
+                  disabled={!workspaceId}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a project" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {projectsData?.data.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
             <Dialog>
               <DialogTrigger asChild>
-                <Button variant="outline">
+                <Button variant="outline" disabled={!projectId}>
                   <Settings className="mr-2 h-4 w-4" />
                   Manage Stages
                 </Button>
@@ -117,7 +175,10 @@ export function CrmPage() {
               </DialogContent>
             </Dialog>
           </div>
-          <DealPipeline onDealSelect={setSelectedDealId} />
+          <DealPipeline
+            onDealSelect={setSelectedDealId}
+            projectId={projectId}
+          />
         </TabsContent>
         <TabsContent value="people" className="mt-4">
           <PersonList onPersonSelect={setSelectedPersonId} />

@@ -1,5 +1,5 @@
-import { TaskList } from "@/features/tasks/components/TaskList";
-import { TaskDetailModal } from "@/features/tasks/components/TaskDetailModal";
+import { TaskList } from "@/features/project-management/components/TaskList";
+import { TaskDetailModal } from "@/features/project-management/components/TaskDetailModal";
 import { useSearchParams } from "react-router-dom";
 import { useState, useMemo } from "react";
 import {
@@ -12,14 +12,14 @@ import {
 import { Label } from "@/components/ui/label";
 import { ListTasksQuery } from "@/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MyTasksKanbanBoard } from "@/features/tasks/components/MyTasksKanbanBoard";
+import { MyTasksKanbanBoard } from "@/features/project-management/components/MyTasksKanbanBoard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { CheckSquare, PlusCircle } from "lucide-react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { Button } from "@/components/ui/button";
-import { CreateTaskForm } from "@/features/tasks/components/CreateTaskForm";
-import { useGetMyTasks } from "@/features/tasks/api/useGetMyTasks";
+import { CreateTaskForm } from "@/features/project-management/components/CreateTaskForm";
+import { useGetMyTasks } from "@/features/project-management/api/useGetMyTasks";
 
 const TaskListSkeleton = () => (
   <div className="space-y-2 pt-4">
@@ -163,7 +163,7 @@ export function MyTasksPage() {
                 title="Create a new task"
                 description="Fill in the details below to add a new task."
                 form={CreateTaskForm}
-                resourcePath="/tasks"
+                resourcePath="/standalone-tasks"
                 resourceKey={["myTasks"]}
               />
             </div>

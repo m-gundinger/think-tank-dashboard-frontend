@@ -5,6 +5,7 @@ import { RoleCard } from "./RoleCard";
 import { RoleForm } from "./RoleForm";
 import { ManageRolePermissions } from "./ManageRolePermissions";
 import { RoleWithPermissions } from "@/types";
+
 export function RoleList() {
   const roleResource = useApiResource<RoleWithPermissions>("admin/roles", [
     "roles",

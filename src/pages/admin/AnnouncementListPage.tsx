@@ -1,5 +1,5 @@
 import { AnnouncementList } from "@/features/admin/announcements/components/AnnouncementList";
-import { BroadcastNotificationDialog } from "@/features/notifications/components/BroadcastNotificationDialog";
+import { BroadcastNotificationDialog } from "@/features/system/components/BroadcastNotificationDialog";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { useState } from "react";

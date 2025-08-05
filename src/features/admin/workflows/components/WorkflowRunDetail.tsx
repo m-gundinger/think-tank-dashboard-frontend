@@ -8,8 +8,9 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { WorkflowRun } from "@/types";
 interface WorkflowRunDetailProps {
-  run: any | null;
+  run: WorkflowRun | null;
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
 }

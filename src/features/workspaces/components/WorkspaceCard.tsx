@@ -12,6 +12,7 @@ export function WorkspaceCard({ workspace, onEdit }: WorkspaceCardProps) {
   const workspaceResource = useApiResource("workspaces", ["workspaces"]);
   const deleteMutation = workspaceResource.useDelete();
   const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
     e.preventDefault();
     if (
       window.confirm(
@@ -23,13 +24,14 @@ export function WorkspaceCard({ workspace, onEdit }: WorkspaceCardProps) {
   };
 
   const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
     e.preventDefault();
     onEdit(workspace.id);
   };
   return (
     <EntityCard
       title={workspace.name}
-      description={workspace.description}
+      description={workspace.description || "No description provided."}
       linkTo={`/workspaces/${workspace.id}/projects`}
       onEdit={handleEdit}
       onDelete={handleDelete}

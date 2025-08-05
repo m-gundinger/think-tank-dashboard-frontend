@@ -1,10 +1,10 @@
-import { TaskTypeList } from "@/features/task-types/components/TaskTypeList";
+import { TaskTypeList } from "@/features/project-management/components/TaskTypeList";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { useState } from "react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
-import { TaskTypeForm } from "@/features/task-types/components/TaskTypeForm";
+import { TaskTypeForm } from "@/features/project-management/components/TaskTypeForm";
 
 export function ProjectTaskTypesPage() {
   const { workspaceId, projectId } = useParams<{

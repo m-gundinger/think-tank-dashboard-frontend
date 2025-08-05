@@ -1,10 +1,11 @@
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import { PaginatedResponse, Announcement } from "@/types";
+
 async function getAnnouncements(
   query: any
 ): Promise<PaginatedResponse<Announcement>> {
-  const { data } = await api.get("admin/announcements", { params: query });
+  const { data } = await api.get("announcements", { params: query });
   return data;
 }
 
@@ -16,7 +17,7 @@ export function useGetAnnouncements(query: any) {
 }
 
 async function getAnnouncement(id: string): Promise<Announcement> {
-  const { data } = await api.get(`admin/announcements/${id}`);
+  const { data } = await api.get(`announcements/${id}`);
   return data;
 }
 

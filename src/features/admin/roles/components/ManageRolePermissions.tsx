@@ -42,13 +42,16 @@ export function ManageRolePermissions({ role }: { role: AnyValue }) {
       <div className="flex min-h-[60px] flex-wrap items-center gap-1 rounded-md border p-2">
         {role.permissions.length > 0 ? (
           role.permissions.map((permission: any) => (
-            <Badge key={permission.id} variant="secondary">
-              {permission.action} on {permission.subject}
+            <Badge key={permission.id} variant="secondary" className="pr-1">
+              <span>
+                {permission.action} on {permission.subject}
+              </span>
               <Button
                 size="icon"
                 variant="ghost"
                 className="ml-1 h-4 w-4"
                 onClick={() => revokeMutation.mutate(permission.id)}
+                disabled={revokeMutation.isPending}
               >
                 <XIcon className="h-3 w-3" />
               </Button>

@@ -18,7 +18,6 @@ export function useProjectSocket(projectId: string) {
       toast.info(`Real-time update: ${entityType} was modified.`);
 
       queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
-      queryClient.invalidateQueries({ queryKey: ["epics", projectId] });
       queryClient.invalidateQueries({ queryKey: ["views", projectId] });
 
       if (data?.id) {

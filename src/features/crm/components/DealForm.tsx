@@ -1,7 +1,16 @@
-import { useForm, FormProvider } from "react-hook-form";
+import {
+  useForm,
+  FormProvider,
+  type Resolver,
+  type SubmitHandler,
+} from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import { FormInput, FormSelect } from "@/components/form/FormFields";
+import {
+  FormInput,
+  FormSelect,
+  FormMultiSelectPopover,
+} from "@/components/form/FormFields";
 import { useManageDeals } from "../api/useManageDeals";
 import { useManageDealStages } from "../api/useManageDealStages";
 import { useManageOrganizations } from "../api/useManageOrganizations";
@@ -9,23 +18,22 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
 import { requiredStringSchema } from "@/lib/schemas";
+import { useGetProjectMembers } from "@/features/project-management/api/useGetProjectMembers";
+import { useApiResource } from "@/hooks/useApiResource";
 
 const dealSchema = z.object({
   name: requiredStringSchema("Deal name"),
-  value: z.string().optional(),
+  value: z.coerce
+    .number()
+    .positive({ message: "Value must be a positive number." }),
   stageId: z.string().uuid("A deal stage must be selected."),
-  organizationId: z.string().uuid("A organization must be selected."),
+  organizationId: z.string().uuid("An organization must be selected."),
+  ownerId: z.string().uuid("An owner is required.").optional(),
+  contactIds: z.array(z.string().uuid()).optional(),
+  projectId: z.string().uuid().optional().nullable(),
 });
 
 type DealFormValues = z.infer<typeof dealSchema>;
-
-// Type for the API payload after processing
-interface ProcessedDealValues {
-  name: string;
-  value: number;
-  stageId: string;
-  organizationId: string;
-}
 
 interface DealFormProps {
   initialData?: any;
@@ -34,13 +42,24 @@ interface DealFormProps {
   projectId?: string;
 }
 
-export function DealForm({ initialData, onSuccess, projectId }: DealFormProps) {
+export function DealForm({
+  initialData,
+  onSuccess,
+  workspaceId,
+  projectId,
+}: DealFormProps) {
   const { useCreate, useUpdate } = useManageDeals();
   const { data: stagesData, isLoading: isLoadingStages } = useManageDealStages(
     projectId
   ).useGetAll({ enabled: !!projectId });
   const { data: organizationsData, isLoading: isLoadingOrganizations } =
     useManageOrganizations().useGetAll();
+  const { data: membersData, isLoading: isLoadingMembers } =
+    useGetProjectMembers(workspaceId, projectId!, { enabled: !!projectId });
+  const { data: peopleData, isLoading: isLoadingPeople } = useApiResource(
+    "people",
+    ["people"]
+  ).useGetAll();
 
   const isEditMode = !!initialData;
   const createMutation = useCreate();
@@ -48,77 +67,67 @@ export function DealForm({ initialData, onSuccess, projectId }: DealFormProps) {
   const mutation = isEditMode ? updateMutation : createMutation;
 
   const methods = useForm<DealFormValues>({
-    resolver: zodResolver(dealSchema),
+    resolver: zodResolver(dealSchema) as unknown as Resolver<
+      DealFormValues,
+      any
+    >,
     defaultValues: {
       name: "",
-      value: "0",
+      value: 0,
       stageId: "",
       organizationId: "",
-      ...initialData,
+      contactIds: [],
+      projectId: projectId ?? null,
     },
   });
 
   useEffect(() => {
     if (initialData) {
-      // Convert numeric value to string for the form
-      const formData = {
+      const formData: Partial<DealFormValues> = {
         ...initialData,
-        value: initialData.value?.toString() || "0",
+        value: initialData.value || 0,
+        contactIds: initialData.contacts?.map((c: any) => c.id) || [],
+        projectId:
+          initialData.projectId !== undefined
+            ? initialData.projectId
+            : (projectId ?? null),
       };
-      methods.reset(formData);
+      methods.reset(formData as DealFormValues);
     }
-  }, [initialData, methods]);
+  }, [initialData, methods, projectId]);
 
-  async function onSubmit(values: DealFormValues) {
-    // Validate and convert the value field
-    let numericValue: number;
-
-    if (!values.value || values.value.trim() === "") {
-      methods.setError("value", {
-        type: "manual",
-        message: "Value is required",
-      });
-      return;
-    }
-
-    const parsed = parseFloat(values.value);
-    if (isNaN(parsed) || parsed < 0) {
-      methods.setError("value", {
-        type: "manual",
-        message: "Value must be a positive number",
-      });
-      return;
-    }
-    numericValue = parsed;
-
-    const processedValues: ProcessedDealValues = {
-      name: values.name,
-      value: numericValue,
-      stageId: values.stageId,
-      organizationId: values.organizationId,
-    };
-
+  const onSubmit: SubmitHandler<DealFormValues> = async (values) => {
     if (isEditMode) {
       await updateMutation.mutateAsync(
-        { id: initialData.id, data: processedValues },
+        { id: initialData.id, data: values },
         { onSuccess }
       );
     } else {
-      await createMutation.mutateAsync(processedValues, {
-        onSuccess: () => {
-          methods.reset();
-          onSuccess?.();
-        },
-      });
+      await createMutation.mutateAsync(
+        { ...values, projectId },
+        {
+          onSuccess: () => {
+            methods.reset();
+            onSuccess?.();
+          },
+        }
+      );
     }
-  }
+  };
 
   const stageOptions =
     stagesData?.data?.map((s: any) => ({ value: s.id, label: s.name })) || [];
   const organizationOptions =
-    organizationsData?.data?.map((c: any) => ({
-      value: c.id,
-      label: c.name,
+    organizationsData?.data?.map((o: any) => ({
+      value: o.id,
+      label: o.name,
+    })) || [];
+  const ownerOptions =
+    membersData?.map((m: any) => ({ value: m.userId, label: m.name })) || [];
+  const contactOptions =
+    peopleData?.data.map((p: any) => ({
+      id: p.id,
+      name: `${p.firstName} ${p.lastName}`,
     })) || [];
 
   return (
@@ -140,17 +149,17 @@ export function DealForm({ initialData, onSuccess, projectId }: DealFormProps) {
             name="organizationId"
             label="Organization"
             placeholder={
-              isLoadingOrganizations ? "Loading..." : "Select a organization"
+              isLoadingOrganizations ? "Loading..." : "Select an organization"
             }
             options={organizationOptions}
-            disabled={isLoadingOrganizations}
+            disabled={isLoadingOrganizations || isEditMode}
           />
           <FormSelect
             name="stageId"
             label="Stage"
             placeholder={
               !projectId
-                ? "Select a project first"
+                ? "Deal stages depend on a project context"
                 : isLoadingStages
                   ? "Loading..."
                   : "Select a stage"
@@ -158,7 +167,25 @@ export function DealForm({ initialData, onSuccess, projectId }: DealFormProps) {
             options={stageOptions}
             disabled={isLoadingStages || !projectId}
           />
-
+          <FormSelect
+            name="ownerId"
+            label="Owner"
+            placeholder={
+              !projectId
+                ? "Owners depend on a project context"
+                : isLoadingMembers
+                  ? "Loading..."
+                  : "Select an owner"
+            }
+            options={ownerOptions}
+            disabled={isLoadingMembers || !projectId}
+          />
+          <FormMultiSelectPopover
+            name="contactIds"
+            label="Contacts"
+            placeholder={isLoadingPeople ? "Loading..." : "Select contacts"}
+            options={contactOptions}
+          />
           <Button
             type="submit"
             className="w-full"

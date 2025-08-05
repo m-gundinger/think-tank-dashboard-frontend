@@ -4,6 +4,7 @@ import { RichTextOutput } from "@/components/ui/RichTextOutput";
 import { Organization } from "@/types";
 import { ManageOrganizationPeople } from "./ManageOrganizationPeople";
 import { InteractionTimeline } from "./InteractionTimeline";
+import { CrmAttachments } from "./CrmAttachments";
 
 function InfoItem({
   icon: Icon,
@@ -97,6 +98,8 @@ export function OrganizationDetailContent({
       <div className="px-2">
         <ManageOrganizationPeople organization={organization} />
       </div>
+      <hr />
+      <CrmAttachments entity={organization} entityType="organizations" />
       <hr />
       <div className="px-2">
         <InteractionTimeline organizationId={organization.id} />

@@ -19,6 +19,26 @@ async function addPersonToOrganization({
   return data;
 }
 
+interface UpdatePersonParams {
+  organizationId: string;
+  personId: string;
+  role: string;
+}
+
+async function updatePersonInOrganization({
+  organizationId,
+  personId,
+  role,
+}: UpdatePersonParams) {
+  const { data } = await api.patch(
+    `organizations/${organizationId}/people/${personId}`,
+    {
+      role,
+    }
+  );
+  return data;
+}
+
 interface RemovePersonParams {
   organizationId: string;
   personId: string;
@@ -35,6 +55,12 @@ async function removePersonFromOrganization({
 }
 
 export function useManageOrganizationPeople(organizationId: string) {
+  const invalidateQueries = [
+    ["organizations"],
+    ["organization", organizationId],
+    ["people"],
+  ];
+
   const addPersonMutation = useApiMutation<
     any,
     Omit<AddPersonParams, "organizationId">
@@ -42,25 +68,33 @@ export function useManageOrganizationPeople(organizationId: string) {
     mutationFn: (params) =>
       addPersonToOrganization({ organizationId, ...params }),
     successMessage: "Person added to organization.",
-    invalidateQueries: [
-      ["organizations"],
-      ["organization", organizationId],
-      ["people"],
-    ],
+    invalidateQueries,
   });
+
+  const updatePersonMutation = useApiMutation<
+    any,
+    Omit<UpdatePersonParams, "organizationId">
+  >({
+    mutationFn: (params) =>
+      updatePersonInOrganization({ organizationId, ...params }),
+    successMessage: "Person's role updated.",
+    invalidateQueries,
+  });
+
   const removePersonMutation = useApiMutation<any, string>({
     mutationFn: (personId) =>
       removePersonFromOrganization({ organizationId, personId }),
     successMessage: "Person removed from organization.",
-    invalidateQueries: [
-      ["organizations"],
-      ["organization", organizationId],
-      ["people"],
-    ],
+    invalidateQueries,
   });
+
   return {
     addPerson: addPersonMutation.mutate,
+    updatePerson: updatePersonMutation.mutate,
     removePerson: removePersonMutation.mutate,
-    isLoading: addPersonMutation.isPending || removePersonMutation.isPending,
+    isLoading:
+      addPersonMutation.isPending ||
+      removePersonMutation.isPending ||
+      updatePersonMutation.isPending,
   };
 }

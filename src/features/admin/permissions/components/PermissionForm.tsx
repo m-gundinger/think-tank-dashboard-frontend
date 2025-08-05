@@ -1,7 +1,7 @@
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import { FormInput, FormRichTextEditor } from "@/components/form/FormFields";
+import { FormInput, FormTextarea } from "@/components/form/FormFields";
 import { useApiResource } from "@/hooks/useApiResource";
 import { useEffect } from "react";
 import { z } from "zod";
@@ -39,19 +39,21 @@ export function PermissionForm({
       description: "",
     },
   });
+
   useEffect(() => {
     if (initialData) {
       methods.reset(initialData);
     }
   }, [initialData, methods]);
+
   async function onSubmit(values: PermissionFormValues) {
     if (isEditMode) {
-      await updateMutation.mutate(
+      await updateMutation.mutateAsync(
         { id: initialData.id, data: values },
         { onSuccess }
       );
     } else {
-      await createMutation.mutate(values, {
+      await createMutation.mutateAsync(values, {
         onSuccess: () => {
           methods.reset();
           onSuccess?.();
@@ -74,7 +76,11 @@ export function PermissionForm({
             label="Subject"
             placeholder="e.g., Project, Task, User"
           />
-          <FormRichTextEditor name="description" label="Description" />
+          <FormTextarea
+            name="description"
+            label="Description"
+            placeholder="A short description of what this permission allows."
+          />
           <Button
             type="submit"
             className="w-full"

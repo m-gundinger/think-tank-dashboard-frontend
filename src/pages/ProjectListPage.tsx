@@ -1,17 +1,17 @@
-import { ProjectList } from "@/features/projects/components/ProjectList";
+import { ProjectList } from "@/features/project-management/components/ProjectList";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { useState } from "react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
-import { ProjectForm } from "@/features/projects/components/ProjectForm";
+import { ProjectForm } from "@/features/project-management/components/ProjectForm";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { CreateProjectFromTemplateForm } from "@/features/projects/components/CreateProjectFromTemplateForm";
+import { CreateProjectFromTemplateForm } from "@/features/project-management/components/CreateProjectFromTemplateForm";
 
 export function ProjectListPage() {
   const { workspaceId } = useParams<{ workspaceId: string }>();

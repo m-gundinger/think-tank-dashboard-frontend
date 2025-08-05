@@ -1,10 +1,10 @@
-import { ViewList } from "@/features/views/components/ViewList";
+import { ViewList } from "@/features/project-management/components/ViewList";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { useState } from "react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
-import { ViewForm } from "@/features/views/components/ViewForm";
+import { ViewForm } from "@/features/project-management/components/ViewForm";
 
 export function ProjectViewsPage() {
   const { workspaceId, projectId } = useParams<{

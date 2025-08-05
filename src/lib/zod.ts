@@ -7,7 +7,7 @@ export const createPaginationSchema = (defaultLimit = 10) =>
       .number()
       .int()
       .positive()
-      .max(100)
+      .max(1000)
       .optional()
       .default(defaultLimit),
   });
@@ -21,6 +21,7 @@ export const createPaginatedResponseSchema = <T extends ZodType>(
     page: z.number().int(),
     limit: z.number().int(),
     totalPages: z.number().int(),
+    unreadCount: z.number().int().optional(), // For notifications
   });
 
 export const createUuidParamSchema = (

@@ -1,10 +1,10 @@
-import { DashboardList } from "@/features/dashboards/components/DashboardList";
+import { DashboardList } from "@/features/analytics/components/DashboardList";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { useState } from "react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
-import { CreateDashboardForm } from "@/features/dashboards/components/CreateDashboardForm";
+import { DashboardForm } from "@/features/analytics/components/DashboardForm";
 
 export function WorkspaceDashboardListPage() {
   const { workspaceId } = useParams<{ workspaceId: string }>();
@@ -34,9 +34,9 @@ export function WorkspaceDashboardListPage() {
           }
           title="Create a new dashboard"
           description="Dashboards live inside workspaces and contain widgets to visualize your data."
-          form={CreateDashboardForm}
+          form={DashboardForm}
           formProps={{ workspaceId }}
-          resourcePath={`workspaces/${workspaceId}/dashboards`}
+          resourcePath={`dashboards`}
           resourceKey={["dashboards", workspaceId]}
         />
       </div>

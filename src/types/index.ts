@@ -14,6 +14,12 @@ import {
   PublicationStatus,
   AnnouncementSeverity,
   SkillCategory,
+  ActivityActionType,
+  WidgetType,
+  AccessRole,
+  NotificationType,
+  NotificationSeverity,
+  WorkflowRunStatus,
 } from "./api";
 export type AnyValue = Record<string, any>;
 
@@ -66,6 +72,10 @@ export interface Announcement {
   severity: AnnouncementSeverity;
   isPinned: boolean;
   publishedAt: string | null;
+  author: {
+    id: string;
+    name: string;
+  };
 }
 
 export interface Job {
@@ -77,6 +87,66 @@ export interface Job {
   createdAt: string;
 }
 
+export interface JobSchedule {
+  id: string;
+  name: string;
+  jobType: string;
+  cronExpression: string;
+  payload: any;
+  isActive: boolean;
+  lastRunAt: string | null;
+  nextRunAt: string | null;
+}
+
+export interface Notification {
+  id: string;
+  type: NotificationType;
+  severity: NotificationSeverity;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
+export interface PaginatedNotificationsResponse
+  extends PaginatedResponse<Notification> {
+  unreadCount: number;
+}
+
+export interface SearchResults {
+  projects: Project[];
+  tasks: Task[];
+  publications: Publication[];
+  users: User[];
+  reports: Report[];
+}
+
+export interface Workflow {
+  id: string;
+  name: string;
+  description: string | null;
+  triggerType: ActivityActionType | null;
+  cronExpression: string | null;
+  enabled: boolean;
+  actions: WorkflowAction[];
+}
+
+export interface WorkflowAction {
+  id: string;
+  type: string;
+  config: any;
+  order: number;
+}
+
+export interface WorkflowRun {
+  id: string;
+  workflowId: string;
+  status: WorkflowRunStatus;
+  context: any;
+  logs: any;
+  startedAt: string;
+  completedAt: string | null;
+}
+
 export interface Workspace {
   id: string;
   name: string;
@@ -85,6 +155,10 @@ export interface Workspace {
   ownerId: string;
   createdAt: string;
   updatedAt: string;
+  knowledgeBases?: KnowledgeBase[];
+  whiteboards?: Whiteboard[];
+  publications?: Publication[];
+  channels?: Channel[];
 }
 
 export interface Project {
@@ -100,6 +174,10 @@ export interface Project {
   endDate: string | null;
   createdAt: string;
   updatedAt: string;
+  knowledgeBases?: KnowledgeBase[];
+  whiteboards?: Whiteboard[];
+  publications?: Publication[];
+  channels?: Channel[];
 }
 
 export interface Team {
@@ -204,6 +282,9 @@ export interface Task {
   parentId: string | null;
   subtasks: Task[];
   checklist?: ChecklistItem[] | null;
+  publications?: Publication[];
+  whiteboards?: Whiteboard[];
+  knowledgeBases?: KnowledgeBase[];
 }
 
 export interface ViewColumn {
@@ -278,7 +359,9 @@ export interface Organization {
   name: string;
   description: string | null;
   domain: string | null;
+  logoUrl: string | null;
   people: Person[];
+  publications?: Publication[];
 }
 
 export interface Deal {
@@ -295,6 +378,7 @@ export interface Deal {
   ownerName: string;
   workspaceId: string;
   projectId: string | null;
+  contacts: { id: string; name: string; email: string | null }[];
 }
 
 export interface DealStage {
@@ -328,6 +412,48 @@ export interface Report {
   taskId: string | null;
 }
 
+export interface Activity {
+  id: string;
+  workspaceId: string | null;
+  projectId: string | null;
+  taskId: string | null;
+  actionType: ActivityActionType;
+  details: any;
+  actorId: string;
+  actor: {
+    id: string;
+    name: string;
+    avatarUrl: string | null;
+  };
+  createdAt: string;
+}
+
+export interface Widget {
+  id: string;
+  title: string;
+  type: WidgetType;
+  config: any;
+  layout: {
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+  };
+}
+
+export interface Dashboard {
+  id: string;
+  name: string;
+  description: string | null;
+  projectId: string | null;
+  workspaceId: string | null;
+  userId: string | null;
+  widgets: Widget[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Query Types
 export interface ListTasksQuery {
   page?: number;
   limit?: number;
@@ -348,4 +474,186 @@ export interface ListTasksQuery {
   sortOrder?: "asc" | "desc";
   taskOrigin?: "project" | "standalone";
   userRole?: "creator" | "assignee";
+}
+
+export interface ListProjectsQuery {
+  page?: number;
+  limit?: number;
+  status?: ProjectStatus;
+  search?: string;
+  sortBy?: "createdAt" | "updatedAt" | "name" | "status";
+  sortOrder?: "asc" | "desc";
+  workspaceId?: string;
+}
+
+export interface ListPeopleQuery {
+  page?: number;
+  limit?: number;
+  sortBy?: "createdAt" | "updatedAt" | "firstName" | "lastName";
+  sortOrder?: "asc" | "desc";
+  search?: string;
+}
+
+export interface Comment {
+  id: string;
+  content: string;
+  entityId: string;
+  entityType: string;
+  authorId: string;
+  author: {
+    id: string;
+    name: string;
+    avatarUrl: string | null;
+  };
+  createdAt: string;
+  updatedAt: string;
+  publications?: Publication[];
+  whiteboards?: Whiteboard[];
+  knowledgeBases?: KnowledgeBase[];
+}
+
+export interface Publication {
+  id: string;
+  title: string;
+  slug: string;
+  status: PublicationStatus;
+  excerpt: string | null;
+  authors: Person[];
+  categories: { id: string; name: string }[];
+}
+
+export interface PublicationCategory {
+  id: string;
+  name: string;
+}
+
+export interface ChannelMember {
+  userId: string;
+  role: AccessRole;
+  name: string;
+  avatarUrl: string | null;
+}
+
+export interface Channel {
+  id: string;
+  name: string;
+  isPrivate: boolean;
+  workspaceId: string | null;
+  projectId: string | null;
+  createdAt: string;
+  updatedAt: string;
+  members?: ChannelMember[];
+}
+
+export interface Message {
+  id: string;
+  content: string;
+  authorId: string;
+  channelId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface KnowledgeBase {
+  id: string;
+  name: string;
+  description: string | null;
+  ownerId: string;
+  isPublic: boolean;
+  parentKnowledgeBaseId: string | null;
+  createdAt: string;
+  updatedAt: string;
+  members?: {
+    userId: string;
+    role: AccessRole;
+    name: string;
+    avatarUrl: string | null;
+  }[];
+  workspaceId?: string; // This might be needed for context
+}
+
+export interface KnowledgePage {
+  id: string;
+  title: string;
+  content: any | null;
+  contentJson: any | null;
+  knowledgeBaseId: string;
+  authorId: string;
+  lastEditorId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Whiteboard {
+  id: string;
+  name: string;
+  content: any | null;
+  ownerId: string;
+  parentWhiteboardId: string | null;
+  createdAt: string;
+  updatedAt: string;
+  members?: {
+    userId: string;
+    role: AccessRole;
+    name: string;
+    avatarUrl: string | null;
+  }[];
+}
+
+export interface LeadForm {
+  id: string;
+  name: string;
+  fields: any;
+  projectId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProjectTemplate {
+  id: string;
+  name: string;
+  description: string | null;
+  sourceProjectId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TaskTemplate {
+  id: string;
+  name: string;
+  description: string | null;
+  projectId: string;
+  templateData: any;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TimeLog {
+  id: string;
+  userId: string;
+  taskId: string;
+  duration: number;
+  description: string | null;
+  loggedAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProjectMember {
+  userId: string;
+  projectId: string;
+  roleId: string;
+  isGuest: boolean;
+  roleName: string;
+  name: string;
+  email: string | null;
+  avatarUrl: string | null;
+  createdAt: string;
+}
+
+export interface ProjectRole {
+  id: string;
+  name: string;
+  projectId: string;
+  permissions: Permission[];
 }

@@ -34,9 +34,11 @@ type StageFormValues = z.infer<typeof stageSchema>;
 function StageForm({
   onSuccess,
   projectId,
+  stagesCount,
 }: {
   onSuccess?: () => void;
   projectId: string;
+  stagesCount: number;
 }) {
   const { useCreate } = useManageDealStages(projectId);
   const createMutation = useCreate();
@@ -45,7 +47,10 @@ function StageForm({
   });
 
   const onSubmit = (values: StageFormValues) => {
-    createMutation.mutate({ ...values, projectId }, { onSuccess });
+    createMutation.mutate(
+      { ...values, projectId, order: stagesCount },
+      { onSuccess }
+    );
   };
 
   return (
@@ -112,7 +117,7 @@ export function DealStageManager() {
   const { data, isLoading } = useGetAll();
   const deleteMutation = useDelete();
   const updateMutation = useUpdate();
-  const updateOrderMutation = useUpdateDealStageOrder();
+  const updateOrderMutation = useUpdateDealStageOrder(projectId);
   const [stages, setStages] = useState(data?.data || []);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
@@ -153,16 +158,18 @@ export function DealStageManager() {
             items={stages.map((s) => s.id)}
             strategy={verticalListSortingStrategy}
           >
-            {stages.map((stage) => (
-              <SortableItem
-                key={stage.id}
-                stage={stage}
-                onRemove={deleteMutation.mutate}
-                onUpdate={(id: string, data: { name: string }) =>
-                  updateMutation.mutate({ id, data })
-                }
-              />
-            ))}
+            {stages
+              .sort((a, b) => a.order - b.order)
+              .map((stage) => (
+                <SortableItem
+                  key={stage.id}
+                  stage={stage}
+                  onRemove={deleteMutation.mutate}
+                  onUpdate={(id: string, data: { name: string }) =>
+                    updateMutation.mutate({ id, data })
+                  }
+                />
+              ))}
           </SortableContext>
         </DndContext>
       </div>
@@ -175,7 +182,7 @@ export function DealStageManager() {
         title="Create New Deal Stage"
         description="Add a new column to your deals pipeline."
         form={StageForm}
-        formProps={{ projectId }}
+        formProps={{ projectId, stagesCount: stages.length }}
         resourcePath="deal-stages"
         resourceKey={["dealStages", projectId]}
       />

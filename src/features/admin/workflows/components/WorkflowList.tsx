@@ -15,14 +15,17 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { WorkflowForm } from "./WorkflowForm";
+import { Workflow } from "@/types";
 
 export function WorkflowList() {
-  const workflowResource = useApiResource("admin/workflows", ["workflows"]);
+  const workflowResource = useApiResource<Workflow>("admin/workflows", [
+    "workflows",
+  ]);
   const { data, isLoading, isError } = workflowResource.useGetAll();
   const [editingWorkflowId, setEditingWorkflowId] = useState<string | null>(
     null
   );
-  const [viewingRunsFor, setViewingRunsFor] = useState<any | null>(null);
+  const [viewingRunsFor, setViewingRunsFor] = useState<Workflow | null>(null);
   const toggleMutation = useToggleWorkflow();
   const deleteMutation = workflowResource.useDelete();
 
@@ -102,7 +105,9 @@ export function WorkflowList() {
               </p>
               <div className="flex items-center gap-2 text-sm">
                 <span className="font-semibold">Trigger:</span>
-                <Badge variant="outline">{workflow.triggerType}</Badge>
+                <Badge variant="outline">
+                  {workflow.triggerType || workflow.cronExpression}
+                </Badge>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <span className="font-semibold">Actions:</span>

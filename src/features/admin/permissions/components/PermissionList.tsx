@@ -5,19 +5,25 @@ import {
   DataTableWrapper,
   ColumnDef,
 } from "@/components/ui/DataTable";
+import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
 import { Permission } from "@/types";
 
+interface PermissionQuery {
+  page?: number;
+}
+
 export function PermissionList() {
-  const [, setPage] = useState(1);
-  const permissionResource = useApiResource<Permission>("admin/permissions", [
-    "permissions",
-  ]);
-  const { data, isLoading, isError } = permissionResource.useGetAll();
+  const [page, setPage] = useState(1);
+  const permissionResource = useApiResource<Permission, PermissionQuery>(
+    "admin/permissions",
+    ["permissions"]
+  );
+  const { data, isLoading, isError } = permissionResource.useGetAll({ page });
+  const deleteMutation = permissionResource.useDelete();
 
   const handlePageChange = (newPage: number) => {
-    if (newPage > 0 && newPage <= (data?.totalPages || 1)) {
-      setPage(newPage);
-    }
+    setPage(newPage);
   };
 
   const columns: ColumnDef<Permission>[] = [
@@ -44,6 +50,7 @@ export function PermissionList() {
 
   if (isLoading) return <div>Loading permissions...</div>;
   if (isError) return <div>Error loading permissions.</div>;
+
   return (
     <DataTableWrapper>
       <DataTable
@@ -54,6 +61,24 @@ export function PermissionList() {
           totalPages: data?.totalPages || 1,
           handlePageChange,
         }}
+        bulkActions={(selectedIds) => (
+          <Button
+            variant="destructive"
+            onClick={() => {
+              if (
+                window.confirm(
+                  `Delete ${selectedIds.length} selected permissions?`
+                )
+              ) {
+                deleteMutation.mutate(selectedIds);
+              }
+            }}
+            disabled={deleteMutation.isPending}
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Delete ({selectedIds.length})
+          </Button>
+        )}
       />
     </DataTableWrapper>
   );

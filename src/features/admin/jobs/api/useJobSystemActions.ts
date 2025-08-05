@@ -9,7 +9,7 @@ export function useCleanupJobs() {
   return useApiMutation({
     mutationFn: cleanupJobs,
     successMessage: (data) =>
-      `Job cleanup successful. Deleted ${data.deletedJobsCount} records.`,
+      `Job cleanup successful. Deleted ${data.deletedCompleted + data.deletedFailed} records.`,
     invalidateQueries: [["jobs"], ["queueStats"]],
   });
 }

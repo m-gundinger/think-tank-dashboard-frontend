@@ -4,7 +4,7 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { MainContent } from "@/components/layout/MainContent";
 import { Toaster } from "@/components/ui/sonner";
 import { useNotificationSocket } from "@/hooks/useNotificationSocket";
-import { ActiveAnnouncements } from "@/features/announcements/components/ActiveAnnouncements";
+import { ActiveAnnouncements } from "@/features/system/components/ActiveAnnouncements";
 
 export function ProtectedLayout() {
   useNotificationSocket();

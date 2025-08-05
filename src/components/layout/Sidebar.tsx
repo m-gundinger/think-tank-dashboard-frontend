@@ -15,9 +15,9 @@ import {
   CheckSquare,
   Home,
   MessageSquare,
-  BarChart,
   BookOpen,
   Clipboard,
+  PieChart,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -26,13 +26,12 @@ const mainNavItems = [
   { to: "/home", icon: Home, label: "Home" },
   { to: "/my-tasks", icon: CheckSquare, label: "My Tasks" },
   { to: "/workspaces", icon: FolderKanban, label: "Workspaces" },
+  { to: "/analytics/activities", icon: PieChart, label: "Analytics" },
   { to: "/knowledge-bases", icon: BookOpen, label: "Knowledge Bases" },
   { to: "/publications", icon: FileText, label: "Publications" },
   { to: "/whiteboards", icon: Clipboard, label: "Whiteboards" },
   { to: "/crm", icon: Contact, label: "CRM" },
   { to: "/chat", icon: MessageSquare, label: "Chat" },
-  { to: "/reporting", icon: BarChart, label: "Reporting" },
-  { to: "/activity", icon: Activity, label: "Activity Log" },
 ];
 
 const adminNavItems = [
@@ -61,7 +60,10 @@ export function Sidebar() {
             className={({ isActive }) =>
               cn(
                 "text-muted-foreground hover:text-primary flex items-center gap-3 rounded-lg px-3 py-2 text-base font-medium transition-all",
-                isActive && "bg-muted text-primary"
+                isActive && "bg-muted text-primary",
+                item.to.startsWith("/analytics") &&
+                  location.pathname.startsWith("/analytics") &&
+                  "bg-muted text-primary"
               )
             }
           >

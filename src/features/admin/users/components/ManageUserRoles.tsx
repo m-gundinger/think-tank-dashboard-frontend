@@ -12,37 +12,46 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { XIcon } from "lucide-react";
 import { useState } from "react";
+import { AnyValue } from "@/types";
+
 interface ManageUserRolesProps {
-  user: any;
+  user: AnyValue;
 }
 
 export function ManageUserRoles({ user }: ManageUserRolesProps) {
   const roleResource = useApiResource("admin/roles", ["roles"]);
-  const [selectedRole, setSelectedRole] = useState("");
+  const [selectedRoleId, setSelectedRoleId] = useState("");
   const { data: rolesData, isLoading: isLoadingRoles } =
     roleResource.useGetAll();
+
+  const invalidateQueries = [["users"], ["user", user.id]];
 
   const assignRoleMutation = useApiMutation({
     mutationFn: (roleId: string) =>
       api.post(`admin/users/${user.id}/roles`, { roleId }),
     successMessage: "Role assigned successfully.",
-    invalidateQueries: [["users"], ["user", user.id]],
+    invalidateQueries,
   });
 
   const removeRoleMutation = useApiMutation({
     mutationFn: (roleId: string) =>
       api.delete(`admin/users/${user.id}/roles/${roleId}`),
     successMessage: "Role removed successfully.",
-    invalidateQueries: [["users"], ["user", user.id]],
+    invalidateQueries,
   });
 
+  const userRoleIds =
+    rolesData?.data
+      .filter((r: any) => user.roles.includes(r.name))
+      .map((r: any) => r.id) || [];
+
   const availableRoles =
-    rolesData?.data.filter((role: any) => !user.roles.includes(role.name)) ||
-    [];
+    rolesData?.data.filter((role: any) => !userRoleIds.includes(role.id)) || [];
+
   const handleAssignRole = () => {
-    if (selectedRole) {
-      assignRoleMutation.mutate(selectedRole, {
-        onSuccess: () => setSelectedRole(""),
+    if (selectedRoleId) {
+      assignRoleMutation.mutate(selectedRoleId, {
+        onSuccess: () => setSelectedRoleId(""),
       });
     }
   };
@@ -65,6 +74,7 @@ export function ManageUserRoles({ user }: ManageUserRolesProps) {
                   );
                   if (role) removeRoleMutation.mutate(role.id);
                 }}
+                disabled={removeRoleMutation.isPending}
               >
                 <XIcon className="h-3 w-3" />
               </Button>
@@ -77,9 +87,9 @@ export function ManageUserRoles({ user }: ManageUserRolesProps) {
 
       <div className="flex items-center gap-2">
         <Select
-          value={selectedRole}
-          onValueChange={setSelectedRole}
-          disabled={availableRoles.length === 0}
+          value={selectedRoleId}
+          onValueChange={setSelectedRoleId}
+          disabled={availableRoles.length === 0 || isLoadingRoles}
         >
           <SelectTrigger>
             <SelectValue placeholder="Select a role to add" />
@@ -100,7 +110,7 @@ export function ManageUserRoles({ user }: ManageUserRolesProps) {
         </Select>
         <Button
           onClick={handleAssignRole}
-          disabled={!selectedRole || assignRoleMutation.isPending}
+          disabled={!selectedRoleId || assignRoleMutation.isPending}
           size="sm"
         >
           {assignRoleMutation.isPending ? "Adding..." : "Add Role"}

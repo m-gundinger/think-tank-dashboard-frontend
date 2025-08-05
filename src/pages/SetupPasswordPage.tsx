@@ -1,4 +1,4 @@
-import { SetupPasswordForm } from "@/features/auth/components/SetupPasswordForm";
+import { SetupPasswordForm } from "@/features/user-management/components/SetupPasswordForm";
 
 export function SetupPasswordPage() {
   return (

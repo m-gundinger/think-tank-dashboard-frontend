@@ -1,10 +1,10 @@
-import { ProjectTemplateList } from "@/features/projects/components/ProjectTemplateList";
+import { ProjectTemplateList } from "@/features/project-management/components/ProjectTemplateList";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { useState } from "react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
-import { CreateTemplateForm } from "@/features/projects/components/CreateTemplateForm";
+import { CreateTemplateForm } from "@/features/project-management/components/CreateTemplateForm";
 
 export function ProjectTemplatesPage() {
   const { workspaceId, projectId } = useParams<{
@@ -37,8 +37,8 @@ export function ProjectTemplatesPage() {
           description="This will create a new template based on the current project's structure (views, custom fields, etc.). Tasks and other content will not be included."
           form={CreateTemplateForm}
           formProps={{ workspaceId, projectId, sourceProjectId: projectId }}
-          resourcePath={`admin/project-templates`}
-          resourceKey={["projectTemplates", projectId]}
+          resourcePath={`project-templates`}
+          resourceKey={["projectTemplates"]}
         />
       </div>
       <ProjectTemplateList workspaceId={workspaceId} projectId={projectId} />

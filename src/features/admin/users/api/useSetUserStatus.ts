@@ -19,6 +19,10 @@ async function setUserStatus({
 export function useSetUserStatus() {
   return useApiMutation<any, SetStatusParams>({
     mutationFn: setUserStatus,
+    successMessage: (data) =>
+      `User ${data.person.firstName} has been ${
+        data.isActive ? "activated" : "deactivated"
+      }.`,
     invalidateQueries: (data) => [["users"], ["user", data.id]],
   });
 }

@@ -1,13 +1,13 @@
-import { ProjectRoleList } from "@/features/project-roles/components/ProjectRoleList";
-import { InviteProjectMember } from "@/features/projects/components/InviteProjectMember";
-import { ProjectMemberList } from "@/features/projects/components/ProjectMemberList";
-import { useGetProjectMembers } from "@/features/projects/api/useGetProjectMembers";
+import { ProjectRoleList } from "@/features/project-management/components/ProjectRoleList";
+import { InviteProjectMember } from "@/features/project-management/components/InviteProjectMember";
+import { ProjectMemberList } from "@/features/project-management/components/ProjectMemberList";
+import { useGetProjectMembers } from "@/features/project-management/api/useGetProjectMembers";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { useState } from "react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
-import { CreateProjectRoleForm } from "@/features/project-roles/components/CreateProjectRoleForm";
+import { CreateProjectRoleForm } from "@/features/project-management/components/CreateProjectRoleForm";
 
 export function ProjectAccessControlPage() {
   const { workspaceId, projectId } = useParams<{

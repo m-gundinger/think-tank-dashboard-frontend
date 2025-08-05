@@ -1,4 +1,4 @@
-import { GoalList } from "@/features/goals/components/GoalList";
+import { GoalList } from "@/features/project-management/components/GoalList";
 import { useParams } from "react-router-dom";
 export function ProjectGoalsPage() {
   const { workspaceId, projectId } = useParams<{

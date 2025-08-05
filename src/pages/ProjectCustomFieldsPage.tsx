@@ -1,10 +1,10 @@
-import { CustomFieldDefinitionList } from "@/features/custom-fields/components/CustomFieldDefinitionList";
+import { CustomFieldDefinitionList } from "@/features/project-management/components/CustomFieldDefinitionList";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { useState } from "react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
-import { CustomFieldDefinitionForm } from "@/features/custom-fields/components/CustomFieldDefinitionForm";
+import { CustomFieldDefinitionForm } from "@/features/project-management/components/CustomFieldDefinitionForm";
 
 export function ProjectCustomFieldsPage() {
   const { workspaceId, projectId } = useParams<{

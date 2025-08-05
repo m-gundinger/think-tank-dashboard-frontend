@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { KnowledgeBaseDetailView } from "@/features/knowledge-base/components/KnowledgeBaseDetailView";
+import { KnowledgeBaseDetailView } from "@/features/collaboration/components/KnowledgeBaseDetailView";
 
 export function KnowledgeBaseDetailPage() {
   const { workspaceId, knowledgeBaseId } = useParams<{

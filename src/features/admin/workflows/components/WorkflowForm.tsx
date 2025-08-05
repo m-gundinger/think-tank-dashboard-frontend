@@ -1,5 +1,5 @@
-import { useForm, useFieldArray, useWatch } from "react-hook-form";
-import { useEffect } from "react";
+import { useForm, useFieldArray } from "react-hook-form";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -29,13 +29,14 @@ import { ActionRepeater } from "./ActionRepeater";
 import { PlusCircle } from "lucide-react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Workflow } from "@/types";
 
 const createTaskConfigSchema = z.object({
   title: z.string().min(1),
 });
 
 const updateTaskStatusConfigSchema = z.object({
-  status: z.enum(Object.values(TaskStatus) as [string, ...string[]]),
+  status: z.nativeEnum(TaskStatus),
 });
 
 export const AddCommentActionConfigSchema = z.object({
@@ -47,6 +48,11 @@ export const AssignTaskActionConfigSchema = z.object({
 
 export const SendTelegramMessageActionConfigSchema = z.object({
   message: z.string().min(1),
+});
+
+export const SendWebhookActionConfigSchema = z.object({
+  url: z.string().url(),
+  body: z.record(z.string(), z.any()),
 });
 export const SendEmailBrevoActionConfigSchema = z.object({
   templateId: z.number().int().positive(),
@@ -80,7 +86,11 @@ const workflowActionSchema = z.discriminatedUnion("type", [
     config: SendTelegramMessageActionConfigSchema,
     order: z.number().int().min(0),
   }),
-
+  z.object({
+    type: z.literal(WorkflowActionType.SEND_WEBHOOK),
+    config: SendWebhookActionConfigSchema,
+    order: z.number().int().min(0),
+  }),
   z.object({
     type: z.literal(WorkflowActionType.SEND_EMAIL_BREVO),
     config: SendEmailBrevoActionConfigSchema,
@@ -92,7 +102,6 @@ const workflowSchema = z
   .object({
     name: z.string().min(1, "Workflow name is required."),
     description: z.string().optional(),
-    triggerMode: z.enum(["event", "schedule"]),
     triggerType: z.nativeEnum(ActivityActionType).optional().nullable(),
     cronExpression: z.string().optional().nullable(),
     enabled: z.boolean(),
@@ -100,33 +109,22 @@ const workflowSchema = z
   })
   .refine(
     (data) => {
-      if (data.triggerMode === "event") {
-        return !!data.triggerType;
+      if (data.cronExpression) {
+        return !data.triggerType;
       }
-      return true;
+      return !!data.triggerType;
     },
     {
-      message: "An event type is required for event-based triggers.",
+      message:
+        "Either an event trigger or a CRON schedule must be defined, but not both.",
       path: ["triggerType"],
-    }
-  )
-  .refine(
-    (data) => {
-      if (data.triggerMode === "schedule") {
-        return !!data.cronExpression && data.cronExpression.length > 0;
-      }
-      return true;
-    },
-    {
-      message: "A CRON expression is required for scheduled triggers.",
-      path: ["cronExpression"],
     }
   );
 
 type WorkflowFormValues = z.infer<typeof workflowSchema>;
 
 interface WorkflowFormProps {
-  initialData?: any;
+  initialData?: Workflow;
   onSuccess?: () => void;
 }
 
@@ -137,12 +135,15 @@ export function WorkflowForm({ initialData, onSuccess }: WorkflowFormProps) {
   const updateMutation = workflowResource.useUpdate();
   const mutation = isEditMode ? updateMutation : createMutation;
 
+  const [triggerMode, setTriggerMode] = useState(
+    initialData?.cronExpression ? "schedule" : "event"
+  );
+
   const methods = useForm<WorkflowFormValues>({
     resolver: zodResolver(workflowSchema),
     defaultValues: {
       name: "",
       description: "",
-      triggerMode: "event",
       triggerType: ActivityActionType.TASK_CREATED,
       cronExpression: "",
       enabled: true,
@@ -150,18 +151,14 @@ export function WorkflowForm({ initialData, onSuccess }: WorkflowFormProps) {
     },
   });
 
-  const triggerMode = useWatch({
-    control: methods.control,
-    name: "triggerMode",
-  });
-
   useEffect(() => {
     if (isEditMode && initialData) {
       methods.reset({
         ...initialData,
         description: initialData.description ?? "",
-        triggerMode: initialData.cronExpression ? "schedule" : "event",
+        actions: initialData.actions as any[],
       });
+      setTriggerMode(initialData.cronExpression ? "schedule" : "event");
     }
   }, [initialData, isEditMode, methods]);
 
@@ -177,9 +174,8 @@ export function WorkflowForm({ initialData, onSuccess }: WorkflowFormProps) {
         ...action,
         order: index,
       })),
-      triggerType: values.triggerMode === "event" ? values.triggerType : null,
-      cronExpression:
-        values.triggerMode === "schedule" ? values.cronExpression : null,
+      triggerType: triggerMode === "event" ? values.triggerType : null,
+      cronExpression: triggerMode === "schedule" ? values.cronExpression : null,
     };
 
     if (isEditMode) {
@@ -214,40 +210,32 @@ export function WorkflowForm({ initialData, onSuccess }: WorkflowFormProps) {
           )}
         />
 
-        <FormField
-          control={methods.control}
-          name="triggerMode"
-          render={({ field }) => (
-            <FormItem className="space-y-3">
-              <FormLabel>When this happens...</FormLabel>
-              <FormControl>
-                <RadioGroup
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  className="flex items-center space-x-4"
-                >
-                  <FormItem className="flex items-center space-y-0 space-x-2">
-                    <FormControl>
-                      <RadioGroupItem value="event" />
-                    </FormControl>
-                    <FormLabel className="font-normal">
-                      An event occurs
-                    </FormLabel>
-                  </FormItem>
-                  <FormItem className="flex items-center space-y-0 space-x-2">
-                    <FormControl>
-                      <RadioGroupItem value="schedule" />
-                    </FormControl>
-                    <FormLabel className="font-normal">
-                      On a schedule (CRON)
-                    </FormLabel>
-                  </FormItem>
-                </RadioGroup>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <FormItem className="space-y-3">
+          <FormLabel>When this happens...</FormLabel>
+          <FormControl>
+            <RadioGroup
+              onValueChange={setTriggerMode}
+              defaultValue={triggerMode}
+              className="flex items-center space-x-4"
+            >
+              <FormItem className="flex items-center space-y-0 space-x-2">
+                <FormControl>
+                  <RadioGroupItem value="event" />
+                </FormControl>
+                <FormLabel className="font-normal">An event occurs</FormLabel>
+              </FormItem>
+              <FormItem className="flex items-center space-y-0 space-x-2">
+                <FormControl>
+                  <RadioGroupItem value="schedule" />
+                </FormControl>
+                <FormLabel className="font-normal">
+                  On a schedule (CRON)
+                </FormLabel>
+              </FormItem>
+            </RadioGroup>
+          </FormControl>
+          <FormMessage />
+        </FormItem>
 
         {triggerMode === "event" && (
           <FormField
