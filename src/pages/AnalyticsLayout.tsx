@@ -1,23 +1,37 @@
-import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useParams } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-const analyticsNavItems = [
-  { to: "/analytics/activities", label: "Activities" },
-  { to: "/analytics/dashboards", label: "Dashboards" },
-  { to: "/analytics/reporting", label: "Reporting" },
-  { to: "/analytics/reports", label: "Reports" },
-];
 
 export function AnalyticsLayout() {
   const location = useLocation();
-  const currentTab = location.pathname.split("/")[2] || "activities";
+  const { workspaceId } = useParams<{ workspaceId?: string }>();
+
+  const basePath = workspaceId
+    ? `/workspaces/${workspaceId}/analytics`
+    : "/analytics";
+
+  const analyticsNavItems = [
+    ...(workspaceId
+      ? [{ to: `${basePath}/dashboards`, label: "Dashboards" }]
+      : [
+          { to: `${basePath}/activities`, label: "Activities" },
+          { to: `${basePath}/dashboards`, label: "Dashboards" },
+        ]),
+    { to: `${basePath}/reporting`, label: "Reporting" },
+    ...(workspaceId
+      ? [{ to: `${basePath}/activity`, label: "Activity" }]
+      : [{ to: `${basePath}/reports`, label: "Reports" }]),
+  ];
+
+  const currentTab = location.pathname.split("/").pop() || "activities";
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
         <p className="text-muted-foreground">
-          Explore global insights and trends across all your work.
+          {workspaceId
+            ? "Explore insights and trends for this workspace."
+            : "Explore global insights and trends across all your work."}
         </p>
       </div>
 
@@ -26,7 +40,10 @@ export function AnalyticsLayout() {
           {analyticsNavItems.map((item) => (
             <NavLink to={item.to} key={item.to} end>
               {({ isActive }) => (
-                <TabsTrigger value={item.to.split("/")[2]} disabled={isActive}>
+                <TabsTrigger
+                  value={item.to.split("/").pop()!}
+                  disabled={isActive}
+                >
                   {item.label}
                 </TabsTrigger>
               )}

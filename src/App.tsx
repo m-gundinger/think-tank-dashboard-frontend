@@ -33,7 +33,6 @@ import { JobMonitoringPage } from "./pages/admin/JobMonitoringPage";
 import { SystemStatusPage } from "./pages/admin/SystemStatusPage";
 import { CrmPage } from "./pages/CrmPage";
 import { MyTasksPage } from "./pages/MyTasksPage";
-import { WorkspaceDashboardListPage } from "./pages/WorkspaceDashboardListPage";
 import { ProjectGoalsPage } from "./pages/ProjectGoalsPage";
 import { HomePage } from "./pages/HomePage";
 import { ChatPage } from "./pages/ChatPage";
@@ -49,8 +48,6 @@ import { ActivitiesPage } from "./pages/analytics/ActivitiesPage";
 import { DashboardsPage } from "./pages/analytics/DashboardsPage";
 import { ReportingPage } from "./pages/analytics/ReportingPage";
 import { ReportsPage } from "./pages/analytics/ReportsPage";
-import { WorkspaceActivityLogPage } from "./pages/WorkspaceActivityLogPage";
-import { WorkspaceReportingPage } from "./pages/WorkspaceReportingPage";
 
 function App() {
   return (
@@ -89,10 +86,13 @@ function App() {
             <Route index element={<Navigate to="projects" replace />} />
             <Route path="projects" element={<ProjectListPage />} />
             <Route path="teams" element={<TeamsPage />} />
-            <Route path="dashboards" element={<WorkspaceDashboardListPage />} />
             <Route path="attachments" element={<WorkspaceAttachmentsPage />} />
-            <Route path="reporting" element={<WorkspaceReportingPage />} />
-            <Route path="activity" element={<WorkspaceActivityLogPage />} />
+            <Route path="analytics" element={<AnalyticsLayout />}>
+              <Route index element={<Navigate to="dashboards" replace />} />
+              <Route path="dashboards" element={<DashboardsPage />} />
+              <Route path="reporting" element={<ReportingPage />} />
+              <Route path="activity" element={<ActivitiesPage />} />
+            </Route>
           </Route>
           <Route
             path="workspaces/:workspaceId/knowledge-bases/:knowledgeBaseId"
@@ -126,7 +126,7 @@ function App() {
             <Route path="attachments" element={<ProjectAttachmentsPage />} />
           </Route>
           <Route
-            path="workspaces/:workspaceId/projects/:projectId/:dashboardId"
+            path="workspaces/:workspaceId/projects/:projectId/dashboards/:dashboardId"
             element={<DashboardDetailPage />}
           />
           <Route path="profile" element={<ProfilePage />} />

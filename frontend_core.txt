@@ -12216,7 +12216,7 @@ async function updateMyTask({
   const url =
     workspaceId && projectId
       ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}`
-      : `tasks/${taskId}`;
+      : `standalone-tasks/${taskId}`;
   const { data } = await api.put(url, taskData);
   return data;
 }
@@ -12303,7 +12303,6 @@ export function useUpdateMyTask() {
     },
   });
 }
-
 // FILE: src/features/project-management/api/useUpdateTask.ts
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
@@ -12337,6 +12336,7 @@ const updateTaskInTree = (
   taskId: string,
   updates: Partial<Task>
 ): Task[] => {
+  if (!tasks) return [];
   return tasks.map((task) => {
     if (task.id === taskId) {
       return { ...task, ...updates };
@@ -12362,9 +12362,20 @@ export function useUpdateTask() {
     onMutate: async (variables) => {
       const { taskId, taskData, projectId } = variables;
 
-      await queryClient.cancelQueries({ queryKey: ["tasks"] });
-      await queryClient.cancelQueries({ queryKey: ["myTasks"] });
-      await queryClient.cancelQueries({ queryKey: ["task", taskId] });
+      const queryKeysToCancel: QueryKey[] = [
+        ["task", taskId],
+        ["myTasks"],
+        ["tasks"],
+      ];
+      if (projectId) {
+        queryKeysToCancel.push(["projects", projectId, "tasks"]);
+      }
+
+      await Promise.all(
+        queryKeysToCancel.map((key) =>
+          queryClient.cancelQueries({ queryKey: key, exact: false })
+        )
+      );
 
       const previousData = new Map<QueryKey, any>();
 
@@ -12381,10 +12392,10 @@ export function useUpdateTask() {
 
       // Optimistically update all list queries
       const queryCache = queryClient.getQueryCache();
-      const listQueryKeys = [
-        ...(projectId ? [["projects", projectId, "tasks"]] : []),
-        ["myTasks"],
-      ];
+      const listQueryKeys: QueryKey[] = [["myTasks"], ["tasks"]];
+      if (projectId) {
+        listQueryKeys.push(["projects", projectId, "tasks"]);
+      }
 
       for (const key of listQueryKeys) {
         const queries = queryCache.findAll({ queryKey: key, exact: false });
@@ -12437,7 +12448,6 @@ export function useUpdateTask() {
     },
   });
 }
-
 // FILE: src/features/project-management/api/useUpdateTaskCustomValues.ts
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
@@ -18266,7 +18276,11 @@ function TaskLinkItem({ link, onRemove, onUpdateType }: any) {
         variant="ghost"
         size="icon"
         className="h-6 w-6"
-        onClick={() => onRemove(link.id)}
+        onClick={() => {
+          if (link.id) {
+            onRemove(link.id);
+          }
+        }}
       >
         <Trash2 className="h-3 w-3" />
       </Button>
@@ -18344,7 +18358,6 @@ export function TaskLinks({ task, workspaceId, projectId }: any) {
     </div>
   );
 }
-
 // FILE: src/features/project-management/components/TaskList.tsx
 import {
   DataTable,

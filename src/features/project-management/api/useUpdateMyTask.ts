@@ -20,7 +20,7 @@ async function updateMyTask({
   const url =
     workspaceId && projectId
       ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}`
-      : `tasks/${taskId}`;
+      : `standalone-tasks/${taskId}`;
   const { data } = await api.put(url, taskData);
   return data;
 }

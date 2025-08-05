@@ -38,17 +38,11 @@ export function WorkspaceLayout() {
           <NavLink to={`/workspaces/${workspaceId}/teams`}>
             <TabsTrigger value="teams">Teams</TabsTrigger>
           </NavLink>
-          <NavLink to={`/workspaces/${workspaceId}/dashboards`}>
-            <TabsTrigger value="dashboards">Dashboards</TabsTrigger>
+          <NavLink to={`/workspaces/${workspaceId}/analytics/dashboards`}>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </NavLink>
           <NavLink to={`/workspaces/${workspaceId}/attachments`}>
             <TabsTrigger value="attachments">Attachments</TabsTrigger>
-          </NavLink>
-          <NavLink to={`/workspaces/${workspaceId}/reporting`}>
-            <TabsTrigger value="reporting">Reporting</TabsTrigger>
-          </NavLink>
-          <NavLink to={`/workspaces/${workspaceId}/activity`}>
-            <TabsTrigger value="activity">Activity</TabsTrigger>
           </NavLink>
         </TabsList>
         <Outlet />

@@ -4,6 +4,7 @@ You are an expert AI full-stack developer. Your mission is to analyze the provid
 
 - when updating a task status or priority in the modal, the changes are not seen in the list view - only after reloading. For the kanban view, it is working.
 - recurrence is not working.
+- the dashboards, reporting, and activity in the workspace/project should not rely on new routes - rather, these should simply show the dashboards, reporting, and activity entities linked to the workspace/project. The global analytics should stay as is and should provide aggregate data.
 - Solve these issues:
 [21:03:55 UTC] INFO: incoming request
     requestId: "req-g4"

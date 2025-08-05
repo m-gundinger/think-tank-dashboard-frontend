@@ -30,6 +30,7 @@ const updateTaskInTree = (
   taskId: string,
   updates: Partial<Task>
 ): Task[] => {
+  if (!tasks) return [];
   return tasks.map((task) => {
     if (task.id === taskId) {
       return { ...task, ...updates };
@@ -55,9 +56,20 @@ export function useUpdateTask() {
     onMutate: async (variables) => {
       const { taskId, taskData, projectId } = variables;
 
-      await queryClient.cancelQueries({ queryKey: ["tasks"] });
-      await queryClient.cancelQueries({ queryKey: ["myTasks"] });
-      await queryClient.cancelQueries({ queryKey: ["task", taskId] });
+      const queryKeysToCancel: QueryKey[] = [
+        ["task", taskId],
+        ["myTasks"],
+        ["tasks"],
+      ];
+      if (projectId) {
+        queryKeysToCancel.push(["projects", projectId, "tasks"]);
+      }
+
+      await Promise.all(
+        queryKeysToCancel.map((key) =>
+          queryClient.cancelQueries({ queryKey: key, exact: false })
+        )
+      );
 
       const previousData = new Map<QueryKey, any>();
 
@@ -74,10 +86,10 @@ export function useUpdateTask() {
 
       // Optimistically update all list queries
       const queryCache = queryClient.getQueryCache();
-      const listQueryKeys = [
-        ...(projectId ? [["projects", projectId, "tasks"]] : []),
-        ["myTasks"],
-      ];
+      const listQueryKeys: QueryKey[] = [["myTasks"], ["tasks"]];
+      if (projectId) {
+        listQueryKeys.push(["projects", projectId, "tasks"]);
+      }
 
       for (const key of listQueryKeys) {
         const queries = queryCache.findAll({ queryKey: key, exact: false });

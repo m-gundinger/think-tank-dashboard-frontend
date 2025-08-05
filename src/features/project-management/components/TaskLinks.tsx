@@ -42,7 +42,11 @@ function TaskLinkItem({ link, onRemove, onUpdateType }: any) {
         variant="ghost"
         size="icon"
         className="h-6 w-6"
-        onClick={() => onRemove(link.id)}
+        onClick={() => {
+          if (link.id) {
+            onRemove(link.id);
+          }
+        }}
       >
         <Trash2 className="h-3 w-3" />
       </Button>
