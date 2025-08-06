@@ -13,7 +13,7 @@ import {
 } from "./TaskDetailSidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { CornerUpLeft } from "lucide-react";
+import { CornerUpLeft, ChevronRight } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -21,6 +21,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useUpdateTask } from "../api/useUpdateTask";
+import { Link } from "react-router-dom";
 
 interface TaskDetailModalProps {
   taskId: string | null;
@@ -76,6 +77,23 @@ export function TaskDetailModal({
 
     return (
       <>
+        {task.projectId && task.workspaceId && task.projectName && (
+          <div className="text-muted-foreground flex items-center gap-1 text-sm">
+            <Link
+              to={`/workspaces/${task.workspaceId}/projects`}
+              className="hover:underline"
+            >
+              {task.workspaceName}
+            </Link>
+            <ChevronRight className="h-4 w-4" />
+            <Link
+              to={`/workspaces/${task.workspaceId}/projects/${task.projectId}`}
+              className="hover:underline"
+            >
+              {task.projectName}
+            </Link>
+          </div>
+        )}
         <DialogTitle className="flex items-center gap-2 pr-6">
           {task.parentId && (
             <TooltipProvider>
@@ -120,6 +138,7 @@ export function TaskDetailModal({
               task={task}
               workspaceId={task.workspaceId}
               projectId={task.projectId}
+              onSave={handleSave}
             />
           </div>
         </div>

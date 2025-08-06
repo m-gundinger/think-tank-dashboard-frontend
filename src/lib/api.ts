@@ -52,9 +52,14 @@ api.interceptors.response.use(
         useAuthStore.getState().setAccessToken(null);
         // Using window.location to force a full page reload to the login page
         // which clears all state and avoids inconsistent states.
-        const currentPath = window.location.pathname;
-        const isAlreadyOnPublicPage = publicPaths.some((path) =>
-          currentPath.startsWith(path)
+        const publicPathsForRedirect = [
+          "/login",
+          "/forgot-password",
+          "/reset-password",
+          "/setup-password",
+        ];
+        const isAlreadyOnPublicPage = publicPathsForRedirect.some((path) =>
+          window.location.pathname.startsWith(path)
         );
 
         if (!isAlreadyOnPublicPage) {

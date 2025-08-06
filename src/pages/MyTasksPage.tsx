@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { ListTasksQuery } from "@/types";
+import { ListTasksQuery, Task } from "@/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MyTasksKanbanBoard } from "@/features/project-management/components/MyTasksKanbanBoard";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -20,6 +20,10 @@ import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { Button } from "@/components/ui/button";
 import { CreateTaskForm } from "@/features/project-management/components/CreateTaskForm";
 import { useGetMyTasks } from "@/features/project-management/api/useGetMyTasks";
+import { CalendarView } from "@/features/project-management/components/CalendarView";
+import { GanttChartView } from "@/features/project-management/components/GanttChartView";
+import { SortingState } from "@tanstack/react-table";
+import { useUpdateTask } from "@/features/project-management/api/useUpdateTask";
 
 const TaskListSkeleton = () => (
   <div className="space-y-2 pt-4">
@@ -34,8 +38,12 @@ export function MyTasksPage() {
   const activeView = searchParams.get("view") || "list";
   const [page, setPage] = useState(1);
   const [filter, setFilter] = useState("all_assigned");
-  const [sortBy, setSortBy] = useState("priority");
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: "priority", desc: true },
+  ]);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const updateTaskMutation = useUpdateTask();
+
   const handleTaskSelect = (taskId: string | null) => {
     setSearchParams(
       (params) => {
@@ -62,9 +70,9 @@ export function MyTasksPage() {
 
   const queryParams: ListTasksQuery = useMemo(() => {
     const baseQuery: ListTasksQuery = {
-      sortBy: sortBy as ListTasksQuery["sortBy"],
-      sortOrder: "desc" as const,
-      limit: activeView === "kanban" ? 200 : 15,
+      sortBy: (sorting[0]?.id as ListTasksQuery["sortBy"]) ?? "priority",
+      sortOrder: sorting[0]?.desc ? "desc" : "asc",
+      limit: activeView === "list" ? 15 : 200,
       page: page,
       includeSubtasks: true,
     };
@@ -83,7 +91,7 @@ export function MyTasksPage() {
       default:
         return baseQuery;
     }
-  }, [filter, sortBy, activeView, page]);
+  }, [filter, sorting, activeView, page]);
 
   const { data, isLoading } = useGetMyTasks(queryParams);
   const handlePageChange = (newPage: number) => {
@@ -91,6 +99,14 @@ export function MyTasksPage() {
       setPage(newPage);
     }
   };
+
+  const handleTaskUpdate = (taskId: string, updates: Partial<Task>) => {
+    updateTaskMutation.mutate({
+      taskId,
+      taskData: updates,
+    });
+  };
+
   const emptyState = (
     <EmptyState
       icon={<CheckSquare className="text-primary h-10 w-10" />}
@@ -135,21 +151,7 @@ export function MyTasksPage() {
                 </SelectContent>
               </Select>
             </div>
-            {activeView === "list" && (
-              <div className="grid w-full max-w-sm items-center gap-1.5">
-                <Label htmlFor="sort">Sort by</Label>
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger id="sort" className="w-[180px]">
-                    <SelectValue placeholder="Sort tasks" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="priority">Priority</SelectItem>
-                    <SelectItem value="dueDate">Due Date</SelectItem>
-                    <SelectItem value="createdAt">Creation Date</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+
             <div className="self-end">
               <ResourceCrudDialog
                 isOpen={isCreateOpen}
@@ -173,6 +175,8 @@ export function MyTasksPage() {
           <TabsList>
             <TabsTrigger value="list">List</TabsTrigger>
             <TabsTrigger value="kanban">Kanban</TabsTrigger>
+            <TabsTrigger value="calendar">Calendar</TabsTrigger>
+            <TabsTrigger value="gantt">Gantt</TabsTrigger>
           </TabsList>
           <TabsContent value="list">
             {isLoading ? (
@@ -184,6 +188,8 @@ export function MyTasksPage() {
                 emptyState={emptyState}
                 apiUrl="tasks"
                 queryKey={["myTasks"]}
+                sorting={sorting}
+                setSorting={setSorting}
                 pagination={{
                   page: data?.page || 1,
                   totalPages: data?.totalPages || 1,
@@ -197,6 +203,27 @@ export function MyTasksPage() {
               <TaskListSkeleton />
             ) : (
               <MyTasksKanbanBoard
+                tasks={data?.data || []}
+                onTaskSelect={handleTaskSelect}
+              />
+            )}
+          </TabsContent>
+          <TabsContent value="calendar" className="mt-4">
+            {isLoading ? (
+              <TaskListSkeleton />
+            ) : (
+              <CalendarView
+                tasks={data?.data || []}
+                onTaskSelect={handleTaskSelect}
+                onTaskUpdate={handleTaskUpdate}
+              />
+            )}
+          </TabsContent>
+          <TabsContent value="gantt" className="mt-4">
+            {isLoading ? (
+              <TaskListSkeleton />
+            ) : (
+              <GanttChartView
                 tasks={data?.data || []}
                 onTaskSelect={handleTaskSelect}
               />

@@ -1,6 +1,5 @@
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
 const settingsNavItems = [
   { to: "/settings/integrations", label: "Integrations" },
   { to: "/settings/security", label: "Security" },

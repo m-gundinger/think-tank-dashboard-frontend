@@ -2,6 +2,8 @@ import {
   DataTable,
   DataTableWrapper,
   ColumnDef,
+  SortingState,
+  OnChangeFn,
 } from "@/components/ui/DataTable";
 import {
   DropdownMenu,
@@ -26,6 +28,7 @@ import { toast } from "sonner";
 import { MoreHorizontal, Edit, Copy, Trash2 } from "lucide-react";
 import { useUpdateTask } from "../api/useUpdateTask";
 import { useManageTasks } from "../api/useManageTasks";
+import { useReactTable, getCoreRowModel } from "@tanstack/react-table";
 
 interface TaskListProps {
   tasks: Task[];
@@ -40,6 +43,8 @@ interface TaskListProps {
   queryKey: string[];
   workspaceId?: string | null;
   projectId?: string | null;
+  sorting?: SortingState;
+  setSorting?: OnChangeFn<SortingState>;
 }
 
 export function TaskList({
@@ -49,6 +54,8 @@ export function TaskList({
   emptyState,
   workspaceId,
   projectId,
+  sorting,
+  setSorting,
 }: TaskListProps) {
   const { useDelete } = useManageTasks(workspaceId, projectId);
   const deleteMutation = useDelete();
@@ -60,33 +67,46 @@ export function TaskList({
 
   const columns: ColumnDef<Task>[] = [
     {
-      accessorKey: "shortId",
-      header: "ID",
-      cell: (task) => <span className="font-mono text-xs">{task.shortId}</span>,
-    },
-    {
       accessorKey: "title",
       header: "Title",
-      cell: (task) => (
+      cell: ({ row }) => (
         <span
-          className="cursor-pointer hover:underline"
-          onClick={() => onTaskSelect(task.id)}
+          className="cursor-pointer font-medium hover:underline"
+          onClick={() => onTaskSelect(row.original.id)}
         >
-          {task.title}
+          {row.original.title}
         </span>
       ),
     },
     {
+      accessorKey: "workspaceName",
+      header: "Workspace",
+      cell: ({ row }) => row.original.workspaceName,
+      enableSorting: true,
+    },
+    {
+      accessorKey: "projectName",
+      header: "Project",
+      cell: ({ row }) => row.original.projectName,
+      enableSorting: true,
+    },
+    {
+      accessorKey: "taskTypeName",
+      header: "Type",
+      cell: ({ row }) => row.original.taskType?.name,
+      enableSorting: true,
+    },
+    {
       accessorKey: "status",
       header: "Status",
-      cell: (task) => (
+      cell: ({ row }) => (
         <Select
-          defaultValue={task.status}
+          defaultValue={row.original.status}
           onValueChange={(newStatus) =>
             updateTaskMutation.mutate({
-              taskId: task.id,
-              workspaceId: task.workspaceId,
-              projectId: task.projectId,
+              taskId: row.original.id,
+              workspaceId: row.original.workspaceId,
+              projectId: row.original.projectId,
               taskData: { status: newStatus as TaskStatus },
             })
           }
@@ -107,14 +127,14 @@ export function TaskList({
     {
       accessorKey: "priority",
       header: "Priority",
-      cell: (task) => (
+      cell: ({ row }) => (
         <Select
-          defaultValue={task.priority}
+          defaultValue={row.original.priority}
           onValueChange={(newPriority) =>
             updateTaskMutation.mutate({
-              taskId: task.id,
-              workspaceId: task.workspaceId,
-              projectId: task.projectId,
+              taskId: row.original.id,
+              workspaceId: row.original.workspaceId,
+              projectId: row.original.projectId,
               taskData: { priority: newPriority as TaskPriority },
             })
           }
@@ -135,13 +155,15 @@ export function TaskList({
     {
       accessorKey: "dueDate",
       header: "Due Date",
-      cell: (task) =>
-        task.dueDate ? format(new Date(task.dueDate), "PPP") : "None",
+      cell: ({ row }) =>
+        row.original.dueDate
+          ? format(new Date(row.original.dueDate), "PPP")
+          : "None",
     },
     {
-      accessorKey: "actions",
-      header: "Actions",
-      cell: (task) => (
+      id: "actions",
+      header: "",
+      cell: ({ row }) => (
         <div className="text-right" onClick={(e) => e.stopPropagation()}>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -151,13 +173,15 @@ export function TaskList({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => onTaskSelect(task.id)}>
+              <DropdownMenuItem onClick={() => onTaskSelect(row.original.id)}>
                 <Edit className="mr-2 h-4 w-4" />
                 <span>View / Edit Details</span>
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => {
-                  navigator.clipboard.writeText(task.shortId || task.id);
+                  navigator.clipboard.writeText(
+                    row.original.shortId || row.original.id
+                  );
                   toast.success("Task ID copied to clipboard.");
                 }}
               >
@@ -168,8 +192,8 @@ export function TaskList({
               <DropdownMenuItem
                 className="text-red-600"
                 onClick={() => {
-                  if (window.confirm(`Delete task: "${task.title}"?`)) {
-                    deleteMutation.mutate(task.id);
+                  if (window.confirm(`Delete task: "${row.original.title}"?`)) {
+                    deleteMutation.mutate(row.original.id);
                   }
                 }}
               >
@@ -182,12 +206,22 @@ export function TaskList({
       ),
     },
   ];
+
+  const table = useReactTable({
+    data: tasks,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    // We need to pass the instance to DataTable, so we manage it here
+  });
+
   return (
     <DataTableWrapper>
       <DataTable
         columns={columns}
         data={tasks}
         pagination={pagination}
+        sorting={sorting}
+        setSorting={setSorting}
         bulkActions={(selectedIds) => (
           <Button
             variant="destructive"
@@ -197,7 +231,11 @@ export function TaskList({
                   `Delete ${selectedIds.length} selected tasks? This cannot be undone.`
                 )
               ) {
-                deleteMutation.mutate(selectedIds);
+                deleteMutation.mutate(selectedIds, {
+                  onSuccess: () => {
+                    table.resetRowSelection();
+                  },
+                });
               }
             }}
             disabled={deleteMutation.isPending}

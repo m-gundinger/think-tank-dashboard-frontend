@@ -62,15 +62,14 @@ export function TaskLinks({ task, workspaceId, projectId }: any) {
 
   const { addLink, removeLink, updateLink, isPending } = useManageTaskLinks(
     workspaceId,
-    projectId,
-    task.id
+    projectId
   );
 
   const handleAddLink = (e: React.FormEvent) => {
     e.preventDefault();
     if (!targetTaskId.trim()) return;
     addLink(
-      { targetTaskId, type: linkType },
+      { sourceTaskId: task.id, targetTaskId, type: linkType },
       { onSuccess: () => setTargetTaskId("") }
     );
   };
@@ -86,8 +85,12 @@ export function TaskLinks({ task, workspaceId, projectId }: any) {
             <TaskLinkItem
               key={link.id}
               link={link}
-              onRemove={removeLink}
-              onUpdateType={updateLink}
+              onRemove={(linkId: string) =>
+                removeLink({ taskId: task.id, linkId })
+              }
+              onUpdateType={(linkId: string, type: TaskLinkType) =>
+                updateLink({ taskId: task.id, linkId, type })
+              }
             />
           ))
         ) : (

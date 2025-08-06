@@ -6,17 +6,20 @@ import {
   useSensor,
   useSensors,
   DragStartEvent,
+  DragOverEvent,
+  closestCorners,
 } from "@dnd-kit/core";
-import { KanbanColumn } from "./KanbanColumn";
-import { useMoveTask } from "@/features/project-management/api/useMoveTask";
+import { createPortal } from "react-dom";
 import { Task } from "@/types";
+import { KanbanColumn } from "./KanbanColumn";
+import { KanbanTaskCard } from "./KanbanTaskCard";
+import { useMoveTask } from "@/features/project-management/api/useMoveTask";
 import { View, ViewColumn } from "@/types";
 import { TaskStatus } from "@/types/api";
-import { createPortal } from "react-dom";
-import { KanbanTaskCard } from "./KanbanTaskCard";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Kanban } from "lucide-react";
+import { arrayMove } from "@dnd-kit/sortable";
 
 interface KanbanBoardProps {
   workspaceId: string;
@@ -25,18 +28,6 @@ interface KanbanBoardProps {
   tasks: Task[];
   onTaskSelect: (taskId: string) => void;
 }
-
-const flattenTasks = (tasksToFlatten: Task[]): Task[] => {
-  let flat: Task[] = [];
-  if (!tasksToFlatten) return flat;
-  for (const task of tasksToFlatten) {
-    flat.push(task);
-    if (task.subtasks) {
-      flat.push(...flattenTasks(task.subtasks));
-    }
-  }
-  return flat;
-};
 
 function mapColumnNameToStatus(columnName: string): TaskStatus | null {
   const normalizedName = columnName.trim().toUpperCase().replace(/\s+/g, "_");
@@ -72,22 +63,16 @@ export function KanbanBoard({
   const moveTaskMutation = useMoveTask(projectId);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 10,
-      },
-    })
-  );
-  const topLevelTasks = useMemo(
-    () => tasks.filter((task) => !task.parentId),
-    [tasks]
-  );
   const columns = useMemo(() => {
     const kanbanView = views.find((v) => v.type === "KANBAN");
     return kanbanView?.columns || [];
   }, [views]);
-  const tasksByColumn = useMemo(() => {
+
+  const [tasksByColumn, setTasksByColumn] = useState<Record<string, Task[]>>(
+    {}
+  );
+
+  useEffect(() => {
     const grouped = columns.reduce(
       (acc: Record<string, Task[]>, col: ViewColumn) => {
         acc[col.id] = [];
@@ -96,9 +81,10 @@ export function KanbanBoard({
       {} as Record<string, Task[]>
     );
 
+    const topLevelTasks = tasks.filter((task) => !task.parentId);
+
     topLevelTasks.forEach((task) => {
       let targetColumnId = task.boardColumnId;
-
       if (!targetColumnId) {
         const expectedColumnName = mapStatusToColumnName(task.status);
         const fallbackColumn = columns.find(
@@ -120,31 +106,101 @@ export function KanbanBoard({
         (a, b) => (a.orderInColumn || 0) - (b.orderInColumn || 0)
       );
     }
+    setTasksByColumn(grouped);
+  }, [tasks, columns]);
 
-    return grouped;
-  }, [columns, topLevelTasks]);
-  const onDragStart = (event: DragStartEvent) => {
-    const allTasksFlat = flattenTasks(tasks);
-    const task = allTasksFlat.find((t) => t.id === event.active.id);
-    if (task) setActiveTask(task);
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 10,
+      },
+    })
+  );
+
+  const findColumnForTask = (taskId: string) => {
+    for (const colId in tasksByColumn) {
+      if (tasksByColumn[colId].some((task) => task.id === taskId)) {
+        return colId;
+      }
+    }
+    return null;
   };
-  const onDragEnd = (event: DragEndEvent) => {
-    setActiveTask(null);
+
+  const onDragStart = (event: DragStartEvent) => {
+    if (event.active.data.current?.type === "Task") {
+      setActiveTask(event.active.data.current.task);
+    }
+  };
+
+  const onDragOver = (event: DragOverEvent) => {
     const { active, over } = event;
-    if (!over || active.id === over.id) {
+    if (!over || active.id === over.id || !activeTask) return;
+
+    const sourceColumnId = findColumnForTask(active.id as string);
+    const destColumnId =
+      over.data.current?.type === "Column"
+        ? (over.id as string)
+        : findColumnForTask(over.id as string);
+
+    if (!sourceColumnId || !destColumnId) {
       return;
     }
 
-    const allTasksFlat = flattenTasks(tasks);
-    const draggedTask = allTasksFlat.find((t) => t.id === active.id);
+    if (sourceColumnId !== destColumnId) {
+      setTasksByColumn((prev) => {
+        const sourceItems = [...(prev[sourceColumnId] || [])];
+        const destItems = [...(prev[destColumnId] || [])];
+        const activeIndex = sourceItems.findIndex((t) => t.id === active.id);
+
+        if (activeIndex === -1) return prev;
+
+        const [movedItem] = sourceItems.splice(activeIndex, 1);
+        const overIndex = destItems.findIndex((t) => t.id === over.id);
+
+        if (overIndex !== -1) {
+          destItems.splice(overIndex, 0, movedItem);
+        } else {
+          destItems.push(movedItem);
+        }
+
+        return {
+          ...prev,
+          [sourceColumnId]: sourceItems,
+          [destColumnId]: destItems,
+        };
+      });
+    } else {
+      setTasksByColumn((prev) => {
+        const items = prev[sourceColumnId];
+        const oldIndex = items.findIndex((t) => t.id === active.id);
+        const newIndex = items.findIndex((t) => t.id === over.id);
+
+        if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+          return {
+            ...prev,
+            [sourceColumnId]: arrayMove(items, oldIndex, newIndex),
+          };
+        }
+        return prev;
+      });
+    }
+  };
+
+  const onDragEnd = (event: DragEndEvent) => {
+    setActiveTask(null);
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const draggedTask = active.data.current?.task as Task;
     if (!draggedTask) return;
-    const targetColumnId =
+
+    const destColumnId =
       over.data.current?.sortable?.containerId?.toString() ??
       over.id.toString();
-    const targetColumn = columns.find((col: any) => col.id === targetColumnId);
-    if (!targetColumn) return;
+    const destColumn = columns.find((col: any) => col.id === destColumnId);
+    if (!destColumn) return;
 
-    const tasksInDestColumn = (tasksByColumn[targetColumnId] || []).sort(
+    const tasksInDestColumn = (tasksByColumn[destColumnId] || []).sort(
       (a, b) => (a.orderInColumn || 0) - (b.orderInColumn || 0)
     );
     const overIsTask = over.data.current?.type === "Task";
@@ -169,12 +225,12 @@ export function KanbanBoard({
       newOrderInColumn = (lastTask?.orderInColumn || 0) + 1000;
     }
 
-    const newStatus = mapColumnNameToStatus(targetColumn.name);
+    const newStatus = mapColumnNameToStatus(destColumn.name);
     moveTaskMutation.mutate({
       workspaceId,
       projectId,
       taskId: active.id as string,
-      targetColumnId,
+      targetColumnId: destColumnId,
       newStatus,
       orderInColumn: newOrderInColumn,
     });
@@ -193,7 +249,9 @@ export function KanbanBoard({
   return (
     <DndContext
       sensors={sensors}
+      collisionDetection={closestCorners}
       onDragStart={onDragStart}
+      onDragOver={onDragOver}
       onDragEnd={onDragEnd}
     >
       <div className="flex h-full gap-4 overflow-x-auto p-1">

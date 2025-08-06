@@ -9,7 +9,6 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { WorkspaceAttachments } from "@/features/workspaces/components/WorkspaceAttachments";
-
 export function WorkspaceAttachmentsPage() {
   const { workspaceId } = useParams<{
     workspaceId: string;

@@ -71,42 +71,36 @@ async function updateLink({
 
 export function useManageTaskLinks(
   workspaceId?: string | null,
-  projectId?: string | null,
-  taskId?: string
+  projectId?: string | null
 ) {
-  const invalidateQueries = [["task", taskId]];
-  if (projectId) {
-    invalidateQueries.push(["tasks", projectId]);
-  }
-
   const addLinkMutation = useApiMutation<
     any,
-    Omit<AddLinkParams, "workspaceId" | "projectId" | "sourceTaskId">
+    Omit<AddLinkParams, "workspaceId" | "projectId">
   >({
-    mutationFn: (params) =>
-      addLink({ workspaceId, projectId, sourceTaskId: taskId!, ...params }),
+    mutationFn: (params) => addLink({ workspaceId, projectId, ...params }),
     successMessage: "Task dependency created.",
-    invalidateQueries,
+    invalidateQueries: (_data, variables) => [
+      ["task", variables.sourceTaskId],
+      ["task", variables.targetTaskId],
+    ],
   });
 
   const removeLinkMutation = useApiMutation<
     any,
-    Omit<RemoveLinkParams, "workspaceId" | "projectId" | "taskId">
+    Omit<RemoveLinkParams, "workspaceId" | "projectId">
   >({
-    mutationFn: (params) =>
-      removeLink({ workspaceId, projectId, taskId: taskId!, ...params }),
+    mutationFn: (params) => removeLink({ workspaceId, projectId, ...params }),
     successMessage: "Task dependency removed.",
-    invalidateQueries,
+    invalidateQueries: (_data, variables) => [["task", variables.taskId]],
   });
 
   const updateLinkMutation = useApiMutation<
     any,
-    Omit<UpdateLinkParams, "workspaceId" | "projectId" | "taskId">
+    Omit<UpdateLinkParams, "workspaceId" | "projectId">
   >({
-    mutationFn: (params) =>
-      updateLink({ workspaceId, projectId, taskId: taskId!, ...params }),
+    mutationFn: (params) => updateLink({ workspaceId, projectId, ...params }),
     successMessage: "Task dependency updated.",
-    invalidateQueries,
+    invalidateQueries: (_data, variables) => [["task", variables.taskId]],
   });
 
   return {

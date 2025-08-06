@@ -8,7 +8,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const location = useLocation();
 
   useEffect(() => {
-    if (!accessToken && location.pathname !== "/login") {
+    const publicPaths = [
+      "/login",
+      "/forgot-password",
+      "/reset-password",
+      "/setup-password",
+    ];
+    const isPublicPath = publicPaths.some((path) =>
+      location.pathname.startsWith(path)
+    );
+
+    if (!accessToken && !isPublicPath) {
       navigate("/login", { replace: true });
     }
   }, [accessToken, navigate, location.pathname]);

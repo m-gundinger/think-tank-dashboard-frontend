@@ -2,105 +2,56 @@ import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
 import { TaskStatus } from "@/types/api";
 import { Task } from "@/types";
-import { useQueryClient, QueryKey } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface MoveTaskParams {
-  workspaceId: string;
-  projectId: string;
+  workspaceId?: string | null;
+  projectId?: string | null;
   taskId: string;
   targetColumnId: string;
   orderInColumn: number;
   newStatus: TaskStatus | null;
 }
 
-async function moveTask(params: MoveTaskParams): Promise<any> {
+async function moveTask(params: MoveTaskParams): Promise<Task> {
   const { workspaceId, projectId, taskId, targetColumnId, orderInColumn } =
     params;
-  const { data } = await api.patch(
-    `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/move`,
-    { targetColumnId, orderInColumn }
-  );
+  const url =
+    workspaceId && projectId
+      ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/move`
+      : `tasks/${taskId}/move`; // Fallback might need review depending on standalone task move logic
+
+  const { data } = await api.patch(url, { targetColumnId, orderInColumn });
   return data;
 }
 
-const updateTaskInTree = (
-  tasks: Task[],
-  taskId: string,
-  updates: Partial<Task>
-): Task[] => {
-  return tasks.map((task) => {
-    if (task.id === taskId) {
-      return { ...task, ...updates };
-    }
-    if (task.subtasks && task.subtasks.length > 0) {
-      return {
-        ...task,
-        subtasks: updateTaskInTree(task.subtasks, taskId, updates),
-      };
-    }
-    return task;
-  });
-};
-
-type MoveTaskContext =
-  | {
-      previousData: Map<QueryKey, any>;
-    }
-  | undefined;
-
-export function useMoveTask(projectId: string) {
+export function useMoveTask(projectId?: string | null) {
   const queryClient = useQueryClient();
 
-  return useApiMutation<Task, MoveTaskParams, MoveTaskContext>({
+  return useApiMutation<Task, MoveTaskParams>({
     mutationFn: moveTask,
-    onMutate: async (variables) => {
-      const { taskId, targetColumnId, orderInColumn, newStatus } = variables;
-      const queryKeyPrefix = ["projects", projectId, "tasks", "view"];
-
-      await queryClient.cancelQueries({
-        queryKey: queryKeyPrefix,
+    // No success message to keep the UI quiet during DnD
+    onSuccess: (movedTask) => {
+      // Invalidate queries to refetch and align state from server
+      queryClient.invalidateQueries({
+        queryKey: ["tasks", projectId],
         exact: false,
       });
-
-      const queries = queryClient
-        .getQueryCache()
-        .findAll({ queryKey: queryKeyPrefix });
-
-      const previousData = new Map<QueryKey, any>();
-      queries.forEach((query) => {
-        previousData.set(query.queryKey, query.state.data);
+      queryClient.invalidateQueries({
+        queryKey: ["projects", projectId, "tasks"],
+        exact: false,
       });
-
-      for (const [queryKey, oldData] of previousData.entries()) {
-        if (!oldData || !oldData.data) continue;
-
-        const originalTask = oldData.data.find((t: Task) => t.id === taskId);
-
-        const updatedData = {
-          ...oldData,
-          data: updateTaskInTree(oldData.data, taskId, {
-            boardColumnId: targetColumnId,
-            orderInColumn,
-            status: newStatus ?? originalTask?.status,
-          }),
-        };
-        queryClient.setQueryData(queryKey, updatedData);
-      }
-
-      return { previousData };
-    },
-    onError: (_err, _variables, context) => {
-      if (context?.previousData) {
-        context.previousData.forEach((data: any, queryKey: QueryKey) => {
-          queryClient.setQueryData(queryKey, data);
+      queryClient.invalidateQueries({
+        queryKey: ["task", movedTask.id],
+        exact: false,
+      });
+      if (movedTask.parentId) {
+        queryClient.invalidateQueries({
+          queryKey: ["task", movedTask.parentId],
+          exact: false,
         });
-        toast.error("Failed to move task. Reverting changes.");
       }
     },
-    onSettled: () => {
-      const queryKeyPrefix = ["projects", projectId, "tasks", "view"];
-      queryClient.invalidateQueries({ queryKey: queryKeyPrefix, exact: false });
-    },
+    // Error handling can be enhanced if needed, e.g., reverting optimistic updates
   });
 }

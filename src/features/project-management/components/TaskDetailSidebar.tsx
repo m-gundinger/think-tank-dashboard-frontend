@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Calendar as CalendarIcon, X } from "lucide-react";
+import { Calendar as CalendarIcon, X, Briefcase } from "lucide-react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { TaskDocuments } from "./TaskDocuments";
@@ -27,15 +27,20 @@ import { RecurrenceSelector } from "./RecurrenceSelector";
 import { TaskTypeSelector } from "@/features/project-management/components/TaskTypeSelector";
 import { Task } from "@/types";
 import { TaskAttachments } from "./TaskAttachments";
+import { Link } from "react-router-dom";
+import { MoveTaskToProjectSelector } from "./MoveTaskToProjectSelector";
+import { Label } from "@/components/ui/label";
 
 export function TaskDetailSidebar({
   task,
   workspaceId,
   projectId,
+  onSave,
 }: {
   task: Task;
   workspaceId: string;
   projectId: string;
+  onSave: (field: string, value: any) => void;
 }) {
   const updateTaskMutation = useUpdateTask();
 
@@ -44,10 +49,11 @@ export function TaskDetailSidebar({
       | "status"
       | "priority"
       | "dueDate"
+      | "startDate"
       | "storyPoints"
       | "recurrenceRule"
       | "taskTypeId",
-    value: string | null | number
+    value: string | null | number | Date
   ) => {
     updateTaskMutation.mutate({
       taskId: task.id,
@@ -77,17 +83,6 @@ export function TaskDetailSidebar({
           </SelectContent>
         </Select>
       </div>
-      {projectId && workspaceId && (
-        <div>
-          <h3 className="mb-2 text-sm font-semibold">Task Type</h3>
-          <TaskTypeSelector
-            workspaceId={workspaceId}
-            projectId={projectId}
-            value={task.taskTypeId ?? null}
-            onValueChange={(value) => handleUpdate("taskTypeId", value)}
-          />
-        </div>
-      )}
       <div>
         <h3 className="mb-2 text-sm font-semibold">Priority</h3>
         <Select
@@ -106,6 +101,47 @@ export function TaskDetailSidebar({
           </SelectContent>
         </Select>
       </div>
+
+      {task.projectId && task.workspaceId ? (
+        <div>
+          <h3 className="mb-2 text-sm font-semibold">Project</h3>
+          <div className="flex items-center justify-between rounded-md border p-2 text-sm">
+            <Link
+              to={`/workspaces/${task.workspaceId}/projects/${task.projectId}`}
+              className="flex min-w-0 items-center gap-2"
+            >
+              <Briefcase className="h-4 w-4 flex-shrink-0" />
+              <span className="truncate font-medium hover:underline">
+                {task.projectName}
+              </span>
+            </Link>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onSave("projectId", null)}
+              disabled={updateTaskMutation.isPending}
+            >
+              Move to My Tasks
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <MoveTaskToProjectSelector
+          onMove={(newProjectId) => onSave("projectId", newProjectId)}
+        />
+      )}
+
+      {projectId && workspaceId && (
+        <div>
+          <h3 className="mb-2 text-sm font-semibold">Task Type</h3>
+          <TaskTypeSelector
+            workspaceId={workspaceId}
+            projectId={projectId}
+            value={task.taskTypeId ?? null}
+            onValueChange={(value) => handleUpdate("taskTypeId", value)}
+          />
+        </div>
+      )}
       <div>
         <h3 className="mb-2 text-sm font-semibold">Story Points</h3>
         <EditableField
@@ -128,21 +164,22 @@ export function TaskDetailSidebar({
         />
       </div>
 
-      <div>
-        <h3 className="mb-2 text-sm font-semibold">Due Date</h3>
-        <div className="flex items-center gap-1">
+      <div className="space-y-2">
+        <h3 className="text-sm font-semibold">Dates</h3>
+        <div>
+          <Label className="text-muted-foreground text-xs">Start Date</Label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant={"outline"}
                 className={cn(
-                  "flex-grow justify-start text-left font-normal",
-                  !task.dueDate && "text-muted-foreground"
+                  "w-full justify-start text-left font-normal",
+                  !task.startDate && "text-muted-foreground"
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {task.dueDate ? (
-                  format(new Date(task.dueDate), "PPP")
+                {task.startDate ? (
+                  format(new Date(task.startDate), "PPP")
                 ) : (
                   <span>Pick a date</span>
                 )}
@@ -151,23 +188,55 @@ export function TaskDetailSidebar({
             <PopoverContent className="w-auto p-0">
               <Calendar
                 mode="single"
-                selected={task.dueDate ? new Date(task.dueDate) : undefined}
+                selected={task.startDate ? new Date(task.startDate) : undefined}
                 onSelect={(date) =>
-                  handleUpdate("dueDate", date?.toISOString() ?? null)
+                  handleUpdate("startDate", date?.toISOString() ?? null)
                 }
               />
             </PopoverContent>
           </Popover>
-          {task.dueDate && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9 flex-shrink-0"
-              onClick={() => handleUpdate("dueDate", null)}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          )}
+        </div>
+        <div>
+          <Label className="text-muted-foreground text-xs">Due Date</Label>
+          <div className="flex items-center gap-1">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  className={cn(
+                    "flex-grow justify-start text-left font-normal",
+                    !task.dueDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {task.dueDate ? (
+                    format(new Date(task.dueDate), "PPP")
+                  ) : (
+                    <span>Pick a date</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={task.dueDate ? new Date(task.dueDate) : undefined}
+                  onSelect={(date) =>
+                    handleUpdate("dueDate", date?.toISOString() ?? null)
+                  }
+                />
+              </PopoverContent>
+            </Popover>
+            {task.dueDate && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 flex-shrink-0"
+                onClick={() => handleUpdate("dueDate", null)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         </div>
       </div>
       <TaskAssignees task={task} />

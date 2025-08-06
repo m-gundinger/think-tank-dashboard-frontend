@@ -100,7 +100,7 @@ export function useApiResource<TData = any, TQuery = object>(
       successMessage: `${resourceName} updated successfully.`,
       invalidateQueries: (data: any) => [
         resourceKey,
-        [...resourceKey, data.id],
+        [...resourceKey.slice(0, 1), data.id],
       ],
     });
   };

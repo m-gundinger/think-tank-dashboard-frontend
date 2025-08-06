@@ -25,6 +25,7 @@ const taskSchema = z.object({
   taskTypeId: z.string().uuid().nullable().optional(),
   parentId: z.string().nullable().optional(),
   boardColumnId: z.string().uuid().optional().nullable(),
+  startDate: z.date().optional().nullable(),
   dueDate: z.date().optional().nullable(),
   assigneeIds: z
     .array(z.string().uuid())
@@ -67,6 +68,7 @@ export function CreateTaskForm({
       taskTypeId: null,
       parentId: parentId,
       boardColumnId: null,
+      startDate: null,
       dueDate: null,
       assigneeIds: [],
       ...defaultValues,
@@ -143,6 +145,7 @@ export function CreateTaskForm({
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
+            <FormDatePicker name="startDate" label="Start Date (Optional)" />
             <FormDatePicker name="dueDate" label="Due Date (Optional)" />
           </div>
 

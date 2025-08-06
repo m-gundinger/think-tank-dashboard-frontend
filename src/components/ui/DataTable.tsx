@@ -1,4 +1,18 @@
-import { useState, createContext, useContext, ReactNode } from "react";
+import { useState, ReactNode } from "react";
+import {
+  ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+  getPaginationRowModel,
+  Row,
+  SortingState,
+  getSortedRowModel,
+  OnChangeFn,
+} from "@tanstack/react-table";
+import { ArrowUpDown } from "lucide-react";
+import { Card, CardFooter } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
   TableBody,
@@ -7,7 +21,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardFooter } from "@/components/ui/card";
 import {
   Pagination,
   PaginationContent,
@@ -16,83 +29,80 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Checkbox } from "@/components/ui/checkbox";
 
-export interface ColumnDef<T> {
-  accessorKey: keyof T | string;
-  header: string;
-  cell: (row: T) => ReactNode;
-}
+export type { ColumnDef, SortingState, OnChangeFn };
 
-interface DataTableContextType {
-  selectedIds: string[];
-  toggleRow: (id: string) => void;
-  toggleSelectAll: (data: any[]) => void;
-  isAllSelected: (data: any[]) => boolean;
-}
-
-const DataTableContext = createContext<DataTableContextType | undefined>(
-  undefined
-);
-const useDataTable = () => {
-  const context = useContext(DataTableContext);
-  if (!context) {
-    throw new Error("useDataTable must be used within a DataTableProvider");
-  }
-  return context;
-};
-export const useDataTableRowSelection = (id: string) => {
-  const { selectedIds, toggleRow } = useDataTable();
-  return {
-    isSelected: selectedIds.includes(id),
-    onSelectChange: () => toggleRow(id),
-  };
-};
-interface DataTableProps<T> {
-  data: T[];
-  columns: ColumnDef<T>[];
+interface DataTableProps<TData> {
+  data: TData[];
+  columns: ColumnDef<TData>[];
   pagination?: {
     page: number;
     totalPages: number;
     handlePageChange: (newPage: number) => void;
   };
   bulkActions?: (selectedIds: string[]) => ReactNode;
+  onRowClick?: (row: TData) => void;
+  sorting?: SortingState;
+  setSorting?: OnChangeFn<SortingState>;
 }
 
-function DataTableProvider({ children }: { children: ReactNode }) {
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const toggleRow = (id: string) => {
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
-    );
-  };
-
-  const toggleSelectAll = (data: any[]) => {
-    if (selectedIds.length === data.length) {
-      setSelectedIds([]);
-    } else {
-      setSelectedIds(data.map((item) => item.id));
-    }
-  };
-  const isAllSelected = (data: any[]) =>
-    data.length > 0 && selectedIds.length === data.length;
-  return (
-    <DataTableContext.Provider
-      value={{ selectedIds, toggleRow, toggleSelectAll, isAllSelected }}
-    >
-      {children}
-    </DataTableContext.Provider>
-  );
-}
-
-export function DataTable<T extends { id: string }>({
-  data,
+export function DataTable<TData extends { id: string }>({
   columns,
+  data,
   pagination,
   bulkActions,
-}: DataTableProps<T>) {
-  const { selectedIds, toggleRow, toggleSelectAll, isAllSelected } =
-    useDataTable();
+  onRowClick,
+  sorting = [],
+  setSorting,
+}: DataTableProps<TData>) {
+  const [rowSelection, setRowSelection] = useState({});
+  const tableColumns: ColumnDef<TData>[] = [
+    {
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+          onClick={(e) => e.stopPropagation()}
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
+    ...columns,
+  ];
+
+  const table = useReactTable({
+    data,
+    columns: tableColumns,
+    state: {
+      rowSelection,
+      sorting,
+    },
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    onRowSelectionChange: setRowSelection,
+    getSortedRowModel: getSortedRowModel(),
+    onSortingChange: setSorting,
+    manualSorting: true,
+    enableRowSelection: true,
+  });
+
+  const selectedIds = table
+    .getFilteredSelectedRowModel()
+    .rows.map((row: Row<TData>) => row.original.id);
+
   return (
     <div className="space-y-4">
       {bulkActions && selectedIds.length > 0 && (
@@ -100,37 +110,53 @@ export function DataTable<T extends { id: string }>({
           {bulkActions(selectedIds)}
         </div>
       )}
+
       <Card>
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead className="w-[50px]">
-                <Checkbox
-                  checked={isAllSelected(data)}
-                  onCheckedChange={() => toggleSelectAll(data)}
-                />
-              </TableHead>
-              {columns.map((column) => (
-                <TableHead key={column.header}>{column.header}</TableHead>
-              ))}
-            </TableRow>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder ? null : (
+                      <div
+                        className={
+                          header.column.getCanSort()
+                            ? "flex cursor-pointer items-center select-none"
+                            : ""
+                        }
+                        onClick={header.column.getToggleSortingHandler()}
+                      >
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                        {{
+                          asc: <ArrowUpDown className="ml-2 h-4 w-4" />,
+                          desc: <ArrowUpDown className="ml-2 h-4 w-4" />,
+                        }[header.column.getIsSorted() as string] ?? null}
+                      </div>
+                    )}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
           </TableHeader>
           <TableBody>
-            {data.length > 0 ? (
-              data.map((row) => (
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  data-state={selectedIds.includes(row.id) && "selected"}
+                  data-state={row.getIsSelected() && "selected"}
+                  onClick={() => onRowClick && onRowClick(row.original)}
+                  className={onRowClick ? "cursor-pointer" : ""}
                 >
-                  <TableCell>
-                    <Checkbox
-                      checked={selectedIds.includes(row.id)}
-                      onCheckedChange={() => toggleRow(row.id)}
-                    />
-                  </TableCell>
-                  {columns.map((column) => (
-                    <TableCell key={`${row.id}-${column.header}`}>
-                      {column.cell(row)}
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
@@ -138,7 +164,7 @@ export function DataTable<T extends { id: string }>({
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={columns.length + 1}
+                  colSpan={tableColumns.length}
                   className="h-24 text-center"
                 >
                   No results found.
@@ -147,8 +173,9 @@ export function DataTable<T extends { id: string }>({
             )}
           </TableBody>
         </Table>
+
         {pagination && pagination.totalPages > 1 && (
-          <CardFooter className="pt-4">
+          <CardFooter className="flex justify-center pt-4">
             <Pagination>
               <PaginationContent>
                 <PaginationItem>
@@ -156,11 +183,18 @@ export function DataTable<T extends { id: string }>({
                     href="#"
                     onClick={(e) => {
                       e.preventDefault();
-                      pagination.handlePageChange(pagination.page - 1);
+                      if (pagination.page > 1) {
+                        pagination.handlePageChange(pagination.page - 1);
+                      }
                     }}
-                    isActive={pagination.page > 1}
+                    className={
+                      pagination.page <= 1
+                        ? "pointer-events-none opacity-50"
+                        : ""
+                    }
                   />
                 </PaginationItem>
+
                 {[...Array(pagination.totalPages)].map((_, i) => (
                   <PaginationItem key={i}>
                     <PaginationLink
@@ -175,14 +209,21 @@ export function DataTable<T extends { id: string }>({
                     </PaginationLink>
                   </PaginationItem>
                 ))}
+
                 <PaginationItem>
                   <PaginationNext
                     href="#"
                     onClick={(e) => {
                       e.preventDefault();
-                      pagination.handlePageChange(pagination.page + 1);
+                      if (pagination.page < pagination.totalPages) {
+                        pagination.handlePageChange(pagination.page + 1);
+                      }
                     }}
-                    isActive={pagination.page < pagination.totalPages}
+                    className={
+                      pagination.page >= pagination.totalPages
+                        ? "pointer-events-none opacity-50"
+                        : ""
+                    }
                   />
                 </PaginationItem>
               </PaginationContent>
@@ -194,6 +235,6 @@ export function DataTable<T extends { id: string }>({
   );
 }
 
-export function DataTableWrapper({ children }: { children: ReactNode }) {
-  return <DataTableProvider>{children}</DataTableProvider>;
+export function DataTableWrapper({ children }: { children: React.ReactNode }) {
+  return <div className="w-full">{children}</div>;
 }

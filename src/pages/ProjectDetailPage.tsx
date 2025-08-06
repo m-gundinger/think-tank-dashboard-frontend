@@ -1,5 +1,5 @@
 import { useParams, useSearchParams } from "react-router-dom";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { TaskDetailModal } from "@/features/project-management/components/TaskDetailModal";
 import { useApiResource } from "@/hooks/useApiResource";
 import { useProjectSocket } from "@/hooks/useProjectSocket";
@@ -7,10 +7,11 @@ import { usePresence } from "@/hooks/usePresence";
 import { ErrorState } from "@/components/ui/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProjectDetailView } from "@/features/project-management/components/ProjectDetailView";
-import { ListTasksQuery } from "@/types";
-import { View } from "@/types";
+import { ListTasksQuery, Task, View } from "@/types";
 import { useGetViewData } from "@/features/project-management/api/useGetViewData";
 import { WhiteboardView } from "@/features/project-management/components/WhiteboardView";
+import { SortingState } from "@tanstack/react-table";
+import { useUpdateTask } from "@/features/project-management/api/useUpdateTask";
 
 export function ProjectDetailPage() {
   const { workspaceId, projectId } = useParams<{
@@ -21,6 +22,11 @@ export function ProjectDetailPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTabId = searchParams.get("view");
   const selectedTaskId = searchParams.get("taskId");
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: "orderInColumn", desc: false },
+  ]);
+  const updateTaskMutation = useUpdateTask();
+
   const viewsResource = useApiResource(
     `/workspaces/${workspaceId}/projects/${projectId}/views`,
     ["views", projectId]
@@ -34,13 +40,17 @@ export function ProjectDetailPage() {
     () => (viewsData?.data || []).find((v: View) => v.id === activeTabId),
     [viewsData, activeTabId]
   );
-  const viewDataQuery: ListTasksQuery = {
-    page: 1,
-    limit: 1000, // Fetch more for client-side filtering in views like Kanban/Backlog
-    includeSubtasks: true,
-    sortBy: "orderInColumn" as const,
-    sortOrder: "asc" as const,
-  };
+  const viewDataQuery: ListTasksQuery = useMemo(
+    () => ({
+      page: 1,
+      limit: 1000,
+      includeSubtasks: true,
+      sortBy: (sorting[0]?.id as ListTasksQuery["sortBy"]) ?? "orderInColumn",
+      sortOrder: sorting[0]?.desc ? "desc" : "asc",
+    }),
+    [sorting]
+  );
+
   const {
     data: viewData,
     isLoading: isLoadingViewData,
@@ -88,6 +98,15 @@ export function ProjectDetailPage() {
     );
   };
 
+  const handleTaskUpdate = (taskId: string, updates: Partial<Task>) => {
+    updateTaskMutation.mutate({
+      taskId,
+      workspaceId,
+      projectId,
+      taskData: updates,
+    });
+  };
+
   if (!workspaceId || !projectId) {
     return <div>Invalid Project ID</div>;
   }
@@ -130,8 +149,11 @@ export function ProjectDetailPage() {
         workspaceId={workspaceId}
         projectId={projectId}
         onTaskSelect={handleTaskSelect}
+        onTaskUpdate={handleTaskUpdate}
         activeTab={activeTabId}
         onTabChange={handleTabChange}
+        sorting={sorting}
+        setSorting={setSorting}
       />
 
       <TaskDetailModal

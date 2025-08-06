@@ -137,6 +137,10 @@ export function useUpdateTask() {
           queryKey: ["projects", projectId, "tasks"],
           exact: false, // Invalidate all queries starting with this, including views
         });
+        queryClient.invalidateQueries({
+          queryKey: ["tasks", projectId],
+          exact: false,
+        });
       }
       queryClient.invalidateQueries({ queryKey: ["myTasks"], exact: false });
     },

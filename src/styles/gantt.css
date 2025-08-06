@@ -1,0 +1,59 @@
+.gantt_task_line.gantt-task-status-done {
+  background-color: #28a745;
+  border-color: #1e7e34;
+}
+.gantt_task_line.gantt-task-status-done .gantt_task_progress {
+  background-color: #218838;
+}
+
+.gantt_task_line.gantt-task-status-in_progress {
+  background-color: #17a2b8;
+  border-color: #117a8b;
+}
+.gantt_task_line.gantt-task-status-in_progress .gantt_task_progress {
+  background-color: #138496;
+}
+
+.gantt_task_line.gantt-task-status-blocked {
+  background-color: #dc3545;
+  border-color: #b21f2d;
+}
+.gantt_task_line.gantt-task-status-blocked .gantt_task_progress {
+  background-color: #c82333;
+}
+
+.gantt_task_line.gantt-task-status-in_review {
+  background-color: #ffc107;
+  border-color: #d39e00;
+}
+.gantt_task_line.gantt-task-status-in_review .gantt_task_progress {
+  background-color: #e0a800;
+}
+
+.gantt_task_line.gantt-task-status-cancelled {
+  background-color: #6c757d;
+  border-color: #545b62;
+}
+.gantt_task_line.gantt-task-status-cancelled .gantt_task_progress {
+  background-color: #5a6268;
+}
+
+.gantt_task_line.gantt-task-status-todo {
+  background-color: #007bff;
+  border-color: #0062cc;
+}
+.gantt_task_line.gantt-task-status-todo .gantt_task_progress {
+  background-color: #0069d9;
+}
+
+.gantt_grid_scale,
+.gantt_task_scale,
+.gantt_grid_data,
+.gantt_task_content,
+.gantt_tooltip {
+  font-family: var(--font-sans), sans-serif !important;
+}
+
+.gantt_grid_head_cell {
+  font-weight: 600 !important;
+}

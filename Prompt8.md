@@ -2,11 +2,8 @@ You are an expert AI full-stack developer. Your mission is to analyze the provid
 
 ### **1. The Task**
 
-- all views should be selectable by default for my tasks, not just list and kanban.
-- if a task belongs to a project and workspace, the modal should show which project and workspace it belongs to. There should also be the option of making a standalone task into a task assigned to a project.
-- for subtasks, try to show the full "tree".
-- when updating a task status or priority in the modal, the changes are not seen in the list view - only after reloading. For the kanban view, it is working.
-- recurrence is not working.
+- the whole design should resemble the mock mostly.
+- kanban: create the kanban board so it looks like the mockup (attached), but display the data you currently get.
 
 ---
 

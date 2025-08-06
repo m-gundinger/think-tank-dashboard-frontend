@@ -25,6 +25,7 @@ import { ActivityLog } from "@/features/analytics/components/ActivityLog";
 import { ReportingOverview } from "@/features/analytics/components/ReportingOverview";
 import { DashboardList } from "@/features/analytics/components/DashboardList";
 import { DashboardForm } from "@/features/analytics/components/DashboardForm";
+import { OnChangeFn, SortingState } from "@tanstack/react-table";
 
 interface ProjectDetailViewProps {
   views: View[];
@@ -32,8 +33,11 @@ interface ProjectDetailViewProps {
   workspaceId: string;
   projectId: string;
   onTaskSelect: (taskId: string | null) => void;
+  onTaskUpdate: (taskId: string, updates: Partial<Task>) => void;
   activeTab: string;
   onTabChange: (tab: string) => void;
+  sorting: SortingState;
+  setSorting: OnChangeFn<SortingState>;
 }
 
 export function ProjectDetailView({
@@ -42,8 +46,11 @@ export function ProjectDetailView({
   workspaceId,
   projectId,
   onTaskSelect,
+  onTaskUpdate,
   activeTab,
   onTabChange,
+  sorting,
+  setSorting,
 }: ProjectDetailViewProps) {
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
   const [isTemplateSelectorOpen, setIsTemplateSelectorOpen] = useState(false);
@@ -164,6 +171,8 @@ export function ProjectDetailView({
               tasks={tasks}
               onTaskSelect={onTaskSelect}
               emptyState={projectTaskEmptyState}
+              sorting={sorting}
+              setSorting={setSorting}
             />
           )}
           {view.type === "KANBAN" && (
@@ -183,9 +192,15 @@ export function ProjectDetailView({
               onTaskSelect={onTaskSelect}
             />
           )}
-          {view.type === "GANTT" && <GanttChartView tasks={tasks} />}
+          {view.type === "GANTT" && (
+            <GanttChartView tasks={tasks} onTaskSelect={onTaskSelect} />
+          )}
           {view.type === "CALENDAR" && (
-            <CalendarView tasks={tasks} onTaskSelect={onTaskSelect} />
+            <CalendarView
+              tasks={tasks}
+              onTaskSelect={onTaskSelect}
+              onTaskUpdate={onTaskUpdate}
+            />
           )}
         </TabsContent>
       ))}

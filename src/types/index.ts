@@ -21,6 +21,10 @@ import {
   NotificationSeverity,
   WorkflowRunStatus,
 } from "./api";
+
+// This will re-export all enums from the api types file
+export * from "./api";
+
 export type AnyValue = Record<string, any>;
 
 export interface PaginatedResponse<T> {
@@ -259,6 +263,7 @@ export interface Task {
   priority: TaskPriority;
   projectId: string | null;
   workspaceId: string | null;
+  workspaceName?: string | null;
   projectName: string | null;
   taskTypeId?: string | null;
   taskType?: TaskType | null;
@@ -266,6 +271,7 @@ export interface Task {
   creatorId: string | null;
   startDate: string | null;
   dueDate: string | null;
+  completedAt: string | null;
   timeEstimate: number | null;
   storyPoints: number | null;
   boardColumnId: string | null;
@@ -285,6 +291,11 @@ export interface Task {
   publications?: Publication[];
   whiteboards?: Whiteboard[];
   knowledgeBases?: KnowledgeBase[];
+  _count?: {
+    comments: number;
+    documents: number;
+    subtasks: number;
+  };
 }
 
 export interface ViewColumn {
@@ -470,7 +481,10 @@ export interface ListTasksQuery {
     | "status"
     | "priority"
     | "dueDate"
-    | "orderInColumn";
+    | "orderInColumn"
+    | "projectName"
+    | "workspaceName"
+    | "taskTypeName";
   sortOrder?: "asc" | "desc";
   taskOrigin?: "project" | "standalone";
   userRole?: "creator" | "assignee";

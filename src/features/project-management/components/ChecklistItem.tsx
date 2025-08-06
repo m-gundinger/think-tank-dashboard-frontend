@@ -2,8 +2,11 @@ import { useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { GripVertical, Trash2 } from "lucide-react";
 import { ChecklistItem as ChecklistItemType } from "@/types";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+
 interface ChecklistItemProps {
   item: ChecklistItemType;
   onUpdate: (id: string, updates: Partial<ChecklistItemType>) => void;
@@ -16,6 +19,22 @@ export function ChecklistItem({
   onRemove,
 }: ChecklistItemProps) {
   const [text, setText] = useState(item.text);
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 10 : "auto",
+  };
+
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setText(e.target.value);
   };
@@ -27,7 +46,20 @@ export function ChecklistItem({
     }
   };
   return (
-    <div className="group flex items-center gap-2">
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="group flex items-center gap-2 rounded-md bg-white"
+    >
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8 cursor-grab"
+        {...listeners}
+        {...attributes}
+      >
+        <GripVertical className="h-4 w-4" />
+      </Button>
       <Checkbox
         checked={item.completed}
         onCheckedChange={(checked) =>

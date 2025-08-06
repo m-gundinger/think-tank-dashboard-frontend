@@ -25,7 +25,6 @@ export function SubtaskList({
       deleteTaskMutation.mutate(taskId, {
         onSuccess: () => {
           toast.success("Sub-task deleted.");
-          // Also invalidate the parent task to refetch its subtasks list
           queryClient.invalidateQueries({ queryKey: ["task", task.id] });
         },
       });
@@ -47,6 +46,7 @@ export function SubtaskList({
               task={subtask}
               onTaskSelect={onTaskSelect}
               onRemove={handleRemoveSubtask}
+              level={0}
             />
           ))
         ) : (

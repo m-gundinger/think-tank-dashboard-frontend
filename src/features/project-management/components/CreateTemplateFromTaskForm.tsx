@@ -38,11 +38,11 @@ export function CreateTemplateFromTaskForm({
   }, [task, methods]);
   function onSubmit(values: FormValues) {
     const {
-      id,
-      createdAt,
-      updatedAt,
-      projectId: pId,
-      workspaceId: wId,
+      id: _id,
+      createdAt: _createdAt,
+      updatedAt: _updatedAt,
+      projectId: _pId,
+      workspaceId: _wId,
       ...templateData
     } = task;
     createMutation.mutate({ name: values.name, templateData }, { onSuccess });

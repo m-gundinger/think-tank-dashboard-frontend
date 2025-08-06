@@ -5,6 +5,19 @@ import { Plus } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { ChecklistItem } from "./ChecklistItem";
 import { ChecklistItem as ChecklistItemType } from "@/types";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 
 interface TaskChecklistProps {
   initialItems: ChecklistItemType[];
@@ -13,10 +26,32 @@ interface TaskChecklistProps {
 
 export function TaskChecklist({ initialItems, onSave }: TaskChecklistProps) {
   const [items, setItems] = useState<ChecklistItemType[]>(initialItems || []);
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    })
+  );
 
   useEffect(() => {
     setItems(initialItems || []);
   }, [initialItems]);
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (active.id !== over?.id) {
+      setItems((currentItems) => {
+        const oldIndex = currentItems.findIndex(
+          (item) => item.id === active.id
+        );
+        const newIndex = currentItems.findIndex((item) => item.id === over!.id);
+        const newOrder = arrayMove(currentItems, oldIndex, newIndex);
+        onSave(newOrder);
+        return newOrder;
+      });
+    }
+  };
 
   const handleAddItem = () => {
     const newItem: ChecklistItemType = {
@@ -60,14 +95,22 @@ export function TaskChecklist({ initialItems, onSave }: TaskChecklistProps) {
       </div>
       {items.length > 0 && <Progress value={progress} className="h-2" />}
       <div className="space-y-2">
-        {items.map((item) => (
-          <ChecklistItem
-            key={item.id}
-            item={item}
-            onUpdate={handleUpdateItem}
-            onRemove={handleRemoveItem}
-          />
-        ))}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext items={items} strategy={verticalListSortingStrategy}>
+            {items.map((item) => (
+              <ChecklistItem
+                key={item.id}
+                item={item}
+                onUpdate={handleUpdateItem}
+                onRemove={handleRemoveItem}
+              />
+            ))}
+          </SortableContext>
+        </DndContext>
       </div>
       <Button variant="outline" size="sm" onClick={handleAddItem}>
         <Plus className="mr-2 h-4 w-4" />
