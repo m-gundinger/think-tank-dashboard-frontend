@@ -5,5 +5,7 @@ interface MainContentProps {
 }
 
 export function MainContent({ children }: MainContentProps) {
-  return <main className="flex-1 overflow-auto p-6">{children}</main>;
+  return (
+    <main className="bg-background flex-1 overflow-auto p-6">{children}</main>
+  );
 }

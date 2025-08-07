@@ -1,3 +1,4 @@
+import { useState, useMemo, useEffect } from "react";
 import {
   DndContext,
   DragEndEvent,
@@ -16,10 +17,12 @@ import { KanbanTaskCard } from "./KanbanTaskCard";
 import { useMoveTask } from "@/features/project-management/api/useMoveTask";
 import { View, ViewColumn } from "@/types";
 import { TaskStatus } from "@/types/api";
-import { useMemo, useState, useEffect } from "react";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Kanban } from "lucide-react";
+import { Kanban, PlusCircle } from "lucide-react";
 import { arrayMove } from "@dnd-kit/sortable";
+import { Button } from "@/components/ui/button";
+import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { CreateColumnForm } from "./CreateColumnForm";
 
 interface KanbanBoardProps {
   workspaceId: string;
@@ -62,11 +65,13 @@ export function KanbanBoard({
 }: KanbanBoardProps) {
   const moveTaskMutation = useMoveTask(projectId);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
+  const [isCreateColumnOpen, setIsCreateColumnOpen] = useState(false);
 
-  const columns = useMemo(() => {
-    const kanbanView = views.find((v) => v.type === "KANBAN");
-    return kanbanView?.columns || [];
-  }, [views]);
+  const kanbanView = useMemo(
+    () => views.find((v) => v.type === "KANBAN"),
+    [views]
+  );
+  const columns = useMemo(() => kanbanView?.columns || [], [kanbanView]);
 
   const [tasksByColumn, setTasksByColumn] = useState<Record<string, Task[]>>(
     {}
@@ -205,7 +210,6 @@ export function KanbanBoard({
     );
     const overIsTask = over.data.current?.type === "Task";
     let newOrderInColumn: number;
-
     if (overIsTask) {
       const overTaskIndex = tasksInDestColumn.findIndex(
         (t) => t.id === over.id
@@ -247,31 +251,56 @@ export function KanbanBoard({
   }
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCorners}
-      onDragStart={onDragStart}
-      onDragOver={onDragOver}
-      onDragEnd={onDragEnd}
-    >
-      <div className="flex h-full gap-4 overflow-x-auto p-1">
-        {columns.map((col: ViewColumn) => (
-          <KanbanColumn
-            key={col.id}
-            column={col}
-            tasks={tasksByColumn[col.id] || []}
-            onTaskSelect={onTaskSelect}
-          />
-        ))}
-      </div>
-      {createPortal(
-        <DragOverlay>
-          {activeTask ? (
-            <KanbanTaskCard task={activeTask} onTaskSelect={() => {}} />
-          ) : null}
-        </DragOverlay>,
-        document.body
-      )}
-    </DndContext>
+    <>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCorners}
+        onDragStart={onDragStart}
+        onDragOver={onDragOver}
+        onDragEnd={onDragEnd}
+      >
+        <div className="bg-kanban-bg flex h-full gap-4 overflow-x-auto p-1">
+          {columns.map((col: ViewColumn) => (
+            <KanbanColumn
+              key={col.id}
+              column={col}
+              tasks={tasksByColumn[col.id] || []}
+              onTaskSelect={onTaskSelect}
+            />
+          ))}
+          <div>
+            <Button
+              variant="outline"
+              className="bg-kanban-column w-72 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white"
+              onClick={() => setIsCreateColumnOpen(true)}
+            >
+              <PlusCircle className="mr-2 h-4 w-4" /> Add another list
+            </Button>
+          </div>
+        </div>
+        {createPortal(
+          <DragOverlay>
+            {activeTask ? (
+              <KanbanTaskCard task={activeTask} onTaskSelect={() => {}} />
+            ) : null}
+          </DragOverlay>,
+          document.body
+        )}
+      </DndContext>
+      <ResourceCrudDialog
+        isOpen={isCreateColumnOpen}
+        onOpenChange={setIsCreateColumnOpen}
+        title="Add a new list"
+        description="Create a new column for your Kanban board."
+        form={CreateColumnForm}
+        formProps={{
+          workspaceId,
+          view: kanbanView,
+          onSuccess: () => setIsCreateColumnOpen(false),
+        }}
+        resourcePath=""
+        resourceKey={[]}
+      />
+    </>
   );
 }

@@ -22,7 +22,6 @@ import {
   WorkflowRunStatus,
 } from "./api";
 
-// This will re-export all enums from the api types file
 export * from "./api";
 
 export type AnyValue = Record<string, any>;
@@ -178,6 +177,7 @@ export interface Project {
   endDate: string | null;
   createdAt: string;
   updatedAt: string;
+  members?: ProjectMember[];
   knowledgeBases?: KnowledgeBase[];
   whiteboards?: Whiteboard[];
   publications?: Publication[];
@@ -309,6 +309,7 @@ export interface View {
   id: string;
   name: string;
   type: ViewType;
+  projectId: string;
   columns: ViewColumn[];
   config?: any;
   filters?: any;
@@ -464,7 +465,6 @@ export interface Dashboard {
   updatedAt: string;
 }
 
-// Query Types
 export interface ListTasksQuery {
   page?: number;
   limit?: number;
@@ -583,7 +583,7 @@ export interface KnowledgeBase {
     name: string;
     avatarUrl: string | null;
   }[];
-  workspaceId?: string; // This might be needed for context
+  workspaceId?: string;
 }
 
 export interface KnowledgePage {

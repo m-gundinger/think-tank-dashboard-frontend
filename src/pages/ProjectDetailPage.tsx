@@ -12,6 +12,13 @@ import { useGetViewData } from "@/features/project-management/api/useGetViewData
 import { WhiteboardView } from "@/features/project-management/components/WhiteboardView";
 import { SortingState } from "@tanstack/react-table";
 import { useUpdateTask } from "@/features/project-management/api/useUpdateTask";
+import { ProjectHeader } from "@/features/project-management/components/ProjectHeader";
+import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { CreateTaskForm } from "@/features/project-management/components/CreateTaskForm";
+import { TemplateSelectorDialog } from "@/features/project-management/components/TemplateSelectorDialog";
+import { EmptyState } from "@/components/ui/empty-state";
+import { CheckSquare } from "lucide-react";
+import { useManageProjects } from "@/features/project-management/api/useManageProjects";
 
 export function ProjectDetailPage() {
   const { workspaceId, projectId } = useParams<{
@@ -26,6 +33,13 @@ export function ProjectDetailPage() {
     { id: "orderInColumn", desc: false },
   ]);
   const updateTaskMutation = useUpdateTask();
+
+  const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
+  const [isTemplateSelectorOpen, setIsTemplateSelectorOpen] = useState(false);
+
+  const projectResource = useManageProjects(workspaceId!);
+  const { data: projectData, isLoading: isLoadingProject } =
+    projectResource.useGetOne(projectId!);
 
   const viewsResource = useApiResource(
     `/workspaces/${workspaceId}/projects/${projectId}/views`,
@@ -79,10 +93,10 @@ export function ProjectDetailPage() {
       if (defaultView) {
         handleTabChange(defaultView.id);
       } else {
-        handleTabChange("dashboards"); // Fallback if no views exist
+        handleTabChange("dashboards");
       }
     }
-  }, [isLoadingViews, viewsData, activeTabId, setSearchParams]);
+  }, [isLoadingViews, viewsData, activeTabId, handleTabChange]);
 
   const handleTaskSelect = (taskId: string | null) => {
     setSearchParams(
@@ -107,6 +121,14 @@ export function ProjectDetailPage() {
     });
   };
 
+  const projectTaskEmptyState = (
+    <EmptyState
+      icon={<CheckSquare className="text-primary h-10 w-10" />}
+      title="No tasks yet"
+      description="Create the first task in this project to get started."
+    />
+  );
+
   if (!workspaceId || !projectId) {
     return <div>Invalid Project ID</div>;
   }
@@ -124,7 +146,8 @@ export function ProjectDetailPage() {
     );
   }
 
-  const isLoading = isLoadingViews || (!!activeView && isLoadingViewData);
+  const isLoading =
+    isLoadingViews || (!!activeView && isLoadingViewData) || isLoadingProject;
   if (isLoading || !activeTabId) {
     return (
       <div className="space-y-4">
@@ -143,17 +166,45 @@ export function ProjectDetailPage() {
 
   return (
     <>
-      <ProjectDetailView
-        views={viewsData?.data || []}
-        tasks={viewData?.data || []}
+      <div className="space-y-4">
+        {projectData && (
+          <ProjectHeader
+            project={projectData}
+            onNewTaskClick={() => setIsCreateTaskOpen(true)}
+            onNewTaskFromTemplateClick={() => setIsTemplateSelectorOpen(true)}
+          />
+        )}
+        <ProjectDetailView
+          views={viewsData?.data || []}
+          tasks={viewData?.data || []}
+          workspaceId={workspaceId}
+          projectId={projectId}
+          onTaskSelect={handleTaskSelect}
+          onTaskUpdate={handleTaskUpdate}
+          activeTab={activeTabId}
+          onTabChange={handleTabChange}
+          sorting={sorting}
+          setSorting={setSorting}
+          emptyState={projectTaskEmptyState}
+        />
+      </div>
+
+      <ResourceCrudDialog
+        isOpen={isCreateTaskOpen}
+        onOpenChange={setIsCreateTaskOpen}
+        title="Create a new task"
+        description="Fill in the details below to add a new task."
+        form={CreateTaskForm}
+        formProps={{ workspaceId, projectId }}
+        resourcePath={`/workspaces/${workspaceId}/projects/${projectId}/tasks`}
+        resourceKey={["tasks", projectId]}
+      />
+
+      <TemplateSelectorDialog
         workspaceId={workspaceId}
         projectId={projectId}
-        onTaskSelect={handleTaskSelect}
-        onTaskUpdate={handleTaskUpdate}
-        activeTab={activeTabId}
-        onTabChange={handleTabChange}
-        sorting={sorting}
-        setSorting={setSorting}
+        isOpen={isTemplateSelectorOpen}
+        onOpenChange={setIsTemplateSelectorOpen}
       />
 
       <TaskDetailModal

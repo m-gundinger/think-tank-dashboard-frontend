@@ -27,11 +27,27 @@ export const parseServerDate = (
 ): Date | null => {
   if (!dateString) return null;
   const date = new Date(dateString);
-  // This removes the time part, which can cause off-by-one day errors with timezones
   return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
 };
 
-export const formatDateForServer = (date: Date | null | undefined): string | null => {
+export const formatDateForServer = (
+  date: Date | null | undefined
+): string | null => {
   if (!date) return null;
   return date.toISOString();
 };
+
+export function stripHtml(html: string | null | undefined): string {
+  if (!html) return "";
+  return html.replace(/<[^>]*>?/gm, "");
+}
+
+export function truncate(text: string, length: number): string {
+  if (!text) {
+    return "";
+  }
+  if (text.length <= length) {
+    return text;
+  }
+  return text.substring(0, length) + "...";
+}

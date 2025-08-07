@@ -9,13 +9,22 @@ export function HomeDashboard() {
     { i: "my-tasks", x: 0, y: 0, w: 6, h: 10 },
     { i: "mentions", x: 6, y: 0, w: 6, h: 10 },
   ];
+
+  // This width is an approximation. A real implementation would use a width-aware HOC.
+  const layoutWidth =
+    typeof window !== "undefined"
+      ? window.innerWidth > 1280
+        ? 1200
+        : window.innerWidth - 256 - 48
+      : 1200;
+
   return (
     <GridLayout
       className="layout"
       layout={layout}
       cols={12}
       rowHeight={30}
-      width={1200}
+      width={layoutWidth}
       isDraggable={true}
       isResizable={true}
     >

@@ -50,8 +50,8 @@ export function Sidebar() {
   const [isAdminOpen, setIsAdminOpen] = useState(isAdminPath);
 
   return (
-    <aside className="hidden w-64 flex-col border-r bg-gray-100/40 p-4 lg:flex">
-      <h1 className="mb-8 text-2xl font-bold">AutoNomos</h1>
+    <aside className="border-border bg-card hidden w-64 flex-col border-r p-4 lg:flex">
+      <h1 className="text-foreground mb-8 text-2xl font-bold">AutoNomos</h1>
       <nav className="flex flex-col gap-1">
         {mainNavItems.map((item) => (
           <NavLink

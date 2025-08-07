@@ -13,7 +13,7 @@ export function DashboardWidget({
   className,
 }: DashboardWidgetProps) {
   return (
-    <Card className={className}>
+    <Card className={className} style={{ height: "100%" }}>
       <CardHeader>
         <CardTitle className="text-base">{title}</CardTitle>
       </CardHeader>

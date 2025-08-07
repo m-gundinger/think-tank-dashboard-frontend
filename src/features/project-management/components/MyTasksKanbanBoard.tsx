@@ -17,49 +17,20 @@ import { KanbanColumn } from "@/features/project-management/components/KanbanCol
 import { KanbanTaskCard } from "@/features/project-management/components/KanbanTaskCard";
 import { useUpdateTask } from "../api/useUpdateTask";
 import { ViewColumn } from "@/types";
+import { arrayMove } from "@dnd-kit/sortable";
 
 interface MyTasksKanbanBoardProps {
   tasks: Task[];
   onTaskSelect: (taskId: string) => void;
+  columns: Omit<ViewColumn, "createdAt" | "updatedAt">[];
+  columnStatusMap: Record<string, TaskStatus>;
 }
-
-const KANBAN_COLUMNS: Omit<ViewColumn, "createdAt" | "updatedAt">[] = [
-  {
-    id: "col-todo",
-    name: "To Do",
-    order: 1,
-    viewId: "my-tasks-view",
-  },
-  {
-    id: "col-in-progress",
-    name: "In Progress",
-    order: 2,
-    viewId: "my-tasks-view",
-  },
-  {
-    id: "col-in-review",
-    name: "In Review",
-    order: 3,
-    viewId: "my-tasks-view",
-  },
-  {
-    id: "col-done",
-    name: "Done",
-    order: 4,
-    viewId: "my-tasks-view",
-  },
-];
-
-const columnStatusMap: Record<string, TaskStatus> = {
-  "col-todo": TaskStatus.TODO,
-  "col-in-progress": TaskStatus.IN_PROGRESS,
-  "col-in-review": TaskStatus.IN_REVIEW,
-  "col-done": TaskStatus.DONE,
-};
 
 export function MyTasksKanbanBoard({
   tasks,
   onTaskSelect,
+  columns,
+  columnStatusMap,
 }: MyTasksKanbanBoardProps) {
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const updateTaskMutation = useUpdateTask();
@@ -69,22 +40,18 @@ export function MyTasksKanbanBoard({
 
   useEffect(() => {
     const grouped: Record<string, Task[]> = {};
-    KANBAN_COLUMNS.forEach((col) => (grouped[col.id] = []));
+    columns.forEach((col) => (grouped[col.id] = []));
 
     tasks.forEach((task) => {
-      const column = KANBAN_COLUMNS.find(
+      const column = columns.find(
         (col) => columnStatusMap[col.id] === task.status
       );
       if (column) {
         grouped[column.id].push(task);
-      } else {
-        // Fallback for any other statuses
-        if (!grouped["col-todo"]) grouped["col-todo"] = [];
-        grouped["col-todo"].push(task);
       }
     });
     setTasksByColumn(grouped);
-  }, [tasks]);
+  }, [tasks, columns, columnStatusMap]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -107,7 +74,7 @@ export function MyTasksKanbanBoard({
 
   const onDragOver = (event: DragOverEvent) => {
     const { active, over } = event;
-    if (!over || active.id === over.id || !activeTask) return;
+    if (!over || !activeTask || active.id === over.id) return;
 
     const sourceColumnId = findColumnForTask(active.id as string);
     const destColumnId =
@@ -115,32 +82,51 @@ export function MyTasksKanbanBoard({
         ? (over.id as string)
         : findColumnForTask(over.id as string);
 
-    if (!sourceColumnId || !destColumnId || sourceColumnId === destColumnId) {
-      return;
+    if (!sourceColumnId || !destColumnId) return;
+
+    if (sourceColumnId !== destColumnId) {
+      setTasksByColumn((prev) => {
+        const sourceItems = prev[sourceColumnId] || [];
+        const destItems = prev[destColumnId] || [];
+
+        const activeIndex = sourceItems.findIndex((t) => t.id === active.id);
+        if (activeIndex === -1) return prev;
+
+        const [movedItem] = sourceItems.splice(activeIndex, 1);
+
+        const overIsTask = over.data.current?.type === "Task";
+        let overIndex = -1;
+        if (overIsTask) {
+          overIndex = destItems.findIndex((t) => t.id === over.id);
+        }
+
+        if (overIndex !== -1) {
+          destItems.splice(overIndex, 0, movedItem);
+        } else {
+          destItems.push(movedItem);
+        }
+
+        return {
+          ...prev,
+          [sourceColumnId]: sourceItems,
+          [destColumnId]: destItems,
+        };
+      });
+    } else {
+      setTasksByColumn((prev) => {
+        const items = prev[sourceColumnId];
+        const oldIndex = items.findIndex((t) => t.id === active.id);
+        const newIndex = items.findIndex((t) => t.id === over.id);
+
+        if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+          return {
+            ...prev,
+            [sourceColumnId]: arrayMove(items, oldIndex, newIndex),
+          };
+        }
+        return prev;
+      });
     }
-
-    setTasksByColumn((prev) => {
-      const sourceItems = [...(prev[sourceColumnId] || [])];
-      const destItems = [...(prev[destColumnId] || [])];
-      const activeIndex = sourceItems.findIndex((t) => t.id === active.id);
-
-      if (activeIndex === -1) return prev;
-
-      sourceItems.splice(activeIndex, 1);
-      const overIndex = destItems.findIndex((t) => t.id === over.id);
-
-      if (overIndex !== -1) {
-        destItems.splice(overIndex, 0, activeTask);
-      } else {
-        destItems.push(activeTask);
-      }
-
-      return {
-        ...prev,
-        [sourceColumnId]: sourceItems,
-        [destColumnId]: destItems,
-      };
-    });
   };
 
   const onDragEnd = (event: DragEndEvent) => {
@@ -153,17 +139,21 @@ export function MyTasksKanbanBoard({
     if (!task) return;
 
     const destColumnId =
-      over.data.current?.sortable?.containerId?.toString() ??
-      over.id.toString();
+      over.data.current?.type === "Column"
+        ? (over.id as string)
+        : findColumnForTask(over.id as string);
 
-    const targetColumn = KANBAN_COLUMNS.find((col) => col.id === destColumnId);
+    if (!destColumnId) return;
 
-    if (targetColumn && task.status !== columnStatusMap[targetColumn.id]) {
+    const originalStatus = task.status;
+    const newStatus = columnStatusMap[destColumnId];
+
+    if (newStatus && originalStatus !== newStatus) {
       updateTaskMutation.mutate({
         taskId: task.id,
         workspaceId: task.workspaceId,
         projectId: task.projectId,
-        taskData: { status: columnStatusMap[targetColumn.id] },
+        taskData: { status: newStatus },
       });
     }
   };
@@ -177,7 +167,7 @@ export function MyTasksKanbanBoard({
       onDragEnd={onDragEnd}
     >
       <div className="flex h-full gap-4 overflow-x-auto p-1">
-        {KANBAN_COLUMNS.map((col) => (
+        {columns.map((col) => (
           <KanbanColumn
             key={col.id}
             column={col as ViewColumn}
@@ -189,7 +179,9 @@ export function MyTasksKanbanBoard({
       {createPortal(
         <DragOverlay>
           {activeTask ? (
-            <KanbanTaskCard task={activeTask} onTaskSelect={() => {}} />
+            <div className="dragging-card-overlay">
+              <KanbanTaskCard task={activeTask} onTaskSelect={() => {}} />
+            </div>
           ) : null}
         </DragOverlay>,
         document.body

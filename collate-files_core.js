@@ -8,9 +8,9 @@ const SCRIPT_CONFIG = {
     ".tsx",
     ".jsx",
     //'.html',
-    //'.css',
+    ".css",
     //'.scss',
-    //'.json',
+    ".json",
     //'', // For extensionless files like 'LICENSE', 'Dockerfile', or '.husky/commit-msg'
     //'.yml', // For .yml files
     //'.yaml', // Added for common YAML extension
@@ -29,22 +29,6 @@ const SCRIPT_CONFIG = {
     "public", // Original common ignores
     "dist",
     "coverage",
-    "_", // User-specified folder to ignore
-    "migrations", // User-specified folder to ignore
-    "hr",
-    "integrations",
-    "intelligence",
-    "knowledge",
-    "network",
-    "outreach",
-    //'system',
-    "tools",
-    "workspace",
-    "modules copy",
-    //'prisma',
-    //'core_',
-    // 'environments', // Removed from original; will be processed if inside src, config etc.
-    // 'styles',       // Removed from original; will be processed if inside src, config etc.
   ],
   // Specific files to ignore by name, wherever they appear
   IGNORED_FILES: [

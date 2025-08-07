@@ -1,0 +1,85 @@
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { getAbsoluteUrl } from "@/lib/utils";
+import { Project } from "@/types";
+import { Filter, Plus, Settings } from "lucide-react";
+import { Link } from "react-router-dom";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+interface ProjectHeaderProps {
+  project: Project;
+  onNewTaskClick: () => void;
+  onNewTaskFromTemplateClick: () => void;
+}
+
+export function ProjectHeader({
+  project,
+  onNewTaskClick,
+  onNewTaskFromTemplateClick,
+}: ProjectHeaderProps) {
+  const members = project.members || [];
+
+  return (
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-4">
+        <h1 className="text-foreground text-2xl font-bold tracking-tight">
+          {project.name}
+        </h1>
+        <div className="flex -space-x-2">
+          {members.slice(0, 3).map((member: any) => (
+            <Avatar
+              key={member.userId}
+              className="border-kanban-bg h-8 w-8 border-2"
+            >
+              <AvatarImage src={getAbsoluteUrl(member.avatarUrl)} />
+              <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+            </Avatar>
+          ))}
+          {members.length > 3 && (
+            <Avatar className="border-kanban-bg h-8 w-8 border-2">
+              <AvatarFallback>+{members.length - 3}</AvatarFallback>
+            </Avatar>
+          )}
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          className="bg-kanban-column border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white"
+        >
+          <Filter className="mr-2 h-4 w-4" /> Filter
+        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button className="bg-kanban-accent hover:bg-kanban-accent/90 text-primary-foreground">
+              <Plus className="mr-2 h-4 w-4" /> New Task
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem onClick={onNewTaskClick}>
+              New Blank Task
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={onNewTaskFromTemplateClick}>
+              New from Template...
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <Button
+          variant="outline"
+          size="icon"
+          className="bg-kanban-column border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white"
+          asChild
+        >
+          <Link to="settings">
+            <Settings className="h-4 w-4" />
+          </Link>
+        </Button>
+      </div>
+    </div>
+  );
+}

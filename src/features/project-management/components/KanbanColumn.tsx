@@ -2,6 +2,8 @@ import { useDroppable } from "@dnd-kit/core";
 import { SortableContext } from "@dnd-kit/sortable";
 import { Task, ViewColumn } from "@/types";
 import { KanbanTaskCard } from "./KanbanTaskCard";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 interface KanbanColumnProps {
   column: ViewColumn;
@@ -14,7 +16,7 @@ export function KanbanColumn({
   tasks,
   onTaskSelect,
 }: KanbanColumnProps) {
-  const { setNodeRef } = useDroppable({
+  const { setNodeRef, isOver } = useDroppable({
     id: column.id,
     data: { type: "Column", column },
   });
@@ -22,15 +24,19 @@ export function KanbanColumn({
   return (
     <div
       ref={setNodeRef}
-      className="flex w-72 shrink-0 flex-col rounded-lg bg-gray-100/60 p-2"
+      className={cn(
+        "flex w-72 shrink-0 flex-col rounded-lg bg-kanban-column transition-colors",
+        isOver && "drag-over-column"
+      )}
     >
-      <h3 className="p-2 font-semibold text-gray-700">
-        {column.name}
-        <span className="ml-2 text-sm font-normal text-gray-500">
+      <div className="flex flex-row items-center justify-between gap-2 p-3">
+        <h3 className="font-semibold text-foreground">{column.name}</h3>
+        <Badge variant="secondary" className="text-xs">
           {tasks.length}
-        </span>
-      </h3>
-      <div className="flex-grow space-y-2 overflow-y-auto">
+        </Badge>
+      </div>
+      <div className="mb-2 border-b border-slate-700"></div>
+      <div className="flex-grow space-y-2 overflow-y-auto px-2 pb-2">
         <SortableContext items={tasksIds}>
           {tasks.map((task: any) => (
             <KanbanTaskCard

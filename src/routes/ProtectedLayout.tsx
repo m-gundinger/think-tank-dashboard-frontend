@@ -10,7 +10,7 @@ export function ProtectedLayout() {
   useNotificationSocket();
 
   return (
-    <div className="flex h-screen w-full bg-white">
+    <div className="bg-background text-foreground flex h-screen w-full">
       <Sidebar />
       <div className="flex flex-1 flex-col">
         <Header />

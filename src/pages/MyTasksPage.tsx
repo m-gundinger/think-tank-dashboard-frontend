@@ -10,12 +10,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { ListTasksQuery, Task } from "@/types";
+import { ListTasksQuery, Task, ViewColumn } from "@/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MyTasksKanbanBoard } from "@/features/project-management/components/MyTasksKanbanBoard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
-import { CheckSquare, PlusCircle } from "lucide-react";
+import { CheckSquare, PlusCircle, Filter, Columns } from "lucide-react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { Button } from "@/components/ui/button";
 import { CreateTaskForm } from "@/features/project-management/components/CreateTaskForm";
@@ -24,6 +24,15 @@ import { CalendarView } from "@/features/project-management/components/CalendarV
 import { GanttChartView } from "@/features/project-management/components/GanttChartView";
 import { SortingState } from "@tanstack/react-table";
 import { useUpdateTask } from "@/features/project-management/api/useUpdateTask";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { TaskStatus } from "@/types/api";
 
 const TaskListSkeleton = () => (
   <div className="space-y-2 pt-4">
@@ -32,6 +41,55 @@ const TaskListSkeleton = () => (
     ))}
   </div>
 );
+
+const KANBAN_COLUMNS: Omit<ViewColumn, "createdAt" | "updatedAt">[] = [
+  {
+    id: "col-todo",
+    name: "To Do",
+    order: 1,
+    viewId: "my-tasks-view",
+  },
+  {
+    id: "col-in-progress",
+    name: "In Progress",
+    order: 2,
+    viewId: "my-tasks-view",
+  },
+  {
+    id: "col-in-review",
+    name: "In Review",
+    order: 3,
+    viewId: "my-tasks-view",
+  },
+  {
+    id: "col-done",
+    name: "Done",
+    order: 4,
+    viewId: "my-tasks-view",
+  },
+  {
+    id: "col-blocked",
+    name: "Blocked",
+    order: 5,
+    viewId: "my-tasks-view",
+  },
+  {
+    id: "col-cancelled",
+    name: "Cancelled",
+    order: 6,
+    viewId: "my-tasks-view",
+  },
+];
+
+const columnStatusMap: Record<string, TaskStatus> = {
+  "col-todo": TaskStatus.TODO,
+  "col-in-progress": TaskStatus.IN_PROGRESS,
+  "col-in-review": TaskStatus.IN_REVIEW,
+  "col-done": TaskStatus.DONE,
+  "col-blocked": TaskStatus.BLOCKED,
+  "col-cancelled": TaskStatus.CANCELLED,
+};
+
 export function MyTasksPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedTaskId = searchParams.get("taskId");
@@ -42,6 +100,12 @@ export function MyTasksPage() {
     { id: "priority", desc: true },
   ]);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [visibleColumnIds, setVisibleColumnIds] = useState<string[]>([
+    "col-todo",
+    "col-in-progress",
+    "col-in-review",
+    "col-done",
+  ]);
   const updateTaskMutation = useUpdateTask();
 
   const handleTaskSelect = (taskId: string | null) => {
@@ -107,9 +171,22 @@ export function MyTasksPage() {
     });
   };
 
+  const visibleColumns = useMemo(
+    () => KANBAN_COLUMNS.filter((c) => visibleColumnIds.includes(c.id)),
+    [visibleColumnIds]
+  );
+
+  const visibleTasks = useMemo(() => {
+    if (activeView !== "kanban" || !data?.data) {
+      return data?.data || [];
+    }
+    const visibleStatuses = visibleColumnIds.map((id) => columnStatusMap[id]);
+    return data.data.filter((task) => visibleStatuses.includes(task.status));
+  }, [data?.data, visibleColumnIds, activeView]);
+
   const emptyState = (
     <EmptyState
-      icon={<CheckSquare className="text-primary h-10 w-10" />}
+      icon={<CheckSquare className="h-10 w-10 text-primary" />}
       title="No tasks here"
       description="No tasks match your current filter. Try selecting a different filter or create a new task."
     />
@@ -119,56 +196,94 @@ export function MyTasksPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">My Tasks</h1>
-            <p className="text-muted-foreground">
-              All tasks assigned to you or created by you.
-            </p>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+              My Tasks
+            </h1>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="grid w-full max-w-sm items-center gap-1.5">
-              <Label htmlFor="filter">Filter by</Label>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
+              <Label htmlFor="task-filter" className="sr-only">
+                Filter tasks
+              </Label>
               <Select value={filter} onValueChange={setFilter}>
-                <SelectTrigger id="filter" className="w-[240px]">
-                  <SelectValue placeholder="Filter tasks" />
+                <SelectTrigger
+                  id="task-filter"
+                  className="border-slate-700 bg-kanban-column text-slate-300 hover:bg-slate-700 hover:text-white"
+                >
+                  <div className="flex items-center gap-2">
+                    <Filter className="h-4 w-4" />
+                    <SelectValue />
+                  </div>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All My Tasks</SelectItem>
                   <SelectItem value="all_assigned">
-                    All Assigned to Me (Default)
+                    All Assigned Tasks
                   </SelectItem>
                   <SelectItem value="assigned_project">
-                    Assigned to Me (from Projects)
+                    Assigned Project Tasks
                   </SelectItem>
                   <SelectItem value="assigned_standalone">
-                    Assigned to Me (Standalone)
+                    Assigned Standalone Tasks
                   </SelectItem>
                   <SelectItem value="created_project">
-                    Created by Me (in Projects)
+                    Created Project Tasks
                   </SelectItem>
                   <SelectItem value="created_standalone">
-                    Created by Me (Standalone)
+                    Created Standalone Tasks
                   </SelectItem>
                 </SelectContent>
               </Select>
+              {activeView === "kanban" && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="border-slate-700 bg-kanban-column text-slate-300 hover:bg-slate-700 hover:text-white"
+                    >
+                      <Columns className="mr-2 h-4 w-4" />
+                      Columns
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuLabel>Visible Columns</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {KANBAN_COLUMNS.map((column) => (
+                      <DropdownMenuCheckboxItem
+                        key={column.id}
+                        checked={visibleColumnIds.includes(column.id)}
+                        onCheckedChange={(checked) => {
+                          setVisibleColumnIds((prev) =>
+                            checked
+                              ? [...prev, column.id]
+                              : prev.filter((id) => id !== column.id)
+                          );
+                        }}
+                      >
+                        {column.name}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
-
-            <div className="self-end">
-              <ResourceCrudDialog
-                isOpen={isCreateOpen}
-                onOpenChange={setIsCreateOpen}
-                trigger={
-                  <Button onClick={() => setIsCreateOpen(true)}>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    New Task
-                  </Button>
-                }
-                title="Create a new task"
-                description="Fill in the details below to add a new task."
-                form={CreateTaskForm}
-                resourcePath="/tasks"
-                resourceKey={["myTasks"]}
-              />
-            </div>
+            <ResourceCrudDialog
+              isOpen={isCreateOpen}
+              onOpenChange={setIsCreateOpen}
+              trigger={
+                <Button
+                  className="bg-kanban-accent text-white hover:bg-kanban-accent/80"
+                  onClick={() => setIsCreateOpen(true)}
+                >
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  New Task
+                </Button>
+              }
+              title="Create a new task"
+              description="Fill in the details below to add a new task."
+              form={CreateTaskForm}
+              resourcePath="/tasks"
+              resourceKey={["myTasks"]}
+            />
           </div>
         </div>
         <Tabs value={activeView} onValueChange={handleViewChange}>
@@ -203,8 +318,10 @@ export function MyTasksPage() {
               <TaskListSkeleton />
             ) : (
               <MyTasksKanbanBoard
-                tasks={data?.data || []}
+                tasks={visibleTasks}
                 onTaskSelect={handleTaskSelect}
+                columns={visibleColumns}
+                columnStatusMap={columnStatusMap}
               />
             )}
           </TabsContent>
