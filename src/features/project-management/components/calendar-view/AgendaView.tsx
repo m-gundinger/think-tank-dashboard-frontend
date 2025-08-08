@@ -1,6 +1,5 @@
 import { Task } from "@/types";
-import { isSameDay, format, isToday, isTomorrow } from "date-fns";
-import { TaskRow } from "../list-view/TaskRow";
+import { format, isToday, isTomorrow } from "date-fns";
 import { ListViewHeader } from "../list-view/ListViewHeader";
 import { TaskGroup } from "../list-view/TaskGroup";
 import { useMemo } from "react";

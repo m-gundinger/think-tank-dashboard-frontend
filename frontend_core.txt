@@ -220,7 +220,6 @@ import { ProjectSettingsPage } from "./pages/ProjectSettingsPage";
 import { ProjectAccessControlPage } from "./pages/ProjectAccessControlPage";
 import { ProjectCustomFieldsPage } from "./pages/ProjectCustomFieldsPage";
 import { ProjectTaskTypesPage } from "./pages/ProjectTaskTypesPage";
-//import { ProjectViewsPage } from "./pages/ProjectViewsPage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 import { SetupPasswordPage } from "./pages/SetupPasswordPage";
@@ -229,7 +228,7 @@ import { ProjectGeneralSettingsPage } from "./pages/ProjectGeneralSettingsPage";
 import { JobMonitoringPage } from "./pages/admin/JobMonitoringPage";
 import { SystemStatusPage } from "./pages/admin/SystemStatusPage";
 import { CrmPage } from "./pages/CrmPage";
-import { MyTasksPage } from "./pages/MyTasksPage";
+import { TasksPage } from "./pages/tasks/TasksPage";
 import { ProjectGoalsPage } from "./pages/ProjectGoalsPage";
 import { HomePage } from "./pages/HomePage";
 import { ChatPage } from "./pages/ChatPage";
@@ -239,7 +238,6 @@ import { GlobalKnowledgeBasePage } from "./pages/GlobalKnowledgeBasePage";
 import { WhiteboardsPage } from "./pages/WhiteboardsPage";
 import { ProjectAttachmentsPage } from "./pages/ProjectAttachmentsPage";
 import { WorkspaceAttachmentsPage } from "./pages/WorkspaceAttachmentsPage";
-//import { ProjectLeadFormsPage } from "./pages/ProjectLeadFormsPage";
 import { AnalyticsLayout } from "./pages/AnalyticsLayout";
 import { ActivitiesPage } from "./pages/analytics/ActivitiesPage";
 import { DashboardsPage } from "./pages/analytics/DashboardsPage";
@@ -265,7 +263,7 @@ function App() {
           <Route index element={<Navigate to="/home" replace />} />
           <Route path="home" element={<HomePage />} />
           <Route path="chat" element={<ChatPage />} />
-          <Route path="my-tasks" element={<MyTasksPage />} />
+          <Route path="my-tasks" element={<TasksPage scope="user" />} />
           <Route path="workspaces" element={<WorkspacesPage />} />
           <Route path="knowledge-bases" element={<GlobalKnowledgeBasePage />} />
           <Route path="whiteboards" element={<WhiteboardsPage />} />
@@ -11695,6 +11693,38 @@ export function useAttachDocument(
   });
 }
 
+// FILE: src/features/project-management/api/useBulkUpdateTasks.ts
+import api from "@/lib/api";
+import { useApiMutation } from "@/hooks/useApiMutation";
+import { BulkUpdateTasksDto } from "@/types";
+
+async function bulkUpdateTasks(
+  data: BulkUpdateTasksDto
+): Promise<{ count: number }> {
+  const response = await api.patch("/tasks/bulk", data);
+  return response.data;
+}
+
+export function useBulkUpdateTasks(projectId?: string) {
+  const queryKeysToInvalidate: (string | undefined)[][] = [["myTasks"]];
+  if (projectId) {
+    queryKeysToInvalidate.push(["tasks", projectId]);
+  }
+
+  return useApiMutation<
+    { count: number },
+    { taskIds: string[]; updates: BulkUpdateTasksDto["updates"] }
+  >({
+    mutationFn: (variables) =>
+      bulkUpdateTasks({
+        taskIds: variables.taskIds,
+        updates: variables.updates,
+      }),
+    successMessage: (data) => `${data.count} tasks updated successfully.`,
+    invalidateQueries: queryKeysToInvalidate,
+  });
+}
+
 // FILE: src/features/project-management/api/useCreateProjectFromTemplate.ts
 import { useApiMutation } from "@/hooks/useApiMutation";
 import api from "@/lib/api";
@@ -11942,6 +11972,58 @@ export function useGetProjectViews(workspaceId: string, projectId: string) {
     enabled: !!workspaceId && !!projectId,
   });
 }
+// FILE: src/features/project-management/api/useGetTasks.ts
+import { useQuery } from "@tanstack/react-query";
+import api from "@/lib/api";
+import { ListTasksQuery, Task, PaginatedResponse } from "@/types";
+
+interface UseGetTasksParams {
+  scope: "user" | "project";
+  workspaceId?: string;
+  projectId?: string;
+  query: ListTasksQuery;
+  enabled?: boolean;
+}
+
+const fetchTasks = async ({
+  scope,
+  workspaceId,
+  projectId,
+  query,
+}: UseGetTasksParams): Promise<PaginatedResponse<Task>> => {
+  let url: string;
+  if (scope === "project") {
+    if (!workspaceId || !projectId) {
+      throw new Error(
+        "Workspace and Project IDs are required for project scope."
+      );
+    }
+    url = `/workspaces/${workspaceId}/projects/${projectId}/tasks`;
+  } else {
+    url = "/tasks/my-tasks";
+  }
+
+  const { data } = await api.get(url, { params: query });
+  return data;
+};
+
+export const useGetTasks = ({
+  scope,
+  workspaceId,
+  projectId,
+  query,
+  enabled = true,
+}: UseGetTasksParams) => {
+  const queryKey =
+    scope === "project" ? ["tasks", projectId, query] : ["myTasks", query];
+
+  return useQuery({
+    queryKey,
+    queryFn: () => fetchTasks({ scope, workspaceId, projectId, query }),
+    enabled: enabled && (scope === "user" || (!!workspaceId && !!projectId)),
+  });
+};
+
 // FILE: src/features/project-management/api/useGetTimeLogs.ts
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
@@ -12023,6 +12105,52 @@ export function useGetViewData(
     enabled: !!workspaceId && !!projectId && !!viewId && options.enabled,
   });
 }
+// FILE: src/features/project-management/api/useGetViews.ts
+import { useQuery } from "@tanstack/react-query";
+import api from "@/lib/api";
+import { PaginatedResponse, View } from "@/types";
+
+interface UseGetViewsParams {
+  scope: "user" | "project";
+  workspaceId?: string;
+  projectId?: string;
+  enabled?: boolean;
+}
+
+const fetchViews = async ({
+  scope,
+  workspaceId,
+  projectId,
+}: UseGetViewsParams): Promise<PaginatedResponse<View>> => {
+  let url: string;
+  if (scope === "project") {
+    if (!workspaceId || !projectId) {
+      throw new Error("Workspace and Project IDs are required for project scope.");
+    }
+    url = `/workspaces/${workspaceId}/projects/${projectId}/views`;
+  } else {
+    url = "/views";
+  }
+
+  const { data } = await api.get(url);
+  return data;
+};
+
+export const useGetViews = ({
+  scope,
+  workspaceId,
+  projectId,
+  enabled = true,
+}: UseGetViewsParams) => {
+  const queryKey =
+    scope === "project" ? ["views", projectId] : ["myViews"];
+
+  return useQuery({
+    queryKey,
+    queryFn: () => fetchViews({ scope, workspaceId, projectId }),
+    enabled: enabled && (scope === "user" || (!!workspaceId && !!projectId)),
+  });
+};
 // FILE: src/features/project-management/api/useInstantiateTaskTemplate.ts
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
@@ -12711,8 +12839,16 @@ export function useManageTaskTemplates(
   workspaceId?: string,
   projectId?: string
 ) {
-  const resourceUrl = `workspaces/${workspaceId}/projects/${projectId}/task-templates`;
-  const resourceKey = ["taskTemplates", projectId];
+  const resourceUrl =
+    workspaceId && projectId
+      ? `workspaces/${workspaceId}/projects/${projectId}/task-templates`
+      : "task-templates";
+
+  const resourceKey = projectId
+    ? ["taskTemplates", projectId]
+    : workspaceId
+      ? ["taskTemplates", workspaceId]
+      : ["taskTemplates"];
 
   const resource = useApiResource<TaskTemplate, TaskTemplateQuery>(
     resourceUrl,
@@ -13033,6 +13169,64 @@ export function useUpdateTask() {
     },
   });
 }
+
+interface SetTaskParentParams {
+  taskId: string;
+  workspaceId?: string | null;
+  projectId?: string | null;
+  parentId: string | null;
+}
+
+async function setTaskParent({
+  taskId,
+  workspaceId,
+  projectId,
+  parentId,
+}: SetTaskParentParams): Promise<Task> {
+  const url =
+    workspaceId && projectId
+      ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/set-parent`
+      : `tasks/${taskId}/set-parent`;
+  const { data } = await api.patch(url, { parentId });
+  return data;
+}
+
+export function useSetTaskParent() {
+  const queryClient = useQueryClient();
+
+  return useApiMutation<Task, SetTaskParentParams>({
+    mutationFn: setTaskParent,
+    onSuccess: (updatedTask) => {
+      // Invalidate the old parent if there was one
+      // The query for the new parent will be covered by the general invalidations below
+      const originalTask = queryClient.getQueryData<Task>([
+        "task",
+        updatedTask.id,
+      ]);
+      if (originalTask?.parentId) {
+        queryClient.invalidateQueries({
+          queryKey: ["task", originalTask.parentId],
+        });
+      }
+
+      // Invalidate the task itself, its new parent, and relevant lists
+      queryClient.invalidateQueries({ queryKey: ["task", updatedTask.id] });
+      if (updatedTask.parentId) {
+        queryClient.invalidateQueries({
+          queryKey: ["task", updatedTask.parentId],
+        });
+      }
+      if (updatedTask.projectId) {
+        queryClient.invalidateQueries({
+          queryKey: ["tasks", updatedTask.projectId],
+          exact: false,
+        });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["myTasks"], exact: false });
+      }
+    },
+  });
+}
 // FILE: src/features/project-management/api/useUpdateTaskCustomValues.ts
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
@@ -13315,192 +13509,309 @@ export function AssigneeSelector({
 }
 // FILE: src/features/project-management/components/calendar-view/AgendaView.tsx
 import { Task } from "@/types";
-import { isSameDay, format } from "date-fns";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getAbsoluteUrl } from "@/lib/utils";
-import { TaskPriority } from "@/types/api";
+import { format, isToday, isTomorrow } from "date-fns";
+import { ListViewHeader } from "../list-view/ListViewHeader";
+import { TaskGroup } from "../list-view/TaskGroup";
+import { useMemo } from "react";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Calendar } from "lucide-react";
 
 interface AgendaViewProps {
   tasks: Task[];
   onTaskSelect: (taskId: string) => void;
+  onTaskUpdate: (taskId: string, updates: Partial<Task>) => void;
+  selectedTaskIds: string[];
+  setSelectedTaskIds: (ids: string[]) => void;
 }
 
-const priorityBadgeConfig: Partial<
-  Record<TaskPriority, { label: string; className: string }>
-> = {
-  [TaskPriority.HIGH]: {
-    label: "High",
-    className: "bg-priority-high/80 text-white",
-  },
-  [TaskPriority.MEDIUM]: {
-    label: "Medium",
-    className: "bg-priority-medium/80 text-white",
-  },
-  [TaskPriority.LOW]: {
-    label: "Low",
-    className: "bg-green-500/80 text-white",
-  },
+const getGroupName = (date: Date): string => {
+  if (isToday(date)) return "Today";
+  if (isTomorrow(date)) return "Tomorrow";
+  return format(date, "EEEE, MMMM d");
 };
 
-export function AgendaView({ tasks, onTaskSelect }: AgendaViewProps) {
-  const upcomingTasks = tasks
-    .filter((task) => task.dueDate && new Date(task.dueDate) >= new Date())
-    .sort(
-      (a, b) => new Date(a.dueDate!).getTime() - new Date(b.dueDate!).getTime()
-    );
-
-  const groupedTasks = upcomingTasks.reduce(
-    (acc: Record<string, Task[]>, task) => {
-      const dateKey = new Date(task.dueDate!).toDateString();
-      if (!acc[dateKey]) {
-        acc[dateKey] = [];
-      }
-      acc[dateKey].push(task);
-      return acc;
-    },
-    {}
+export function AgendaView({
+  tasks,
+  onTaskSelect,
+  onTaskUpdate,
+  selectedTaskIds,
+  setSelectedTaskIds,
+}: AgendaViewProps) {
+  const upcomingTasks = useMemo(
+    () =>
+      tasks
+        .filter((task) => {
+          if (!task.dueDate) return false;
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          return new Date(task.dueDate) >= today;
+        })
+        .sort(
+          (a, b) =>
+            new Date(a.dueDate!).getTime() - new Date(b.dueDate!).getTime()
+        ),
+    [tasks]
   );
 
-  if (Object.keys(groupedTasks).length === 0) {
+  const groupedTasks = useMemo(() => {
+    const groupMap = new Map<string, Task[]>();
+
+    upcomingTasks.forEach((task) => {
+      const groupName = getGroupName(new Date(task.dueDate!));
+      if (!groupMap.has(groupName)) {
+        groupMap.set(groupName, []);
+      }
+      groupMap.get(groupName)!.push(task);
+    });
+    return Array.from(groupMap.entries());
+  }, [upcomingTasks]);
+
+  if (upcomingTasks.length === 0) {
     return (
-      <div className="p-8 text-center text-muted-foreground">
-        No upcoming tasks.
-      </div>
+      <EmptyState
+        icon={<Calendar className="h-10 w-10 text-primary" />}
+        title="No upcoming tasks"
+        description="There are no tasks scheduled for today or in the future."
+      />
     );
   }
 
   return (
-    <div className="space-y-6 p-4">
-      {Object.entries(groupedTasks).map(([dateKey, tasksForDay]) => {
-        const groupDate = new Date(dateKey);
-        const isToday = isSameDay(groupDate, new Date());
-        const dateLabel = isToday ? "Today" : format(groupDate, "EEEE, MMMM d");
-
-        return (
-          <div key={dateKey}>
-            <h3 className="mb-2 border-b border-border pb-2 text-lg font-semibold text-foreground">
-              {dateLabel}
-            </h3>
-            <div className="space-y-3">
-              {tasksForDay.map((task) => {
-                const priorityConfig = priorityBadgeConfig[task.priority];
-                const assignee = task.assignees?.[0];
-
-                return (
-                  <div
-                    key={task.id}
-                    className="task-item flex cursor-pointer items-center justify-between rounded-lg bg-element p-3"
-                    onClick={() => onTaskSelect(task.id)}
-                  >
-                    <div className="flex items-center gap-4">
-                      {assignee && (
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage
-                            src={getAbsoluteUrl(assignee.avatarUrl)}
-                          />
-                          <AvatarFallback>
-                            {assignee.name.charAt(0)}
-                          </AvatarFallback>
-                        </Avatar>
-                      )}
-                      <div>
-                        <p className="font-semibold text-foreground">
-                          {task.title}
-                        </p>
-                        <p className="text-sm text-primary">
-                          {task.projectName}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      {priorityConfig && (
-                        <span
-                          className={`task-tag rounded-full px-3 py-1 text-xs font-medium ${priorityConfig.className}`}
-                        >
-                          {priorityConfig.label}
-                        </span>
-                      )}
-                      <p className="w-24 text-right text-sm text-muted-foreground">
-                        {task.status.replace(/_/g, " ")}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        );
-      })}
+    <div className="rounded-lg border border-border bg-surface">
+      <ListViewHeader
+        showWorkspace={true}
+        showProject={true}
+        showTaskType={true}
+        tasks={upcomingTasks}
+        selectedTaskIds={selectedTaskIds}
+        setSelectedTaskIds={setSelectedTaskIds}
+      />
+      <div id="task-list">
+        {groupedTasks.map(([groupName, tasksInGroup]) => (
+          <TaskGroup
+            key={groupName}
+            groupName={groupName}
+            tasks={tasksInGroup}
+            onTaskSelect={onTaskSelect}
+            onTaskUpdate={onTaskUpdate}
+            showWorkspace={true}
+            showProject={true}
+            showTaskType={true}
+            selectedTaskIds={selectedTaskIds}
+            setSelectedTaskIds={setSelectedTaskIds}
+          />
+        ))}
+      </div>
     </div>
   );
 }
-
 // FILE: src/features/project-management/components/calendar-view/CalendarTaskItem.tsx
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { MoreHorizontal, Edit, Copy, Trash2, Briefcase } from "lucide-react";
+import { useApiResource } from "@/hooks/useApiResource";
+import { useParams } from "react-router-dom";
+import { toast } from "sonner";
+import { Task } from "@/types";
+import { TaskPriority } from "@/types/api";
+import { Badge } from "@/components/ui/badge";
+import { getIcon } from "@/lib/icons";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getAbsoluteUrl } from "@/lib/utils";
-import { Task, TaskPriority } from "@/types";
-
-interface CalendarTaskItemProps {
-  task: Task;
-  onTaskSelect: (taskId: string) => void;
-}
+import { cn, getAbsoluteUrl } from "@/lib/utils";
 
 const priorityBadgeConfig: Partial<
   Record<TaskPriority, { label: string; className: string }>
 > = {
+  [TaskPriority.URGENT]: {
+    label: "Urgent",
+    className: "bg-priority-urgent text-background border-priority-urgent",
+  },
   [TaskPriority.HIGH]: {
     label: "High",
-    className: "bg-priority-high/80 text-white",
+    className: "bg-priority-high text-background border-priority-high",
   },
   [TaskPriority.MEDIUM]: {
     label: "Medium",
-    className: "bg-priority-medium/80 text-white",
+    className: "bg-priority-medium text-background border-priority-medium",
   },
   [TaskPriority.LOW]: {
     label: "Low",
-    className: "bg-green-500/80 text-white",
+    className: "bg-priority-low text-background border-priority-low",
   },
 };
 
 export function CalendarTaskItem({
   task,
   onTaskSelect,
-}: CalendarTaskItemProps) {
-  const priorityConfig = priorityBadgeConfig[task.priority];
-  const assignee = task.assignees?.[0];
+}: {
+  task: Task;
+  onTaskSelect: (taskId: string) => void;
+}) {
+  const { workspaceId, projectId } = useParams<{
+    workspaceId: string;
+    projectId: string;
+  }>();
+  const deleteTaskMutation = useApiResource(
+    `/workspaces/${workspaceId}/projects/${projectId}/tasks`,
+    ["tasks", projectId]
+  ).useDelete();
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: task.id,
+    data: { type: "Task", task },
+  });
+
+  const style = {
+    transition,
+    transform: CSS.Transform.toString(transform),
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (window.confirm(`Delete task "${task.title}"?`)) {
+      deleteTaskMutation.mutate(task.id);
+    }
+  };
+
+  const handleCopyId = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(task.shortId || task.id);
+    toast.success("Task ID copied to clipboard.");
+  };
+
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onTaskSelect(task.id);
+  };
+
+  const priorityConfig =
+    task.priority && priorityBadgeConfig[task.priority]
+      ? priorityBadgeConfig[task.priority]
+      : null;
+
+  const TaskTypeIcon = task.taskType?.icon ? getIcon(task.taskType.icon) : null;
 
   return (
     <div
-      className="task-item cursor-pointer space-y-1 rounded-md bg-element p-2 shadow"
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
       onClick={() => onTaskSelect(task.id)}
+      className={cn(isDragging && "dragging-card")}
     >
-      <p className="truncate text-xs font-semibold text-foreground">
-        {task.title}
-      </p>
-      <div className="flex items-center justify-between">
-        {priorityConfig ? (
-          <span
-            className={`task-tag rounded-full px-2 py-0.5 text-[0.7rem] font-medium ${priorityConfig.className}`}
-          >
-            {priorityConfig.label}
-          </span>
-        ) : (
-          <div />
-        )}
-        {assignee && (
-          <Avatar className="h-5 w-5 ring-2 ring-surface">
-            <AvatarImage
-              src={getAbsoluteUrl(assignee.avatarUrl)}
-              alt={assignee.name}
-            />
-            <AvatarFallback>{assignee.name.charAt(0)}</AvatarFallback>
-          </Avatar>
-        )}
-      </div>
+      <Card className="mb-2 cursor-grab border-border bg-element hover:bg-hover active:cursor-grabbing">
+        <CardHeader className="flex flex-row items-start justify-between p-3 pb-2">
+          <CardTitle className="text-sm font-semibold">{task.title}</CardTitle>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 shrink-0 text-muted-foreground hover:bg-hover hover:text-foreground"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent onClick={(e) => e.stopPropagation()}>
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem onClick={handleEdit}>
+                <Edit className="mr-2 h-4 w-4" />
+                <span>View / Edit Details</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleCopyId}>
+                <Copy className="mr-2 h-4 w-4" />
+                <span>Copy Task ID</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="text-red-500" onClick={handleDelete}>
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </CardHeader>
+
+        <CardContent className="flex flex-col gap-2 px-3 pb-2">
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+            {!projectId && task.projectName && (
+              <div className="flex items-center gap-1">
+                <Briefcase className="h-3.5 w-3.5" />
+                <span className="truncate">
+                  {task.workspaceName}/{task.projectName}
+                </span>
+              </div>
+            )}
+          </div>
+        </CardContent>
+
+        <CardFooter className="flex items-center justify-between p-3 pt-1">
+          <div className="flex flex-wrap items-center gap-2">
+            {priorityConfig && (
+              <Badge
+                variant="outline"
+                className={`text-xs ${priorityConfig.className}`}
+              >
+                {priorityConfig.label}
+              </Badge>
+            )}
+            {task.taskType && (
+              <Badge
+                variant="outline"
+                style={
+                  task.taskType.color
+                    ? {
+                        backgroundColor: `${task.taskType.color}20`,
+                        color: task.taskType.color,
+                        borderColor: `${task.taskType.color}80`,
+                      }
+                    : {}
+                }
+              >
+                {TaskTypeIcon && <TaskTypeIcon className="mr-1 h-3 w-3" />}
+                {task.taskType.name}
+              </Badge>
+            )}
+          </div>
+          <div className="flex -space-x-2">
+            {task.assignees?.map((assignee) => (
+              <Avatar
+                key={assignee.id}
+                className="h-6 w-6 border-2 border-background"
+              >
+                <AvatarImage src={getAbsoluteUrl(assignee.avatarUrl)} />
+                <AvatarFallback>{assignee.name.charAt(0)}</AvatarFallback>
+              </Avatar>
+            ))}
+          </div>
+        </CardFooter>
+      </Card>
     </div>
   );
 }
-
 // FILE: src/features/project-management/components/calendar-view/CalendarToolbar.tsx
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -13547,7 +13858,7 @@ export function CalendarToolbar({
               variant="outline"
               size="icon"
               onClick={() => onNavigate("PREV")}
-              className="hover:bg-hover h-9 w-9 bg-element"
+              className="h-9 w-9 bg-element hover:bg-hover"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -13555,7 +13866,7 @@ export function CalendarToolbar({
               variant="outline"
               size="icon"
               onClick={() => onNavigate("NEXT")}
-              className="hover:bg-hover h-9 w-9 bg-element"
+              className="h-9 w-9 bg-element hover:bg-hover"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
@@ -13569,7 +13880,7 @@ export function CalendarToolbar({
         <Button
           onClick={() => onNavigate("TODAY")}
           variant="outline"
-          className="hover:bg-hover bg-element"
+          className="bg-element hover:bg-hover"
         >
           Today
         </Button>
@@ -13590,25 +13901,65 @@ export function CalendarToolbar({
     </div>
   );
 }
-
 // FILE: src/features/project-management/components/calendar-view/CalendarView.tsx
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Task } from "@/types";
 import { CalendarToolbar } from "./CalendarToolbar";
 import { MonthView } from "./MonthView";
 import { WeekView } from "./WeekView";
 import { AgendaView } from "./AgendaView";
+import {
+  DndContext,
+  DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import { createPortal } from "react-dom";
+import { CalendarTaskItem } from "./CalendarTaskItem";
+import { useUpdateTask } from "../../api/useUpdateTask";
+import { useParams } from "react-router-dom";
 
 type View = "month" | "week" | "agenda";
 
 interface CalendarViewProps {
   tasks: Task[];
   onTaskSelect: (taskId: string) => void;
+  onTaskUpdate: (taskId: string, updates: Partial<Task>) => void;
 }
 
-export function CalendarView({ tasks, onTaskSelect }: CalendarViewProps) {
+export function CalendarView({
+  tasks,
+  onTaskSelect,
+  onTaskUpdate,
+}: CalendarViewProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [currentView, setCurrentView] = useState<View>("month");
+  const [activeTask, setActiveTask] = useState<Task | null>(null);
+  const [localTasks, setLocalTasks] = useState<Task[]>(tasks);
+  const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
+
+  const { workspaceId, projectId } = useParams<{
+    workspaceId: string;
+    projectId: string;
+  }>();
+
+  useEffect(() => {
+    setLocalTasks(tasks);
+  }, [tasks]);
+
+  const updateTaskMutation = useUpdateTask();
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 10,
+      },
+    })
+  );
 
   const handleNavigate = useCallback(
     (action: "PREV" | "NEXT" | "TODAY") => {
@@ -13630,37 +13981,95 @@ export function CalendarView({ tasks, onTaskSelect }: CalendarViewProps) {
     [currentDate, currentView]
   );
 
+  const handleDragStart = (event: DragStartEvent) => {
+    if (event.active.data.current?.type === "Task") {
+      setActiveTask(event.active.data.current.task);
+    }
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    setActiveTask(null);
+    const { active, over } = event;
+    if (
+      !over ||
+      active.id === over.id ||
+      over.data.current?.type !== "date-cell"
+    ) {
+      return;
+    }
+
+    const taskId = active.id as string;
+    const newDueDate = over.data.current?.date as Date;
+
+    setLocalTasks((prevTasks) =>
+      prevTasks.map((task) =>
+        task.id === taskId
+          ? { ...task, dueDate: newDueDate.toISOString() }
+          : task
+      )
+    );
+
+    updateTaskMutation.mutate({
+      taskId,
+      workspaceId,
+      projectId,
+      taskData: { dueDate: newDueDate.toISOString() },
+    });
+  };
+
   return (
-    <div className="h-full">
-      <CalendarToolbar
-        currentDate={currentDate}
-        currentView={currentView}
-        onNavigate={handleNavigate}
-        onViewChange={setCurrentView}
-      />
-      <div className="rounded-lg bg-surface">
-        {currentView === "month" && (
-          <MonthView
-            tasks={tasks}
-            currentDate={currentDate}
-            onTaskSelect={onTaskSelect}
-          />
-        )}
-        {currentView === "week" && (
-          <WeekView
-            tasks={tasks}
-            currentDate={currentDate}
-            onTaskSelect={onTaskSelect}
-          />
-        )}
-        {currentView === "agenda" && (
-          <AgendaView tasks={tasks} onTaskSelect={onTaskSelect} />
-        )}
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
+      <div className="h-full">
+        <CalendarToolbar
+          currentDate={currentDate}
+          currentView={currentView}
+          onNavigate={handleNavigate}
+          onViewChange={setCurrentView}
+        />
+        <div className="rounded-lg bg-surface">
+          {currentView === "month" && (
+            <MonthView
+              tasks={localTasks}
+              currentDate={currentDate}
+              onTaskSelect={onTaskSelect}
+            />
+          )}
+          {currentView === "week" && (
+            <WeekView
+              tasks={localTasks}
+              currentDate={currentDate}
+              onTaskSelect={onTaskSelect}
+            />
+          )}
+          {currentView === "agenda" && (
+            <AgendaView
+              tasks={tasks}
+              onTaskSelect={onTaskSelect}
+              onTaskUpdate={onTaskUpdate}
+              selectedTaskIds={selectedTaskIds}
+              setSelectedTaskIds={setSelectedTaskIds}
+            />
+          )}
+        </div>
       </div>
-    </div>
+      {createPortal(
+        <DragOverlay>
+          {activeTask ? (
+            <div className="dragging-card-overlay">
+              <CalendarTaskItem task={activeTask} onTaskSelect={() => {}} />
+            </div>
+          ) : null}
+        </DragOverlay>,
+        document.body
+      )}
+    </DndContext>
   );
 }
-
 // FILE: src/features/project-management/components/calendar-view/MonthView.tsx
 import { Task } from "@/types";
 import {
@@ -13674,11 +14083,69 @@ import {
   format,
 } from "date-fns";
 import { CalendarTaskItem } from "./CalendarTaskItem";
+import { useDroppable } from "@dnd-kit/core";
+import { SortableContext } from "@dnd-kit/sortable";
+import { cn } from "@/lib/utils";
 
 interface MonthViewProps {
   tasks: Task[];
   currentDate: Date;
   onTaskSelect: (taskId: string) => void;
+}
+
+function DayCell({
+  day,
+  isCurrentMonth,
+  tasks,
+  onTaskSelect,
+}: {
+  day: Date;
+  isCurrentMonth: boolean;
+  tasks: Task[];
+  onTaskSelect: (taskId: string) => void;
+}) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: day.toISOString(),
+    data: {
+      type: "date-cell",
+      date: day,
+    },
+  });
+
+  const isToday = isSameDay(day, new Date());
+  const taskIds = tasks.map((t) => t.id);
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={cn(
+        "calendar-day relative flex flex-col p-2",
+        isCurrentMonth ? "" : "bg-background/50",
+        isOver && "drag-over-day"
+      )}
+    >
+      <span
+        className={`self-start text-sm font-medium ${
+          isToday
+            ? "flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground"
+            : "text-foreground"
+        }`}
+      >
+        {format(day, "d")}
+      </span>
+      <div className="mt-1 flex-grow space-y-1 overflow-y-auto">
+        <SortableContext items={taskIds}>
+          {tasks.map((task) => (
+            <CalendarTaskItem
+              key={task.id}
+              task={task}
+              onTaskSelect={onTaskSelect}
+            />
+          ))}
+        </SortableContext>
+      </div>
+    </div>
+  );
 }
 
 export function MonthView({
@@ -13705,45 +14172,24 @@ export function MonthView({
       <div className="calendar-grid">
         {days.map((day) => {
           const isCurrentMonth = isSameMonth(day, monthStart);
-          const isToday = isSameDay(day, new Date());
-
           const tasksForDay = tasks.filter(
             (task) => task.dueDate && isSameDay(new Date(task.dueDate), day)
           );
 
           return (
-            <div
+            <DayCell
               key={day.toString()}
-              className={`calendar-day relative flex flex-col p-2 ${
-                isCurrentMonth ? "" : "bg-background/50"
-              }`}
-            >
-              <span
-                className={`self-start text-sm font-medium ${
-                  isToday
-                    ? "flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground"
-                    : "text-foreground"
-                }`}
-              >
-                {format(day, "d")}
-              </span>
-              <div className="mt-1 flex-grow space-y-1 overflow-y-auto">
-                {tasksForDay.map((task) => (
-                  <CalendarTaskItem
-                    key={task.id}
-                    task={task}
-                    onTaskSelect={onTaskSelect}
-                  />
-                ))}
-              </div>
-            </div>
+              day={day}
+              isCurrentMonth={isCurrentMonth}
+              tasks={tasksForDay}
+              onTaskSelect={onTaskSelect}
+            />
           );
         })}
       </div>
     </div>
   );
 }
-
 // FILE: src/features/project-management/components/calendar-view/WeekView.tsx
 import { Task } from "@/types";
 import {
@@ -13754,11 +14200,58 @@ import {
   endOfWeek,
 } from "date-fns";
 import { CalendarTaskItem } from "./CalendarTaskItem";
+import { useDroppable } from "@dnd-kit/core";
+import { SortableContext } from "@dnd-kit/sortable";
+import { cn } from "@/lib/utils";
 
 interface WeekViewProps {
   tasks: Task[];
   currentDate: Date;
   onTaskSelect: (taskId: string) => void;
+}
+
+function DayColumn({
+  day,
+  tasks,
+  onTaskSelect,
+}: {
+  day: Date;
+  tasks: Task[];
+  onTaskSelect: (taskId: string) => void;
+}) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: day.toISOString(),
+    data: {
+      type: "date-cell",
+      date: day,
+    },
+  });
+
+  const isToday = isSameDay(day, new Date());
+  const taskIds = tasks.map((t) => t.id);
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={cn(
+        "calendar-day relative flex flex-col p-2",
+        isToday ? "bg-hover" : "",
+        isOver && "drag-over-day"
+      )}
+    >
+      <div className="flex-grow space-y-2 overflow-y-auto">
+        <SortableContext items={taskIds}>
+          {tasks.map((task) => (
+            <CalendarTaskItem
+              key={task.id}
+              task={task}
+              onTaskSelect={onTaskSelect}
+            />
+          ))}
+        </SortableContext>
+      </div>
+    </div>
+  );
 }
 
 export function WeekView({ tasks, currentDate, onTaskSelect }: WeekViewProps) {
@@ -13778,35 +14271,23 @@ export function WeekView({ tasks, currentDate, onTaskSelect }: WeekViewProps) {
       </div>
       <div className="calendar-grid">
         {days.map((day) => {
-          const isToday = isSameDay(day, new Date());
           const tasksForDay = tasks.filter(
             (task) => task.dueDate && isSameDay(new Date(task.dueDate), day)
           );
 
           return (
-            <div
+            <DayColumn
               key={day.toString()}
-              className={`calendar-day relative flex flex-col p-2 ${
-                isToday ? "bg-hover" : ""
-              }`}
-            >
-              <div className="flex-grow space-y-2 overflow-y-auto">
-                {tasksForDay.map((task) => (
-                  <CalendarTaskItem
-                    key={task.id}
-                    task={task}
-                    onTaskSelect={onTaskSelect}
-                  />
-                ))}
-              </div>
-            </div>
+              day={day}
+              tasks={tasksForDay}
+              onTaskSelect={onTaskSelect}
+            />
           );
         })}
       </div>
     </div>
   );
 }
-
 // FILE: src/features/project-management/components/ChecklistItem.tsx
 import { useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -13975,7 +14456,6 @@ export function CreateProjectFromTemplateForm({
     </FormProvider>
   );
 }
-
 // FILE: src/features/project-management/components/CreateProjectRoleForm.tsx
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -14085,9 +14565,7 @@ const taskSchema = z.object({
   boardColumnId: z.string().uuid().optional().nullable(),
   startDate: z.date().optional().nullable(),
   dueDate: z.date().optional().nullable(),
-  assigneeIds: z
-    .array(z.string().uuid())
-    .min(1, "At least one assignee is required."),
+  assigneeIds: z.array(z.string().uuid()).optional(),
 });
 
 type TaskFormValues = z.infer<typeof taskSchema>;
@@ -14139,7 +14617,12 @@ export function CreateTaskForm({
     }
   }, [profileData, methods]);
   async function onSubmit(values: TaskFormValues) {
-    const submitData: Partial<TaskFormValues> = { ...values };
+    const submitData: Partial<TaskFormValues> & { projectId?: string } = {
+      ...values,
+    };
+    if (projectId) {
+      submitData.projectId = projectId;
+    }
     if (!submitData.boardColumnId) delete submitData.boardColumnId;
     if (!submitData.parentId) delete submitData.parentId;
     if (!submitData.taskTypeId) delete submitData.taskTypeId;
@@ -15014,7 +15497,6 @@ export function GanttChartView({ tasks, onTaskSelect }: GanttChartViewProps) {
     ></div>
   );
 }
-
 // FILE: src/features/project-management/components/GlobalTaskTypeForm.tsx
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -15841,7 +16323,7 @@ export function InviteProjectMember({
 }
 
 // FILE: src/features/project-management/components/kanban-view/KanbanBoard.tsx
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   DndContext,
   DragEndEvent,
@@ -15857,105 +16339,47 @@ import { createPortal } from "react-dom";
 import { Task } from "@/types";
 import { KanbanColumn } from "./KanbanColumn";
 import { KanbanTaskCard } from "./KanbanTaskCard";
-import { useMoveTask } from "@/features/project-management/api/useMoveTask";
-import { View, ViewColumn } from "@/types";
+import { ViewColumn } from "@/types";
 import { TaskStatus } from "@/types/api";
-import { EmptyState } from "@/components/ui/empty-state";
-import { Kanban, PlusCircle } from "lucide-react";
 import { arrayMove } from "@dnd-kit/sortable";
-import { Button } from "@/components/ui/button";
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
-//import { CreateColumnForm } from "./CreateColumnForm";
+import { useUpdateTask } from "../../api/useUpdateTask";
 
 interface KanbanBoardProps {
-  workspaceId: string;
-  projectId: string;
-  views: View[];
+  scope: "user" | "project";
+  workspaceId?: string;
+  projectId?: string;
+  columns: ViewColumn[];
   tasks: Task[];
   onTaskSelect: (taskId: string) => void;
-}
-
-function mapColumnNameToStatus(columnName: string): TaskStatus | null {
-  const normalizedName = columnName.trim().toUpperCase().replace(/\s+/g, "_");
-  if (normalizedName === "TO_DO") return TaskStatus.TODO;
-  if (Object.values(TaskStatus).includes(normalizedName as TaskStatus)) {
-    return normalizedName as TaskStatus;
-  }
-  return null;
-}
-
-function mapStatusToColumnName(status: TaskStatus): string {
-  switch (status) {
-    case TaskStatus.TODO:
-      return "To Do";
-    case TaskStatus.IN_PROGRESS:
-      return "In Progress";
-    case TaskStatus.IN_REVIEW:
-      return "In Review";
-    case TaskStatus.DONE:
-      return "Done";
-    default:
-      return "";
-  }
+  columnStatusMap: Record<string, TaskStatus>;
 }
 
 export function KanbanBoard({
-  workspaceId,
-  projectId,
-  views,
+  columns,
   tasks,
   onTaskSelect,
+  columnStatusMap,
 }: KanbanBoardProps) {
-  const moveTaskMutation = useMoveTask(projectId);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
-  const [isCreateColumnOpen, setIsCreateColumnOpen] = useState(false);
-
-  const kanbanView = useMemo(
-    () => views.find((v) => v.type === "KANBAN"),
-    [views]
-  );
-  const columns = useMemo(() => kanbanView?.columns || [], [kanbanView]);
-
+  const updateTaskMutation = useUpdateTask();
   const [tasksByColumn, setTasksByColumn] = useState<Record<string, Task[]>>(
     {}
   );
 
   useEffect(() => {
-    const grouped = columns.reduce(
-      (acc: Record<string, Task[]>, col: ViewColumn) => {
-        acc[col.id] = [];
-        return acc;
-      },
-      {} as Record<string, Task[]>
-    );
+    const grouped: Record<string, Task[]> = {};
+    columns.forEach((col) => (grouped[col.id] = []));
 
-    const topLevelTasks = tasks.filter((task) => !task.parentId);
-
-    topLevelTasks.forEach((task) => {
-      let targetColumnId = task.boardColumnId;
-      if (!targetColumnId) {
-        const expectedColumnName = mapStatusToColumnName(task.status);
-        const fallbackColumn = columns.find(
-          (c: ViewColumn) =>
-            c.name.toUpperCase() === expectedColumnName.toUpperCase()
-        );
-        if (fallbackColumn) {
-          targetColumnId = fallbackColumn.id;
-        }
-      }
-
-      if (targetColumnId && grouped[targetColumnId]) {
-        grouped[targetColumnId].push(task);
+    tasks.forEach((task) => {
+      const column = columns.find(
+        (col) => columnStatusMap[col.id] === task.status
+      );
+      if (column) {
+        grouped[column.id].push(task);
       }
     });
-
-    for (const columnId in grouped) {
-      grouped[columnId].sort(
-        (a, b) => (a.orderInColumn || 0) - (b.orderInColumn || 0)
-      );
-    }
     setTasksByColumn(grouped);
-  }, [tasks, columns]);
+  }, [tasks, columns, columnStatusMap]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -15966,23 +16390,19 @@ export function KanbanBoard({
   );
 
   const findColumnForTask = (taskId: string) => {
-    for (const colId in tasksByColumn) {
-      if (tasksByColumn[colId].some((task) => task.id === taskId)) {
-        return colId;
-      }
-    }
-    return null;
+    return Object.keys(tasksByColumn).find((colId) =>
+      tasksByColumn[colId].some((task) => task.id === taskId)
+    );
   };
 
   const onDragStart = (event: DragStartEvent) => {
-    if (event.active.data.current?.type === "Task") {
-      setActiveTask(event.active.data.current.task);
-    }
+    const task = tasks.find((t) => t.id === event.active.id);
+    if (task) setActiveTask(task);
   };
 
   const onDragOver = (event: DragOverEvent) => {
     const { active, over } = event;
-    if (!over || active.id === over.id || !activeTask) return;
+    if (!over || !activeTask || active.id === over.id) return;
 
     const sourceColumnId = findColumnForTask(active.id as string);
     const destColumnId =
@@ -15990,20 +16410,23 @@ export function KanbanBoard({
         ? (over.id as string)
         : findColumnForTask(over.id as string);
 
-    if (!sourceColumnId || !destColumnId) {
-      return;
-    }
+    if (!sourceColumnId || !destColumnId) return;
 
     if (sourceColumnId !== destColumnId) {
       setTasksByColumn((prev) => {
-        const sourceItems = [...(prev[sourceColumnId] || [])];
-        const destItems = [...(prev[destColumnId] || [])];
-        const activeIndex = sourceItems.findIndex((t) => t.id === active.id);
+        const sourceItems = prev[sourceColumnId] || [];
+        const destItems = prev[destColumnId] || [];
 
+        const activeIndex = sourceItems.findIndex((t) => t.id === active.id);
         if (activeIndex === -1) return prev;
 
         const [movedItem] = sourceItems.splice(activeIndex, 1);
-        const overIndex = destItems.findIndex((t) => t.id === over.id);
+
+        const overIsTask = over.data.current?.type === "Task";
+        let overIndex = -1;
+        if (overIsTask) {
+          overIndex = destItems.findIndex((t) => t.id === over.id);
+        }
 
         if (overIndex !== -1) {
           destItems.splice(overIndex, 0, movedItem);
@@ -16037,61 +16460,31 @@ export function KanbanBoard({
   const onDragEnd = (event: DragEndEvent) => {
     setActiveTask(null);
     const { active, over } = event;
-    if (!over || active.id === over.id) return;
 
-    const draggedTask = active.data.current?.task as Task;
-    if (!draggedTask) return;
+    if (!over) return;
+
+    const task = tasks.find((t) => t.id === active.id);
+    if (!task) return;
 
     const destColumnId =
-      over.data.current?.sortable?.containerId?.toString() ??
-      over.id.toString();
-    const destColumn = columns.find((col: any) => col.id === destColumnId);
-    if (!destColumn) return;
+      over.data.current?.type === "Column"
+        ? (over.id as string)
+        : findColumnForTask(over.id as string);
 
-    const tasksInDestColumn = (tasksByColumn[destColumnId] || []).sort(
-      (a, b) => (a.orderInColumn || 0) - (b.orderInColumn || 0)
-    );
-    const overIsTask = over.data.current?.type === "Task";
-    let newOrderInColumn: number;
-    if (overIsTask) {
-      const overTaskIndex = tasksInDestColumn.findIndex(
-        (t) => t.id === over.id
-      );
-      if (overTaskIndex !== -1) {
-        const overTask = tasksInDestColumn[overTaskIndex];
-        const prevTask = tasksInDestColumn[overTaskIndex - 1];
-        const prevOrder = prevTask?.orderInColumn ?? 0;
-        const overOrder = overTask?.orderInColumn ?? prevOrder + 2000;
-        newOrderInColumn = (prevOrder + overOrder) / 2;
-      } else {
-        const lastTask = tasksInDestColumn[tasksInDestColumn.length - 1];
-        newOrderInColumn = (lastTask?.orderInColumn || 0) + 1000;
-      }
-    } else {
-      const lastTask = tasksInDestColumn[tasksInDestColumn.length - 1];
-      newOrderInColumn = (lastTask?.orderInColumn || 0) + 1000;
+    if (!destColumnId) return;
+
+    const originalStatus = task.status;
+    const newStatus = columnStatusMap[destColumnId];
+
+    if (newStatus && originalStatus !== newStatus) {
+      updateTaskMutation.mutate({
+        taskId: task.id,
+        workspaceId: task.workspaceId,
+        projectId: task.projectId,
+        taskData: { status: newStatus },
+      });
     }
-
-    const newStatus = mapColumnNameToStatus(destColumn.name);
-    moveTaskMutation.mutate({
-      workspaceId,
-      projectId,
-      taskId: active.id as string,
-      targetColumnId: destColumnId,
-      newStatus,
-      orderInColumn: newOrderInColumn,
-    });
   };
-
-  if (columns.length === 0) {
-    return (
-      <EmptyState
-        icon={<Kanban />}
-        title="Kanban Board Not Configured"
-        description="This Kanban view has no columns. Please edit the view in project settings."
-      />
-    );
-  }
 
   return (
     <>
@@ -16111,20 +16504,13 @@ export function KanbanBoard({
               onTaskSelect={onTaskSelect}
             />
           ))}
-          <div>
-            <Button
-              variant="outline"
-              className="w-72 border-slate-700 bg-surface text-slate-300 hover:bg-slate-700 hover:text-white"
-              onClick={() => setIsCreateColumnOpen(true)}
-            >
-              <PlusCircle className="mr-2 h-4 w-4" /> Add another list
-            </Button>
-          </div>
         </div>
         {createPortal(
           <DragOverlay>
             {activeTask ? (
-              <KanbanTaskCard task={activeTask} onTaskSelect={() => {}} />
+              <div className="dragging-card-overlay">
+                <KanbanTaskCard task={activeTask} onTaskSelect={() => {}} />
+              </div>
             ) : null}
           </DragOverlay>,
           document.body
@@ -16187,7 +16573,6 @@ export function KanbanColumn({
     </div>
   );
 }
-
 // FILE: src/features/project-management/components/kanban-view/KanbanTaskCard.tsx
 import {
   Card,
@@ -16314,7 +16699,7 @@ export function KanbanTaskCard({
       onClick={() => onTaskSelect(task.id)}
       className={cn(isDragging && "dragging-card")}
     >
-      <Card className="hover:bg-hover mb-2 cursor-grab border-border bg-element active:cursor-grabbing">
+      <Card className="mb-2 cursor-grab border-border bg-element hover:bg-hover active:cursor-grabbing">
         <CardHeader className="flex flex-row items-start justify-between p-3 pb-2">
           <CardTitle className="text-sm font-semibold">{task.title}</CardTitle>
           <DropdownMenu>
@@ -16322,7 +16707,7 @@ export function KanbanTaskCard({
               <Button
                 variant="ghost"
                 size="icon"
-                className="hover:bg-hover h-6 w-6 shrink-0 text-muted-foreground hover:text-foreground"
+                className="h-6 w-6 shrink-0 text-muted-foreground hover:bg-hover hover:text-foreground"
                 onClick={(e) => e.stopPropagation()}
               >
                 <MoreHorizontal className="h-4 w-4" />
@@ -16411,6 +16796,334 @@ export function KanbanTaskCard({
         </CardFooter>
       </Card>
     </div>
+  );
+}
+// FILE: src/features/project-management/components/kanban-view/KanbanView.tsx
+import { useState, useEffect } from "react";
+import {
+  DndContext,
+  DragEndEvent,
+  DragOverlay,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragStartEvent,
+  DragOverEvent,
+  closestCorners,
+} from "@dnd-kit/core";
+import { createPortal } from "react-dom";
+import { Task } from "@/types";
+import { KanbanColumn } from "./KanbanColumn";
+import { KanbanTaskCard } from "./KanbanTaskCard";
+import { useMoveTask } from "@/features/project-management/api/useMoveTask";
+import { ViewColumn } from "@/types";
+import { TaskStatus } from "@/types/api";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Kanban, PlusCircle } from "lucide-react";
+import { arrayMove } from "@dnd-kit/sortable";
+import { Button } from "@/components/ui/button";
+import { useUpdateTask } from "../../api/useUpdateTask";
+
+interface KanbanViewProps {
+  scope: "user" | "project";
+  workspaceId?: string;
+  projectId?: string;
+  columns: ViewColumn[];
+  tasks: Task[];
+  onTaskSelect: (taskId: string) => void;
+  columnStatusMap?: Record<string, TaskStatus>;
+}
+
+function mapColumnNameToStatus(columnName: string): TaskStatus | null {
+  const normalizedName = columnName.trim().toUpperCase().replace(/\s+/g, "_");
+  if (normalizedName === "TO_DO") return TaskStatus.TODO;
+  if (Object.values(TaskStatus).includes(normalizedName as TaskStatus)) {
+    return normalizedName as TaskStatus;
+  }
+  return null;
+}
+
+function mapStatusToColumnName(status: TaskStatus): string {
+  switch (status) {
+    case TaskStatus.TODO:
+      return "To Do";
+    case TaskStatus.IN_PROGRESS:
+      return "In Progress";
+    case TaskStatus.IN_REVIEW:
+      return "In Review";
+    case TaskStatus.DONE:
+      return "Done";
+    default:
+      return "";
+  }
+}
+
+export function KanbanView({
+  scope,
+  workspaceId,
+  projectId,
+  columns,
+  tasks,
+  onTaskSelect,
+  columnStatusMap,
+}: KanbanViewProps) {
+  const moveTaskMutation = useMoveTask(projectId);
+  const updateTaskMutation = useUpdateTask();
+  const [activeTask, setActiveTask] = useState<Task | null>(null);
+  const [tasksByColumn, setTasksByColumn] = useState<Record<string, Task[]>>(
+    {}
+  );
+
+  useEffect(() => {
+    const grouped = columns.reduce(
+      (acc: Record<string, Task[]>, col: ViewColumn) => {
+        acc[col.id] = [];
+        return acc;
+      },
+      {} as Record<string, Task[]>
+    );
+
+    const topLevelTasks = tasks.filter((task) => !task.parentId);
+
+    topLevelTasks.forEach((task) => {
+      let targetColumnId = task.boardColumnId;
+      if (scope === "user" && columnStatusMap) {
+        const targetCol = columns.find(
+          (c) => columnStatusMap[c.id] === task.status
+        );
+        if (targetCol) {
+          targetColumnId = targetCol.id;
+        }
+      } else if (!targetColumnId) {
+        const expectedColumnName = mapStatusToColumnName(task.status);
+        const fallbackColumn = columns.find(
+          (c: ViewColumn) =>
+            c.name.toUpperCase() === expectedColumnName.toUpperCase()
+        );
+        if (fallbackColumn) {
+          targetColumnId = fallbackColumn.id;
+        }
+      }
+
+      if (targetColumnId && grouped[targetColumnId]) {
+        grouped[targetColumnId].push(task);
+      }
+    });
+
+    for (const columnId in grouped) {
+      grouped[columnId].sort(
+        (a, b) => (a.orderInColumn || 0) - (b.orderInColumn || 0)
+      );
+    }
+    setTasksByColumn(grouped);
+  }, [tasks, columns, scope, columnStatusMap]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 10,
+      },
+    })
+  );
+
+  const findColumnForTask = (taskId: string) => {
+    for (const colId in tasksByColumn) {
+      if (tasksByColumn[colId].some((task) => task.id === taskId)) {
+        return colId;
+      }
+    }
+    return null;
+  };
+
+  const onDragStart = (event: DragStartEvent) => {
+    if (event.active.data.current?.type === "Task") {
+      setActiveTask(event.active.data.current.task);
+    }
+  };
+
+  const onDragOver = (event: DragOverEvent) => {
+    const { active, over } = event;
+    if (!over || !activeTask || active.id === over.id) return;
+
+    const sourceColumnId = findColumnForTask(active.id as string);
+    const destColumnId =
+      over.data.current?.type === "Column"
+        ? (over.id as string)
+        : findColumnForTask(over.id as string);
+
+    if (!sourceColumnId || !destColumnId) {
+      return;
+    }
+
+    if (sourceColumnId !== destColumnId) {
+      setTasksByColumn((prev) => {
+        const sourceItems = [...(prev[sourceColumnId] || [])];
+        const destItems = [...(prev[destColumnId] || [])];
+        const activeIndex = sourceItems.findIndex((t) => t.id === active.id);
+
+        if (activeIndex === -1) return prev;
+
+        const [movedItem] = sourceItems.splice(activeIndex, 1);
+        const overIndex = destItems.findIndex((t) => t.id === over.id);
+
+        if (overIndex !== -1) {
+          destItems.splice(overIndex, 0, movedItem);
+        } else {
+          destItems.push(movedItem);
+        }
+
+        return {
+          ...prev,
+          [sourceColumnId]: sourceItems,
+          [destColumnId]: destItems,
+        };
+      });
+    } else {
+      setTasksByColumn((prev) => {
+        const items = prev[sourceColumnId];
+        const oldIndex = items.findIndex((t) => t.id === active.id);
+        const newIndex = items.findIndex((t) => t.id === over.id);
+
+        if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+          return {
+            ...prev,
+            [sourceColumnId]: arrayMove(items, oldIndex, newIndex),
+          };
+        }
+        return prev;
+      });
+    }
+  };
+
+  const onDragEnd = (event: DragEndEvent) => {
+    setActiveTask(null);
+    const { active, over } = event;
+    if (!over) return;
+
+    const draggedTask = tasks.find((t) => t.id === active.id);
+    if (!draggedTask) return;
+
+    const destColumnId =
+      over.data.current?.sortable?.containerId?.toString() ??
+      over.id.toString();
+    const destColumn = columns.find((col: any) => col.id === destColumnId);
+    if (!destColumn) return;
+
+    // Manually update local state for immediate feedback
+    const sourceColumnId = findColumnForTask(active.id as string);
+    if (sourceColumnId) {
+      setTasksByColumn((prev) => {
+        const newTasksByColumn = { ...prev };
+        const sourceItems =
+          newTasksByColumn[sourceColumnId]?.filter((t) => t.id !== active.id) ||
+          [];
+        const destItems = [
+          ...(newTasksByColumn[destColumnId] || []),
+          draggedTask,
+        ];
+        newTasksByColumn[sourceColumnId] = sourceItems;
+        newTasksByColumn[destColumnId] = destItems;
+        return newTasksByColumn;
+      });
+    }
+
+    if (scope === "project") {
+      const tasksInDestColumn = (tasksByColumn[destColumnId] || []).sort(
+        (a, b) => (a.orderInColumn || 0) - (b.orderInColumn || 0)
+      );
+      const overIsTask = over.data.current?.type === "Task";
+      let newOrderInColumn: number;
+      if (overIsTask) {
+        const overTaskIndex = tasksInDestColumn.findIndex(
+          (t) => t.id === over.id
+        );
+        if (overTaskIndex !== -1) {
+          const overTask = tasksInDestColumn[overTaskIndex];
+          const prevTask = tasksInDestColumn[overTaskIndex - 1];
+          const prevOrder = prevTask?.orderInColumn ?? 0;
+          const overOrder = overTask?.orderInColumn ?? prevOrder + 2000;
+          newOrderInColumn = (prevOrder + overOrder) / 2;
+        } else {
+          const lastTask = tasksInDestColumn[tasksInDestColumn.length - 1];
+          newOrderInColumn = (lastTask?.orderInColumn || 0) + 1000;
+        }
+      } else {
+        const lastTask = tasksInDestColumn[tasksInDestColumn.length - 1];
+        newOrderInColumn = (lastTask?.orderInColumn || 0) + 1000;
+      }
+
+      const newStatus = mapColumnNameToStatus(destColumn.name);
+      moveTaskMutation.mutate({
+        workspaceId,
+        projectId,
+        taskId: active.id as string,
+        targetColumnId: destColumnId,
+        newStatus,
+        orderInColumn: newOrderInColumn,
+      });
+    } else if (scope === "user" && columnStatusMap) {
+      const newStatus = columnStatusMap[destColumnId];
+      if (newStatus && draggedTask.status !== newStatus) {
+        updateTaskMutation.mutate({
+          taskId: draggedTask.id,
+          workspaceId: draggedTask.workspaceId,
+          projectId: draggedTask.projectId,
+          taskData: { status: newStatus },
+        });
+      }
+    }
+  };
+
+  if (columns.length === 0) {
+    return (
+      <EmptyState
+        icon={<Kanban />}
+        title="Kanban Board Not Configured"
+        description="This Kanban view has no columns. Please edit the view in project settings."
+      />
+    );
+  }
+
+  return (
+    <>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCorners}
+        onDragStart={onDragStart}
+        onDragOver={onDragOver}
+        onDragEnd={onDragEnd}
+      >
+        <div className="flex h-full gap-4 overflow-x-auto bg-background p-1">
+          {columns.map((col: ViewColumn) => (
+            <KanbanColumn
+              key={col.id}
+              column={col}
+              tasks={tasksByColumn[col.id] || []}
+              onTaskSelect={onTaskSelect}
+            />
+          ))}
+          {projectId && (
+            <div>
+              <Button
+                variant="outline"
+                className="w-72 border-slate-700 bg-surface text-slate-300 hover:bg-slate-700 hover:text-white"
+                disabled // This would require a "Create Column" dialog which is out of scope for now.
+              >
+                <PlusCircle className="mr-2 h-4 w-4" /> Add another list
+              </Button>
+            </div>
+          )}
+        </div>
+        {createPortal(
+          <DragOverlay>
+            {activeTask ? (
+              <KanbanTaskCard task={activeTask} onTaskSelect={() => {}} />
+            ) : null}
+          </DragOverlay>,
+          document.body
+        )}
+      </DndContext>
+    </>
   );
 }
 
@@ -16606,7 +17319,6 @@ export function MyTasksKanbanBoard({
     </DndContext>
   );
 }
-
 // FILE: src/features/project-management/components/KeyResultInput.tsx
 import { Control, useFieldArray } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -16832,6 +17544,354 @@ export function LinkDocumentForm({
     </FormProvider>
   );
 }
+// FILE: src/features/project-management/components/list-view/bulk-actions/BulkAssigneeSelector.tsx
+import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { UserPlus } from "lucide-react";
+import { AssigneeSelector } from "../../AssigneeSelector";
+import { Task } from "@/types";
+
+interface BulkAssigneeSelectorProps {
+  selectedTaskIds: string[];
+  tasks: Task[];
+  onUpdate: (updates: {
+    addAssigneeIds?: string[];
+    removeAssigneeIds?: string[];
+  }) => void;
+}
+
+export function BulkAssigneeSelector({
+  selectedTaskIds,
+  tasks,
+  onUpdate,
+}: BulkAssigneeSelectorProps) {
+  const firstSelectedTask = tasks.find((t) => t.id === selectedTaskIds[0]);
+
+  if (!firstSelectedTask) {
+    return null;
+  }
+
+  const allAssigneeIds = new Set<string>();
+  tasks
+    .filter((t) => selectedTaskIds.includes(t.id))
+    .forEach((task) => {
+      task.assignees.forEach((assignee) => allAssigneeIds.add(assignee.id));
+    });
+
+  const handleSelectionChange = (newIds: string[]) => {
+    const currentIds = Array.from(allAssigneeIds);
+    const addAssigneeIds = newIds.filter((id) => !currentIds.includes(id));
+    const removeAssigneeIds = currentIds.filter((id) => !newIds.includes(id));
+
+    onUpdate({ addAssigneeIds, removeAssigneeIds });
+  };
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="outline" size="sm">
+          <UserPlus className="mr-2 h-4 w-4" />
+          Assign
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80 p-0">
+        <AssigneeSelector
+          projectId={firstSelectedTask.projectId}
+          workspaceId={firstSelectedTask.workspaceId}
+          selectedIds={Array.from(allAssigneeIds)}
+          onSelectionChange={handleSelectionChange}
+        />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+// FILE: src/features/project-management/components/list-view/bulk-actions/BulkDatePicker.tsx
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar as CalendarIcon } from "lucide-react";
+
+interface BulkDatePickerProps {
+  onUpdate: (updates: { dueDate: Date | null }) => void;
+}
+
+export function BulkDatePicker({ onUpdate }: BulkDatePickerProps) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="outline" size="sm">
+          <CalendarIcon className="mr-2 h-4 w-4" />
+          Set Due Date
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0">
+        <Calendar
+          mode="single"
+          onSelect={(date) => onUpdate({ dueDate: date || null })}
+        />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+// FILE: src/features/project-management/components/list-view/bulk-actions/BulkMoveProjectSelector.tsx
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Briefcase } from "lucide-react";
+import { useGetWorkspaces } from "@/features/workspaces/api/useGetWorkspaces";
+import { useGetProjects } from "@/features/project-management/api/useGetProjects";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+
+interface BulkMoveProjectSelectorProps {
+  onUpdate: (updates: { projectId: string }) => void;
+}
+
+export function BulkMoveProjectSelector({
+  onUpdate,
+}: BulkMoveProjectSelectorProps) {
+  const [popoverOpen, setPopoverOpen] = useState(false);
+  const [workspaceId, setWorkspaceId] = useState<string | undefined>();
+  const [projectId, setProjectId] = useState<string | undefined>();
+
+  const { data: workspacesData } = useGetWorkspaces();
+  const { data: projectsData } = useGetProjects(workspaceId);
+
+  const handleMove = () => {
+    if (projectId) {
+      onUpdate({ projectId });
+      setPopoverOpen(false);
+    }
+  };
+
+  return (
+    <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="outline" size="sm">
+          <Briefcase className="mr-2 h-4 w-4" />
+          Move to Project
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80 space-y-4">
+        <div className="space-y-2">
+          <Label>Workspace</Label>
+          <Select onValueChange={setWorkspaceId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select a workspace..." />
+            </SelectTrigger>
+            <SelectContent>
+              {workspacesData?.data.map((ws) => (
+                <SelectItem key={ws.id} value={ws.id}>
+                  {ws.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label>Project</Label>
+          <Select onValueChange={setProjectId} disabled={!workspaceId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select a project..." />
+            </SelectTrigger>
+            <SelectContent>
+              {projectsData?.data.map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <Button onClick={handleMove} disabled={!projectId} className="w-full">
+          Move Tasks
+        </Button>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+// FILE: src/features/project-management/components/list-view/bulk-actions/BulkTaskTypeSelector.tsx
+import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Tag } from "lucide-react";
+import { TaskTypeSelector } from "../../TaskTypeSelector";
+import { Task } from "@/types";
+
+interface BulkTaskTypeSelectorProps {
+  selectedTaskIds: string[];
+  tasks: Task[];
+  onUpdate: (updates: { taskTypeId: string | null }) => void;
+}
+
+export function BulkTaskTypeSelector({
+  selectedTaskIds,
+  tasks,
+  onUpdate,
+}: BulkTaskTypeSelectorProps) {
+  const firstSelectedTask = tasks.find((t) => t.id === selectedTaskIds[0]);
+
+  if (!firstSelectedTask?.projectId) {
+    return null; // Task types are project-specific for bulk actions
+  }
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="outline" size="sm">
+          <Tag className="mr-2 h-4 w-4" />
+          Set Type
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0">
+        <TaskTypeSelector
+          projectId={firstSelectedTask.projectId}
+          workspaceId={firstSelectedTask.workspaceId}
+          value={null}
+          onValueChange={(value) => onUpdate({ taskTypeId: value })}
+        />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+// FILE: src/features/project-management/components/list-view/BulkActionsToolbar.tsx
+import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
+import { TaskPriority, TaskStatus } from "@/types/api";
+import { Task } from "@/types";
+import { BulkAssigneeSelector } from "./bulk-actions/BulkAssigneeSelector";
+import { BulkDatePicker } from "./bulk-actions/BulkDatePicker";
+import { BulkMoveProjectSelector } from "./bulk-actions/BulkMoveProjectSelector";
+import { BulkTaskTypeSelector } from "./bulk-actions/BulkTaskTypeSelector";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+type BulkUpdatePayload = {
+  status?: TaskStatus;
+  priority?: TaskPriority;
+  projectId?: string;
+  taskTypeId?: string | null;
+  dueDate?: Date | null;
+  addAssigneeIds?: string[];
+  removeAssigneeIds?: string[];
+};
+
+interface BulkActionsToolbarProps {
+  selectedTaskIds: string[];
+  tasks: Task[];
+  onBulkDelete: () => void;
+  onBulkUpdate: (updates: BulkUpdatePayload) => void;
+  isDeleting: boolean;
+  isUpdating: boolean;
+}
+
+export function BulkActionsToolbar({
+  selectedTaskIds,
+  tasks,
+  onBulkDelete,
+  onBulkUpdate,
+  isDeleting,
+  isUpdating,
+}: BulkActionsToolbarProps) {
+  const isActionPending = isDeleting || isUpdating;
+
+  return (
+    <div className="flex items-center justify-between rounded-lg border border-border bg-surface p-2">
+      <span className="text-sm font-medium">
+        {selectedTaskIds.length} task(s) selected
+      </span>
+      <div className="flex items-center gap-2">
+        <Select
+          onValueChange={(status) =>
+            onBulkUpdate({ status: status as TaskStatus })
+          }
+          disabled={isActionPending}
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Change status..." />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.values(TaskStatus).map((status) => (
+              <SelectItem key={status} value={status}>
+                {status.replace(/_/g, " ")}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select
+          onValueChange={(priority) =>
+            onBulkUpdate({ priority: priority as TaskPriority })
+          }
+          disabled={isActionPending}
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Change priority..." />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.values(TaskPriority).map((priority) => (
+              <SelectItem key={priority} value={priority}>
+                {priority}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <BulkAssigneeSelector
+          selectedTaskIds={selectedTaskIds}
+          tasks={tasks}
+          onUpdate={onBulkUpdate}
+        />
+        <BulkDatePicker onUpdate={onBulkUpdate} />
+        <BulkTaskTypeSelector
+          selectedTaskIds={selectedTaskIds}
+          tasks={tasks}
+          onUpdate={onBulkUpdate}
+        />
+        <BulkMoveProjectSelector onUpdate={onBulkUpdate} />
+
+        <Button
+          variant="destructive"
+          size="sm"
+          onClick={onBulkDelete}
+          disabled={isActionPending}
+        >
+          <Trash2 className="mr-2 h-4 w-4" />
+          Delete
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 // FILE: src/features/project-management/components/list-view/cells/ActionsCell.tsx
 import {
@@ -16881,7 +17941,7 @@ export function ActionsCell({ task, onTaskSelect }: ActionsCellProps) {
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
-            className="hover-action hover:bg-hover h-8 w-8 rounded-md p-1 text-muted-foreground opacity-0"
+            className="hover-action h-8 w-8 rounded-md p-1 text-muted-foreground opacity-0 hover:bg-hover"
           >
             <MoreHorizontal className="h-5 w-5" />
           </Button>
@@ -16906,7 +17966,6 @@ export function ActionsCell({ task, onTaskSelect }: ActionsCellProps) {
     </div>
   );
 }
-
 // FILE: src/features/project-management/components/list-view/cells/AssigneeCell.tsx
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getAbsoluteUrl } from "@/lib/utils";
@@ -17001,7 +18060,7 @@ export function AssigneeCell({ task }: { task: Task }) {
             variant="ghost"
             size="icon"
             onClick={(e) => e.stopPropagation()}
-            className="hover:bg-hover h-7 w-7 flex-shrink-0 rounded-full border-2 border-dashed border-border bg-transparent text-muted-foreground hover:text-foreground"
+            className="hover-action h-7 w-7 flex-shrink-0 rounded-full border-2 border-dashed border-border bg-transparent text-muted-foreground opacity-0 hover:bg-hover hover:text-foreground"
           >
             <UserPlus className="h-4 w-4" />
           </Button>
@@ -17021,7 +18080,6 @@ export function AssigneeCell({ task }: { task: Task }) {
     </div>
   );
 }
-
 // FILE: src/features/project-management/components/list-view/cells/DueDateCell.tsx
 import { format } from "date-fns";
 import {
@@ -17080,7 +18138,6 @@ export function DueDateCell({ task, onUpdate }: DueDateCellProps) {
     </Popover>
   );
 }
-
 // FILE: src/features/project-management/components/list-view/cells/index.ts
 export * from "./AssigneeCell";
 export * from "./DueDateCell";
@@ -17088,7 +18145,6 @@ export * from "./PriorityCell";
 export * from "./StatusCell";
 export * from "./ActionsCell";
 export * from "./TaskTypeCell";
-
 // FILE: src/features/project-management/components/list-view/cells/PriorityCell.tsx
 import { TaskPriority, Task } from "@/types";
 import {
@@ -17156,7 +18212,6 @@ export function PriorityCell({ task, onUpdate }: PriorityCellProps) {
     </Select>
   );
 }
-
 // FILE: src/features/project-management/components/list-view/cells/StatusCell.tsx
 import {
   Select,
@@ -17242,7 +18297,6 @@ export function StatusCell({ task, onUpdate }: StatusCellProps) {
     </Select>
   );
 }
-
 // FILE: src/features/project-management/components/list-view/cells/TaskTypeCell.tsx
 import { Task } from "@/types";
 import { TaskTypeSelector } from "../../TaskTypeSelector";
@@ -17268,7 +18322,6 @@ export function TaskTypeCell({ task, onUpdate }: TaskTypeCellProps) {
     </div>
   );
 }
-
 // FILE: src/features/project-management/components/list-view/ColumnVisibilityToggle.tsx
 import {
   DropdownMenu,
@@ -17301,7 +18354,7 @@ export function ColumnVisibilityToggle({
       <DropdownMenuTrigger asChild>
         <Button
           variant="outline"
-          className="hover:bg-hover border-border bg-element text-foreground"
+          className="border-border bg-element text-foreground hover:bg-hover"
         >
           <Columns className="mr-2 h-4 w-4" />
           Columns
@@ -17325,13 +18378,24 @@ export function ColumnVisibilityToggle({
     </DropdownMenu>
   );
 }
-
 // FILE: src/features/project-management/components/list-view/ListView.tsx
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Task } from "@/types";
 import { TaskStatus } from "@/types/api";
 import { ListViewHeader } from "./ListViewHeader";
 import { TaskGroup } from "./TaskGroup";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+  DragOverlay,
+} from "@dnd-kit/core";
+import { createPortal } from "react-dom";
+import { KanbanTaskCard } from "../kanban-view/KanbanTaskCard";
+import { useSetTaskParent } from "../../api/useUpdateTask";
 
 interface ListViewProps {
   tasks: Task[];
@@ -17384,6 +18448,40 @@ export function ListView({
   selectedTaskIds,
   setSelectedTaskIds,
 }: ListViewProps) {
+  const [activeTask, setActiveTask] = useState<Task | null>(null);
+  const setParentMutation = useSetTaskParent();
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 10,
+      },
+    })
+  );
+
+  const handleDragStart = (event: any) => {
+    if (event.active.data.current?.type === "Task") {
+      setActiveTask(event.active.data.current.task);
+    }
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    setActiveTask(null);
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const draggedTask = active.data.current?.task as Task;
+      const targetTask = over.data.current?.task as Task;
+
+      if (draggedTask && targetTask) {
+        setParentMutation.mutate({
+          taskId: draggedTask.id,
+          parentId: targetTask.id,
+          workspaceId: draggedTask.workspaceId,
+          projectId: draggedTask.projectId,
+        });
+      }
+    }
+  };
+
   const groupedTasks = useMemo(() => {
     const groupMap = new Map<string, Task[]>();
     const topLevelTasks = tasks.filter((task) => !task.parentId);
@@ -17412,32 +18510,49 @@ export function ListView({
   }
 
   return (
-    <div className="rounded-lg border border-border bg-surface">
-      <ListViewHeader
-        showWorkspace={showWorkspaceColumn}
-        showProject={showProjectColumn}
-        showTaskType={showTaskTypeColumn}
-        tasks={tasks}
-        selectedTaskIds={selectedTaskIds}
-        setSelectedTaskIds={setSelectedTaskIds}
-      />
-      <div id="task-list">
-        {groupedTasks.map(([groupName, tasksInGroup]) => (
-          <TaskGroup
-            key={groupName}
-            groupName={groupName}
-            tasks={tasksInGroup}
-            onTaskSelect={onTaskSelect}
-            onTaskUpdate={onTaskUpdate}
-            showWorkspace={showWorkspaceColumn}
-            showProject={showProjectColumn}
-            showTaskType={showTaskTypeColumn}
-            selectedTaskIds={selectedTaskIds}
-            setSelectedTaskIds={setSelectedTaskIds}
-          />
-        ))}
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
+      <div className="rounded-lg border border-border bg-surface">
+        <ListViewHeader
+          showWorkspace={showWorkspaceColumn}
+          showProject={showProjectColumn}
+          showTaskType={showTaskTypeColumn}
+          tasks={tasks}
+          selectedTaskIds={selectedTaskIds}
+          setSelectedTaskIds={setSelectedTaskIds}
+        />
+        <div id="task-list">
+          {groupedTasks.map(([groupName, tasksInGroup]) => (
+            <TaskGroup
+              key={groupName}
+              groupName={groupName}
+              tasks={tasksInGroup}
+              onTaskSelect={onTaskSelect}
+              onTaskUpdate={onTaskUpdate}
+              showWorkspace={showWorkspaceColumn}
+              showProject={showProjectColumn}
+              showTaskType={showTaskTypeColumn}
+              selectedTaskIds={selectedTaskIds}
+              setSelectedTaskIds={setSelectedTaskIds}
+            />
+          ))}
+        </div>
       </div>
-    </div>
+      {createPortal(
+        <DragOverlay>
+          {activeTask ? (
+            <div className="dragging-card-overlay">
+              <KanbanTaskCard task={activeTask} onTaskSelect={() => {}} />
+            </div>
+          ) : null}
+        </DragOverlay>,
+        document.body
+      )}
+    </DndContext>
   );
 }
 
@@ -17462,23 +18577,6 @@ export function ListViewHeader({
   selectedTaskIds,
   setSelectedTaskIds,
 }: ListViewHeaderProps) {
-  const columnClasses = {
-    name: "sm:col-span-4",
-    workspace: "hidden sm:block sm:col-span-1",
-    project: "hidden sm:block sm:col-span-1",
-    type: "hidden sm:block sm:col-span-1",
-    assignee: "hidden sm:block sm:col-span-1",
-    dueDate: "hidden sm:block sm:col-span-1",
-    priority: "hidden sm:block sm:col-span-1",
-    status: "hidden sm:block sm:col-span-1",
-    actions: "hidden sm:block sm:col-span-1",
-  };
-
-  let nameSpan = 4;
-  if (!showWorkspace) nameSpan++;
-  if (!showProject) nameSpan++;
-  if (!showTaskType) nameSpan++;
-
   const allTaskIds = tasks.map((t) => t.id);
   const isAllSelected =
     allTaskIds.length > 0 && selectedTaskIds.length === allTaskIds.length;
@@ -17492,10 +18590,8 @@ export function ListViewHeader({
   };
 
   return (
-    <div className="grid grid-cols-12 gap-4 border-b border-border bg-surface px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-      <div
-        className={`col-span-12 sm:col-span-${nameSpan} flex items-center gap-3`}
-      >
+    <div className="grid grid-cols-12 items-center gap-4 border-b border-border bg-surface px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+      <div className="col-span-4 flex items-center gap-3">
         <Checkbox
           checked={isAllSelected}
           onCheckedChange={handleSelectAll}
@@ -17505,15 +18601,19 @@ export function ListViewHeader({
         Task Name
       </div>
       {showWorkspace && (
-        <div className={columnClasses.workspace}>Workspace</div>
+        <div className="col-span-1 hidden truncate sm:block">Workspace</div>
       )}
-      {showProject && <div className={columnClasses.project}>Project</div>}
-      {showTaskType && <div className={columnClasses.type}>Type</div>}
-      <div className={columnClasses.assignee}>Assignee</div>
-      <div className={columnClasses.dueDate}>Due Date</div>
-      <div className={columnClasses.priority}>Priority</div>
-      <div className={columnClasses.status}>Status</div>
-      <div className={columnClasses.actions}></div>
+      {showProject && (
+        <div className="col-span-1 hidden truncate sm:block">Project</div>
+      )}
+      {showTaskType && (
+        <div className="col-span-1 hidden truncate sm:block">Type</div>
+      )}
+      <div className="col-span-1 hidden sm:block">Assignee</div>
+      <div className="col-span-1 hidden sm:block">Due Date</div>
+      <div className="col-span-1 hidden sm:block">Priority</div>
+      <div className="col-span-1 hidden sm:block">Status</div>
+      <div className="col-span-1"></div>
     </div>
   );
 }
@@ -17545,8 +18645,16 @@ export function SortMenu({
   const currentSort = sorting[0];
 
   const handleSort = (columnId: string) => {
-    const isDesc = currentSort?.id === columnId && currentSort.desc;
-    setSorting(isDesc ? [] : [{ id: columnId, desc: !isDesc }]);
+    const isCurrentlySorted = currentSort?.id === columnId;
+    if (isCurrentlySorted && currentSort.desc) {
+      // Third click: remove sort
+      setSorting([]);
+    } else {
+      // First click: sort asc, second click: sort desc
+      setSorting([
+        { id: columnId, desc: isCurrentlySorted ? !currentSort.desc : false },
+      ]);
+    }
   };
 
   return (
@@ -17554,7 +18662,7 @@ export function SortMenu({
       <DropdownMenuTrigger asChild>
         <Button
           variant="outline"
-          className="hover:bg-hover border-border bg-element text-foreground"
+          className="border-border bg-element text-foreground hover:bg-hover"
         >
           <ArrowDownUp className="mr-2 h-4 w-4" />
           <span>Sort</span>
@@ -17581,13 +18689,16 @@ export function SortMenu({
     </DropdownMenu>
   );
 }
-
 // FILE: src/features/project-management/components/list-view/TaskGroup.tsx
 import { useState } from "react";
 import { Task } from "@/types";
 import { TaskRow } from "./TaskRow";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 
 interface TaskGroupProps {
   groupName: string;
@@ -17617,6 +18728,7 @@ export function TaskGroup({
   if (tasks.length === 0) {
     return null;
   }
+  const taskIds = tasks.map((t) => t.id);
 
   return (
     <div className="task-group">
@@ -17634,24 +18746,25 @@ export function TaskGroup({
         </span>
       </div>
       <div className={cn("group-tasks", isCollapsed && "hidden")}>
-        {tasks.map((task) => (
-          <TaskRow
-            key={task.id}
-            task={task}
-            onTaskSelect={onTaskSelect}
-            onTaskUpdate={onTaskUpdate}
-            showWorkspace={showWorkspace}
-            showProject={showProject}
-            showTaskType={showTaskType}
-            selectedTaskIds={selectedTaskIds}
-            setSelectedTaskIds={setSelectedTaskIds}
-          />
-        ))}
+        <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
+          {tasks.map((task) => (
+            <TaskRow
+              key={task.id}
+              task={task}
+              onTaskSelect={onTaskSelect}
+              onTaskUpdate={onTaskUpdate}
+              showWorkspace={showWorkspace}
+              showProject={showProject}
+              showTaskType={showTaskType}
+              selectedTaskIds={selectedTaskIds}
+              setSelectedTaskIds={setSelectedTaskIds}
+            />
+          ))}
+        </SortableContext>
       </div>
     </div>
   );
 }
-
 // FILE: src/features/project-management/components/list-view/TaskRow.tsx
 import { useState } from "react";
 import { Task } from "@/types";
@@ -17668,6 +18781,9 @@ import {
 } from "./cells";
 import { cn } from "@/lib/utils";
 import { TaskStatus } from "@/types/api";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { useDroppable } from "@dnd-kit/core";
 
 interface TaskRowProps {
   task: Task;
@@ -17696,6 +18812,27 @@ export function TaskRow({
   const hasSubtasks = task.subtasks && task.subtasks.length > 0;
   const isCompleted = task.status === TaskStatus.DONE;
 
+  const {
+    attributes,
+    listeners,
+    setNodeRef: setDraggableNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: task.id, data: { type: "Task", task } });
+
+  const { setNodeRef: setDroppableNodeRef, isOver } = useDroppable({
+    id: task.id,
+    data: { type: "Task", task },
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 1 : "auto",
+  };
+
   const handleToggleExpand = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsExpanded(!isExpanded);
@@ -17709,26 +18846,33 @@ export function TaskRow({
     );
   };
 
-  let nameSpan = 4;
-  if (!showWorkspace) nameSpan++;
-  if (!showProject) nameSpan++;
-  if (!showTaskType) nameSpan++;
-
   return (
     <div
+      ref={setDraggableNodeRef}
+      style={style}
       data-task-id={task.id}
       className={cn("task-wrapper", isCompleted && "task-completed")}
     >
       <div
+        ref={setDroppableNodeRef}
         className={cn(
-          "task-row hover:bg-hover grid cursor-pointer grid-cols-12 items-center gap-4 border-b border-border/50 px-4 py-3 transition-colors duration-150"
+          "task-row grid cursor-pointer grid-cols-12 items-center gap-4 border-b border-border/50 px-4 py-3 transition-colors duration-150 hover:bg-hover",
+          isOver && "bg-primary/20"
         )}
         onClick={() => onTaskSelect(task.id)}
       >
         <div
-          className={`col-span-12 sm:col-span-${nameSpan} flex items-center`}
+          className="col-span-4 flex items-center"
           style={{ paddingLeft: `${level * 24}px` }}
         >
+          <span
+            className="task-drag-handle mr-1 cursor-grab touch-none p-1 text-muted-foreground opacity-0 group-hover/task-row:opacity-100"
+            {...attributes}
+            {...listeners}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* :: */}
+          </span>
           <Checkbox
             className="task-checkbox mr-3 h-4 w-4 cursor-pointer rounded border-border bg-element text-primary focus:ring-primary"
             checked={selectedTaskIds.includes(task.id)}
@@ -17740,7 +18884,7 @@ export function TaskRow({
               <Button
                 variant="ghost"
                 size="icon"
-                className="subtask-toggle-btn hover:bg-hover h-6 w-6 rounded-md p-1"
+                className="subtask-toggle-btn h-6 w-6 rounded-md p-1 hover:bg-hover"
                 onClick={handleToggleExpand}
               >
                 {isExpanded ? (
@@ -17781,7 +18925,7 @@ export function TaskRow({
         <div className="relative col-span-1 hidden sm:block">
           <StatusCell task={task} onUpdate={onTaskUpdate} />
         </div>
-        <div className="col-span-1 hidden text-right sm:block">
+        <div className="col-span-1 text-right">
           <ActionsCell task={task} onTaskSelect={onTaskSelect} />
         </div>
       </div>
@@ -17806,7 +18950,6 @@ export function TaskRow({
     </div>
   );
 }
-
 // FILE: src/features/project-management/components/MoveTaskToProjectSelector.tsx
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -17872,6 +19015,7 @@ export function MoveTaskToProjectSelector({
         <Select
           onValueChange={setSelectedProjectId}
           disabled={!selectedWorkspaceId || isLoadingProjects}
+          value={selectedProjectId}
         >
           <SelectTrigger>
             <SelectValue placeholder="Select a project..." />
@@ -17935,7 +19079,6 @@ export function ProjectAttachments({
   );
   const attachMutation = useAttachEntity();
   const detachMutation = useDetachEntity();
-
   const { data: kbsData } = useManageKnowledgeBases().useGetAll();
   const { data: pubsData } = useManagePublications().useGetAll();
   const { data: whiteboardsData } = useManageWhiteboards().useGetAll();
@@ -18026,7 +19169,7 @@ export function ProjectAttachments({
             return (
               <div
                 key={item.id}
-                className="hover:bg-accent/50 flex items-center justify-between rounded-md p-2 text-sm"
+                className="flex items-center justify-between rounded-md p-2 text-sm hover:bg-accent/50"
               >
                 <div className="flex min-w-0 items-center gap-2">
                   <Icon className="h-4 w-4 flex-shrink-0" />
@@ -18044,7 +19187,7 @@ export function ProjectAttachments({
             );
           })
         ) : (
-          <p className="text-muted-foreground p-2 text-center text-xs">
+          <p className="p-2 text-center text-xs text-muted-foreground">
             No attachments.
           </p>
         )}
@@ -18052,7 +19195,6 @@ export function ProjectAttachments({
     </div>
   );
 }
-
 // FILE: src/features/project-management/components/ProjectCard.tsx
 import { useApiResource } from "@/hooks/useApiResource";
 import { getIcon } from "@/lib/icons";
@@ -18118,13 +19260,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { KanbanBoard } from "@/features/project-management/components/kanban-view/KanbanBoard";
 import { GanttChartView } from "@/features/project-management/components/gantt-view/GanttChartView";
 import { CalendarView } from "@/features/project-management/components/calendar-view/CalendarView";
-import { Task } from "@/types";
+import { Task, TaskStatus } from "@/types";
 import { View } from "@/types";
 import { ActivityLog } from "@/features/analytics/components/ActivityLog";
 import { ReportingOverview } from "@/features/analytics/components/ReportingOverview";
 import { DashboardList } from "@/features/analytics/components/DashboardList";
 import { ListView } from "./list-view/ListView";
-import React from "react";
+import React, { useMemo } from "react";
 
 interface ProjectDetailViewProps {
   views: View[];
@@ -18138,6 +19280,15 @@ interface ProjectDetailViewProps {
   emptyState: React.ReactNode;
 }
 
+function mapColumnNameToStatus(columnName: string): TaskStatus | null {
+  const normalizedName = columnName.trim().toUpperCase().replace(/\s+/g, "_");
+  if (normalizedName === "TO_DO") return TaskStatus.TODO;
+  if (Object.values(TaskStatus).includes(normalizedName as TaskStatus)) {
+    return normalizedName as TaskStatus;
+  }
+  return null;
+}
+
 export function ProjectDetailView({
   views,
   tasks,
@@ -18149,6 +19300,24 @@ export function ProjectDetailView({
   onTabChange,
   emptyState,
 }: ProjectDetailViewProps) {
+  const activeView = views.find((v) => v.id === activeTab);
+
+  const columnStatusMap = useMemo(() => {
+    if (activeView?.type !== "KANBAN" || !activeView?.columns) {
+      return {};
+    }
+    return activeView.columns.reduce(
+      (acc, col) => {
+        const status = col.status || mapColumnNameToStatus(col.name);
+        if (status) {
+          acc[col.id] = status;
+        }
+        return acc;
+      },
+      {} as Record<string, TaskStatus>
+    );
+  }, [activeView]);
+
   return (
     <Tabs value={activeTab} onValueChange={onTabChange} className="space-y-4">
       <TabsList>
@@ -18177,18 +19346,24 @@ export function ProjectDetailView({
           )}
           {view.type === "KANBAN" && (
             <KanbanBoard
-              views={views}
+              scope="project"
+              columns={view.columns}
               tasks={tasks}
               workspaceId={workspaceId}
               projectId={projectId}
               onTaskSelect={onTaskSelect}
+              columnStatusMap={columnStatusMap}
             />
           )}
           {view.type === "GANTT" && (
             <GanttChartView tasks={tasks} onTaskSelect={onTaskSelect} />
           )}
           {view.type === "CALENDAR" && (
-            <CalendarView tasks={tasks} onTaskSelect={onTaskSelect} />
+            <CalendarView
+              tasks={tasks}
+              onTaskSelect={onTaskSelect}
+              onTaskUpdate={onTaskUpdate}
+            />
           )}
         </TabsContent>
       ))}
@@ -18331,90 +19506,41 @@ export function ProjectForm({
 
 // FILE: src/features/project-management/components/ProjectHeader.tsx
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { getAbsoluteUrl } from "@/lib/utils";
 import { Project } from "@/types";
-import { Filter, Plus, Settings } from "lucide-react";
-import { Link } from "react-router-dom";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 interface ProjectHeaderProps {
   project: Project;
-  onNewTaskClick: () => void;
-  onNewTaskFromTemplateClick: () => void;
 }
 
-export function ProjectHeader({
-  project,
-  onNewTaskClick,
-  onNewTaskFromTemplateClick,
-}: ProjectHeaderProps) {
+export function ProjectHeader({ project }: ProjectHeaderProps) {
   const members = project.members || [];
 
   return (
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-4">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">
-          {project.name}
-        </h1>
-        <div className="flex -space-x-2">
-          {members.slice(0, 3).map((member: any) => (
-            <Avatar
-              key={member.userId}
-              className="h-8 w-8 border-2 border-background"
-            >
-              <AvatarImage src={getAbsoluteUrl(member.avatarUrl)} />
-              <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
-            </Avatar>
-          ))}
-          {members.length > 3 && (
-            <Avatar className="h-8 w-8 border-2 border-background">
-              <AvatarFallback>+{members.length - 3}</AvatarFallback>
-            </Avatar>
-          )}
-        </div>
-      </div>
-      <div className="flex items-center gap-2">
-        <Button
-          variant="outline"
-          className="hover:bg-hover border-border bg-element text-foreground"
-        >
-          <Filter className="mr-2 h-4 w-4" /> Filter
-        </Button>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-              <Plus className="mr-2 h-4 w-4" /> New Task
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem onClick={onNewTaskClick}>
-              New Blank Task
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={onNewTaskFromTemplateClick}>
-              New from Template...
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <Button
-          variant="outline"
-          size="icon"
-          className="hover:bg-hover border-border bg-element text-foreground"
-          asChild
-        >
-          <Link to="settings">
-            <Settings className="h-4 w-4" />
-          </Link>
-        </Button>
+    <div className="flex items-center gap-4">
+      <h1 className="text-2xl font-bold tracking-tight text-foreground">
+        {project.name}
+      </h1>
+      <div className="flex -space-x-2">
+        {members.slice(0, 3).map((member: any) => (
+          <Avatar
+            key={member.userId}
+            className="h-8 w-8 border-2 border-background"
+          >
+            <AvatarImage src={getAbsoluteUrl(member.avatarUrl)} />
+            <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+          </Avatar>
+        ))}
+        {members.length > 3 && (
+          <Avatar className="h-8 w-8 border-2 border-background">
+            <AvatarFallback>+{members.length - 3}</AvatarFallback>
+          </Avatar>
+        )}
       </div>
     </div>
   );
 }
+
 // FILE: src/features/project-management/components/ProjectList.tsx
 import { useApiResource } from "@/hooks/useApiResource";
 import { ProjectCard } from "./ProjectCard";
@@ -19108,7 +20234,7 @@ export function SubtaskItem({
   return (
     <div className="flex flex-col">
       <div
-        className="hover:bg-hover group flex cursor-pointer items-center gap-2 rounded-md py-1 pl-1 pr-2"
+        className="group flex cursor-pointer items-center gap-2 rounded-md py-1 pl-1 pr-2 hover:bg-hover"
         onClick={handleSelect}
         style={{ paddingLeft: `${level * 24}px` }}
       >
@@ -19127,7 +20253,7 @@ export function SubtaskItem({
               )}
             </Button>
           ) : (
-            <div className="w-6" /> // Placeholder for alignment
+            <div className="w-6" />
           )}
         </div>
         <Icon
@@ -19221,7 +20347,7 @@ export function SubtaskList({
             />
           ))
         ) : (
-          <p className="text-muted-foreground p-2 text-center text-xs">
+          <p className="p-2 text-center text-xs text-muted-foreground">
             No sub-tasks yet.
           </p>
         )}
@@ -19253,7 +20379,6 @@ import api from "@/lib/api";
 import { cn, getAbsoluteUrl } from "@/lib/utils";
 import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
-
 export function TaskAssignees({ task }: any) {
   const [popoverOpen, setPopoverOpen] = useState(false);
 
@@ -19367,6 +20492,7 @@ export function TaskAssignees({ task }: any) {
             <Command>
               <CommandInput placeholder="Assign user..." />
               <CommandList>
+                {isLoading && <CommandItem>Loading...</CommandItem>}
                 <CommandEmpty>No available users found.</CommandEmpty>
                 <CommandGroup>
                   {availableUsers
@@ -19748,7 +20874,7 @@ export function TaskCustomFields({ task, workspaceId, projectId }: any) {
 
           return (
             <div key={def.id}>
-              <Label className="text-muted-foreground text-xs">
+              <Label className="text-xs text-muted-foreground">
                 {def.name}
               </Label>
               {def.type === "TEXT" && (
@@ -19822,7 +20948,6 @@ export function TaskCustomFields({ task, workspaceId, projectId }: any) {
     </div>
   );
 }
-
 // FILE: src/features/project-management/components/TaskDetailBody.tsx
 import { RichTextEditor } from "@/components/ui/RichTextEditor";
 import { CommentSection } from "@/features/collaboration/components/CommentSection";
@@ -24997,6 +26122,9 @@ export function useUpdateTask() {
   .calendar-day:hover {
     background-color: hsl(var(--hover));
   }
+  .drag-over-day {
+    @apply bg-hover border-2 border-dashed border-primary;
+  }
   .task-item:hover {
     transform: translateY(-2px);
   }
@@ -25727,7 +26855,6 @@ export function ActivitiesPage() {
     </div>
   );
 }
-
 // FILE: src/pages/analytics/DashboardsPage.tsx
 import { useState, useEffect } from "react";
 import { DashboardList } from "@/features/analytics/components/DashboardList";
@@ -25855,7 +26982,6 @@ export function DashboardsPage() {
     </div>
   );
 }
-
 // FILE: src/pages/analytics/ReportingPage.tsx
 import { useState, useEffect } from "react";
 import { ReportingOverview } from "@/features/analytics/components/ReportingOverview";
@@ -25879,7 +27005,6 @@ export function ReportingPage() {
   const [projectId, setProjectId] = useState<string | undefined>(
     params.projectId
   );
-
   const { data: workspacesData } = useGetWorkspaces();
   const { data: projectsData } = useGetProjects(workspaceId);
 
@@ -25944,7 +27069,6 @@ export function ReportingPage() {
     </div>
   );
 }
-
 // FILE: src/pages/analytics/ReportsPage.tsx
 import { ReportList } from "@/features/analytics/components/ReportList";
 import { ReportForm } from "@/features/analytics/components/ReportForm";
@@ -25979,7 +27103,6 @@ export function ReportsPage() {
     </div>
   );
 }
-
 // FILE: src/pages/AnalyticsLayout.tsx
 import { NavLink, Outlet, useLocation, useParams } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -26605,437 +27728,6 @@ export function LoginPage() {
   );
 }
 
-// FILE: src/pages/MyTasksPage.tsx
-import { TaskDetailModal } from "@/features/project-management/components/TaskDetailModal";
-import { useSearchParams } from "react-router-dom";
-import { useState, useMemo, useEffect } from "react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { ListTasksQuery, Task, ViewColumn } from "@/types";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MyTasksKanbanBoard } from "@/features/project-management/components/kanban-view/MyTasksKanbanBoard";
-import { Skeleton } from "@/components/ui/skeleton";
-import { EmptyState } from "@/components/ui/empty-state";
-import { CheckSquare, PlusCircle, Filter, Columns, Trash2 } from "lucide-react";
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
-import { Button } from "@/components/ui/button";
-import { CreateTaskForm } from "@/features/project-management/components/CreateTaskForm";
-import { useGetMyTasks } from "@/features/project-management/api/useGetMyTasks";
-import { CalendarView } from "@/features/project-management/components/calendar-view/CalendarView";
-import { GanttChartView } from "@/features/project-management/components/gantt-view/GanttChartView";
-import { SortingState } from "@tanstack/react-table";
-import { useUpdateTask } from "@/features/project-management/api/useUpdateTask";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { TaskStatus } from "@/types/api";
-import { ListView } from "@/features/project-management/components/list-view/ListView";
-import { SortMenu } from "@/features/project-management/components/list-view/SortMenu";
-import { ColumnVisibilityToggle } from "@/features/project-management/components/list-view/ColumnVisibilityToggle";
-import { useManageTasks } from "@/features/project-management/api/useManageTasks";
-import { TemplateSelectorDialog } from "@/features/project-management/components/TemplateSelectorDialog";
-
-const TaskListSkeleton = () => (
-  <div className="space-y-2 pt-4">
-    {Array.from({ length: 8 }).map((_, i) => (
-      <Skeleton key={i} className="h-12 w-full rounded-lg" />
-    ))}
-  </div>
-);
-
-const KANBAN_COLUMNS: Omit<ViewColumn, "createdAt" | "updatedAt">[] = [
-  { id: "col-todo", name: "To Do", order: 1, viewId: "my-tasks-view" },
-  {
-    id: "col-in-progress",
-    name: "In Progress",
-    order: 2,
-    viewId: "my-tasks-view",
-  },
-  {
-    id: "col-in-review",
-    name: "In Review",
-    order: 3,
-    viewId: "my-tasks-view",
-  },
-  { id: "col-done", name: "Done", order: 4, viewId: "my-tasks-view" },
-  { id: "col-blocked", name: "Blocked", order: 5, viewId: "my-tasks-view" },
-  {
-    id: "col-cancelled",
-    name: "Cancelled",
-    order: 6,
-    viewId: "my-tasks-view",
-  },
-];
-
-const columnStatusMap: Record<string, TaskStatus> = {
-  "col-todo": TaskStatus.TODO,
-  "col-in-progress": TaskStatus.IN_PROGRESS,
-  "col-in-review": TaskStatus.IN_REVIEW,
-  "col-done": TaskStatus.DONE,
-  "col-blocked": TaskStatus.BLOCKED,
-  "col-cancelled": TaskStatus.CANCELLED,
-};
-
-const listSortableColumns = [
-  { id: "title", label: "Task Name" },
-  { id: "priority", label: "Priority" },
-  { id: "dueDate", label: "Due Date" },
-  { id: "status", label: "Status" },
-  { id: "projectName", label: "Project" },
-  { id: "workspaceName", label: "Workspace" },
-];
-
-const initialListColumns = [
-  { id: "workspace", label: "Workspace", visible: true },
-  { id: "project", label: "Project", visible: true },
-  { id: "taskType", label: "Type", visible: true },
-];
-
-export function MyTasksPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const selectedTaskId = searchParams.get("taskId");
-  const activeView = searchParams.get("view") || "list";
-  const [page] = useState(1);
-  const [filter, setFilter] = useState("all_assigned");
-  const [sorting, setSorting] = useState<SortingState>([
-    { id: "priority", desc: true },
-  ]);
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [isTemplateSelectorOpen, setIsTemplateSelectorOpen] = useState(false);
-  const [kanbanColumnIds, setKanbanColumnIds] = useState<string[]>([
-    "col-todo",
-    "col-in-progress",
-    "col-in-review",
-    "col-done",
-  ]);
-  const [listColumns, setListColumns] = useState(initialListColumns);
-  const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
-
-  const updateTaskMutation = useUpdateTask();
-  const { useDelete } = useManageTasks();
-  const bulkDeleteMutation = useDelete();
-
-  const handleTaskSelect = (taskId: string | null) => {
-    setSearchParams(
-      (params) => {
-        if (taskId) {
-          params.set("taskId", taskId);
-        } else {
-          params.delete("taskId");
-        }
-        return params;
-      },
-      { replace: true }
-    );
-  };
-
-  const handleViewChange = (view: string) => {
-    setSearchParams(
-      (params) => {
-        params.set("view", view);
-        return params;
-      },
-      { replace: true }
-    );
-  };
-
-  const queryParams: ListTasksQuery = useMemo(() => {
-    const baseQuery: ListTasksQuery = {
-      sortBy: (sorting[0]?.id as ListTasksQuery["sortBy"]) ?? "priority",
-      sortOrder: sorting[0]?.desc ? "desc" : "asc",
-      limit: activeView === "list" ? 15 : 200,
-      page: page,
-      includeSubtasks: true,
-    };
-
-    switch (filter) {
-      case "created_standalone":
-        return { ...baseQuery, userRole: "creator", taskOrigin: "standalone" };
-      case "created_project":
-        return { ...baseQuery, userRole: "creator", taskOrigin: "project" };
-      case "assigned_standalone":
-        return { ...baseQuery, userRole: "assignee", taskOrigin: "standalone" };
-      case "assigned_project":
-        return { ...baseQuery, userRole: "assignee", taskOrigin: "project" };
-      case "all_assigned":
-        return { ...baseQuery, userRole: "assignee" };
-      default:
-        return baseQuery;
-    }
-  }, [filter, sorting, activeView, page]);
-
-  const { data, isLoading } = useGetMyTasks(queryParams);
-
-  useEffect(() => {
-    setSelectedTaskIds([]);
-  }, [data]);
-
-  const handleTaskUpdate = (taskId: string, updates: Partial<Task>) => {
-    updateTaskMutation.mutate({
-      taskId,
-      taskData: updates,
-    });
-  };
-
-  const handleBulkDelete = () => {
-    if (
-      window.confirm(
-        `Are you sure you want to delete ${selectedTaskIds.length} tasks?`
-      )
-    ) {
-      bulkDeleteMutation.mutate(selectedTaskIds, {
-        onSuccess: () => setSelectedTaskIds([]),
-      });
-    }
-  };
-
-  const visibleKanbanColumns = useMemo(
-    () => KANBAN_COLUMNS.filter((c) => kanbanColumnIds.includes(c.id)),
-    [kanbanColumnIds]
-  );
-
-  const emptyState = (
-    <EmptyState
-      icon={<CheckSquare className="h-10 w-10 text-primary" />}
-      title="No tasks here"
-      description="No tasks match your current filter. Try selecting a different filter or create a new task."
-    />
-  );
-
-  return (
-    <>
-      <div className="space-y-6">
-        <header className="flex flex-col items-start justify-between sm:flex-row sm:items-center">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">
-              My Tasks
-            </h1>
-          </div>
-          <div className="mt-4 flex items-center space-x-2 sm:mt-0">
-            <div className="flex items-center gap-2">
-              <Label htmlFor="task-filter" className="sr-only">
-                Filter tasks
-              </Label>
-              <Select value={filter} onValueChange={setFilter}>
-                <SelectTrigger
-                  id="task-filter"
-                  className="hover:bg-hover border-border bg-element text-foreground [&>svg]:hidden"
-                >
-                  <div className="flex items-center gap-2">
-                    <Filter className="h-4 w-4" />
-                    <SelectValue />
-                  </div>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all_assigned">
-                    All Assigned Tasks
-                  </SelectItem>
-                  <SelectItem value="assigned_project">
-                    Assigned Project Tasks
-                  </SelectItem>
-                  <SelectItem value="assigned_standalone">
-                    Assigned Standalone Tasks
-                  </SelectItem>
-                  <SelectItem value="created_project">
-                    Created Project Tasks
-                  </SelectItem>
-                  <SelectItem value="created_standalone">
-                    Created Standalone Tasks
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-              <SortMenu
-                sorting={sorting}
-                setSorting={setSorting}
-                sortableColumns={listSortableColumns}
-              />
-              {activeView === "list" && (
-                <ColumnVisibilityToggle
-                  columns={listColumns}
-                  onVisibilityChange={(columnId, visible) => {
-                    setListColumns((prev) =>
-                      prev.map((c) =>
-                        c.id === columnId ? { ...c, visible } : c
-                      )
-                    );
-                  }}
-                />
-              )}
-              {activeView === "kanban" && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="hover:bg-hover border-border bg-element text-foreground"
-                    >
-                      <Columns className="mr-2 h-4 w-4" />
-                      Columns
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuLabel>Visible Columns</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    {KANBAN_COLUMNS.map((column) => (
-                      <DropdownMenuCheckboxItem
-                        key={column.id}
-                        checked={kanbanColumnIds.includes(column.id)}
-                        onCheckedChange={(checked) => {
-                          setKanbanColumnIds((prev) =>
-                            checked
-                              ? [...prev, column.id]
-                              : prev.filter((id) => id !== column.id)
-                          );
-                        }}
-                      >
-                        {column.name}
-                      </DropdownMenuCheckboxItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-            </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-                  <PlusCircle className="mr-2 h-4 w-4" /> New Task
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => setIsCreateOpen(true)}>
-                  New Blank Task
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => setIsTemplateSelectorOpen(true)}
-                >
-                  New from Template
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </header>
-
-        {selectedTaskIds.length > 0 && (
-          <div className="flex items-center justify-between rounded-lg border border-border bg-surface p-3">
-            <span className="text-sm font-medium">
-              {selectedTaskIds.length} task(s) selected
-            </span>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={handleBulkDelete}
-              disabled={bulkDeleteMutation.isPending}
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete Selected
-            </Button>
-          </div>
-        )}
-
-        <Tabs value={activeView} onValueChange={handleViewChange}>
-          <TabsList>
-            <TabsTrigger value="list">List</TabsTrigger>
-            <TabsTrigger value="kanban">Kanban</TabsTrigger>
-            <TabsTrigger value="calendar">Calendar</TabsTrigger>
-            <TabsTrigger value="gantt">Gantt</TabsTrigger>
-          </TabsList>
-          <TabsContent value="list">
-            {isLoading ? (
-              <TaskListSkeleton />
-            ) : (
-              <ListView
-                onTaskSelect={handleTaskSelect}
-                tasks={data?.data || []}
-                emptyState={emptyState}
-                onTaskUpdate={handleTaskUpdate}
-                showWorkspaceColumn={
-                  listColumns.find((c) => c.id === "workspace")?.visible ?? true
-                }
-                showProjectColumn={
-                  listColumns.find((c) => c.id === "project")?.visible ?? true
-                }
-                showTaskTypeColumn={
-                  listColumns.find((c) => c.id === "taskType")?.visible ?? true
-                }
-                selectedTaskIds={selectedTaskIds}
-                setSelectedTaskIds={setSelectedTaskIds}
-              />
-            )}
-          </TabsContent>
-          <TabsContent value="kanban" className="mt-4">
-            {isLoading ? (
-              <TaskListSkeleton />
-            ) : (
-              <MyTasksKanbanBoard
-                tasks={data?.data || []}
-                onTaskSelect={handleTaskSelect}
-                columns={visibleKanbanColumns}
-                columnStatusMap={columnStatusMap}
-              />
-            )}
-          </TabsContent>
-          <TabsContent value="calendar" className="mt-4">
-            {isLoading ? (
-              <TaskListSkeleton />
-            ) : (
-              <CalendarView
-                tasks={data?.data || []}
-                onTaskSelect={handleTaskSelect}
-              />
-            )}
-          </TabsContent>
-          <TabsContent value="gantt" className="mt-4">
-            {isLoading ? (
-              <TaskListSkeleton />
-            ) : (
-              <GanttChartView
-                tasks={data?.data || []}
-                onTaskSelect={handleTaskSelect}
-              />
-            )}
-          </TabsContent>
-        </Tabs>
-      </div>
-
-      <ResourceCrudDialog
-        isOpen={isCreateOpen}
-        onOpenChange={setIsCreateOpen}
-        title="Create a new task"
-        description="Fill in the details below to add a new task."
-        form={CreateTaskForm}
-        formProps={{}}
-        resourcePath="/tasks"
-        resourceKey={["myTasks"]}
-      />
-
-      <TemplateSelectorDialog
-        isOpen={isTemplateSelectorOpen}
-        onOpenChange={setIsTemplateSelectorOpen}
-      />
-
-      <TaskDetailModal
-        taskId={selectedTaskId}
-        isOpen={!!selectedTaskId}
-        onOpenChange={(isOpen) => {
-          if (!isOpen) handleTaskSelect(null);
-        }}
-        onTaskSelect={handleTaskSelect}
-      />
-    </>
-  );
-}
-
 // FILE: src/pages/ProfilePage.tsx
 import { UserForm } from "@/features/admin/users/components/UserForm";
 import {
@@ -27186,7 +27878,6 @@ export function ProjectAccessControlPage() {
     </div>
   );
 }
-
 // FILE: src/pages/ProjectAttachmentsPage.tsx
 import { useParams } from "react-router-dom";
 import { useManageProjects } from "@/features/project-management/api/useManageProjects";
@@ -27294,147 +27985,36 @@ export function ProjectCustomFieldsPage() {
     </div>
   );
 }
-
 // FILE: src/pages/ProjectDetailPage.tsx
-import { useParams, useSearchParams } from "react-router-dom";
-import { useEffect, useMemo, useState } from "react";
-import { TaskDetailModal } from "@/features/project-management/components/TaskDetailModal";
-import { useApiResource } from "@/hooks/useApiResource";
-import { useProjectSocket } from "@/hooks/useProjectSocket";
+import { useParams } from "react-router-dom";
 import { usePresence } from "@/hooks/usePresence";
 import { ErrorState } from "@/components/ui/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ProjectDetailView } from "@/features/project-management/components/ProjectDetailView";
-import { ListTasksQuery, Task, View } from "@/types";
-import { useGetViewData } from "@/features/project-management/api/useGetViewData";
-import { WhiteboardView } from "@/features/project-management/components/WhiteboardView";
-import { SortingState } from "@tanstack/react-table";
-import { useUpdateTask } from "@/features/project-management/api/useUpdateTask";
-import { ProjectHeader } from "@/features/project-management/components/ProjectHeader";
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
-import { CreateTaskForm } from "@/features/project-management/components/CreateTaskForm";
-import { TemplateSelectorDialog } from "@/features/project-management/components/TemplateSelectorDialog";
-import { EmptyState } from "@/components/ui/empty-state";
-import { CheckSquare } from "lucide-react";
 import { useManageProjects } from "@/features/project-management/api/useManageProjects";
+import { TasksPage } from "./tasks/TasksPage";
+import { useProjectSocket } from "@/hooks/useProjectSocket";
 
 export function ProjectDetailPage() {
   const { workspaceId, projectId } = useParams<{
     workspaceId: string;
     projectId: string;
   }>();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const activeTabId = searchParams.get("view");
-  const selectedTaskId = searchParams.get("taskId");
-  const [sorting] = useState<SortingState>([
-    { id: "orderInColumn", desc: false },
-  ]);
-  const updateTaskMutation = useUpdateTask();
-
-  const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
-  const [isTemplateSelectorOpen, setIsTemplateSelectorOpen] = useState(false);
-
-  const projectResource = useManageProjects(workspaceId!);
-  const { data: projectData, isLoading: isLoadingProject } =
-    projectResource.useGetOne(projectId!);
-
-  const viewsResource = useApiResource(
-    `/workspaces/${workspaceId}/projects/${projectId}/views`,
-    ["views", projectId]
-  );
-  const {
-    data: viewsData,
-    isLoading: isLoadingViews,
-    isError: isViewsError,
-  } = viewsResource.useGetAll();
-  const activeView = useMemo(
-    () => (viewsData?.data || []).find((v: View) => v.id === activeTabId),
-    [viewsData, activeTabId]
-  );
-  const viewDataQuery: ListTasksQuery = useMemo(
-    () => ({
-      page: 1,
-      limit: 1000,
-      includeSubtasks: true,
-      sortBy: (sorting[0]?.id as ListTasksQuery["sortBy"]) ?? "orderInColumn",
-      sortOrder: sorting[0]?.desc ? "desc" : "asc",
-    }),
-    [sorting]
-  );
-
-  const {
-    data: viewData,
-    isLoading: isLoadingViewData,
-    isError: isViewDataError,
-  } = useGetViewData(workspaceId!, projectId!, activeTabId, viewDataQuery, {
-    enabled: !!activeView,
-  });
-  useProjectSocket(projectId!);
-  usePresence("Project", projectId!);
-
-  const handleTabChange = (newTab: string) => {
-    setSearchParams(
-      (params) => {
-        params.set("view", newTab);
-        return params;
-      },
-      { replace: true }
-    );
-  };
-
-  useEffect(() => {
-    if (!isLoadingViews && viewsData && !activeTabId) {
-      const defaultView =
-        viewsData.data?.find((v: any) => v.type === "LIST") ||
-        viewsData.data?.[0];
-      if (defaultView) {
-        handleTabChange(defaultView.id);
-      } else {
-        handleTabChange("dashboards");
-      }
-    }
-  }, [isLoadingViews, viewsData, activeTabId, handleTabChange]);
-
-  const handleTaskSelect = (taskId: string | null) => {
-    setSearchParams(
-      (params) => {
-        if (taskId) {
-          params.set("taskId", taskId);
-        } else {
-          params.delete("taskId");
-        }
-        return params;
-      },
-      { replace: true }
-    );
-  };
-
-  const handleTaskUpdate = (taskId: string, updates: Partial<Task>) => {
-    updateTaskMutation.mutate({
-      taskId,
-      workspaceId,
-      projectId,
-      taskData: updates,
-    });
-  };
-
-  const projectTaskEmptyState = (
-    <EmptyState
-      icon={<CheckSquare className="h-10 w-10 text-primary" />}
-      title="No tasks yet"
-      description="Create the first task in this project to get started."
-    />
-  );
 
   if (!workspaceId || !projectId) {
-    return <div>Invalid Project ID</div>;
+    return <div>Invalid Project or Workspace ID</div>;
   }
 
-  if (activeView?.type === "WHITEBOARD") {
-    return <WhiteboardView />;
-  }
+  const projectResource = useManageProjects(workspaceId);
+  const {
+    data: projectData,
+    isLoading: isLoadingProject,
+    isError,
+  } = projectResource.useGetOne(projectId);
 
-  if (isViewsError || isViewDataError) {
+  useProjectSocket(projectId);
+  usePresence("Project", projectId);
+
+  if (isError) {
     return (
       <ErrorState
         title="Could not load project data"
@@ -27443,9 +28023,7 @@ export function ProjectDetailPage() {
     );
   }
 
-  const isLoading =
-    isLoadingViews || (!!activeView && isLoadingViewData) || isLoadingProject;
-  if (isLoading || !activeTabId) {
+  if (isLoadingProject) {
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -27462,57 +28040,15 @@ export function ProjectDetailPage() {
   }
 
   return (
-    <>
-      <div className="space-y-4">
-        {projectData && (
-          <ProjectHeader
-            project={projectData}
-            onNewTaskClick={() => setIsCreateTaskOpen(true)}
-            onNewTaskFromTemplateClick={() => setIsTemplateSelectorOpen(true)}
-          />
-        )}
-        <ProjectDetailView
-          views={viewsData?.data || []}
-          tasks={viewData?.data || []}
-          workspaceId={workspaceId}
-          projectId={projectId}
-          onTaskSelect={handleTaskSelect}
-          onTaskUpdate={handleTaskUpdate}
-          activeTab={activeTabId}
-          onTabChange={handleTabChange}
-          emptyState={projectTaskEmptyState}
-        />
-      </div>
-
-      <ResourceCrudDialog
-        isOpen={isCreateTaskOpen}
-        onOpenChange={setIsCreateTaskOpen}
-        title="Create a new task"
-        description="Fill in the details below to add a new task."
-        form={CreateTaskForm}
-        formProps={{ workspaceId, projectId }}
-        resourcePath={`/workspaces/${workspaceId}/projects/${projectId}/tasks`}
-        resourceKey={["tasks", projectId]}
-      />
-
-      <TemplateSelectorDialog
-        workspaceId={workspaceId}
-        projectId={projectId}
-        isOpen={isTemplateSelectorOpen}
-        onOpenChange={setIsTemplateSelectorOpen}
-      />
-
-      <TaskDetailModal
-        taskId={selectedTaskId}
-        isOpen={!!selectedTaskId}
-        onOpenChange={(isOpen) => {
-          if (!isOpen) handleTaskSelect(null);
-        }}
-        onTaskSelect={handleTaskSelect}
-      />
-    </>
+    <TasksPage
+      scope="project"
+      workspaceId={workspaceId}
+      projectId={projectId}
+      project={projectData}
+    />
   );
 }
+
 // FILE: src/pages/ProjectGeneralSettingsPage.tsx
 import { useParams } from "react-router-dom";
 import { ProjectForm } from "@/features/project-management/components/ProjectForm";
@@ -27658,8 +28194,8 @@ export function ProjectListPage() {
           description="Create a new project based on an existing template."
           form={CreateProjectFromTemplateForm}
           formProps={{ workspaceId }}
-          resourcePath={""} // Not a standard CRUD, handled by the form's mutation
-          resourceKey={[]} //
+          resourcePath={""}
+          resourceKey={[]}
         />
       </div>
       <ProjectList workspaceId={workspaceId} />
@@ -27943,6 +28479,679 @@ export function SetupPasswordPage() {
     </div>
   );
 }
+// FILE: src/pages/tasks/TasksPage.tsx
+import { useSearchParams } from "react-router-dom";
+import { useState, useMemo, useEffect } from "react";
+import { TaskDetailModal } from "@/features/project-management/components/TaskDetailModal";
+import { ErrorState } from "@/components/ui/error-state";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ListTasksQuery, Task, View, ViewColumn, ViewType } from "@/types";
+import { SortingState } from "@tanstack/react-table";
+import { useUpdateTask } from "@/features/project-management/api/useUpdateTask";
+import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { CreateTaskForm } from "@/features/project-management/components/CreateTaskForm";
+import { TemplateSelectorDialog } from "@/features/project-management/components/TemplateSelectorDialog";
+import { EmptyState } from "@/components/ui/empty-state";
+import { CheckSquare } from "lucide-react";
+import { useGetViews } from "@/features/project-management/api/useGetViews";
+import { useGetTasks } from "@/features/project-management/api/useGetTasks";
+import { TasksPageHeader } from "./TasksPageHeader";
+import { ListView } from "@/features/project-management/components/list-view/ListView";
+import { KanbanBoard } from "@/features/project-management/components/kanban-view/KanbanBoard";
+import { CalendarView } from "@/features/project-management/components/calendar-view/CalendarView";
+import { GanttChartView } from "@/features/project-management/components/gantt-view/GanttChartView";
+import { WhiteboardView } from "@/features/project-management/components/WhiteboardView";
+import { Project, TaskStatus, TaskPriority } from "@/types";
+import { BulkActionsToolbar } from "@/features/project-management/components/list-view/BulkActionsToolbar";
+import { useManageTasks } from "@/features/project-management/api/useManageTasks";
+import { useBulkUpdateTasks } from "@/features/project-management/api/useBulkUpdateTasks";
+
+interface TasksPageProps {
+  scope: "user" | "project";
+  workspaceId?: string;
+  projectId?: string;
+  project?: Project;
+}
+
+const initialListColumns = [
+  { id: "workspace", label: "Workspace", visible: true },
+  { id: "project", label: "Project", visible: true },
+  { id: "taskType", label: "Type", visible: true },
+];
+
+const KANBAN_COLUMNS_USER: Omit<ViewColumn, "createdAt" | "updatedAt">[] = [
+  { id: "col-todo", name: "To Do", order: 1, viewId: "my-tasks-view" },
+  {
+    id: "col-in-progress",
+    name: "In Progress",
+    order: 2,
+    viewId: "my-tasks-view",
+  },
+  {
+    id: "col-in-review",
+    name: "In Review",
+    order: 3,
+    viewId: "my-tasks-view",
+  },
+  { id: "col-done", name: "Done", order: 4, viewId: "my-tasks-view" },
+  { id: "col-blocked", name: "Blocked", order: 5, viewId: "my-tasks-view" },
+  {
+    id: "col-cancelled",
+    name: "Cancelled",
+    order: 6,
+    viewId: "my-tasks-view",
+  },
+];
+
+const columnStatusMapUser: Record<string, TaskStatus> = {
+  "col-todo": TaskStatus.TODO,
+  "col-in-progress": TaskStatus.IN_PROGRESS,
+  "col-in-review": TaskStatus.IN_REVIEW,
+  "col-done": TaskStatus.DONE,
+  "col-blocked": TaskStatus.BLOCKED,
+  "col-cancelled": TaskStatus.CANCELLED,
+};
+
+const listSortableColumns = [
+  { id: "title", label: "Task Name" },
+  { id: "priority", label: "Priority" },
+  { id: "dueDate", label: "Due Date" },
+  { id: "status", label: "Status" },
+  { id: "projectName", label: "Project" },
+  { id: "workspaceName", label: "Workspace" },
+];
+
+function mapColumnNameToStatus(columnName: string): TaskStatus | null {
+  const normalizedName = columnName.trim().toUpperCase().replace(/\s+/g, "_");
+  if (normalizedName === "TO_DO") return TaskStatus.TODO;
+  if (Object.values(TaskStatus).includes(normalizedName as TaskStatus)) {
+    return normalizedName as TaskStatus;
+  }
+  return null;
+}
+
+export function TasksPage({
+  scope,
+  workspaceId,
+  projectId,
+  project,
+}: TasksPageProps) {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeViewId = searchParams.get("view") || "list";
+  const selectedTaskId = searchParams.get("taskId");
+
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: "orderInColumn", desc: false },
+  ]);
+  const [filter, setFilter] = useState("all_assigned");
+  const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
+  const [isTemplateSelectorOpen, setIsTemplateSelectorOpen] = useState(false);
+  const [listColumns, setListColumns] = useState(initialListColumns);
+  const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
+  const [kanbanColumnIds, setKanbanColumnIds] = useState<string[]>([
+    "col-todo",
+    "col-in-progress",
+    "col-in-review",
+    "col-done",
+  ]);
+
+  const updateTaskMutation = useUpdateTask();
+  const { useDelete } = useManageTasks(workspaceId, projectId);
+  const deleteMutation = useDelete();
+  const bulkUpdateMutation = useBulkUpdateTasks(projectId);
+
+  const handleTaskSelect = (taskId: string | null) => {
+    setSearchParams(
+      (params) => {
+        if (taskId) {
+          params.set("taskId", taskId);
+        } else {
+          params.delete("taskId");
+        }
+        return params;
+      },
+      { replace: true }
+    );
+  };
+
+  const handleViewChange = (view: string) => {
+    setSearchParams(
+      (params) => {
+        params.set("view", view);
+        return params;
+      },
+      { replace: true }
+    );
+  };
+
+  const queryParams: ListTasksQuery = useMemo(() => {
+    const baseQuery: ListTasksQuery = {
+      sortBy: (sorting[0]?.id as ListTasksQuery["sortBy"]) ?? "priority",
+      sortOrder: sorting[0]?.desc ? "desc" : "asc",
+      limit: activeViewId === "list" ? 15 : 200,
+      page: 1,
+      includeSubtasks: true,
+    };
+
+    switch (filter) {
+      case "created_standalone":
+        return { ...baseQuery, userRole: "creator", taskOrigin: "standalone" };
+      case "created_project":
+        return { ...baseQuery, userRole: "creator", taskOrigin: "project" };
+      case "assigned_standalone":
+        return { ...baseQuery, userRole: "assignee", taskOrigin: "standalone" };
+      case "assigned_project":
+        return { ...baseQuery, userRole: "assignee", taskOrigin: "project" };
+      case "all_assigned":
+        return { ...baseQuery, userRole: "assignee" };
+      default:
+        return baseQuery;
+    }
+  }, [filter, sorting, activeViewId]);
+
+  const {
+    data: viewsData,
+    isLoading: isLoadingViews,
+    isError: isViewsError,
+  } = useGetViews({ scope, workspaceId, projectId });
+
+  const {
+    data: tasksData,
+    isLoading: isLoadingTasks,
+    isError: isTasksError,
+  } = useGetTasks({
+    scope,
+    workspaceId,
+    projectId,
+    query: queryParams,
+    enabled: scope === "user" || !!activeViewId,
+  });
+
+  const userViews: View[] = useMemo(
+    () => [
+      {
+        id: "list",
+        name: "List",
+        type: ViewType.LIST,
+        columns: [],
+        isPublic: false,
+        projectId: "",
+      },
+      {
+        id: "kanban",
+        name: "Kanban",
+        type: ViewType.KANBAN,
+        columns: KANBAN_COLUMNS_USER as ViewColumn[],
+        isPublic: false,
+        projectId: "",
+      },
+      {
+        id: "calendar",
+        name: "Calendar",
+        type: ViewType.CALENDAR,
+        columns: [],
+        isPublic: false,
+        projectId: "",
+      },
+      {
+        id: "gantt",
+        name: "Gantt",
+        type: ViewType.GANTT,
+        columns: [],
+        isPublic: false,
+        projectId: "",
+      },
+    ],
+    []
+  );
+
+  const views = useMemo(
+    () => (scope === "user" ? userViews : viewsData?.data || []),
+    [scope, viewsData, userViews]
+  );
+
+  const activeView = useMemo(
+    () => views.find((v) => v.id === activeViewId),
+    [views, activeViewId]
+  );
+
+  const projectColumnStatusMap = useMemo(() => {
+    if (scope !== "project" || !activeView?.columns) {
+      return {};
+    }
+    return activeView.columns.reduce(
+      (acc, col) => {
+        const status = col.status || mapColumnNameToStatus(col.name);
+        if (status) {
+          acc[col.id] = status;
+        }
+        return acc;
+      },
+      {} as Record<string, TaskStatus>
+    );
+  }, [scope, activeView]);
+
+  useEffect(() => {
+    if (!isLoadingViews && views.length > 0 && !activeView) {
+      const defaultView = views.find((v) => v.type === "LIST") || views[0];
+      if (defaultView) {
+        handleViewChange(defaultView.id);
+      }
+    }
+  }, [isLoadingViews, views, activeView]);
+
+  useEffect(() => {
+    setSelectedTaskIds([]);
+  }, [tasksData]);
+
+  const handleTaskUpdate = (taskId: string, updates: Partial<Task>) => {
+    updateTaskMutation.mutate({
+      taskId,
+      workspaceId,
+      projectId,
+      taskData: updates,
+    });
+  };
+
+  const handleBulkDelete = () => {
+    if (
+      window.confirm(
+        `Are you sure you want to delete ${selectedTaskIds.length} tasks?`
+      )
+    ) {
+      deleteMutation.mutate(selectedTaskIds, {
+        onSuccess: () => setSelectedTaskIds([]),
+      });
+    }
+  };
+
+  const handleBulkUpdate = (updates: {
+    status?: TaskStatus;
+    priority?: TaskPriority;
+    projectId?: string;
+    taskTypeId?: string | null;
+    dueDate?: Date | null;
+    addAssigneeIds?: string[];
+    removeAssigneeIds?: string[];
+  }) => {
+    bulkUpdateMutation.mutate(
+      { taskIds: selectedTaskIds, updates },
+      {
+        onSuccess: () => setSelectedTaskIds([]),
+      }
+    );
+  };
+
+  const emptyState = (
+    <EmptyState
+      icon={<CheckSquare className="h-10 w-10 text-primary" />}
+      title="No tasks here"
+      description="No tasks match your current filter. Try selecting a different filter or create a new task."
+    />
+  );
+
+  if (isViewsError || isTasksError) {
+    return (
+      <ErrorState
+        title="Could not load tasks"
+        message="Please try refreshing the page."
+      />
+    );
+  }
+
+  if (activeView?.type === "WHITEBOARD") {
+    return <WhiteboardView />;
+  }
+
+  const isLoading = isLoadingViews || (!!activeViewId && isLoadingTasks);
+
+  const visibleKanbanColumns = useMemo(
+    () => KANBAN_COLUMNS_USER.filter((c) => kanbanColumnIds.includes(c.id)),
+    [kanbanColumnIds]
+  );
+
+  return (
+    <>
+      <div className="space-y-4">
+        <TasksPageHeader
+          scope={scope}
+          project={project}
+          views={views}
+          activeView={activeView}
+          onViewChange={handleViewChange}
+          onNewTaskClick={() => setIsCreateTaskOpen(true)}
+          onNewTaskFromTemplateClick={() => setIsTemplateSelectorOpen(true)}
+          sorting={sorting}
+          setSorting={setSorting}
+          listColumns={listColumns}
+          onColumnVisibilityChange={(columnId, visible) =>
+            setListColumns((prev) =>
+              prev.map((c) => (c.id === columnId ? { ...c, visible } : c))
+            )
+          }
+          filter={filter}
+          onFilterChange={setFilter}
+          kanbanColumns={KANBAN_COLUMNS_USER}
+          kanbanColumnIds={kanbanColumnIds}
+          setKanbanColumnIds={setKanbanColumnIds}
+        />
+        {selectedTaskIds.length > 0 && (
+          <BulkActionsToolbar
+            selectedTaskIds={selectedTaskIds}
+            tasks={tasksData?.data || []}
+            onBulkDelete={handleBulkDelete}
+            onBulkUpdate={handleBulkUpdate}
+            isDeleting={deleteMutation.isPending}
+            isUpdating={bulkUpdateMutation.isPending}
+          />
+        )}
+        {isLoading ? (
+          <Skeleton className="h-[600px] w-full" />
+        ) : (
+          <div className="h-[calc(100vh-250px)]">
+            {activeView?.type === "LIST" && (
+              <ListView
+                onTaskSelect={handleTaskSelect}
+                tasks={tasksData?.data || []}
+                emptyState={emptyState}
+                onTaskUpdate={handleTaskUpdate}
+                showWorkspaceColumn={
+                  scope === "user" &&
+                  listColumns.find((c) => c.id === "workspace")?.visible
+                }
+                showProjectColumn={
+                  scope === "user" &&
+                  listColumns.find((c) => c.id === "project")?.visible
+                }
+                showTaskTypeColumn={
+                  listColumns.find((c) => c.id === "taskType")?.visible
+                }
+                selectedTaskIds={selectedTaskIds}
+                setSelectedTaskIds={setSelectedTaskIds}
+              />
+            )}
+            {activeView?.type === "KANBAN" && (
+              <KanbanBoard
+                scope={scope}
+                columns={
+                  scope === "user" ? visibleKanbanColumns : activeView.columns
+                }
+                columnStatusMap={
+                  scope === "user"
+                    ? columnStatusMapUser
+                    : projectColumnStatusMap
+                }
+                tasks={tasksData?.data || []}
+                workspaceId={workspaceId}
+                projectId={projectId}
+                onTaskSelect={handleTaskSelect}
+              />
+            )}
+            {activeView?.type === "GANTT" && (
+              <GanttChartView
+                tasks={tasksData?.data || []}
+                onTaskSelect={handleTaskSelect}
+              />
+            )}
+            {activeView?.type === "CALENDAR" && (
+              <CalendarView
+                tasks={tasksData?.data || []}
+                onTaskSelect={handleTaskSelect}
+                onTaskUpdate={handleTaskUpdate}
+              />
+            )}
+          </div>
+        )}
+      </div>
+
+      <ResourceCrudDialog
+        isOpen={isCreateTaskOpen}
+        onOpenChange={setIsCreateTaskOpen}
+        title="Create a new task"
+        description="Fill in the details below to add a new task."
+        form={CreateTaskForm}
+        formProps={{ workspaceId, projectId }}
+        resourcePath={
+          projectId
+            ? `/workspaces/${workspaceId}/projects/${projectId}/tasks`
+            : "/tasks"
+        }
+        resourceKey={projectId ? ["tasks", projectId] : ["myTasks"]}
+      />
+
+      <TemplateSelectorDialog
+        isOpen={isTemplateSelectorOpen}
+        onOpenChange={setIsTemplateSelectorOpen}
+        workspaceId={workspaceId}
+        projectId={projectId}
+      />
+
+      <TaskDetailModal
+        taskId={selectedTaskId}
+        isOpen={!!selectedTaskId}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) handleTaskSelect(null);
+        }}
+        onTaskSelect={handleTaskSelect}
+      />
+    </>
+  );
+}
+
+// FILE: src/pages/tasks/TasksPageHeader.tsx
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuCheckboxItem,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { Filter, PlusCircle, Settings, Columns } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Project, View } from "@/types";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SortMenu } from "@/features/project-management/components/list-view/SortMenu";
+import { OnChangeFn, SortingState } from "@tanstack/react-table";
+import { ColumnVisibilityToggle } from "@/features/project-management/components/list-view/ColumnVisibilityToggle";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+interface TasksPageHeaderProps {
+  scope: "user" | "project";
+  project?: Project;
+  views: View[];
+  activeView: View | undefined;
+  onViewChange: (viewId: string) => void;
+  onNewTaskClick: () => void;
+  onNewTaskFromTemplateClick: () => void;
+  sorting: SortingState;
+  setSorting: OnChangeFn<SortingState>;
+  listColumns: { id: string; label: string; visible: boolean }[];
+  onColumnVisibilityChange: (columnId: string, visible: boolean) => void;
+  filter: string;
+  onFilterChange: (value: string) => void;
+  kanbanColumns: { id: string; name: string }[];
+  kanbanColumnIds: string[];
+  setKanbanColumnIds: (ids: string[] | ((prev: string[]) => string[])) => void;
+}
+
+const listSortableColumns = [
+  { id: "title", label: "Task Name" },
+  { id: "priority", label: "Priority" },
+  { id: "dueDate", label: "Due Date" },
+  { id: "status", label: "Status" },
+  { id: "projectName", label: "Project" },
+  { id: "workspaceName", label: "Workspace" },
+];
+
+export function TasksPageHeader({
+  scope,
+  project,
+  views,
+  activeView,
+  onViewChange,
+  onNewTaskClick,
+  onNewTaskFromTemplateClick,
+  sorting,
+  setSorting,
+  listColumns,
+  onColumnVisibilityChange,
+  filter,
+  onFilterChange,
+  kanbanColumns,
+  kanbanColumnIds,
+  setKanbanColumnIds,
+}: TasksPageHeaderProps) {
+  return (
+    <header>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            {scope === "project" ? project?.name : "My Tasks"}
+          </h1>
+        </div>
+        <div className="flex items-center gap-2">
+          {scope === "user" && (
+            <>
+              <Label htmlFor="task-filter" className="sr-only">
+                Filter tasks
+              </Label>
+              <Select value={filter} onValueChange={onFilterChange}>
+                <SelectTrigger
+                  id="task-filter"
+                  className="border-border bg-element text-foreground hover:bg-hover"
+                >
+                  <div className="flex items-center gap-2">
+                    <Filter className="h-4 w-4" />
+                    <SelectValue />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all_assigned">
+                    All Assigned Tasks
+                  </SelectItem>
+                  <SelectItem value="assigned_project">
+                    Assigned Project Tasks
+                  </SelectItem>
+                  <SelectItem value="assigned_standalone">
+                    Assigned Standalone Tasks
+                  </SelectItem>
+                  <SelectItem value="created_project">
+                    Created Project Tasks
+                  </SelectItem>
+                  <SelectItem value="created_standalone">
+                    Created Standalone Tasks
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </>
+          )}
+
+          <SortMenu
+            sorting={sorting}
+            setSorting={setSorting}
+            sortableColumns={listSortableColumns}
+          />
+          {activeView?.type === "LIST" && (
+            <ColumnVisibilityToggle
+              columns={listColumns}
+              onVisibilityChange={onColumnVisibilityChange}
+            />
+          )}
+
+          {activeView?.type === "KANBAN" && scope === "user" && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="border-border bg-element text-foreground hover:bg-hover"
+                >
+                  <Columns className="mr-2 h-4 w-4" />
+                  Columns
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuLabel>Visible Columns</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {kanbanColumns.map((column) => (
+                  <DropdownMenuCheckboxItem
+                    key={column.id}
+                    checked={kanbanColumnIds.includes(column.id)}
+                    onCheckedChange={(checked) => {
+                      setKanbanColumnIds((prev) =>
+                        checked
+                          ? [...prev, column.id]
+                          : prev.filter((id) => id !== column.id)
+                      );
+                    }}
+                  >
+                    {column.name}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+                <PlusCircle className="mr-2 h-4 w-4" /> New Task
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={onNewTaskClick}>
+                New Blank Task
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={onNewTaskFromTemplateClick}>
+                New from Template...
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <Button
+            variant="outline"
+            size="icon"
+            className="border-border bg-element text-foreground hover:bg-hover"
+            asChild
+          >
+            <Link
+              to={
+                scope === "project" && project
+                  ? `/workspaces/${project.workspaceId}/projects/${project.id}/settings`
+                  : "/settings"
+              }
+            >
+              <Settings className="h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
+      </div>
+      <Tabs
+        value={activeView?.id}
+        onValueChange={onViewChange}
+        className="mt-4"
+      >
+        <TabsList>
+          {views.map((view) => (
+            <TabsTrigger key={view.id} value={view.id}>
+              {view.name}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
+    </header>
+  );
+}
+
 // FILE: src/pages/TaskTypesSettingsPage.tsx
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -29144,6 +30353,7 @@ export interface ViewColumn {
   name: string;
   order: number;
   viewId: string;
+  status?: TaskStatus;
 }
 
 export interface View {
@@ -29329,6 +30539,16 @@ export interface ListTasksQuery {
   sortOrder?: "asc" | "desc";
   taskOrigin?: "project" | "standalone";
   userRole?: "creator" | "assignee";
+}
+
+export interface BulkUpdateTasksDto {
+  taskIds: string[];
+  updates: {
+    status?: TaskStatus;
+    priority?: TaskPriority;
+    projectId?: string;
+    assigneeIds?: string[];
+  };
 }
 
 export interface ListProjectsQuery {

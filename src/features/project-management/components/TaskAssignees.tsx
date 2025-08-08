@@ -21,7 +21,6 @@ import api from "@/lib/api";
 import { cn, getAbsoluteUrl } from "@/lib/utils";
 import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
-
 export function TaskAssignees({ task }: any) {
   const [popoverOpen, setPopoverOpen] = useState(false);
 
@@ -135,6 +134,7 @@ export function TaskAssignees({ task }: any) {
             <Command>
               <CommandInput placeholder="Assign user..." />
               <CommandList>
+                {isLoading && <CommandItem>Loading...</CommandItem>}
                 <CommandEmpty>No available users found.</CommandEmpty>
                 <CommandGroup>
                   {availableUsers

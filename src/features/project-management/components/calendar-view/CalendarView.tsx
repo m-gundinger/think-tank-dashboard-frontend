@@ -97,7 +97,6 @@ export function CalendarView({
     const taskId = active.id as string;
     const newDueDate = over.data.current?.date as Date;
 
-    // Optimistically update local state for an instant UI change
     setLocalTasks((prevTasks) =>
       prevTasks.map((task) =>
         task.id === taskId
@@ -106,7 +105,6 @@ export function CalendarView({
       )
     );
 
-    // Persist the change to the backend
     updateTaskMutation.mutate({
       taskId,
       workspaceId,

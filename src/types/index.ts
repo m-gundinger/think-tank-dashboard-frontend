@@ -304,6 +304,7 @@ export interface ViewColumn {
   name: string;
   order: number;
   viewId: string;
+  status?: TaskStatus;
 }
 
 export interface View {
@@ -489,6 +490,16 @@ export interface ListTasksQuery {
   sortOrder?: "asc" | "desc";
   taskOrigin?: "project" | "standalone";
   userRole?: "creator" | "assignee";
+}
+
+export interface BulkUpdateTasksDto {
+  taskIds: string[];
+  updates: {
+    status?: TaskStatus;
+    priority?: TaskPriority;
+    projectId?: string;
+    assigneeIds?: string[];
+  };
 }
 
 export interface ListProjectsQuery {

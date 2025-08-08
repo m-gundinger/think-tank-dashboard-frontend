@@ -23,7 +23,6 @@ import { ProjectSettingsPage } from "./pages/ProjectSettingsPage";
 import { ProjectAccessControlPage } from "./pages/ProjectAccessControlPage";
 import { ProjectCustomFieldsPage } from "./pages/ProjectCustomFieldsPage";
 import { ProjectTaskTypesPage } from "./pages/ProjectTaskTypesPage";
-//import { ProjectViewsPage } from "./pages/ProjectViewsPage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 import { SetupPasswordPage } from "./pages/SetupPasswordPage";
@@ -32,7 +31,7 @@ import { ProjectGeneralSettingsPage } from "./pages/ProjectGeneralSettingsPage";
 import { JobMonitoringPage } from "./pages/admin/JobMonitoringPage";
 import { SystemStatusPage } from "./pages/admin/SystemStatusPage";
 import { CrmPage } from "./pages/CrmPage";
-import { MyTasksPage } from "./pages/MyTasksPage";
+import { TasksPage } from "./pages/tasks/TasksPage";
 import { ProjectGoalsPage } from "./pages/ProjectGoalsPage";
 import { HomePage } from "./pages/HomePage";
 import { ChatPage } from "./pages/ChatPage";
@@ -42,7 +41,6 @@ import { GlobalKnowledgeBasePage } from "./pages/GlobalKnowledgeBasePage";
 import { WhiteboardsPage } from "./pages/WhiteboardsPage";
 import { ProjectAttachmentsPage } from "./pages/ProjectAttachmentsPage";
 import { WorkspaceAttachmentsPage } from "./pages/WorkspaceAttachmentsPage";
-//import { ProjectLeadFormsPage } from "./pages/ProjectLeadFormsPage";
 import { AnalyticsLayout } from "./pages/AnalyticsLayout";
 import { ActivitiesPage } from "./pages/analytics/ActivitiesPage";
 import { DashboardsPage } from "./pages/analytics/DashboardsPage";
@@ -68,7 +66,7 @@ function App() {
           <Route index element={<Navigate to="/home" replace />} />
           <Route path="home" element={<HomePage />} />
           <Route path="chat" element={<ChatPage />} />
-          <Route path="my-tasks" element={<MyTasksPage />} />
+          <Route path="my-tasks" element={<TasksPage scope="user" />} />
           <Route path="workspaces" element={<WorkspacesPage />} />
           <Route path="knowledge-bases" element={<GlobalKnowledgeBasePage />} />
           <Route path="whiteboards" element={<WhiteboardsPage />} />

@@ -45,7 +45,7 @@ export function ActionsCell({ task, onTaskSelect }: ActionsCellProps) {
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
-            className="hover-action hover:bg-hover h-8 w-8 rounded-md p-1 text-muted-foreground opacity-0"
+            className="hover-action h-8 w-8 rounded-md p-1 text-muted-foreground opacity-0 hover:bg-hover"
           >
             <MoreHorizontal className="h-5 w-5" />
           </Button>

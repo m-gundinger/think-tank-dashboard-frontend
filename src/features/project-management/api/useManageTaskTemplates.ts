@@ -13,8 +13,16 @@ export function useManageTaskTemplates(
   workspaceId?: string,
   projectId?: string
 ) {
-  const resourceUrl = `workspaces/${workspaceId}/projects/${projectId}/task-templates`;
-  const resourceKey = ["taskTemplates", projectId];
+  const resourceUrl =
+    workspaceId && projectId
+      ? `workspaces/${workspaceId}/projects/${projectId}/task-templates`
+      : "task-templates";
+
+  const resourceKey = projectId
+    ? ["taskTemplates", projectId]
+    : workspaceId
+      ? ["taskTemplates", workspaceId]
+      : ["taskTemplates"];
 
   const resource = useApiResource<TaskTemplate, TaskTemplateQuery>(
     resourceUrl,

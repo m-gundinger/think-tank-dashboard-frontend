@@ -91,7 +91,7 @@ export function AssigneeCell({ task }: { task: Task }) {
             variant="ghost"
             size="icon"
             onClick={(e) => e.stopPropagation()}
-            className="hover:bg-hover h-7 w-7 flex-shrink-0 rounded-full border-2 border-dashed border-border bg-transparent text-muted-foreground hover:text-foreground"
+            className="hover-action h-7 w-7 flex-shrink-0 rounded-full border-2 border-dashed border-border bg-transparent text-muted-foreground opacity-0 hover:bg-hover hover:text-foreground"
           >
             <UserPlus className="h-4 w-4" />
           </Button>

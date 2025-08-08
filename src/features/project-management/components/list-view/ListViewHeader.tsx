@@ -18,23 +18,6 @@ export function ListViewHeader({
   selectedTaskIds,
   setSelectedTaskIds,
 }: ListViewHeaderProps) {
-  const columnClasses = {
-    name: "sm:col-span-4",
-    workspace: "hidden sm:block sm:col-span-1",
-    project: "hidden sm:block sm:col-span-1",
-    type: "hidden sm:block sm:col-span-1",
-    assignee: "hidden sm:block sm:col-span-1",
-    dueDate: "hidden sm:block sm:col-span-1",
-    priority: "hidden sm:block sm:col-span-1",
-    status: "hidden sm:block sm:col-span-1",
-    actions: "hidden sm:block sm:col-span-1",
-  };
-
-  let nameSpan = 4;
-  if (!showWorkspace) nameSpan++;
-  if (!showProject) nameSpan++;
-  if (!showTaskType) nameSpan++;
-
   const allTaskIds = tasks.map((t) => t.id);
   const isAllSelected =
     allTaskIds.length > 0 && selectedTaskIds.length === allTaskIds.length;
@@ -48,10 +31,8 @@ export function ListViewHeader({
   };
 
   return (
-    <div className="grid grid-cols-12 gap-4 border-b border-border bg-surface px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-      <div
-        className={`col-span-12 sm:col-span-${nameSpan} flex items-center gap-3`}
-      >
+    <div className="grid grid-cols-12 items-center gap-4 border-b border-border bg-surface px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+      <div className="col-span-4 flex items-center gap-3">
         <Checkbox
           checked={isAllSelected}
           onCheckedChange={handleSelectAll}
@@ -61,15 +42,19 @@ export function ListViewHeader({
         Task Name
       </div>
       {showWorkspace && (
-        <div className={columnClasses.workspace}>Workspace</div>
+        <div className="col-span-1 hidden truncate sm:block">Workspace</div>
       )}
-      {showProject && <div className={columnClasses.project}>Project</div>}
-      {showTaskType && <div className={columnClasses.type}>Type</div>}
-      <div className={columnClasses.assignee}>Assignee</div>
-      <div className={columnClasses.dueDate}>Due Date</div>
-      <div className={columnClasses.priority}>Priority</div>
-      <div className={columnClasses.status}>Status</div>
-      <div className={columnClasses.actions}></div>
+      {showProject && (
+        <div className="col-span-1 hidden truncate sm:block">Project</div>
+      )}
+      {showTaskType && (
+        <div className="col-span-1 hidden truncate sm:block">Type</div>
+      )}
+      <div className="col-span-1 hidden sm:block">Assignee</div>
+      <div className="col-span-1 hidden sm:block">Due Date</div>
+      <div className="col-span-1 hidden sm:block">Priority</div>
+      <div className="col-span-1 hidden sm:block">Status</div>
+      <div className="col-span-1"></div>
     </div>
   );
 }

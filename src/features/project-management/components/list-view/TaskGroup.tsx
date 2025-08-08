@@ -3,6 +3,10 @@ import { Task } from "@/types";
 import { TaskRow } from "./TaskRow";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 
 interface TaskGroupProps {
   groupName: string;
@@ -32,6 +36,7 @@ export function TaskGroup({
   if (tasks.length === 0) {
     return null;
   }
+  const taskIds = tasks.map((t) => t.id);
 
   return (
     <div className="task-group">
@@ -49,19 +54,21 @@ export function TaskGroup({
         </span>
       </div>
       <div className={cn("group-tasks", isCollapsed && "hidden")}>
-        {tasks.map((task) => (
-          <TaskRow
-            key={task.id}
-            task={task}
-            onTaskSelect={onTaskSelect}
-            onTaskUpdate={onTaskUpdate}
-            showWorkspace={showWorkspace}
-            showProject={showProject}
-            showTaskType={showTaskType}
-            selectedTaskIds={selectedTaskIds}
-            setSelectedTaskIds={setSelectedTaskIds}
-          />
-        ))}
+        <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
+          {tasks.map((task) => (
+            <TaskRow
+              key={task.id}
+              task={task}
+              onTaskSelect={onTaskSelect}
+              onTaskUpdate={onTaskUpdate}
+              showWorkspace={showWorkspace}
+              showProject={showProject}
+              showTaskType={showTaskType}
+              selectedTaskIds={selectedTaskIds}
+              setSelectedTaskIds={setSelectedTaskIds}
+            />
+          ))}
+        </SortableContext>
       </div>
     </div>
   );

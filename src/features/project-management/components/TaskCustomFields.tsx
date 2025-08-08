@@ -66,7 +66,7 @@ export function TaskCustomFields({ task, workspaceId, projectId }: any) {
 
           return (
             <div key={def.id}>
-              <Label className="text-muted-foreground text-xs">
+              <Label className="text-xs text-muted-foreground">
                 {def.name}
               </Label>
               {def.type === "TEXT" && (

@@ -62,6 +62,7 @@ export function MoveTaskToProjectSelector({
         <Select
           onValueChange={setSelectedProjectId}
           disabled={!selectedWorkspaceId || isLoadingProjects}
+          value={selectedProjectId}
         >
           <SelectTrigger>
             <SelectValue placeholder="Select a project..." />

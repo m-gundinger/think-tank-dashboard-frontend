@@ -24,8 +24,16 @@ export function SortMenu({
   const currentSort = sorting[0];
 
   const handleSort = (columnId: string) => {
-    const isDesc = currentSort?.id === columnId && currentSort.desc;
-    setSorting(isDesc ? [] : [{ id: columnId, desc: !isDesc }]);
+    const isCurrentlySorted = currentSort?.id === columnId;
+    if (isCurrentlySorted && currentSort.desc) {
+      // Third click: remove sort
+      setSorting([]);
+    } else {
+      // First click: sort asc, second click: sort desc
+      setSorting([
+        { id: columnId, desc: isCurrentlySorted ? !currentSort.desc : false },
+      ]);
+    }
   };
 
   return (
@@ -33,7 +41,7 @@ export function SortMenu({
       <DropdownMenuTrigger asChild>
         <Button
           variant="outline"
-          className="hover:bg-hover border-border bg-element text-foreground"
+          className="border-border bg-element text-foreground hover:bg-hover"
         >
           <ArrowDownUp className="mr-2 h-4 w-4" />
           <span>Sort</span>

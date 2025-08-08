@@ -20,7 +20,6 @@ export function ReportingPage() {
   const [projectId, setProjectId] = useState<string | undefined>(
     params.projectId
   );
-
   const { data: workspacesData } = useGetWorkspaces();
   const { data: projectsData } = useGetProjects(workspaceId);
 

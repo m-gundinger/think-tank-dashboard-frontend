@@ -71,7 +71,7 @@ export function SubtaskItem({
   return (
     <div className="flex flex-col">
       <div
-        className="hover:bg-hover group flex cursor-pointer items-center gap-2 rounded-md py-1 pl-1 pr-2"
+        className="group flex cursor-pointer items-center gap-2 rounded-md py-1 pl-1 pr-2 hover:bg-hover"
         onClick={handleSelect}
         style={{ paddingLeft: `${level * 24}px` }}
       >
@@ -90,7 +90,7 @@ export function SubtaskItem({
               )}
             </Button>
           ) : (
-            <div className="w-6" /> // Placeholder for alignment
+            <div className="w-6" />
           )}
         </div>
         <Icon

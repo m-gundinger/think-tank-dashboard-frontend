@@ -27,9 +27,7 @@ const taskSchema = z.object({
   boardColumnId: z.string().uuid().optional().nullable(),
   startDate: z.date().optional().nullable(),
   dueDate: z.date().optional().nullable(),
-  assigneeIds: z
-    .array(z.string().uuid())
-    .min(1, "At least one assignee is required."),
+  assigneeIds: z.array(z.string().uuid()).optional(),
 });
 
 type TaskFormValues = z.infer<typeof taskSchema>;
@@ -81,7 +79,12 @@ export function CreateTaskForm({
     }
   }, [profileData, methods]);
   async function onSubmit(values: TaskFormValues) {
-    const submitData: Partial<TaskFormValues> = { ...values };
+    const submitData: Partial<TaskFormValues> & { projectId?: string } = {
+      ...values,
+    };
+    if (projectId) {
+      submitData.projectId = projectId;
+    }
     if (!submitData.boardColumnId) delete submitData.boardColumnId;
     if (!submitData.parentId) delete submitData.parentId;
     if (!submitData.taskTypeId) delete submitData.taskTypeId;

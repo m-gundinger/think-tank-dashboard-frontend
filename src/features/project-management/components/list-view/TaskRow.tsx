@@ -13,6 +13,9 @@ import {
 } from "./cells";
 import { cn } from "@/lib/utils";
 import { TaskStatus } from "@/types/api";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { useDroppable } from "@dnd-kit/core";
 
 interface TaskRowProps {
   task: Task;
@@ -41,6 +44,27 @@ export function TaskRow({
   const hasSubtasks = task.subtasks && task.subtasks.length > 0;
   const isCompleted = task.status === TaskStatus.DONE;
 
+  const {
+    attributes,
+    listeners,
+    setNodeRef: setDraggableNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: task.id, data: { type: "Task", task } });
+
+  const { setNodeRef: setDroppableNodeRef, isOver } = useDroppable({
+    id: task.id,
+    data: { type: "Task", task },
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 1 : "auto",
+  };
+
   const handleToggleExpand = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsExpanded(!isExpanded);
@@ -54,26 +78,33 @@ export function TaskRow({
     );
   };
 
-  let nameSpan = 4;
-  if (!showWorkspace) nameSpan++;
-  if (!showProject) nameSpan++;
-  if (!showTaskType) nameSpan++;
-
   return (
     <div
+      ref={setDraggableNodeRef}
+      style={style}
       data-task-id={task.id}
       className={cn("task-wrapper", isCompleted && "task-completed")}
     >
       <div
+        ref={setDroppableNodeRef}
         className={cn(
-          "task-row hover:bg-hover grid cursor-pointer grid-cols-12 items-center gap-4 border-b border-border/50 px-4 py-3 transition-colors duration-150"
+          "task-row grid cursor-pointer grid-cols-12 items-center gap-4 border-b border-border/50 px-4 py-3 transition-colors duration-150 hover:bg-hover",
+          isOver && "bg-primary/20"
         )}
         onClick={() => onTaskSelect(task.id)}
       >
         <div
-          className={`col-span-12 sm:col-span-${nameSpan} flex items-center`}
+          className="col-span-4 flex items-center"
           style={{ paddingLeft: `${level * 24}px` }}
         >
+          <span
+            className="task-drag-handle mr-1 cursor-grab touch-none p-1 text-muted-foreground opacity-0 group-hover/task-row:opacity-100"
+            {...attributes}
+            {...listeners}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* :: */}
+          </span>
           <Checkbox
             className="task-checkbox mr-3 h-4 w-4 cursor-pointer rounded border-border bg-element text-primary focus:ring-primary"
             checked={selectedTaskIds.includes(task.id)}
@@ -85,7 +116,7 @@ export function TaskRow({
               <Button
                 variant="ghost"
                 size="icon"
-                className="subtask-toggle-btn hover:bg-hover h-6 w-6 rounded-md p-1"
+                className="subtask-toggle-btn h-6 w-6 rounded-md p-1 hover:bg-hover"
                 onClick={handleToggleExpand}
               >
                 {isExpanded ? (
@@ -126,7 +157,7 @@ export function TaskRow({
         <div className="relative col-span-1 hidden sm:block">
           <StatusCell task={task} onUpdate={onTaskUpdate} />
         </div>
-        <div className="col-span-1 hidden text-right sm:block">
+        <div className="col-span-1 text-right">
           <ActionsCell task={task} onTaskSelect={onTaskSelect} />
         </div>
       </div>

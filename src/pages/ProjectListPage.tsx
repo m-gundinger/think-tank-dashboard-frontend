@@ -66,8 +66,8 @@ export function ProjectListPage() {
           description="Create a new project based on an existing template."
           form={CreateProjectFromTemplateForm}
           formProps={{ workspaceId }}
-          resourcePath={""} // Not a standard CRUD, handled by the form's mutation
-          resourceKey={[]} //
+          resourcePath={""}
+          resourceKey={[]}
         />
       </div>
       <ProjectList workspaceId={workspaceId} />

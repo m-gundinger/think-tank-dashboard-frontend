@@ -2,13 +2,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { KanbanBoard } from "@/features/project-management/components/kanban-view/KanbanBoard";
 import { GanttChartView } from "@/features/project-management/components/gantt-view/GanttChartView";
 import { CalendarView } from "@/features/project-management/components/calendar-view/CalendarView";
-import { Task } from "@/types";
+import { Task, TaskStatus } from "@/types";
 import { View } from "@/types";
 import { ActivityLog } from "@/features/analytics/components/ActivityLog";
 import { ReportingOverview } from "@/features/analytics/components/ReportingOverview";
 import { DashboardList } from "@/features/analytics/components/DashboardList";
 import { ListView } from "./list-view/ListView";
-import React from "react";
+import React, { useMemo } from "react";
 
 interface ProjectDetailViewProps {
   views: View[];
@@ -22,6 +22,15 @@ interface ProjectDetailViewProps {
   emptyState: React.ReactNode;
 }
 
+function mapColumnNameToStatus(columnName: string): TaskStatus | null {
+  const normalizedName = columnName.trim().toUpperCase().replace(/\s+/g, "_");
+  if (normalizedName === "TO_DO") return TaskStatus.TODO;
+  if (Object.values(TaskStatus).includes(normalizedName as TaskStatus)) {
+    return normalizedName as TaskStatus;
+  }
+  return null;
+}
+
 export function ProjectDetailView({
   views,
   tasks,
@@ -33,6 +42,24 @@ export function ProjectDetailView({
   onTabChange,
   emptyState,
 }: ProjectDetailViewProps) {
+  const activeView = views.find((v) => v.id === activeTab);
+
+  const columnStatusMap = useMemo(() => {
+    if (activeView?.type !== "KANBAN" || !activeView?.columns) {
+      return {};
+    }
+    return activeView.columns.reduce(
+      (acc, col) => {
+        const status = col.status || mapColumnNameToStatus(col.name);
+        if (status) {
+          acc[col.id] = status;
+        }
+        return acc;
+      },
+      {} as Record<string, TaskStatus>
+    );
+  }, [activeView]);
+
   return (
     <Tabs value={activeTab} onValueChange={onTabChange} className="space-y-4">
       <TabsList>
@@ -61,11 +88,13 @@ export function ProjectDetailView({
           )}
           {view.type === "KANBAN" && (
             <KanbanBoard
-              views={views}
+              scope="project"
+              columns={view.columns}
               tasks={tasks}
               workspaceId={workspaceId}
               projectId={projectId}
               onTaskSelect={onTaskSelect}
+              columnStatusMap={columnStatusMap}
             />
           )}
           {view.type === "GANTT" && (

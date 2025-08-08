@@ -146,3 +146,61 @@ export function useUpdateTask() {
     },
   });
 }
+
+interface SetTaskParentParams {
+  taskId: string;
+  workspaceId?: string | null;
+  projectId?: string | null;
+  parentId: string | null;
+}
+
+async function setTaskParent({
+  taskId,
+  workspaceId,
+  projectId,
+  parentId,
+}: SetTaskParentParams): Promise<Task> {
+  const url =
+    workspaceId && projectId
+      ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/set-parent`
+      : `tasks/${taskId}/set-parent`;
+  const { data } = await api.patch(url, { parentId });
+  return data;
+}
+
+export function useSetTaskParent() {
+  const queryClient = useQueryClient();
+
+  return useApiMutation<Task, SetTaskParentParams>({
+    mutationFn: setTaskParent,
+    onSuccess: (updatedTask) => {
+      // Invalidate the old parent if there was one
+      // The query for the new parent will be covered by the general invalidations below
+      const originalTask = queryClient.getQueryData<Task>([
+        "task",
+        updatedTask.id,
+      ]);
+      if (originalTask?.parentId) {
+        queryClient.invalidateQueries({
+          queryKey: ["task", originalTask.parentId],
+        });
+      }
+
+      // Invalidate the task itself, its new parent, and relevant lists
+      queryClient.invalidateQueries({ queryKey: ["task", updatedTask.id] });
+      if (updatedTask.parentId) {
+        queryClient.invalidateQueries({
+          queryKey: ["task", updatedTask.parentId],
+        });
+      }
+      if (updatedTask.projectId) {
+        queryClient.invalidateQueries({
+          queryKey: ["tasks", updatedTask.projectId],
+          exact: false,
+        });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["myTasks"], exact: false });
+      }
+    },
+  });
+}

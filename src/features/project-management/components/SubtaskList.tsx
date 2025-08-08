@@ -50,7 +50,7 @@ export function SubtaskList({
             />
           ))
         ) : (
-          <p className="text-muted-foreground p-2 text-center text-xs">
+          <p className="p-2 text-center text-xs text-muted-foreground">
             No sub-tasks yet.
           </p>
         )}

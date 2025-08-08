@@ -123,7 +123,7 @@ export function KanbanTaskCard({
       onClick={() => onTaskSelect(task.id)}
       className={cn(isDragging && "dragging-card")}
     >
-      <Card className="hover:bg-hover mb-2 cursor-grab border-border bg-element active:cursor-grabbing">
+      <Card className="mb-2 cursor-grab border-border bg-element hover:bg-hover active:cursor-grabbing">
         <CardHeader className="flex flex-row items-start justify-between p-3 pb-2">
           <CardTitle className="text-sm font-semibold">{task.title}</CardTitle>
           <DropdownMenu>
@@ -131,7 +131,7 @@ export function KanbanTaskCard({
               <Button
                 variant="ghost"
                 size="icon"
-                className="hover:bg-hover h-6 w-6 shrink-0 text-muted-foreground hover:text-foreground"
+                className="h-6 w-6 shrink-0 text-muted-foreground hover:bg-hover hover:text-foreground"
                 onClick={(e) => e.stopPropagation()}
               >
                 <MoreHorizontal className="h-4 w-4" />

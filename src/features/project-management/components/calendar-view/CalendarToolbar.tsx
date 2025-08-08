@@ -43,7 +43,7 @@ export function CalendarToolbar({
               variant="outline"
               size="icon"
               onClick={() => onNavigate("PREV")}
-              className="hover:bg-hover h-9 w-9 bg-element"
+              className="h-9 w-9 bg-element hover:bg-hover"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -51,7 +51,7 @@ export function CalendarToolbar({
               variant="outline"
               size="icon"
               onClick={() => onNavigate("NEXT")}
-              className="hover:bg-hover h-9 w-9 bg-element"
+              className="h-9 w-9 bg-element hover:bg-hover"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
@@ -65,7 +65,7 @@ export function CalendarToolbar({
         <Button
           onClick={() => onNavigate("TODAY")}
           variant="outline"
-          className="hover:bg-hover bg-element"
+          className="bg-element hover:bg-hover"
         >
           Today
         </Button>

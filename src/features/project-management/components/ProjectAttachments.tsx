@@ -36,7 +36,6 @@ export function ProjectAttachments({
   );
   const attachMutation = useAttachEntity();
   const detachMutation = useDetachEntity();
-
   const { data: kbsData } = useManageKnowledgeBases().useGetAll();
   const { data: pubsData } = useManagePublications().useGetAll();
   const { data: whiteboardsData } = useManageWhiteboards().useGetAll();
@@ -127,7 +126,7 @@ export function ProjectAttachments({
             return (
               <div
                 key={item.id}
-                className="hover:bg-accent/50 flex items-center justify-between rounded-md p-2 text-sm"
+                className="flex items-center justify-between rounded-md p-2 text-sm hover:bg-accent/50"
               >
                 <div className="flex min-w-0 items-center gap-2">
                   <Icon className="h-4 w-4 flex-shrink-0" />
@@ -145,7 +144,7 @@ export function ProjectAttachments({
             );
           })
         ) : (
-          <p className="text-muted-foreground p-2 text-center text-xs">
+          <p className="p-2 text-center text-xs text-muted-foreground">
             No attachments.
           </p>
         )}

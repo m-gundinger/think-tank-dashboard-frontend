@@ -1,8 +1,20 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Task } from "@/types";
 import { TaskStatus } from "@/types/api";
 import { ListViewHeader } from "./ListViewHeader";
 import { TaskGroup } from "./TaskGroup";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+  DragOverlay,
+} from "@dnd-kit/core";
+import { createPortal } from "react-dom";
+import { KanbanTaskCard } from "../kanban-view/KanbanTaskCard";
+import { useSetTaskParent } from "../../api/useUpdateTask";
 
 interface ListViewProps {
   tasks: Task[];
@@ -55,6 +67,40 @@ export function ListView({
   selectedTaskIds,
   setSelectedTaskIds,
 }: ListViewProps) {
+  const [activeTask, setActiveTask] = useState<Task | null>(null);
+  const setParentMutation = useSetTaskParent();
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 10,
+      },
+    })
+  );
+
+  const handleDragStart = (event: any) => {
+    if (event.active.data.current?.type === "Task") {
+      setActiveTask(event.active.data.current.task);
+    }
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    setActiveTask(null);
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const draggedTask = active.data.current?.task as Task;
+      const targetTask = over.data.current?.task as Task;
+
+      if (draggedTask && targetTask) {
+        setParentMutation.mutate({
+          taskId: draggedTask.id,
+          parentId: targetTask.id,
+          workspaceId: draggedTask.workspaceId,
+          projectId: draggedTask.projectId,
+        });
+      }
+    }
+  };
+
   const groupedTasks = useMemo(() => {
     const groupMap = new Map<string, Task[]>();
     const topLevelTasks = tasks.filter((task) => !task.parentId);
@@ -83,31 +129,48 @@ export function ListView({
   }
 
   return (
-    <div className="rounded-lg border border-border bg-surface">
-      <ListViewHeader
-        showWorkspace={showWorkspaceColumn}
-        showProject={showProjectColumn}
-        showTaskType={showTaskTypeColumn}
-        tasks={tasks}
-        selectedTaskIds={selectedTaskIds}
-        setSelectedTaskIds={setSelectedTaskIds}
-      />
-      <div id="task-list">
-        {groupedTasks.map(([groupName, tasksInGroup]) => (
-          <TaskGroup
-            key={groupName}
-            groupName={groupName}
-            tasks={tasksInGroup}
-            onTaskSelect={onTaskSelect}
-            onTaskUpdate={onTaskUpdate}
-            showWorkspace={showWorkspaceColumn}
-            showProject={showProjectColumn}
-            showTaskType={showTaskTypeColumn}
-            selectedTaskIds={selectedTaskIds}
-            setSelectedTaskIds={setSelectedTaskIds}
-          />
-        ))}
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
+      <div className="rounded-lg border border-border bg-surface">
+        <ListViewHeader
+          showWorkspace={showWorkspaceColumn}
+          showProject={showProjectColumn}
+          showTaskType={showTaskTypeColumn}
+          tasks={tasks}
+          selectedTaskIds={selectedTaskIds}
+          setSelectedTaskIds={setSelectedTaskIds}
+        />
+        <div id="task-list">
+          {groupedTasks.map(([groupName, tasksInGroup]) => (
+            <TaskGroup
+              key={groupName}
+              groupName={groupName}
+              tasks={tasksInGroup}
+              onTaskSelect={onTaskSelect}
+              onTaskUpdate={onTaskUpdate}
+              showWorkspace={showWorkspaceColumn}
+              showProject={showProjectColumn}
+              showTaskType={showTaskTypeColumn}
+              selectedTaskIds={selectedTaskIds}
+              setSelectedTaskIds={setSelectedTaskIds}
+            />
+          ))}
+        </div>
       </div>
-    </div>
+      {createPortal(
+        <DragOverlay>
+          {activeTask ? (
+            <div className="dragging-card-overlay">
+              <KanbanTaskCard task={activeTask} onTaskSelect={() => {}} />
+            </div>
+          ) : null}
+        </DragOverlay>,
+        document.body
+      )}
+    </DndContext>
   );
 }
