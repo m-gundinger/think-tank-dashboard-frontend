@@ -49,17 +49,15 @@ export function ChecklistItem({
     <div
       ref={setNodeRef}
       style={style}
-      className="group flex items-center gap-2 rounded-md bg-white"
+      className="group flex items-center gap-2 rounded-md bg-element"
     >
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-8 w-8 cursor-grab"
+      <span
+        className="cursor-grab p-2 text-muted-foreground hover:text-foreground"
         {...listeners}
         {...attributes}
       >
-        <GripVertical className="h-4 w-4" />
-      </Button>
+        <GripVertical className="h-5 w-5" />
+      </span>
       <Checkbox
         checked={item.completed}
         onCheckedChange={(checked) =>
@@ -70,7 +68,7 @@ export function ChecklistItem({
         value={text}
         onChange={handleTextChange}
         onBlur={handleBlur}
-        className={`h-8 flex-grow ${item.completed ? "text-muted-foreground line-through" : ""}`}
+        className={`h-8 flex-grow border-none bg-transparent focus:ring-0 ${item.completed ? "text-muted-foreground line-through" : ""}`}
       />
       <Button
         variant="ghost"

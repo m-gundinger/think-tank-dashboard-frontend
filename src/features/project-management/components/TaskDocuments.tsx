@@ -37,7 +37,7 @@ function DocumentItem({
   const isExternal = !!doc.externalUrl;
 
   return (
-    <div className="hover:bg-accent/50 flex items-center justify-between rounded-md p-2 text-sm">
+    <div className="hover:bg-hover flex items-center justify-between rounded-md p-2 text-sm">
       <a
         href={isExternal ? doc.externalUrl : getAbsoluteUrl(doc.url)}
         target="_blank"
@@ -53,7 +53,7 @@ function DocumentItem({
           {doc.title}
         </span>
         {isPropagated && (
-          <span className="text-muted-foreground text-xs">(from subtask)</span>
+          <span className="text-xs text-muted-foreground">(from subtask)</span>
         )}
       </a>
       {!isPropagated && (
@@ -83,7 +83,7 @@ function DocumentList({
 }) {
   return (
     <div>
-      <h4 className="mb-1 text-xs font-semibold text-gray-500 uppercase">
+      <h4 className="mb-1 text-xs font-semibold uppercase text-muted-foreground">
         {title} ({docs.length})
       </h4>
       <div className="space-y-1 rounded-md border p-1">
@@ -97,7 +97,7 @@ function DocumentList({
             />
           ))
         ) : (
-          <p className="text-muted-foreground p-2 text-center text-xs">
+          <p className="p-2 text-center text-xs text-muted-foreground">
             No documents attached.
           </p>
         )}

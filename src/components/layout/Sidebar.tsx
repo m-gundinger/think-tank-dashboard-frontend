@@ -50,8 +50,8 @@ export function Sidebar() {
   const [isAdminOpen, setIsAdminOpen] = useState(isAdminPath);
 
   return (
-    <aside className="border-border bg-card hidden w-64 flex-col border-r p-4 lg:flex">
-      <h1 className="text-foreground mb-8 text-2xl font-bold">AutoNomos</h1>
+    <aside className="hidden w-64 flex-col border-r border-border bg-background p-4 lg:flex">
+      <h1 className="mb-8 text-2xl font-bold text-foreground">AutoNomos</h1>
       <nav className="flex flex-col gap-1">
         {mainNavItems.map((item) => (
           <NavLink
@@ -59,11 +59,11 @@ export function Sidebar() {
             to={item.to}
             className={({ isActive }) =>
               cn(
-                "text-muted-foreground hover:text-primary flex items-center gap-3 rounded-lg px-3 py-2 text-base font-medium transition-all",
-                isActive && "bg-muted text-primary",
+                "flex items-center gap-3 rounded-lg px-3 py-2 text-base font-medium text-muted-foreground transition-all hover:text-primary",
+                isActive && "bg-background text-primary",
                 item.to.startsWith("/analytics") &&
                   location.pathname.startsWith("/analytics") &&
-                  "bg-muted text-primary"
+                  "bg-background text-primary"
               )
             }
           >
@@ -76,7 +76,7 @@ export function Sidebar() {
           <button
             onClick={() => setIsAdminOpen(!isAdminOpen)}
             className={cn(
-              "text-muted-foreground hover:text-primary flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-base font-medium transition-all",
+              "flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-base font-medium text-muted-foreground transition-all hover:text-primary",
               isAdminPath && "bg-muted text-primary"
             )}
           >
@@ -99,7 +99,7 @@ export function Sidebar() {
                   to={item.to}
                   className={({ isActive }) =>
                     cn(
-                      "text-muted-foreground hover:text-primary flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-normal transition-all",
+                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-normal text-muted-foreground transition-all hover:text-primary",
                       isActive && "text-primary"
                     )
                   }

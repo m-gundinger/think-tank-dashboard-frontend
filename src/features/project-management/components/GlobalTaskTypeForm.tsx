@@ -1,33 +1,42 @@
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import { FormInput, FormSelect } from "@/components/form/FormFields";
-import { useManageViews } from "../api/useManageViews";
+import { FormInput } from "@/components/form/FormFields";
+import { useManageTaskTypes } from "../api/useManageTaskTypes";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
-import { ViewType } from "@/types/api";
-import { View } from "@/types";
 
-interface ViewFormProps {
-  workspaceId: string;
-  projectId: string;
-  initialData?: View;
+const CreateTaskTypeDtoSchema = z.object({
+  name: z.string().min(1, "Type name is required."),
+  icon: z.string().optional().nullable(),
+  color: z.string().optional().nullable(),
+});
+
+type TaskTypeFormValues = z.infer<typeof CreateTaskTypeDtoSchema>;
+
+interface TaskTypeFormProps {
+  initialData?: any;
   onSuccess?: () => void;
 }
 
-export function ViewForm({
-  workspaceId,
-  projectId,
+export function GlobalTaskTypeForm({
   initialData,
   onSuccess,
-}: ViewFormProps) {
+}: TaskTypeFormProps) {
   const isEditMode = !!initialData;
-  const { useCreate, useUpdate } = useManageViews(workspaceId, projectId);
+  const { useCreate, useUpdate } = useManageTaskTypes();
   const createMutation = useCreate();
   const updateMutation = useUpdate();
   const mutation = isEditMode ? updateMutation : createMutation;
 
-  const methods = useForm<any>({
-    defaultValues: { name: "", type: ViewType.LIST },
+  const methods = useForm<TaskTypeFormValues>({
+    resolver: zodResolver(CreateTaskTypeDtoSchema),
+    defaultValues: {
+      name: "",
+      icon: "",
+      color: "",
+    },
   });
 
   useEffect(() => {
@@ -36,7 +45,7 @@ export function ViewForm({
     }
   }, [initialData, isEditMode, methods]);
 
-  async function onSubmit(values: any) {
+  async function onSubmit(values: TaskTypeFormValues) {
     if (isEditMode) {
       await updateMutation.mutateAsync(
         { id: initialData.id, data: values },
@@ -52,26 +61,24 @@ export function ViewForm({
     }
   }
 
-  const viewTypeOptions = Object.values(ViewType).map((type) => ({
-    value: type,
-    label: type,
-  }));
-
   return (
     <FormProvider {...methods}>
       <Form {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
           <FormInput
             name="name"
-            label="View Name"
-            placeholder="e.g., Team Kanban"
+            label="Type Name"
+            placeholder="e.g., Bug, Story, Spike"
           />
-          <FormSelect
-            name="type"
-            label="View Type"
-            placeholder="Select a view type"
-            options={viewTypeOptions}
-            disabled={isEditMode}
+          <FormInput
+            name="icon"
+            label="Icon (Optional)"
+            placeholder="e.g., Bug, Flame, Lightbulb"
+          />
+          <FormInput
+            name="color"
+            label="Color (Optional)"
+            placeholder="e.g., #ff0000, blue.500"
           />
           <Button
             type="submit"
@@ -82,7 +89,7 @@ export function ViewForm({
               ? "Saving..."
               : isEditMode
                 ? "Save Changes"
-                : "Create View"}
+                : "Create Type"}
           </Button>
         </form>
       </Form>

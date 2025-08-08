@@ -1,7 +1,6 @@
-import { TaskList } from "@/features/project-management/components/TaskList";
 import { TaskDetailModal } from "@/features/project-management/components/TaskDetailModal";
 import { useSearchParams } from "react-router-dom";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Select,
   SelectContent,
@@ -12,27 +11,33 @@ import {
 import { Label } from "@/components/ui/label";
 import { ListTasksQuery, Task, ViewColumn } from "@/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MyTasksKanbanBoard } from "@/features/project-management/components/MyTasksKanbanBoard";
+import { MyTasksKanbanBoard } from "@/features/project-management/components/kanban-view/MyTasksKanbanBoard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
-import { CheckSquare, PlusCircle, Filter, Columns } from "lucide-react";
+import { CheckSquare, PlusCircle, Filter, Columns, Trash2 } from "lucide-react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { Button } from "@/components/ui/button";
 import { CreateTaskForm } from "@/features/project-management/components/CreateTaskForm";
 import { useGetMyTasks } from "@/features/project-management/api/useGetMyTasks";
-import { CalendarView } from "@/features/project-management/components/CalendarView";
-import { GanttChartView } from "@/features/project-management/components/GanttChartView";
+import { CalendarView } from "@/features/project-management/components/calendar-view/CalendarView";
+import { GanttChartView } from "@/features/project-management/components/gantt-view/GanttChartView";
 import { SortingState } from "@tanstack/react-table";
 import { useUpdateTask } from "@/features/project-management/api/useUpdateTask";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { TaskStatus } from "@/types/api";
+import { ListView } from "@/features/project-management/components/list-view/ListView";
+import { SortMenu } from "@/features/project-management/components/list-view/SortMenu";
+import { ColumnVisibilityToggle } from "@/features/project-management/components/list-view/ColumnVisibilityToggle";
+import { useManageTasks } from "@/features/project-management/api/useManageTasks";
+import { TemplateSelectorDialog } from "@/features/project-management/components/TemplateSelectorDialog";
 
 const TaskListSkeleton = () => (
   <div className="space-y-2 pt-4">
@@ -43,12 +48,7 @@ const TaskListSkeleton = () => (
 );
 
 const KANBAN_COLUMNS: Omit<ViewColumn, "createdAt" | "updatedAt">[] = [
-  {
-    id: "col-todo",
-    name: "To Do",
-    order: 1,
-    viewId: "my-tasks-view",
-  },
+  { id: "col-todo", name: "To Do", order: 1, viewId: "my-tasks-view" },
   {
     id: "col-in-progress",
     name: "In Progress",
@@ -61,18 +61,8 @@ const KANBAN_COLUMNS: Omit<ViewColumn, "createdAt" | "updatedAt">[] = [
     order: 3,
     viewId: "my-tasks-view",
   },
-  {
-    id: "col-done",
-    name: "Done",
-    order: 4,
-    viewId: "my-tasks-view",
-  },
-  {
-    id: "col-blocked",
-    name: "Blocked",
-    order: 5,
-    viewId: "my-tasks-view",
-  },
+  { id: "col-done", name: "Done", order: 4, viewId: "my-tasks-view" },
+  { id: "col-blocked", name: "Blocked", order: 5, viewId: "my-tasks-view" },
   {
     id: "col-cancelled",
     name: "Cancelled",
@@ -90,23 +80,44 @@ const columnStatusMap: Record<string, TaskStatus> = {
   "col-cancelled": TaskStatus.CANCELLED,
 };
 
+const listSortableColumns = [
+  { id: "title", label: "Task Name" },
+  { id: "priority", label: "Priority" },
+  { id: "dueDate", label: "Due Date" },
+  { id: "status", label: "Status" },
+  { id: "projectName", label: "Project" },
+  { id: "workspaceName", label: "Workspace" },
+];
+
+const initialListColumns = [
+  { id: "workspace", label: "Workspace", visible: true },
+  { id: "project", label: "Project", visible: true },
+  { id: "taskType", label: "Type", visible: true },
+];
+
 export function MyTasksPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedTaskId = searchParams.get("taskId");
   const activeView = searchParams.get("view") || "list";
-  const [page, setPage] = useState(1);
+  const [page] = useState(1);
   const [filter, setFilter] = useState("all_assigned");
   const [sorting, setSorting] = useState<SortingState>([
     { id: "priority", desc: true },
   ]);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [visibleColumnIds, setVisibleColumnIds] = useState<string[]>([
+  const [isTemplateSelectorOpen, setIsTemplateSelectorOpen] = useState(false);
+  const [kanbanColumnIds, setKanbanColumnIds] = useState<string[]>([
     "col-todo",
     "col-in-progress",
     "col-in-review",
     "col-done",
   ]);
+  const [listColumns, setListColumns] = useState(initialListColumns);
+  const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
+
   const updateTaskMutation = useUpdateTask();
+  const { useDelete } = useManageTasks();
+  const bulkDeleteMutation = useDelete();
 
   const handleTaskSelect = (taskId: string | null) => {
     setSearchParams(
@@ -158,11 +169,10 @@ export function MyTasksPage() {
   }, [filter, sorting, activeView, page]);
 
   const { data, isLoading } = useGetMyTasks(queryParams);
-  const handlePageChange = (newPage: number) => {
-    if (newPage > 0 && newPage <= (data?.totalPages || 1)) {
-      setPage(newPage);
-    }
-  };
+
+  useEffect(() => {
+    setSelectedTaskIds([]);
+  }, [data]);
 
   const handleTaskUpdate = (taskId: string, updates: Partial<Task>) => {
     updateTaskMutation.mutate({
@@ -171,18 +181,22 @@ export function MyTasksPage() {
     });
   };
 
-  const visibleColumns = useMemo(
-    () => KANBAN_COLUMNS.filter((c) => visibleColumnIds.includes(c.id)),
-    [visibleColumnIds]
-  );
-
-  const visibleTasks = useMemo(() => {
-    if (activeView !== "kanban" || !data?.data) {
-      return data?.data || [];
+  const handleBulkDelete = () => {
+    if (
+      window.confirm(
+        `Are you sure you want to delete ${selectedTaskIds.length} tasks?`
+      )
+    ) {
+      bulkDeleteMutation.mutate(selectedTaskIds, {
+        onSuccess: () => setSelectedTaskIds([]),
+      });
     }
-    const visibleStatuses = visibleColumnIds.map((id) => columnStatusMap[id]);
-    return data.data.filter((task) => visibleStatuses.includes(task.status));
-  }, [data?.data, visibleColumnIds, activeView]);
+  };
+
+  const visibleKanbanColumns = useMemo(
+    () => KANBAN_COLUMNS.filter((c) => kanbanColumnIds.includes(c.id)),
+    [kanbanColumnIds]
+  );
 
   const emptyState = (
     <EmptyState
@@ -191,16 +205,17 @@ export function MyTasksPage() {
       description="No tasks match your current filter. Try selecting a different filter or create a new task."
     />
   );
+
   return (
     <>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <header className="flex flex-col items-start justify-between sm:flex-row sm:items-center">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-foreground">
               My Tasks
             </h1>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="mt-4 flex items-center space-x-2 sm:mt-0">
             <div className="flex items-center gap-2">
               <Label htmlFor="task-filter" className="sr-only">
                 Filter tasks
@@ -208,7 +223,7 @@ export function MyTasksPage() {
               <Select value={filter} onValueChange={setFilter}>
                 <SelectTrigger
                   id="task-filter"
-                  className="border-slate-700 bg-kanban-column text-slate-300 hover:bg-slate-700 hover:text-white"
+                  className="border-border bg-element text-foreground hover:bg-hover [&>svg]:hidden"
                 >
                   <div className="flex items-center gap-2">
                     <Filter className="h-4 w-4" />
@@ -233,12 +248,29 @@ export function MyTasksPage() {
                   </SelectItem>
                 </SelectContent>
               </Select>
+              <SortMenu
+                sorting={sorting}
+                setSorting={setSorting}
+                sortableColumns={listSortableColumns}
+              />
+              {activeView === "list" && (
+                <ColumnVisibilityToggle
+                  columns={listColumns}
+                  onVisibilityChange={(columnId, visible) => {
+                    setListColumns((prev) =>
+                      prev.map((c) =>
+                        c.id === columnId ? { ...c, visible } : c
+                      )
+                    );
+                  }}
+                />
+              )}
               {activeView === "kanban" && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="outline"
-                      className="border-slate-700 bg-kanban-column text-slate-300 hover:bg-slate-700 hover:text-white"
+                      className="border-border bg-element text-foreground hover:bg-hover"
                     >
                       <Columns className="mr-2 h-4 w-4" />
                       Columns
@@ -250,9 +282,9 @@ export function MyTasksPage() {
                     {KANBAN_COLUMNS.map((column) => (
                       <DropdownMenuCheckboxItem
                         key={column.id}
-                        checked={visibleColumnIds.includes(column.id)}
+                        checked={kanbanColumnIds.includes(column.id)}
                         onCheckedChange={(checked) => {
-                          setVisibleColumnIds((prev) =>
+                          setKanbanColumnIds((prev) =>
                             checked
                               ? [...prev, column.id]
                               : prev.filter((id) => id !== column.id)
@@ -266,26 +298,43 @@ export function MyTasksPage() {
                 </DropdownMenu>
               )}
             </div>
-            <ResourceCrudDialog
-              isOpen={isCreateOpen}
-              onOpenChange={setIsCreateOpen}
-              trigger={
-                <Button
-                  className="bg-kanban-accent text-white hover:bg-kanban-accent/80"
-                  onClick={() => setIsCreateOpen(true)}
-                >
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  New Task
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+                  <PlusCircle className="mr-2 h-4 w-4" /> New Task
                 </Button>
-              }
-              title="Create a new task"
-              description="Fill in the details below to add a new task."
-              form={CreateTaskForm}
-              resourcePath="/tasks"
-              resourceKey={["myTasks"]}
-            />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => setIsCreateOpen(true)}>
+                  New Blank Task
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setIsTemplateSelectorOpen(true)}
+                >
+                  New from Template
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-        </div>
+        </header>
+
+        {selectedTaskIds.length > 0 && (
+          <div className="flex items-center justify-between rounded-lg border border-border bg-surface p-3">
+            <span className="text-sm font-medium">
+              {selectedTaskIds.length} task(s) selected
+            </span>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleBulkDelete}
+              disabled={bulkDeleteMutation.isPending}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete Selected
+            </Button>
+          </div>
+        )}
+
         <Tabs value={activeView} onValueChange={handleViewChange}>
           <TabsList>
             <TabsTrigger value="list">List</TabsTrigger>
@@ -297,19 +346,22 @@ export function MyTasksPage() {
             {isLoading ? (
               <TaskListSkeleton />
             ) : (
-              <TaskList
+              <ListView
                 onTaskSelect={handleTaskSelect}
                 tasks={data?.data || []}
                 emptyState={emptyState}
-                apiUrl="tasks"
-                queryKey={["myTasks"]}
-                sorting={sorting}
-                setSorting={setSorting}
-                pagination={{
-                  page: data?.page || 1,
-                  totalPages: data?.totalPages || 1,
-                  handlePageChange,
-                }}
+                onTaskUpdate={handleTaskUpdate}
+                showWorkspaceColumn={
+                  listColumns.find((c) => c.id === "workspace")?.visible ?? true
+                }
+                showProjectColumn={
+                  listColumns.find((c) => c.id === "project")?.visible ?? true
+                }
+                showTaskTypeColumn={
+                  listColumns.find((c) => c.id === "taskType")?.visible ?? true
+                }
+                selectedTaskIds={selectedTaskIds}
+                setSelectedTaskIds={setSelectedTaskIds}
               />
             )}
           </TabsContent>
@@ -318,9 +370,9 @@ export function MyTasksPage() {
               <TaskListSkeleton />
             ) : (
               <MyTasksKanbanBoard
-                tasks={visibleTasks}
+                tasks={data?.data || []}
                 onTaskSelect={handleTaskSelect}
-                columns={visibleColumns}
+                columns={visibleKanbanColumns}
                 columnStatusMap={columnStatusMap}
               />
             )}
@@ -348,6 +400,22 @@ export function MyTasksPage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      <ResourceCrudDialog
+        isOpen={isCreateOpen}
+        onOpenChange={setIsCreateOpen}
+        title="Create a new task"
+        description="Fill in the details below to add a new task."
+        form={CreateTaskForm}
+        formProps={{}}
+        resourcePath="/tasks"
+        resourceKey={["myTasks"]}
+      />
+
+      <TemplateSelectorDialog
+        isOpen={isTemplateSelectorOpen}
+        onOpenChange={setIsTemplateSelectorOpen}
+      />
 
       <TaskDetailModal
         taskId={selectedTaskId}

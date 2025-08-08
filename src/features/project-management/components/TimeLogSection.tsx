@@ -85,7 +85,7 @@ export function TimeLogSection({ workspaceId, projectId, taskId }: any) {
             />
           ))
         ) : (
-          <p className="text-muted-foreground p-2 text-center text-xs">
+          <p className="p-2 text-center text-xs text-muted-foreground">
             No time logged for this task.
           </p>
         )}

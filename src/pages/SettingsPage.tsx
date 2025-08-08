@@ -3,11 +3,14 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 const settingsNavItems = [
   { to: "/settings/integrations", label: "Integrations" },
   { to: "/settings/security", label: "Security" },
+  { to: "/settings/task-types", label: "Task Types" },
 ];
 
 export function SettingsPage() {
   const location = useLocation();
-  const currentTab = location.pathname;
+  const currentTab =
+    settingsNavItems.find((item) => location.pathname.startsWith(item.to))
+      ?.to || "/settings/integrations";
 
   return (
     <div className="space-y-6">
@@ -18,7 +21,7 @@ export function SettingsPage() {
         </p>
       </div>
 
-      <Tabs defaultValue={currentTab} className="space-y-4">
+      <Tabs value={currentTab} className="space-y-4">
         <TabsList>
           {settingsNavItems.map((item) => (
             <NavLink to={item.to} key={item.to}>

@@ -99,8 +99,8 @@ export function RecurrenceSelector({
       <PopoverContent className="w-80">
         <div className="grid gap-4">
           <div className="space-y-2">
-            <h4 className="leading-none font-medium">Recurrence</h4>
-            <p className="text-muted-foreground text-sm">
+            <h4 className="font-medium leading-none">Recurrence</h4>
+            <p className="text-sm text-muted-foreground">
               Set how often this task should repeat.
             </p>
           </div>

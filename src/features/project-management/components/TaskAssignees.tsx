@@ -98,7 +98,7 @@ export function TaskAssignees({ task }: any) {
           <Badge
             key={assignee.id}
             variant="secondary"
-            className="flex items-center gap-2 rounded-full bg-gray-100 py-0.5 pr-2 pl-0.5"
+            className="flex items-center gap-2 rounded-full bg-element py-0.5 pl-0.5 pr-2"
           >
             <Avatar className="h-5 w-5">
               <AvatarImage
@@ -115,7 +115,7 @@ export function TaskAssignees({ task }: any) {
               onClick={() => unassignMutation.mutate(assignee.id)}
               disabled={unassignMutation.isPending}
             >
-              <X className="text-muted-foreground hover:text-primary h-3 w-3" />
+              <X className="h-3 w-3 text-muted-foreground hover:text-foreground" />
             </Button>
           </Badge>
         ))}

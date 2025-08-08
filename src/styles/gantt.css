@@ -1,59 +1,118 @@
-.gantt_task_line.gantt-task-status-done {
-  background-color: #28a745;
-  border-color: #1e7e34;
-}
-.gantt_task_line.gantt-task-status-done .gantt_task_progress {
-  background-color: #218838;
+/* General Layout & Theme */
+.gantt_container {
+  border-radius: 0.5rem;
+  border: 1px solid hsl(var(--border));
 }
 
-.gantt_task_line.gantt-task-status-in_progress {
-  background-color: #17a2b8;
-  border-color: #117a8b;
+/* Grid Area (Left Panel) */
+.gantt_grid {
+  background-color: hsl(var(--surface));
 }
-.gantt_task_line.gantt-task-status-in_progress .gantt_task_progress {
-  background-color: #138496;
+.gantt_grid_scale {
+  background-color: hsl(var(--surface));
+  border-bottom: 1px solid hsl(var(--border));
 }
-
-.gantt_task_line.gantt-task-status-blocked {
-  background-color: #dc3545;
-  border-color: #b21f2d;
-}
-.gantt_task_line.gantt-task-status-blocked .gantt_task_progress {
-  background-color: #c82333;
-}
-
-.gantt_task_line.gantt-task-status-in_review {
-  background-color: #ffc107;
-  border-color: #d39e00;
-}
-.gantt_task_line.gantt-task-status-in_review .gantt_task_progress {
-  background-color: #e0a800;
-}
-
-.gantt_task_line.gantt-task-status-cancelled {
-  background-color: #6c757d;
-  border-color: #545b62;
-}
-.gantt_task_line.gantt-task-status-cancelled .gantt_task_progress {
-  background-color: #5a6268;
-}
-
-.gantt_task_line.gantt-task-status-todo {
-  background-color: #007bff;
-  border-color: #0062cc;
-}
-.gantt_task_line.gantt-task-status-todo .gantt_task_progress {
-  background-color: #0069d9;
-}
-
-.gantt_grid_scale,
-.gantt_task_scale,
-.gantt_grid_data,
-.gantt_task_content,
-.gantt_tooltip {
-  font-family: var(--font-sans), sans-serif !important;
-}
-
 .gantt_grid_head_cell {
-  font-weight: 600 !important;
+  color: hsl(var(--muted-foreground));
+  font-weight: 600;
+  border-right: 1px solid hsl(var(--border));
+}
+.gantt_row,
+.gantt_task_row {
+  background-color: hsl(var(--surface));
+  border-bottom: 1px solid hsl(var(--border));
+}
+.gantt_row.odd,
+.gantt_task_row.odd {
+  background-color: hsl(var(--background));
+}
+.gantt_cell {
+  border-right: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+.gantt_tree_content {
+  font-weight: 500;
+}
+.gantt_grid_data .gantt_cell.gantt_last_cell {
+  border-right: none;
+}
+.gantt_grid_data .gantt_row:hover, .gantt_grid_data .gantt_row.odd:hover {
+    background-color: hsl(var(--hover));
+}
+
+/* Timeline Area (Right Panel) */
+.gantt_task {
+  background-color: hsl(var(--surface));
+}
+.gantt_task_scale {
+  background-color: hsl(var(--surface));
+  border-bottom: 1px solid hsl(var(--border));
+}
+.gantt_scale_cell {
+  color: hsl(var(--muted-foreground));
+  border-right: 1px solid hsl(var(--border));
+}
+.gantt_task_line {
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  border: 1px solid;
+}
+.gantt_task_progress {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+}
+
+/* Task Status Colors */
+.gantt-status-done {
+  background-color: #10b981;
+  border-color: #059669;
+}
+.gantt-status-in_progress {
+  background-color: #3b82f6;
+  border-color: #2563eb;
+}
+.gantt-status-blocked {
+  background-color: #ef4444;
+  border-color: #dc2626;
+}
+.gantt-status-in_review {
+  background-color: #a855f7;
+  border-color: #9333ea;
+}
+.gantt-status-todo {
+  background-color: #64748b;
+  border-color: #475569;
+}
+.gantt-status-cancelled {
+  background-color: #4b5563;
+  border-color: #374151;
+}
+
+/* Links (Dependencies) */
+.gantt_link_arrow {
+  border-color: hsl(var(--primary));
+}
+.gantt_line_wrapper div {
+  background-color: hsl(var(--primary));
+}
+
+/* Tooltip */
+.gantt_tooltip {
+  background-color: hsl(var(--element));
+  border: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground));
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Today Marker */
+.gantt_today_marker {
+  background-color: hsl(var(--primary));
+  opacity: 0.5;
+}
+
+/* Milestone Marker */
+.gantt_milestone {
+  background-color: hsl(var(--priority-high)); /* amber-500 */
+  border: none;
 }

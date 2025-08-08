@@ -25,7 +25,7 @@ export function KanbanColumn({
     <div
       ref={setNodeRef}
       className={cn(
-        "flex w-72 shrink-0 flex-col rounded-lg bg-kanban-column transition-colors",
+        "flex w-72 shrink-0 flex-col rounded-lg bg-surface transition-colors",
         isOver && "drag-over-column"
       )}
     >
@@ -35,7 +35,7 @@ export function KanbanColumn({
           {tasks.length}
         </Badge>
       </div>
-      <div className="mb-2 border-b border-slate-700"></div>
+      <div className="mb-2 border-b border-border"></div>
       <div className="flex-grow space-y-2 overflow-y-auto px-2 pb-2">
         <SortableContext items={tasksIds}>
           {tasks.map((task: any) => (

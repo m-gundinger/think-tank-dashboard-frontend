@@ -71,7 +71,7 @@ export function SubtaskItem({
   return (
     <div className="flex flex-col">
       <div
-        className="group hover:bg-accent flex items-center gap-2 rounded-md py-1 pr-2 pl-1"
+        className="hover:bg-hover group flex cursor-pointer items-center gap-2 rounded-md py-1 pl-1 pr-2"
         onClick={handleSelect}
         style={{ paddingLeft: `${level * 24}px` }}
       >
@@ -112,7 +112,7 @@ export function SubtaskItem({
           className="h-6 w-6 opacity-0 group-hover:opacity-100"
           onClick={handleRemove}
         >
-          <Trash2 className="text-destructive h-3.5 w-3.5" />
+          <Trash2 className="h-3.5 w-3.5 text-destructive" />
         </Button>
       </div>
       {hasSubtasks && isExpanded && (

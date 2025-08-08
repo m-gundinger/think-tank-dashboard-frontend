@@ -27,21 +27,21 @@ export function ProjectHeader({
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-4">
-        <h1 className="text-foreground text-2xl font-bold tracking-tight">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">
           {project.name}
         </h1>
         <div className="flex -space-x-2">
           {members.slice(0, 3).map((member: any) => (
             <Avatar
               key={member.userId}
-              className="border-kanban-bg h-8 w-8 border-2"
+              className="h-8 w-8 border-2 border-background"
             >
               <AvatarImage src={getAbsoluteUrl(member.avatarUrl)} />
               <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
             </Avatar>
           ))}
           {members.length > 3 && (
-            <Avatar className="border-kanban-bg h-8 w-8 border-2">
+            <Avatar className="h-8 w-8 border-2 border-background">
               <AvatarFallback>+{members.length - 3}</AvatarFallback>
             </Avatar>
           )}
@@ -50,13 +50,13 @@ export function ProjectHeader({
       <div className="flex items-center gap-2">
         <Button
           variant="outline"
-          className="bg-kanban-column border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white"
+          className="hover:bg-hover border-border bg-element text-foreground"
         >
           <Filter className="mr-2 h-4 w-4" /> Filter
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button className="bg-kanban-accent hover:bg-kanban-accent/90 text-primary-foreground">
+            <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
               <Plus className="mr-2 h-4 w-4" /> New Task
             </Button>
           </DropdownMenuTrigger>
@@ -72,7 +72,7 @@ export function ProjectHeader({
         <Button
           variant="outline"
           size="icon"
-          className="bg-kanban-column border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white"
+          className="hover:bg-hover border-border bg-element text-foreground"
           asChild
         >
           <Link to="settings">

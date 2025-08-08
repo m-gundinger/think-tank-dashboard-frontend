@@ -34,12 +34,12 @@ export function TeamCard({ team, onEdit }: { team: Team; onEdit: () => void }) {
       onDelete={handleDelete}
       deleteDisabled={deleteMutation.isPending}
     >
-      <h4 className="text-muted-foreground mb-2 text-sm font-medium">
+      <h4 className="mb-2 text-sm font-medium text-muted-foreground">
         Members
       </h4>
       <div className="flex items-center -space-x-2">
         {team.members.map((member: any) => (
-          <Avatar key={member.id} className="h-7 w-7 border-2 border-white">
+          <Avatar key={member.id} className="h-7 w-7 border-2 border-card">
             <AvatarImage
               src={getAbsoluteUrl(member.avatarUrl)}
               alt={member.name}
@@ -49,7 +49,7 @@ export function TeamCard({ team, onEdit }: { team: Team; onEdit: () => void }) {
           </Avatar>
         ))}
         {team.members.length === 0 && (
-          <p className="text-muted-foreground text-sm">No members yet.</p>
+          <p className="text-sm text-muted-foreground">No members yet.</p>
         )}
       </div>
     </EntityCard>

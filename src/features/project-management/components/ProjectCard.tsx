@@ -47,7 +47,7 @@ export function ProjectCard({ project, onEdit }: ProjectCardProps) {
       icon={Icon}
     >
       <CardContent>
-        <div className="text-muted-foreground flex justify-between text-sm">
+        <div className="flex justify-between text-sm text-muted-foreground">
           <span>Status: {project.status}</span>
           <span>
             Created: {new Date(project.createdAt).toLocaleDateString("en-US")}

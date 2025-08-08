@@ -418,8 +418,8 @@ export function FormAssigneeSelector({
 interface FormTaskTypeSelectorProps {
   name: string;
   label: string;
-  workspaceId: string;
-  projectId: string;
+  workspaceId?: string;
+  projectId?: string;
 }
 
 export function FormTaskTypeSelector({

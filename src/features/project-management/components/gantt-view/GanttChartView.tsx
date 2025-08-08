@@ -3,10 +3,10 @@ import { gantt } from "dhtmlx-gantt";
 import "dhtmlx-gantt/codebase/dhtmlxgantt.css";
 import "@/styles/gantt.css";
 import { Task } from "@/types";
-import { useUpdateTask } from "../api/useUpdateTask";
+import { useUpdateTask } from "../../api/useUpdateTask";
 import { useParams } from "react-router-dom";
 import { TaskLinkType } from "@/types/api";
-import { useManageTaskLinks } from "../api/useManageTaskLinks";
+import { useManageTaskLinks } from "../../api/useManageTaskLinks";
 
 interface GanttChartViewProps {
   tasks: Task[];
@@ -28,31 +28,46 @@ export function GanttChartView({ tasks, onTaskSelect }: GanttChartViewProps) {
 
     gantt.config.date_format = "%Y-%m-%d %H:%i";
     gantt.config.columns = [
-      { name: "text", label: "Task name", tree: true, width: "*" },
-      { name: "start_date", label: "Start time", align: "center", width: 120 },
-      { name: "duration", label: "Duration", align: "center", width: 80 },
+      { name: "text", label: "Task Name", tree: true, width: "*" },
+      { name: "start_date", label: "Start Date", align: "center", width: 90 },
+      { name: "duration", label: "Duration", align: "center", width: 70 },
     ];
     gantt.config.drag_links = true;
     gantt.config.drag_progress = true;
+    gantt.config.drag_resize = true;
+    gantt.config.drag_move = true;
+    gantt.config.show_progress = true;
+    gantt.config.fit_tasks = true;
 
     gantt.templates.tooltip_text = function (_start, _end, task) {
       const taskData = (task as any).resource as Task;
       if (!taskData) return task.text;
+      const statusText = taskData.status.replace("_", " ");
       return `<b>${task.text}</b><br/>
-              <b>Status:</b> ${taskData.status}<br/>
-              <b>Priority:</b> ${taskData.priority}<br/>
+              <b>Status:</b> ${statusText}<br/>
               <b>Duration:</b> ${task.duration} days`;
     };
 
     gantt.templates.task_class = function (_start, _end, task) {
       const taskData = (task as any).resource as Task;
       if (taskData) {
-        return `gantt-task-status-${taskData.status.toLowerCase()}`;
+        return `gantt-status-${taskData.status.toLowerCase()}`;
       }
       return "";
     };
 
+    gantt.plugins({
+      marker: true,
+    });
+
     gantt.init(ganttContainer.current);
+
+    gantt.addMarker({
+      start_date: new Date(),
+      css: "gantt_today_marker",
+      text: "Today",
+      title: `Today: ${new Date().toLocaleDateString()}`,
+    });
 
     const onTaskClickHandler = (id: string | number) => {
       onTaskSelect(id as string);
@@ -78,14 +93,14 @@ export function GanttChartView({ tasks, onTaskSelect }: GanttChartViewProps) {
       ) {
         updates.startDate = task.start_date?.toISOString() ?? null;
         updates.dueDate = task.end_date?.toISOString() ?? null;
-
-        updateTaskMutation.mutate({
-          taskId: id as string,
-          workspaceId,
-          projectId,
-          taskData: updates,
-        });
       }
+
+      updateTaskMutation.mutate({
+        taskId: id as string,
+        workspaceId,
+        projectId,
+        taskData: updates,
+      });
     };
 
     const onAfterLinkAddHandler = (_id: string | number, link: any) => {
@@ -97,9 +112,8 @@ export function GanttChartView({ tasks, onTaskSelect }: GanttChartViewProps) {
     };
 
     const onAfterLinkDeleteHandler = (id: string | number, link: any) => {
-      // Gantt link id is what we need to use
       removeLink({
-        taskId: link.source, // taskId is required but not used for deletion
+        taskId: link.source,
         linkId: id as string,
       });
     };
@@ -142,7 +156,7 @@ export function GanttChartView({ tasks, onTaskSelect }: GanttChartViewProps) {
                 id: link.id,
                 source: task.id,
                 target: link.targetTask.id,
-                type: "0", // Finish to Start
+                type: "0",
               });
             }
           });
@@ -155,7 +169,12 @@ export function GanttChartView({ tasks, onTaskSelect }: GanttChartViewProps) {
             ? new Date(task.dueDate)
             : new Date(new Date().setDate(new Date().getDate() + 1)),
           parent: task.parentId || 0,
-          progress: task.status === "DONE" ? 1 : 0.4,
+          progress:
+            task.status === "DONE"
+              ? 1
+              : task.progress
+                ? task.progress / 100
+                : 0,
           open: true,
           resource: task,
         };
@@ -169,6 +188,7 @@ export function GanttChartView({ tasks, onTaskSelect }: GanttChartViewProps) {
       gantt.parse(formattedTasks);
     }
   }, [tasks]);
+
   return (
     <div
       ref={ganttContainer}

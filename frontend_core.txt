@@ -92,7 +92,7 @@ export default [
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
-    "@hookform/resolvers": "^5.1.1",
+    "@hookform/resolvers": "^5.2.1",
     "@radix-ui/react-avatar": "^1.1.10",
     "@radix-ui/react-checkbox": "^1.3.2",
     "@radix-ui/react-dialog": "^1.1.14",
@@ -133,16 +133,16 @@ export default [
     "path": "^0.12.7",
     "react": "^19.1.0",
     "react-big-calendar": "^1.19.4",
-    "react-day-picker": "^9.8.0",
+    "react-day-picker": "^9.8.1",
     "react-dom": "^19.1.0",
     "react-grid-layout": "^1.5.2",
-    "react-hook-form": "^7.60.0",
+    "react-hook-form": "^7.62.0",
     "react-router-dom": "^7.6.3",
     "recharts": "^3.1.0",
     "rrule": "^2.8.1",
     "sanitize-html": "^2.17.0",
     "socket.io-client": "^4.8.1",
-    "sonner": "^2.0.6",
+    "sonner": "^2.0.7",
     "tailwind-merge": "^3.3.1",
     "tailwindcss-animate": "^1.0.7",
     "tailwindcss-classnames": "^3.2.0",
@@ -150,7 +150,7 @@ export default [
     "tldraw": "^3.14.2",
     "uuid": "^11.1.0",
     "vaul": "^1.1.2",
-    "zod": "^4.0.5",
+    "zod": "^4.0.15",
     "zustand": "^5.0.6"
   },
   "devDependencies": {
@@ -163,12 +163,13 @@ export default [
     "@types/react-dom": "^19.1.6",
     "@types/react-grid-layout": "^1.3.5",
     "@types/sanitize-html": "^2.16.0",
-    "@typescript-eslint/eslint-plugin": "^8.36.0",
-    "@typescript-eslint/parser": "^8.36.0",
+    "@typescript-eslint/eslint-plugin": "^8.39.0",
+    "@typescript-eslint/parser": "^8.39.0",
     "@vitejs/plugin-react": "^4.6.0",
     "autoprefixer": "^10.4.21",
     "eslint": "^9.31.0",
     "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.3.0",
@@ -184,6 +185,7 @@ export default [
     "vite": "^7.0.4"
   }
 }
+
 // FILE: postcss.config.js
 export default {
   plugins: {
@@ -218,7 +220,7 @@ import { ProjectSettingsPage } from "./pages/ProjectSettingsPage";
 import { ProjectAccessControlPage } from "./pages/ProjectAccessControlPage";
 import { ProjectCustomFieldsPage } from "./pages/ProjectCustomFieldsPage";
 import { ProjectTaskTypesPage } from "./pages/ProjectTaskTypesPage";
-import { ProjectViewsPage } from "./pages/ProjectViewsPage";
+//import { ProjectViewsPage } from "./pages/ProjectViewsPage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 import { SetupPasswordPage } from "./pages/SetupPasswordPage";
@@ -237,12 +239,13 @@ import { GlobalKnowledgeBasePage } from "./pages/GlobalKnowledgeBasePage";
 import { WhiteboardsPage } from "./pages/WhiteboardsPage";
 import { ProjectAttachmentsPage } from "./pages/ProjectAttachmentsPage";
 import { WorkspaceAttachmentsPage } from "./pages/WorkspaceAttachmentsPage";
-import { ProjectLeadFormsPage } from "./pages/ProjectLeadFormsPage";
+//import { ProjectLeadFormsPage } from "./pages/ProjectLeadFormsPage";
 import { AnalyticsLayout } from "./pages/AnalyticsLayout";
 import { ActivitiesPage } from "./pages/analytics/ActivitiesPage";
 import { DashboardsPage } from "./pages/analytics/DashboardsPage";
 import { ReportingPage } from "./pages/analytics/ReportingPage";
 import { ReportsPage } from "./pages/analytics/ReportsPage";
+import { TaskTypesSettingsPage } from "./pages/TaskTypesSettingsPage";
 
 function App() {
   return (
@@ -314,10 +317,8 @@ function App() {
             <Route path="access" element={<ProjectAccessControlPage />} />
             <Route path="custom-fields" element={<ProjectCustomFieldsPage />} />
             <Route path="task-types" element={<ProjectTaskTypesPage />} />
-            <Route path="views" element={<ProjectViewsPage />} />
             <Route path="goals" element={<ProjectGoalsPage />} />
             <Route path="templates" element={<ProjectTemplatesPage />} />
-            <Route path="lead-forms" element={<ProjectLeadFormsPage />} />
             <Route path="attachments" element={<ProjectAttachmentsPage />} />
           </Route>
           <Route
@@ -329,6 +330,7 @@ function App() {
             <Route index element={<Navigate to="integrations" replace />} />
             <Route path="integrations" element={<IntegrationsPage />} />
             <Route path="security" element={<AccountSettingsPage />} />
+            <Route path="task-types" element={<TaskTypesSettingsPage />} />
           </Route>
           <Route path="admin" element={<AdminLayout />}>
             <Route index element={<Navigate to="/admin/users" replace />} />
@@ -768,8 +770,8 @@ export function FormAssigneeSelector({
 interface FormTaskTypeSelectorProps {
   name: string;
   label: string;
-  workspaceId: string;
-  projectId: string;
+  workspaceId?: string;
+  projectId?: string;
 }
 
 export function FormTaskTypeSelector({
@@ -799,7 +801,6 @@ export function FormTaskTypeSelector({
     />
   );
 }
-
 // FILE: src/components/layout/ActiveUsers.tsx
 import { usePresenceStore } from "@/store/presence";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -879,7 +880,7 @@ export function Header() {
 
   return (
     <>
-      <header className="border-border bg-card flex h-16 items-center border-b px-6">
+      <header className="flex h-16 items-center border-b border-border bg-background px-6">
         <div className="flex-1"></div>
         <div className="flex items-center gap-2">
           <Button
@@ -895,7 +896,7 @@ export function Header() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                 {isLoading ? (
-                  <div className="bg-muted h-8 w-8 animate-pulse rounded-full"></div>
+                  <div className="h-8 w-8 animate-pulse rounded-full bg-muted"></div>
                 ) : (
                   <Avatar className="h-8 w-8">
                     <AvatarImage
@@ -912,7 +913,7 @@ export function Header() {
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium">{user?.name}</p>
-                  <p className="text-muted-foreground text-xs leading-none">
+                  <p className="text-xs leading-none text-muted-foreground">
                     {user?.email}
                   </p>
                 </div>
@@ -1013,8 +1014,8 @@ export function Sidebar() {
   const [isAdminOpen, setIsAdminOpen] = useState(isAdminPath);
 
   return (
-    <aside className="border-border bg-card hidden w-64 flex-col border-r p-4 lg:flex">
-      <h1 className="text-foreground mb-8 text-2xl font-bold">AutoNomos</h1>
+    <aside className="hidden w-64 flex-col border-r border-border bg-background p-4 lg:flex">
+      <h1 className="mb-8 text-2xl font-bold text-foreground">AutoNomos</h1>
       <nav className="flex flex-col gap-1">
         {mainNavItems.map((item) => (
           <NavLink
@@ -1022,11 +1023,11 @@ export function Sidebar() {
             to={item.to}
             className={({ isActive }) =>
               cn(
-                "text-muted-foreground hover:text-primary flex items-center gap-3 rounded-lg px-3 py-2 text-base font-medium transition-all",
-                isActive && "bg-muted text-primary",
+                "flex items-center gap-3 rounded-lg px-3 py-2 text-base font-medium text-muted-foreground transition-all hover:text-primary",
+                isActive && "bg-background text-primary",
                 item.to.startsWith("/analytics") &&
                   location.pathname.startsWith("/analytics") &&
-                  "bg-muted text-primary"
+                  "bg-background text-primary"
               )
             }
           >
@@ -1039,7 +1040,7 @@ export function Sidebar() {
           <button
             onClick={() => setIsAdminOpen(!isAdminOpen)}
             className={cn(
-              "text-muted-foreground hover:text-primary flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-base font-medium transition-all",
+              "flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-base font-medium text-muted-foreground transition-all hover:text-primary",
               isAdminPath && "bg-muted text-primary"
             )}
           >
@@ -1062,7 +1063,7 @@ export function Sidebar() {
                   to={item.to}
                   className={({ isActive }) =>
                     cn(
-                      "text-muted-foreground hover:text-primary flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-normal transition-all",
+                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-normal text-muted-foreground transition-all hover:text-primary",
                       isActive && "text-primary"
                     )
                   }
@@ -4001,106 +4002,6 @@ export function useToggleWorkflow() {
     mutationFn: toggleWorkflow,
     invalidateQueries: [["workflows"]],
   });
-}
-// FILE: src/features/admin/workflows/components/action-fields/ActionRepeater.tsx
-import { Control, useWatch } from "react-hook-form";
-import { Button } from "@/components/ui/button";
-import { ShieldQuestion, Trash2 } from "lucide-react";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { WorkflowActionType } from "@/types/api";
-import {
-  UpdateTaskStatusFields,
-  CreateTaskFields,
-  AddCommentActionFields,
-  AssignTaskActionFields,
-  SendEmailBrevoFields,
-  SendTelegramMessageFields,
-  SendWebhookFields,
-} from "./index";
-
-interface ActionRepeaterProps {
-  control: Control<any>;
-  index: number;
-  remove: (index: number) => void;
-}
-
-const actionFieldComponents: Record<string, React.FC<any>> = {
-  [WorkflowActionType.UPDATE_TASK_STATUS]: UpdateTaskStatusFields,
-  [WorkflowActionType.CREATE_TASK]: CreateTaskFields,
-  [WorkflowActionType.ADD_COMMENT]: AddCommentActionFields,
-  [WorkflowActionType.ASSIGN_TASK]: AssignTaskActionFields,
-  [WorkflowActionType.SEND_EMAIL_BREVO]: SendEmailBrevoFields,
-  [WorkflowActionType.SEND_TELEGRAM_MESSAGE]: SendTelegramMessageFields,
-  [WorkflowActionType.SEND_WEBHOOK]: SendWebhookFields,
-};
-
-export function ActionRepeater({
-  control,
-  index,
-  remove,
-}: ActionRepeaterProps) {
-  const actionType = useWatch({
-    control,
-    name: `actions.${index}.type`,
-  });
-  const SpecificFields = actionFieldComponents[actionType as string];
-
-  return (
-    <div className="flex items-start gap-4 rounded-md border bg-slate-50 p-4">
-      <div className="flex-grow space-y-4">
-        <FormField
-          control={control}
-          name={`actions.${index}.type`}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Action</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select an action" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {Object.values(WorkflowActionType).map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type.replace(/_/g, " ")}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FormItem>
-          )}
-        />
-        {SpecificFields && <SpecificFields control={control} index={index} />}
-      </div>
-      <div className="flex flex-col gap-2 pt-8">
-        <Button type="button" variant="ghost" size="icon" className="shrink-0">
-          <ShieldQuestion className="h-4 w-4" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          onClick={() => remove(index)}
-          className="shrink-0"
-        >
-          <Trash2 className="text-destructive h-4 w-4" />
-        </Button>
-      </div>
-    </div>
-  );
 }
 // FILE: src/features/admin/workflows/components/action-fields/AddCommentFields.tsx
 import { Control } from "react-hook-form";
@@ -12126,20 +12027,35 @@ export function useGetViewData(
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
 
+interface InstantiateTemplateParams {
+  templateId: string;
+  workspaceId?: string;
+  projectId?: string;
+}
+
 async function instantiateTemplate({
   templateId,
-}: {
-  templateId: string;
-}): Promise<any> {
-  const { data } = await api.post(`task-templates/${templateId}/instantiate`);
+  workspaceId,
+  projectId,
+}: InstantiateTemplateParams): Promise<any> {
+  const { data } = await api.post(`task-templates/${templateId}/instantiate`, {
+    workspaceId,
+    projectId,
+  });
   return data;
 }
 
-export function useInstantiateTaskTemplate(projectId: string) {
-  return useApiMutation({
-    mutationFn: (templateId: string) => instantiateTemplate({ templateId }),
+export function useInstantiateTaskTemplate(
+  workspaceId?: string,
+  projectId?: string
+) {
+  const invalidateKeys = projectId ? [["tasks", projectId]] : [["myTasks"]];
+
+  return useApiMutation<any, { templateId: string }>({
+    mutationFn: ({ templateId }) =>
+      instantiateTemplate({ templateId, workspaceId, projectId }),
     successMessage: "Task created from template.",
-    invalidateQueries: [["tasks", projectId]],
+    invalidateQueries: invalidateKeys,
   });
 }
 // FILE: src/features/project-management/api/useManageGoals.ts
@@ -12781,21 +12697,43 @@ export function useManageTasks(
 }
 // FILE: src/features/project-management/api/useManageTaskTemplates.ts
 import { useApiResource } from "@/hooks/useApiResource";
+import { TaskTemplate } from "@/types";
 
-export function useManageTaskTemplates(workspaceId: string, projectId: string) {
-  const resource = useApiResource(
-    `workspaces/${workspaceId}/projects/${projectId}/task-templates`,
-    ["taskTemplates", projectId]
+interface TaskTemplateQuery {
+  search?: string;
+  page?: number;
+  limit?: number;
+  workspaceId?: string;
+  projectId?: string;
+}
+
+export function useManageTaskTemplates(
+  workspaceId?: string,
+  projectId?: string
+) {
+  const resourceUrl = `workspaces/${workspaceId}/projects/${projectId}/task-templates`;
+  const resourceKey = ["taskTemplates", projectId];
+
+  const resource = useApiResource<TaskTemplate, TaskTemplateQuery>(
+    resourceUrl,
+    resourceKey
   );
   return resource;
 }
 // FILE: src/features/project-management/api/useManageTaskTypes.ts
 import { useApiResource } from "@/hooks/useApiResource";
-export function useManageTaskTypes(workspaceId: string, projectId: string) {
-  const resource = useApiResource(
-    `workspaces/${workspaceId}/projects/${projectId}/task-types`,
-    ["taskTypes", projectId]
-  );
+
+export function useManageTaskTypes(workspaceId?: string, projectId?: string) {
+  // Project-specific task types
+  if (workspaceId && projectId) {
+    const resource = useApiResource(
+      `workspaces/${workspaceId}/projects/${projectId}/task-types`,
+      ["taskTypes", projectId]
+    );
+    return resource;
+  }
+  // Global task types (for standalone tasks)
+  const resource = useApiResource("task-types", ["taskTypes", "global"]);
   return resource;
 }
 // FILE: src/features/project-management/api/useManageTaskWatchers.ts
@@ -13231,11 +13169,10 @@ import { useGetProjectMembers } from "@/features/project-management/api/useGetPr
 import { useApiResource } from "@/hooks/useApiResource";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getAbsoluteUrl } from "@/lib/utils";
-import { FormControl } from "@/components/ui/form";
 
 interface AssigneeSelectorProps {
   projectId?: string | null;
-  workspaceId?: string;
+  workspaceId?: string | null;
   selectedIds: string[];
   onSelectionChange: (newIds: string[]) => void;
 }
@@ -13263,7 +13200,6 @@ export function AssigneeSelector({
     });
 
   const isLoading = isLoadingProjectMembers || isLoadingAllUsers;
-
   const availableUsers: SelectableUser[] = useMemo(() => {
     if (projectId) {
       return (
@@ -13303,422 +13239,570 @@ export function AssigneeSelector({
   };
 
   return (
-    <FormControl>
-      <div className="border-input flex min-h-9 flex-wrap items-center gap-2 rounded-md border p-1">
-        {selectedUsers.map((user) => (
-          <Badge
-            key={user.id}
-            variant="secondary"
-            className="flex items-center gap-2 rounded-full bg-gray-100 py-0.5 pr-2 pl-0.5"
+    <div className="flex min-h-9 flex-wrap items-center gap-2 rounded-md border border-input p-1">
+      {selectedUsers.map((user) => (
+        <Badge
+          key={user.id}
+          variant="secondary"
+          className="flex items-center gap-2 rounded-full bg-gray-100 py-0.5 pl-0.5 pr-2"
+        >
+          <Avatar className="h-5 w-5">
+            <AvatarImage src={getAbsoluteUrl(user.avatarUrl)} alt={user.name} />
+            <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
+          </Avatar>
+          <span className="text-sm font-normal">{user.name}</span>
+          <Button
+            size="icon"
+            variant="ghost"
+            type="button"
+            className="ml-1 h-4 w-4 rounded-full"
+            onClick={() => handleRemove(user.id)}
           >
-            <Avatar className="h-5 w-5">
-              <AvatarImage
-                src={getAbsoluteUrl(user.avatarUrl)}
-                alt={user.name}
-              />
-              <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <span className="text-sm font-normal">{user.name}</span>
-            <Button
-              size="icon"
-              variant="ghost"
-              type="button"
-              className="ml-1 h-4 w-4 rounded-full"
-              onClick={() => handleRemove(user.id)}
-            >
-              <X className="text-muted-foreground hover:text-primary h-3 w-3" />
-            </Button>
-          </Badge>
-        ))}
+            <X className="h-3 w-3 text-muted-foreground hover:text-primary" />
+          </Button>
+        </Badge>
+      ))}
 
-        <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6"
-              disabled={isLoading}
-            >
-              <UserPlus className="h-4 w-4" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-[200px] p-0">
-            <Command>
-              <CommandInput placeholder="Assign user..." />
-              <CommandList>
-                <CommandEmpty>No available users found.</CommandEmpty>
-                <CommandGroup>
-                  {unassignedUsers.map((user: SelectableUser) => (
-                    <CommandItem
-                      key={user.id}
-                      value={user.name}
-                      onSelect={() => handleSelect(user.id)}
-                      className="flex items-center"
-                    >
-                      <Avatar className="mr-2 h-5 w-5">
-                        <AvatarImage
-                          src={getAbsoluteUrl(user.avatarUrl)}
-                          alt={user.name}
-                        />
-                        <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <span className="flex-1 truncate">{user.name}</span>
-                      <Check
-                        className={cn(
-                          "ml-auto h-4 w-4",
-                          selectedIds.includes(user.id)
-                            ? "opacity-100"
-                            : "opacity-0"
-                        )}
+      <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6"
+            disabled={isLoading}
+          >
+            <UserPlus className="h-4 w-4" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-[200px] p-0">
+          <Command>
+            <CommandInput placeholder="Assign user..." />
+            <CommandList>
+              <CommandEmpty>No available users found.</CommandEmpty>
+              <CommandGroup>
+                {unassignedUsers.map((user: SelectableUser) => (
+                  <CommandItem
+                    key={user.id}
+                    value={user.name}
+                    onSelect={() => handleSelect(user.id)}
+                    className="flex items-center"
+                  >
+                    <Avatar className="mr-2 h-5 w-5">
+                      <AvatarImage
+                        src={getAbsoluteUrl(user.avatarUrl)}
+                        alt={user.name}
                       />
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
-      </div>
-    </FormControl>
+                      <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <span className="flex-1 truncate">{user.name}</span>
+                    <Check
+                      className={cn(
+                        "ml-auto h-4 w-4",
+                        selectedIds.includes(user.id)
+                          ? "opacity-100"
+                          : "opacity-0"
+                      )}
+                    />
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+    </div>
   );
 }
-// FILE: src/features/project-management/components/BacklogTaskItem.tsx
-import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import { Card } from "@/components/ui/card";
+// FILE: src/features/project-management/components/calendar-view/AgendaView.tsx
 import { Task } from "@/types";
+import { isSameDay, format } from "date-fns";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getAbsoluteUrl } from "@/lib/utils";
+import { TaskPriority } from "@/types/api";
 
-interface BacklogTaskItemProps {
+interface AgendaViewProps {
+  tasks: Task[];
+  onTaskSelect: (taskId: string) => void;
+}
+
+const priorityBadgeConfig: Partial<
+  Record<TaskPriority, { label: string; className: string }>
+> = {
+  [TaskPriority.HIGH]: {
+    label: "High",
+    className: "bg-priority-high/80 text-white",
+  },
+  [TaskPriority.MEDIUM]: {
+    label: "Medium",
+    className: "bg-priority-medium/80 text-white",
+  },
+  [TaskPriority.LOW]: {
+    label: "Low",
+    className: "bg-green-500/80 text-white",
+  },
+};
+
+export function AgendaView({ tasks, onTaskSelect }: AgendaViewProps) {
+  const upcomingTasks = tasks
+    .filter((task) => task.dueDate && new Date(task.dueDate) >= new Date())
+    .sort(
+      (a, b) => new Date(a.dueDate!).getTime() - new Date(b.dueDate!).getTime()
+    );
+
+  const groupedTasks = upcomingTasks.reduce(
+    (acc: Record<string, Task[]>, task) => {
+      const dateKey = new Date(task.dueDate!).toDateString();
+      if (!acc[dateKey]) {
+        acc[dateKey] = [];
+      }
+      acc[dateKey].push(task);
+      return acc;
+    },
+    {}
+  );
+
+  if (Object.keys(groupedTasks).length === 0) {
+    return (
+      <div className="p-8 text-center text-muted-foreground">
+        No upcoming tasks.
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6 p-4">
+      {Object.entries(groupedTasks).map(([dateKey, tasksForDay]) => {
+        const groupDate = new Date(dateKey);
+        const isToday = isSameDay(groupDate, new Date());
+        const dateLabel = isToday ? "Today" : format(groupDate, "EEEE, MMMM d");
+
+        return (
+          <div key={dateKey}>
+            <h3 className="mb-2 border-b border-border pb-2 text-lg font-semibold text-foreground">
+              {dateLabel}
+            </h3>
+            <div className="space-y-3">
+              {tasksForDay.map((task) => {
+                const priorityConfig = priorityBadgeConfig[task.priority];
+                const assignee = task.assignees?.[0];
+
+                return (
+                  <div
+                    key={task.id}
+                    className="task-item flex cursor-pointer items-center justify-between rounded-lg bg-element p-3"
+                    onClick={() => onTaskSelect(task.id)}
+                  >
+                    <div className="flex items-center gap-4">
+                      {assignee && (
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage
+                            src={getAbsoluteUrl(assignee.avatarUrl)}
+                          />
+                          <AvatarFallback>
+                            {assignee.name.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                      )}
+                      <div>
+                        <p className="font-semibold text-foreground">
+                          {task.title}
+                        </p>
+                        <p className="text-sm text-primary">
+                          {task.projectName}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      {priorityConfig && (
+                        <span
+                          className={`task-tag rounded-full px-3 py-1 text-xs font-medium ${priorityConfig.className}`}
+                        >
+                          {priorityConfig.label}
+                        </span>
+                      )}
+                      <p className="w-24 text-right text-sm text-muted-foreground">
+                        {task.status.replace(/_/g, " ")}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// FILE: src/features/project-management/components/calendar-view/CalendarTaskItem.tsx
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getAbsoluteUrl } from "@/lib/utils";
+import { Task, TaskPriority } from "@/types";
+
+interface CalendarTaskItemProps {
   task: Task;
   onTaskSelect: (taskId: string) => void;
 }
 
-export function BacklogTaskItem({ task, onTaskSelect }: BacklogTaskItemProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({
-    id: task.id,
-    data: {
-      type: "Task",
-      task,
-    },
-  });
-  const style = {
-    transition,
-    transform: CSS.Transform.toString(transform),
-    opacity: isDragging ? 0.5 : 1,
-  };
+const priorityBadgeConfig: Partial<
+  Record<TaskPriority, { label: string; className: string }>
+> = {
+  [TaskPriority.HIGH]: {
+    label: "High",
+    className: "bg-priority-high/80 text-white",
+  },
+  [TaskPriority.MEDIUM]: {
+    label: "Medium",
+    className: "bg-priority-medium/80 text-white",
+  },
+  [TaskPriority.LOW]: {
+    label: "Low",
+    className: "bg-green-500/80 text-white",
+  },
+};
+
+export function CalendarTaskItem({
+  task,
+  onTaskSelect,
+}: CalendarTaskItemProps) {
+  const priorityConfig = priorityBadgeConfig[task.priority];
+  const assignee = task.assignees?.[0];
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <Card
-        className="mb-2 cursor-grab p-3 active:cursor-grabbing"
-        onClick={() => onTaskSelect(task.id)}
-      >
-        <p className="text-sm font-medium">{task.title}</p>
-      </Card>
+    <div
+      className="task-item cursor-pointer space-y-1 rounded-md bg-element p-2 shadow"
+      onClick={() => onTaskSelect(task.id)}
+    >
+      <p className="truncate text-xs font-semibold text-foreground">
+        {task.title}
+      </p>
+      <div className="flex items-center justify-between">
+        {priorityConfig ? (
+          <span
+            className={`task-tag rounded-full px-2 py-0.5 text-[0.7rem] font-medium ${priorityConfig.className}`}
+          >
+            {priorityConfig.label}
+          </span>
+        ) : (
+          <div />
+        )}
+        {assignee && (
+          <Avatar className="h-5 w-5 ring-2 ring-surface">
+            <AvatarImage
+              src={getAbsoluteUrl(assignee.avatarUrl)}
+              alt={assignee.name}
+            />
+            <AvatarFallback>{assignee.name.charAt(0)}</AvatarFallback>
+          </Avatar>
+        )}
+      </div>
     </div>
   );
 }
-// FILE: src/features/project-management/components/BacklogView.tsx
-import {
-  DndContext,
-  DragEndEvent,
-  DragOverlay,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragStartEvent,
-} from "@dnd-kit/core";
-import { createPortal } from "react-dom";
-import { Task } from "@/types";
-import { KanbanTaskCard } from "./KanbanTaskCard";
-import { useState } from "react";
 
-interface BacklogViewProps {
-  tasks: Task[];
-  workspaceId: string;
-  projectId: string;
-  onTaskSelect: (taskId: string) => void;
-}
-
-export function BacklogView({ tasks }: BacklogViewProps) {
-  const [activeTask, setActiveTask] = useState<Task | null>(null);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 10,
-      },
-    })
-  );
-  const onDragStart = (event: DragStartEvent) => {
-    if (event.active.data.current?.type === "Task") {
-      setActiveTask(event.active.data.current.task);
-    }
-  };
-
-  const onDragEnd = (event: DragEndEvent) => {
-    setActiveTask(null);
-    const { active, over } = event;
-    if (!over) return;
-
-    const taskId = active.id as string;
-    const task = tasks.find((t) => t.id === taskId) as Task;
-    if (!task) return;
-  };
-  return (
-    <DndContext
-      onDragStart={onDragStart}
-      onDragEnd={onDragEnd}
-      sensors={sensors}
-    >
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold">Backlog</h2>
-        </div>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:col-span-2"></div>
-      </div>
-      {createPortal(
-        <DragOverlay>
-          {activeTask ? (
-            <KanbanTaskCard task={activeTask} onTaskSelect={() => {}} />
-          ) : null}
-        </DragOverlay>,
-        document.body
-      )}
-    </DndContext>
-  );
-}
-
-// FILE: src/features/project-management/components/CalendarView.tsx
-import {
-  Calendar,
-  dateFnsLocalizer,
-  Event,
-  Views,
-  ToolbarProps,
-  View,
-} from "react-big-calendar";
-import withDragAndDrop, {
-  withDragAndDropProps,
-  EventInteractionArgs,
-} from "react-big-calendar/lib/addons/dragAndDrop";
-import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
-import { format, parse, startOfWeek, getDay } from "date-fns";
-import { enUS } from "date-fns/locale/en-US";
-import { Task } from "@/types";
-import "react-big-calendar/lib/css/react-big-calendar.css";
+// FILE: src/features/project-management/components/calendar-view/CalendarToolbar.tsx
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useState, useCallback } from "react";
+import { format } from "date-fns";
 
-interface CalendarEvent extends Event {
-  resource: Task;
+type View = "month" | "week" | "agenda";
+
+interface CalendarToolbarProps {
+  currentDate: Date;
+  currentView: View;
+  onNavigate: (action: "PREV" | "NEXT" | "TODAY") => void;
+  onViewChange: (view: View) => void;
 }
+
+export function CalendarToolbar({
+  currentDate,
+  currentView,
+  onNavigate,
+  onViewChange,
+}: CalendarToolbarProps) {
+  const getPeriodLabel = () => {
+    if (currentView === "month") {
+      return format(currentDate, "MMMM yyyy");
+    }
+    if (currentView === "week") {
+      const startOfWeek = new Date(currentDate);
+      startOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 6);
+      return `${format(startOfWeek, "MMM d")} - ${format(
+        endOfWeek,
+        "MMM d, yyyy"
+      )}`;
+    }
+    return "Agenda";
+  };
+
+  return (
+    <div className="mb-4 flex flex-col items-center justify-between gap-4 sm:flex-row">
+      <div className="flex items-center space-x-2">
+        {currentView !== "agenda" && (
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => onNavigate("PREV")}
+              className="hover:bg-hover h-9 w-9 bg-element"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => onNavigate("NEXT")}
+              className="hover:bg-hover h-9 w-9 bg-element"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+        <h2 className="ml-4 text-xl font-semibold text-foreground">
+          {getPeriodLabel()}
+        </h2>
+      </div>
+      <div className="flex items-center space-x-4">
+        <Button
+          onClick={() => onNavigate("TODAY")}
+          variant="outline"
+          className="hover:bg-hover bg-element"
+        >
+          Today
+        </Button>
+        <div className="flex items-center rounded-lg bg-element p-1 text-sm">
+          {(["month", "week", "agenda"] as View[]).map((view) => (
+            <button
+              key={view}
+              onClick={() => onViewChange(view)}
+              className={`view-btn rounded-md px-3 py-1 capitalize ${
+                currentView === view ? "bg-hover font-semibold" : ""
+              }`}
+            >
+              {view}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// FILE: src/features/project-management/components/calendar-view/CalendarView.tsx
+import { useState, useCallback } from "react";
+import { Task } from "@/types";
+import { CalendarToolbar } from "./CalendarToolbar";
+import { MonthView } from "./MonthView";
+import { WeekView } from "./WeekView";
+import { AgendaView } from "./AgendaView";
+
+type View = "month" | "week" | "agenda";
 
 interface CalendarViewProps {
   tasks: Task[];
   onTaskSelect: (taskId: string) => void;
-  onTaskUpdate: (taskId: string, updates: Partial<Task>) => void;
 }
 
-const locales = {
-  "en-US": enUS,
-};
-const localizer = dateFnsLocalizer({
-  format,
-  parse,
-  startOfWeek,
-  getDay,
-  locales,
-});
+export function CalendarView({ tasks, onTaskSelect }: CalendarViewProps) {
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentView, setCurrentView] = useState<View>("month");
 
-const DnDCalendar = withDragAndDrop<CalendarEvent>(Calendar);
+  const handleNavigate = useCallback(
+    (action: "PREV" | "NEXT" | "TODAY") => {
+      if (action === "TODAY") {
+        setCurrentDate(new Date());
+        return;
+      }
 
-const CustomToolbar = (
-  toolbar: ToolbarProps<CalendarEvent>,
-  onViewChange: (view: View) => void,
-  onNavigateChange: (action: "PREV" | "NEXT" | "TODAY") => void
-) => {
-  const goToBack = () => {
-    onNavigateChange("PREV");
-  };
+      const newDate = new Date(currentDate);
+      const increment = action === "PREV" ? -1 : 1;
 
-  const goToNext = () => {
-    onNavigateChange("NEXT");
-  };
-
-  const goToCurrent = () => {
-    onNavigateChange("TODAY");
-  };
-
-  const viewNames: View[] = ["month", "week", "day", "agenda"];
+      if (currentView === "month") {
+        newDate.setMonth(newDate.getMonth() + increment);
+      } else if (currentView === "week") {
+        newDate.setDate(newDate.getDate() + 7 * increment);
+      }
+      setCurrentDate(newDate);
+    },
+    [currentDate, currentView]
+  );
 
   return (
-    <div className="rbc-toolbar mb-4 flex items-center justify-between">
-      <div className="flex items-center gap-2">
-        <Button variant="outline" size="icon" onClick={goToBack}>
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-        <Button variant="outline" onClick={goToCurrent}>
-          Today
-        </Button>
-        <Button variant="outline" size="icon" onClick={goToNext}>
-          <ChevronRight className="h-4 w-4" />
-        </Button>
-      </div>
-      <span className="rbc-toolbar-label font-semibold">{toolbar.label}</span>
-      <div className="w-[120px]">
-        <Select
-          value={toolbar.view}
-          onValueChange={(view) => onViewChange(view as View)}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {viewNames.map((name) => (
-              <SelectItem key={name} value={name} className="capitalize">
-                {name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+    <div className="h-full">
+      <CalendarToolbar
+        currentDate={currentDate}
+        currentView={currentView}
+        onNavigate={handleNavigate}
+        onViewChange={setCurrentView}
+      />
+      <div className="rounded-lg bg-surface">
+        {currentView === "month" && (
+          <MonthView
+            tasks={tasks}
+            currentDate={currentDate}
+            onTaskSelect={onTaskSelect}
+          />
+        )}
+        {currentView === "week" && (
+          <WeekView
+            tasks={tasks}
+            currentDate={currentDate}
+            onTaskSelect={onTaskSelect}
+          />
+        )}
+        {currentView === "agenda" && (
+          <AgendaView tasks={tasks} onTaskSelect={onTaskSelect} />
+        )}
       </div>
     </div>
   );
-};
+}
 
-export function CalendarView({
+// FILE: src/features/project-management/components/calendar-view/MonthView.tsx
+import { Task } from "@/types";
+import {
+  startOfMonth,
+  endOfMonth,
+  startOfWeek,
+  endOfWeek,
+  eachDayOfInterval,
+  isSameMonth,
+  isSameDay,
+  format,
+} from "date-fns";
+import { CalendarTaskItem } from "./CalendarTaskItem";
+
+interface MonthViewProps {
+  tasks: Task[];
+  currentDate: Date;
+  onTaskSelect: (taskId: string) => void;
+}
+
+export function MonthView({
   tasks,
+  currentDate,
   onTaskSelect,
-  onTaskUpdate,
-}: CalendarViewProps) {
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [currentView, setCurrentView] = useState<View>(Views.MONTH);
+}: MonthViewProps) {
+  const monthStart = startOfMonth(currentDate);
+  const monthEnd = endOfMonth(currentDate);
+  const startDate = startOfWeek(monthStart);
+  const endDate = endOfWeek(monthEnd);
 
-  const events: CalendarEvent[] = tasks
-    .filter((task) => task.dueDate || task.startDate)
-    .map((task) => ({
-      title: task.title,
-      start: new Date(task.startDate || task.dueDate!),
-      end: new Date(task.dueDate || task.startDate!),
-      resource: task,
-      allDay: !task.startDate || !task.dueDate,
-    }));
-
-  const onEventDrop: withDragAndDropProps<CalendarEvent>["onEventDrop"] =
-    useCallback(
-      (data: EventInteractionArgs<CalendarEvent>) => {
-        const { start, end, event } = data;
-        const task = event.resource;
-        onTaskUpdate(task.id, {
-          startDate: (start as Date).toISOString(),
-          dueDate: (end as Date).toISOString(),
-        });
-      },
-      [onTaskUpdate]
-    );
-
-  const onEventResize: withDragAndDropProps<CalendarEvent>["onEventResize"] =
-    useCallback(
-      (data: EventInteractionArgs<CalendarEvent>) => {
-        const { start, end, event } = data;
-        const task = event.resource;
-        onTaskUpdate(task.id, {
-          startDate: (start as Date).toISOString(),
-          dueDate: (end as Date).toISOString(),
-        });
-      },
-      [onTaskUpdate]
-    );
-
-  const eventPropGetter = useCallback((event: CalendarEvent) => {
-    const status = event.resource.status;
-    let className = `rbc-event-status-${status.toLowerCase()}`;
-    return { className };
-  }, []);
-
-  const handleNavigate = useCallback(
-    (newDate: Date) => setCurrentDate(newDate),
-    []
-  );
-  const handleView = useCallback(
-    (newView: View) => setCurrentView(newView),
-    []
-  );
+  const days = eachDayOfInterval({ start: startDate, end: endDate });
 
   return (
-    <div className="h-[calc(100vh-250px)]">
-      <style>{`
-        .rbc-event-status-done { background-color: #28a745; opacity: 0.7; }
-        .rbc-event-status-in_progress { background-color: #17a2b8; }
-        .rbc-event-status-blocked { background-color: #dc3545; }
-        .rbc-event-status-in_review { background-color: #ffc107; color: #212529; }
-        .rbc-event-status-cancelled { background-color: #6c757d; text-decoration: line-through; }
-        .rbc-event-status-todo { background-color: #007bff; }
-        .rbc-calendar { font-family: inherit; }
-      `}</style>
-      <DnDCalendar
-        localizer={localizer}
-        events={events}
-        startAccessor={(event: CalendarEvent) => event.start!}
-        endAccessor={(event: CalendarEvent) => event.end!}
-        style={{ height: "100%" }}
-        onSelectEvent={(event: CalendarEvent) =>
-          onTaskSelect(event.resource.id)
-        }
-        onEventDrop={onEventDrop}
-        onEventResize={onEventResize}
-        resizable
-        date={currentDate}
-        view={currentView}
-        onNavigate={handleNavigate}
-        onView={handleView}
-        eventPropGetter={eventPropGetter}
-        components={{
-          toolbar: (props: ToolbarProps<CalendarEvent>) =>
-            CustomToolbar(
-              props,
-              (view) => setCurrentView(view),
-              (action) => {
-                const newDate = new Date(props.date);
-                if (action === "PREV") {
-                  if (props.view === "month")
-                    newDate.setMonth(newDate.getMonth() - 1);
-                  if (props.view === "week")
-                    newDate.setDate(newDate.getDate() - 7);
-                  if (props.view === "day")
-                    newDate.setDate(newDate.getDate() - 1);
-                } else if (action === "NEXT") {
-                  if (props.view === "month")
-                    newDate.setMonth(newDate.getMonth() + 1);
-                  if (props.view === "week")
-                    newDate.setDate(newDate.getDate() + 7);
-                  if (props.view === "day")
-                    newDate.setDate(newDate.getDate() + 1);
-                } else {
-                  setCurrentDate(new Date());
-                  return;
-                }
-                setCurrentDate(newDate);
-              }
-            ),
-        }}
-      />
+    <div>
+      <div className="grid grid-cols-7 border-b border-border text-center font-medium text-muted-foreground">
+        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+          <div key={day} className="py-3">
+            {day}
+          </div>
+        ))}
+      </div>
+      <div className="calendar-grid">
+        {days.map((day) => {
+          const isCurrentMonth = isSameMonth(day, monthStart);
+          const isToday = isSameDay(day, new Date());
+
+          const tasksForDay = tasks.filter(
+            (task) => task.dueDate && isSameDay(new Date(task.dueDate), day)
+          );
+
+          return (
+            <div
+              key={day.toString()}
+              className={`calendar-day relative flex flex-col p-2 ${
+                isCurrentMonth ? "" : "bg-background/50"
+              }`}
+            >
+              <span
+                className={`self-start text-sm font-medium ${
+                  isToday
+                    ? "flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground"
+                    : "text-foreground"
+                }`}
+              >
+                {format(day, "d")}
+              </span>
+              <div className="mt-1 flex-grow space-y-1 overflow-y-auto">
+                {tasksForDay.map((task) => (
+                  <CalendarTaskItem
+                    key={task.id}
+                    task={task}
+                    onTaskSelect={onTaskSelect}
+                  />
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// FILE: src/features/project-management/components/calendar-view/WeekView.tsx
+import { Task } from "@/types";
+import {
+  startOfWeek,
+  eachDayOfInterval,
+  isSameDay,
+  format,
+  endOfWeek,
+} from "date-fns";
+import { CalendarTaskItem } from "./CalendarTaskItem";
+
+interface WeekViewProps {
+  tasks: Task[];
+  currentDate: Date;
+  onTaskSelect: (taskId: string) => void;
+}
+
+export function WeekView({ tasks, currentDate, onTaskSelect }: WeekViewProps) {
+  const weekStart = startOfWeek(currentDate);
+  const weekEnd = endOfWeek(currentDate);
+  const days = eachDayOfInterval({ start: weekStart, end: weekEnd });
+
+  return (
+    <div>
+      <div className="grid grid-cols-7 border-b border-border text-center font-medium text-muted-foreground">
+        {days.map((day) => (
+          <div key={day.toString()} className="py-3">
+            {format(day, "EEE")}{" "}
+            <span className="text-foreground">{format(day, "d")}</span>
+          </div>
+        ))}
+      </div>
+      <div className="calendar-grid">
+        {days.map((day) => {
+          const isToday = isSameDay(day, new Date());
+          const tasksForDay = tasks.filter(
+            (task) => task.dueDate && isSameDay(new Date(task.dueDate), day)
+          );
+
+          return (
+            <div
+              key={day.toString()}
+              className={`calendar-day relative flex flex-col p-2 ${
+                isToday ? "bg-hover" : ""
+              }`}
+            >
+              <div className="flex-grow space-y-2 overflow-y-auto">
+                {tasksForDay.map((task) => (
+                  <CalendarTaskItem
+                    key={task.id}
+                    task={task}
+                    onTaskSelect={onTaskSelect}
+                  />
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -13775,17 +13859,15 @@ export function ChecklistItem({
     <div
       ref={setNodeRef}
       style={style}
-      className="group flex items-center gap-2 rounded-md bg-white"
+      className="group flex items-center gap-2 rounded-md bg-element"
     >
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-8 w-8 cursor-grab"
+      <span
+        className="cursor-grab p-2 text-muted-foreground hover:text-foreground"
         {...listeners}
         {...attributes}
       >
-        <GripVertical className="h-4 w-4" />
-      </Button>
+        <GripVertical className="h-5 w-5" />
+      </span>
       <Checkbox
         checked={item.completed}
         onCheckedChange={(checked) =>
@@ -13796,7 +13878,7 @@ export function ChecklistItem({
         value={text}
         onChange={handleTextChange}
         onBlur={handleBlur}
-        className={`h-8 flex-grow ${item.completed ? "text-muted-foreground line-through" : ""}`}
+        className={`h-8 flex-grow border-none bg-transparent focus:ring-0 ${item.completed ? "text-muted-foreground line-through" : ""}`}
       />
       <Button
         variant="ghost"
@@ -13809,94 +13891,6 @@ export function ChecklistItem({
     </div>
   );
 }
-// FILE: src/features/project-management/components/CreateColumnForm.tsx
-import { useForm, FormProvider } from "react-hook-form";
-import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
-import { FormInput } from "@/components/form/FormFields";
-import { useUpdateView } from "../api/useUpdateView";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { View } from "@/types";
-
-const formSchema = z.object({
-  name: z.string().min(1, "Column name is required."),
-});
-
-type FormValues = z.infer<typeof formSchema>;
-
-interface CreateColumnFormProps {
-  workspaceId: string;
-  view: View;
-  onSuccess?: () => void;
-}
-
-export function CreateColumnForm({
-  workspaceId,
-  view,
-  onSuccess,
-}: CreateColumnFormProps) {
-  const updateViewMutation = useUpdateView(workspaceId, view.projectId!);
-
-  const methods = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-    },
-  });
-
-  async function onSubmit(values: FormValues) {
-    const existingColumns = view.columns.map((c) => ({
-      name: c.name,
-      order: c.order,
-    }));
-
-    const newColumn = {
-      name: values.name,
-      order: existingColumns.length,
-    };
-
-    updateViewMutation.mutate(
-      {
-        viewId: view.id,
-        viewData: {
-          columns: [...existingColumns, newColumn],
-        },
-      },
-      {
-        onSuccess: () => {
-          methods.reset();
-          onSuccess?.();
-        },
-      }
-    );
-  }
-
-  return (
-    <FormProvider {...methods}>
-      <Form {...methods}>
-        <form
-          onSubmit={methods.handleSubmit(onSubmit)}
-          className="space-y-4 p-4"
-        >
-          <FormInput
-            name="name"
-            label="List Name"
-            placeholder="e.g., Blocked"
-          />
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={updateViewMutation.isPending}
-          >
-            {updateViewMutation.isPending ? "Adding..." : "Add List"}
-          </Button>
-        </form>
-      </Form>
-    </FormProvider>
-  );
-}
-
 // FILE: src/features/project-management/components/CreateProjectFromTemplateForm.tsx
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -14179,14 +14173,12 @@ export function CreateTaskForm({
             label="Title"
             placeholder="e.g. Draft Q3 financial report"
           />
-          {projectId && workspaceId && (
-            <FormTaskTypeSelector
-              name="taskTypeId"
-              label="Task Type"
-              workspaceId={workspaceId}
-              projectId={projectId}
-            />
-          )}
+          <FormTaskTypeSelector
+            name="taskTypeId"
+            label="Task Type"
+            workspaceId={workspaceId}
+            projectId={projectId}
+          />
           <FormAssigneeSelector
             name="assigneeIds"
             label="Assignees"
@@ -14400,7 +14392,7 @@ import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { FormInput } from "@/components/form/FormFields";
-import { useManageTaskTemplates } from "../api/useManageTaskTemplates";
+import { useApiResource } from "@/hooks/useApiResource";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
@@ -14419,12 +14411,14 @@ interface CreateTemplateFromTaskDialogProps {
 }
 
 export function CreateTemplateFromTaskForm({
-  workspaceId,
   projectId,
   task,
   onSuccess,
 }: CreateTemplateFromTaskDialogProps) {
-  const { useCreate } = useManageTaskTemplates(workspaceId, projectId);
+  const { useCreate } = useApiResource("task-templates", [
+    "taskTemplates",
+    projectId,
+  ]);
   const createMutation = useCreate();
 
   const methods = useForm<FormValues>({
@@ -14443,7 +14437,10 @@ export function CreateTemplateFromTaskForm({
       workspaceId: _wId,
       ...templateData
     } = task;
-    createMutation.mutate({ name: values.name, templateData }, { onSuccess });
+    createMutation.mutate(
+      { name: values.name, templateData, projectId },
+      { onSuccess }
+    );
   }
 
   return (
@@ -14818,16 +14815,16 @@ export function EditProjectRoleDialog({
     </Dialog>
   );
 }
-// FILE: src/features/project-management/components/GanttChartView.tsx
+// FILE: src/features/project-management/components/gantt-view/GanttChartView.tsx
 import { useEffect, useRef } from "react";
 import { gantt } from "dhtmlx-gantt";
 import "dhtmlx-gantt/codebase/dhtmlxgantt.css";
 import "@/styles/gantt.css";
 import { Task } from "@/types";
-import { useUpdateTask } from "../api/useUpdateTask";
+import { useUpdateTask } from "../../api/useUpdateTask";
 import { useParams } from "react-router-dom";
 import { TaskLinkType } from "@/types/api";
-import { useManageTaskLinks } from "../api/useManageTaskLinks";
+import { useManageTaskLinks } from "../../api/useManageTaskLinks";
 
 interface GanttChartViewProps {
   tasks: Task[];
@@ -14849,31 +14846,46 @@ export function GanttChartView({ tasks, onTaskSelect }: GanttChartViewProps) {
 
     gantt.config.date_format = "%Y-%m-%d %H:%i";
     gantt.config.columns = [
-      { name: "text", label: "Task name", tree: true, width: "*" },
-      { name: "start_date", label: "Start time", align: "center", width: 120 },
-      { name: "duration", label: "Duration", align: "center", width: 80 },
+      { name: "text", label: "Task Name", tree: true, width: "*" },
+      { name: "start_date", label: "Start Date", align: "center", width: 90 },
+      { name: "duration", label: "Duration", align: "center", width: 70 },
     ];
     gantt.config.drag_links = true;
     gantt.config.drag_progress = true;
+    gantt.config.drag_resize = true;
+    gantt.config.drag_move = true;
+    gantt.config.show_progress = true;
+    gantt.config.fit_tasks = true;
 
     gantt.templates.tooltip_text = function (_start, _end, task) {
       const taskData = (task as any).resource as Task;
       if (!taskData) return task.text;
+      const statusText = taskData.status.replace("_", " ");
       return `<b>${task.text}</b><br/>
-              <b>Status:</b> ${taskData.status}<br/>
-              <b>Priority:</b> ${taskData.priority}<br/>
+              <b>Status:</b> ${statusText}<br/>
               <b>Duration:</b> ${task.duration} days`;
     };
 
     gantt.templates.task_class = function (_start, _end, task) {
       const taskData = (task as any).resource as Task;
       if (taskData) {
-        return `gantt-task-status-${taskData.status.toLowerCase()}`;
+        return `gantt-status-${taskData.status.toLowerCase()}`;
       }
       return "";
     };
 
+    gantt.plugins({
+      marker: true,
+    });
+
     gantt.init(ganttContainer.current);
+
+    gantt.addMarker({
+      start_date: new Date(),
+      css: "gantt_today_marker",
+      text: "Today",
+      title: `Today: ${new Date().toLocaleDateString()}`,
+    });
 
     const onTaskClickHandler = (id: string | number) => {
       onTaskSelect(id as string);
@@ -14899,14 +14911,14 @@ export function GanttChartView({ tasks, onTaskSelect }: GanttChartViewProps) {
       ) {
         updates.startDate = task.start_date?.toISOString() ?? null;
         updates.dueDate = task.end_date?.toISOString() ?? null;
-
-        updateTaskMutation.mutate({
-          taskId: id as string,
-          workspaceId,
-          projectId,
-          taskData: updates,
-        });
       }
+
+      updateTaskMutation.mutate({
+        taskId: id as string,
+        workspaceId,
+        projectId,
+        taskData: updates,
+      });
     };
 
     const onAfterLinkAddHandler = (_id: string | number, link: any) => {
@@ -14918,9 +14930,8 @@ export function GanttChartView({ tasks, onTaskSelect }: GanttChartViewProps) {
     };
 
     const onAfterLinkDeleteHandler = (id: string | number, link: any) => {
-      // Gantt link id is what we need to use
       removeLink({
-        taskId: link.source, // taskId is required but not used for deletion
+        taskId: link.source,
         linkId: id as string,
       });
     };
@@ -14963,7 +14974,7 @@ export function GanttChartView({ tasks, onTaskSelect }: GanttChartViewProps) {
                 id: link.id,
                 source: task.id,
                 target: link.targetTask.id,
-                type: "0", // Finish to Start
+                type: "0",
               });
             }
           });
@@ -14976,7 +14987,12 @@ export function GanttChartView({ tasks, onTaskSelect }: GanttChartViewProps) {
             ? new Date(task.dueDate)
             : new Date(new Date().setDate(new Date().getDate() + 1)),
           parent: task.parentId || 0,
-          progress: task.status === "DONE" ? 1 : 0.4,
+          progress:
+            task.status === "DONE"
+              ? 1
+              : task.progress
+                ? task.progress / 100
+                : 0,
           open: true,
           resource: task,
         };
@@ -14990,6 +15006,7 @@ export function GanttChartView({ tasks, onTaskSelect }: GanttChartViewProps) {
       gantt.parse(formattedTasks);
     }
   }, [tasks]);
+
   return (
     <div
       ref={ganttContainer}
@@ -14997,6 +15014,225 @@ export function GanttChartView({ tasks, onTaskSelect }: GanttChartViewProps) {
     ></div>
   );
 }
+
+// FILE: src/features/project-management/components/GlobalTaskTypeForm.tsx
+import { useForm, FormProvider } from "react-hook-form";
+import { Button } from "@/components/ui/button";
+import { Form } from "@/components/ui/form";
+import { FormInput } from "@/components/form/FormFields";
+import { useManageTaskTypes } from "../api/useManageTaskTypes";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect } from "react";
+
+const CreateTaskTypeDtoSchema = z.object({
+  name: z.string().min(1, "Type name is required."),
+  icon: z.string().optional().nullable(),
+  color: z.string().optional().nullable(),
+});
+
+type TaskTypeFormValues = z.infer<typeof CreateTaskTypeDtoSchema>;
+
+interface TaskTypeFormProps {
+  initialData?: any;
+  onSuccess?: () => void;
+}
+
+export function GlobalTaskTypeForm({
+  initialData,
+  onSuccess,
+}: TaskTypeFormProps) {
+  const isEditMode = !!initialData;
+  const { useCreate, useUpdate } = useManageTaskTypes();
+  const createMutation = useCreate();
+  const updateMutation = useUpdate();
+  const mutation = isEditMode ? updateMutation : createMutation;
+
+  const methods = useForm<TaskTypeFormValues>({
+    resolver: zodResolver(CreateTaskTypeDtoSchema),
+    defaultValues: {
+      name: "",
+      icon: "",
+      color: "",
+    },
+  });
+
+  useEffect(() => {
+    if (isEditMode && initialData) {
+      methods.reset(initialData);
+    }
+  }, [initialData, isEditMode, methods]);
+
+  async function onSubmit(values: TaskTypeFormValues) {
+    if (isEditMode) {
+      await updateMutation.mutateAsync(
+        { id: initialData.id, data: values },
+        { onSuccess }
+      );
+    } else {
+      await createMutation.mutateAsync(values, {
+        onSuccess: () => {
+          methods.reset();
+          onSuccess?.();
+        },
+      });
+    }
+  }
+
+  return (
+    <FormProvider {...methods}>
+      <Form {...methods}>
+        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
+          <FormInput
+            name="name"
+            label="Type Name"
+            placeholder="e.g., Bug, Story, Spike"
+          />
+          <FormInput
+            name="icon"
+            label="Icon (Optional)"
+            placeholder="e.g., Bug, Flame, Lightbulb"
+          />
+          <FormInput
+            name="color"
+            label="Color (Optional)"
+            placeholder="e.g., #ff0000, blue.500"
+          />
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={mutation.isPending}
+          >
+            {mutation.isPending
+              ? "Saving..."
+              : isEditMode
+                ? "Save Changes"
+                : "Create Type"}
+          </Button>
+        </form>
+      </Form>
+    </FormProvider>
+  );
+}
+
+// FILE: src/features/project-management/components/GlobalTaskTypeList.tsx
+import { useState } from "react";
+import { useManageTaskTypes } from "../api/useManageTaskTypes";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { GlobalTaskTypeForm } from "./GlobalTaskTypeForm";
+
+export function GlobalTaskTypeList() {
+  const { useGetAll, useDelete } = useManageTaskTypes();
+  const { data: typesData, isLoading } = useGetAll();
+  const deleteMutation = useDelete();
+  const [editingTypeId, setEditingTypeId] = useState<string | null>(null);
+
+  const handleDelete = (type: any) => {
+    if (window.confirm(`Delete task type "${type.name}"? This is permanent.`)) {
+      deleteMutation.mutate(type.id);
+    }
+  };
+
+  if (isLoading) return <div>Loading custom task types...</div>;
+
+  return (
+    <>
+      <Card>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Icon</TableHead>
+              <TableHead>Color</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {typesData?.data && typesData.data.length > 0 ? (
+              typesData.data.map((type: any) => (
+                <TableRow key={type.id}>
+                  <TableCell className="font-medium">{type.name}</TableCell>
+                  <TableCell>{type.icon}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="h-4 w-4 rounded-full"
+                        style={{
+                          backgroundColor: type.color || "transparent",
+                          border: "1px solid #ccc",
+                        }}
+                      />
+                      <span>{type.color}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem
+                          onClick={() => setEditingTypeId(type.id)}
+                        >
+                          <Edit className="mr-2 h-4 w-4" />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="text-red-500"
+                          onClick={() => handleDelete(type)}
+                          disabled={deleteMutation.isPending}
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={4} className="h-24 text-center">
+                  No global task types defined.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </Card>
+      <ResourceCrudDialog
+        isOpen={!!editingTypeId}
+        onOpenChange={(isOpen) => !isOpen && setEditingTypeId(null)}
+        resourceId={editingTypeId}
+        resourcePath={`/task-types`}
+        resourceKey={["taskTypes", "global"]}
+        title="Edit Task Type"
+        description="Change the name, icon, or color for this task type."
+        form={GlobalTaskTypeForm}
+      />
+    </>
+  );
+}
+
 // FILE: src/features/project-management/components/GoalCard.tsx
 import { EntityCard } from "@/components/ui/EntityCard";
 import { Progress } from "@/components/ui/progress";
@@ -15604,7 +15840,7 @@ export function InviteProjectMember({
   );
 }
 
-// FILE: src/features/project-management/components/KanbanBoard.tsx
+// FILE: src/features/project-management/components/kanban-view/KanbanBoard.tsx
 import { useState, useMemo, useEffect } from "react";
 import {
   DndContext,
@@ -15629,7 +15865,7 @@ import { Kanban, PlusCircle } from "lucide-react";
 import { arrayMove } from "@dnd-kit/sortable";
 import { Button } from "@/components/ui/button";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
-import { CreateColumnForm } from "./CreateColumnForm";
+//import { CreateColumnForm } from "./CreateColumnForm";
 
 interface KanbanBoardProps {
   workspaceId: string;
@@ -15866,7 +16102,7 @@ export function KanbanBoard({
         onDragOver={onDragOver}
         onDragEnd={onDragEnd}
       >
-        <div className="bg-kanban-bg flex h-full gap-4 overflow-x-auto p-1">
+        <div className="flex h-full gap-4 overflow-x-auto bg-background p-1">
           {columns.map((col: ViewColumn) => (
             <KanbanColumn
               key={col.id}
@@ -15878,7 +16114,7 @@ export function KanbanBoard({
           <div>
             <Button
               variant="outline"
-              className="bg-kanban-column w-72 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white"
+              className="w-72 border-slate-700 bg-surface text-slate-300 hover:bg-slate-700 hover:text-white"
               onClick={() => setIsCreateColumnOpen(true)}
             >
               <PlusCircle className="mr-2 h-4 w-4" /> Add another list
@@ -15894,25 +16130,11 @@ export function KanbanBoard({
           document.body
         )}
       </DndContext>
-      <ResourceCrudDialog
-        isOpen={isCreateColumnOpen}
-        onOpenChange={setIsCreateColumnOpen}
-        title="Add a new list"
-        description="Create a new column for your Kanban board."
-        form={CreateColumnForm}
-        formProps={{
-          workspaceId,
-          view: kanbanView,
-          onSuccess: () => setIsCreateColumnOpen(false),
-        }}
-        resourcePath=""
-        resourceKey={[]}
-      />
     </>
   );
 }
 
-// FILE: src/features/project-management/components/KanbanColumn.tsx
+// FILE: src/features/project-management/components/kanban-view/KanbanColumn.tsx
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext } from "@dnd-kit/sortable";
 import { Task, ViewColumn } from "@/types";
@@ -15940,7 +16162,7 @@ export function KanbanColumn({
     <div
       ref={setNodeRef}
       className={cn(
-        "flex w-72 shrink-0 flex-col rounded-lg bg-kanban-column transition-colors",
+        "flex w-72 shrink-0 flex-col rounded-lg bg-surface transition-colors",
         isOver && "drag-over-column"
       )}
     >
@@ -15950,7 +16172,7 @@ export function KanbanColumn({
           {tasks.length}
         </Badge>
       </div>
-      <div className="mb-2 border-b border-slate-700"></div>
+      <div className="mb-2 border-b border-border"></div>
       <div className="flex-grow space-y-2 overflow-y-auto px-2 pb-2">
         <SortableContext items={tasksIds}>
           {tasks.map((task: any) => (
@@ -15965,7 +16187,8 @@ export function KanbanColumn({
     </div>
   );
 }
-// FILE: src/features/project-management/components/KanbanTaskCard.tsx
+
+// FILE: src/features/project-management/components/kanban-view/KanbanTaskCard.tsx
 import {
   Card,
   CardContent,
@@ -16009,17 +16232,19 @@ const priorityBadgeConfig: Partial<
 > = {
   [TaskPriority.URGENT]: {
     label: "Urgent",
-    className:
-      "bg-priority-urgent/20 text-priority-urgent border-priority-urgent/50",
+    className: "bg-priority-urgent text-background border-priority-urgent",
   },
   [TaskPriority.HIGH]: {
     label: "High",
-    className: "bg-priority-high/20 text-priority-high border-priority-high/50",
+    className: "bg-priority-high text-background border-priority-high",
   },
   [TaskPriority.MEDIUM]: {
     label: "Medium",
-    className:
-      "bg-priority-medium/20 text-priority-medium border-priority-medium/50",
+    className: "bg-priority-medium text-background border-priority-medium",
+  },
+  [TaskPriority.LOW]: {
+    label: "Low",
+    className: "bg-priority-low text-background border-priority-low",
   },
 };
 
@@ -16089,15 +16314,15 @@ export function KanbanTaskCard({
       onClick={() => onTaskSelect(task.id)}
       className={cn(isDragging && "dragging-card")}
     >
-      <Card className="mb-2 cursor-grab border-slate-700 bg-kanban-card hover:bg-kanban-card-hover active:cursor-grabbing">
-        <CardHeader className="flex flex-row items-center justify-between p-3 pb-0 pt-0">
+      <Card className="hover:bg-hover mb-2 cursor-grab border-border bg-element active:cursor-grabbing">
+        <CardHeader className="flex flex-row items-start justify-between p-3 pb-2">
           <CardTitle className="text-sm font-semibold">{task.title}</CardTitle>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-6 w-6 shrink-0 text-slate-400 hover:bg-slate-700 hover:text-white"
+                className="hover:bg-hover h-6 w-6 shrink-0 text-muted-foreground hover:text-foreground"
                 onClick={(e) => e.stopPropagation()}
               >
                 <MoreHorizontal className="h-4 w-4" />
@@ -16122,8 +16347,8 @@ export function KanbanTaskCard({
           </DropdownMenu>
         </CardHeader>
 
-        <CardContent className="flex flex-col gap-2 px-3 pb-0 pt-0">
-          <div className="flex items-center gap-3 text-sm text-slate-300">
+        <CardContent className="flex flex-col gap-2 px-3 pb-2">
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
             {task.dueDate && (
               <div className="flex items-center gap-1">
                 <Calendar className="h-3.5 w-3.5" />
@@ -16132,7 +16357,7 @@ export function KanbanTaskCard({
             )}
             {task.recurrenceRule && <Repeat className="h-3.5 w-3.5" />}
           </div>
-          <div className="flex items-center gap-3 text-sm text-slate-300">
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
             {!projectId && task.projectName && (
               <div className="flex items-center gap-1">
                 <Briefcase className="h-3.5 w-3.5" />
@@ -16144,7 +16369,7 @@ export function KanbanTaskCard({
           </div>
         </CardContent>
 
-        <CardFooter className="flex items-center justify-between p-3 pb-0 pt-0">
+        <CardFooter className="flex items-center justify-between p-3 pt-1">
           <div className="flex flex-wrap items-center gap-2">
             {priorityConfig && (
               <Badge
@@ -16176,7 +16401,7 @@ export function KanbanTaskCard({
             {task.assignees?.map((assignee) => (
               <Avatar
                 key={assignee.id}
-                className="h-6 w-6 border-2 border-kanban-bg"
+                className="h-6 w-6 border-2 border-background"
               >
                 <AvatarImage src={getAbsoluteUrl(assignee.avatarUrl)} />
                 <AvatarFallback>{assignee.name.charAt(0)}</AvatarFallback>
@@ -16186,6 +16411,199 @@ export function KanbanTaskCard({
         </CardFooter>
       </Card>
     </div>
+  );
+}
+
+// FILE: src/features/project-management/components/kanban-view/MyTasksKanbanBoard.tsx
+import { useState, useEffect } from "react";
+import {
+  DndContext,
+  DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragOverEvent,
+  closestCorners,
+} from "@dnd-kit/core";
+import { createPortal } from "react-dom";
+import { Task } from "@/types";
+import { TaskStatus } from "@/types/api";
+import { KanbanColumn } from "@/features/project-management/components/kanban-view/KanbanColumn";
+import { KanbanTaskCard } from "@/features/project-management/components/kanban-view/KanbanTaskCard";
+import { useUpdateTask } from "@/features/project-management/api/useUpdateTask";
+import { ViewColumn } from "@/types";
+import { arrayMove } from "@dnd-kit/sortable";
+
+interface MyTasksKanbanBoardProps {
+  tasks: Task[];
+  onTaskSelect: (taskId: string) => void;
+  columns: Omit<ViewColumn, "createdAt" | "updatedAt">[];
+  columnStatusMap: Record<string, TaskStatus>;
+}
+
+export function MyTasksKanbanBoard({
+  tasks,
+  onTaskSelect,
+  columns,
+  columnStatusMap,
+}: MyTasksKanbanBoardProps) {
+  const [activeTask, setActiveTask] = useState<Task | null>(null);
+  const updateTaskMutation = useUpdateTask();
+  const [tasksByColumn, setTasksByColumn] = useState<Record<string, Task[]>>(
+    {}
+  );
+
+  useEffect(() => {
+    const grouped: Record<string, Task[]> = {};
+    columns.forEach((col) => (grouped[col.id] = []));
+
+    tasks.forEach((task) => {
+      const column = columns.find(
+        (col) => columnStatusMap[col.id] === task.status
+      );
+      if (column) {
+        grouped[column.id].push(task);
+      }
+    });
+    setTasksByColumn(grouped);
+  }, [tasks, columns, columnStatusMap]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 10,
+      },
+    })
+  );
+
+  const findColumnForTask = (taskId: string) => {
+    return Object.keys(tasksByColumn).find((colId) =>
+      tasksByColumn[colId].some((task) => task.id === taskId)
+    );
+  };
+
+  const onDragStart = (event: DragStartEvent) => {
+    const task = tasks.find((t) => t.id === event.active.id);
+    if (task) setActiveTask(task);
+  };
+
+  const onDragOver = (event: DragOverEvent) => {
+    const { active, over } = event;
+    if (!over || !activeTask || active.id === over.id) return;
+
+    const sourceColumnId = findColumnForTask(active.id as string);
+    const destColumnId =
+      over.data.current?.type === "Column"
+        ? (over.id as string)
+        : findColumnForTask(over.id as string);
+
+    if (!sourceColumnId || !destColumnId) return;
+
+    if (sourceColumnId !== destColumnId) {
+      setTasksByColumn((prev) => {
+        const sourceItems = prev[sourceColumnId] || [];
+        const destItems = prev[destColumnId] || [];
+
+        const activeIndex = sourceItems.findIndex((t) => t.id === active.id);
+        if (activeIndex === -1) return prev;
+
+        const [movedItem] = sourceItems.splice(activeIndex, 1);
+
+        const overIsTask = over.data.current?.type === "Task";
+        let overIndex = -1;
+        if (overIsTask) {
+          overIndex = destItems.findIndex((t) => t.id === over.id);
+        }
+
+        if (overIndex !== -1) {
+          destItems.splice(overIndex, 0, movedItem);
+        } else {
+          destItems.push(movedItem);
+        }
+
+        return {
+          ...prev,
+          [sourceColumnId]: sourceItems,
+          [destColumnId]: destItems,
+        };
+      });
+    } else {
+      setTasksByColumn((prev) => {
+        const items = prev[sourceColumnId];
+        const oldIndex = items.findIndex((t) => t.id === active.id);
+        const newIndex = items.findIndex((t) => t.id === over.id);
+
+        if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+          return {
+            ...prev,
+            [sourceColumnId]: arrayMove(items, oldIndex, newIndex),
+          };
+        }
+        return prev;
+      });
+    }
+  };
+
+  const onDragEnd = (event: DragEndEvent) => {
+    setActiveTask(null);
+    const { active, over } = event;
+
+    if (!over) return;
+
+    const task = tasks.find((t) => t.id === active.id);
+    if (!task) return;
+
+    const destColumnId =
+      over.data.current?.type === "Column"
+        ? (over.id as string)
+        : findColumnForTask(over.id as string);
+
+    if (!destColumnId) return;
+
+    const originalStatus = task.status;
+    const newStatus = columnStatusMap[destColumnId];
+
+    if (newStatus && originalStatus !== newStatus) {
+      updateTaskMutation.mutate({
+        taskId: task.id,
+        workspaceId: task.workspaceId,
+        projectId: task.projectId,
+        taskData: { status: newStatus },
+      });
+    }
+  };
+
+  return (
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCorners}
+      onDragStart={onDragStart}
+      onDragOver={onDragOver}
+      onDragEnd={onDragEnd}
+    >
+      <div className="flex h-full gap-4 overflow-x-auto p-1">
+        {columns.map((col) => (
+          <KanbanColumn
+            key={col.id}
+            column={col as ViewColumn}
+            tasks={tasksByColumn[col.id] || []}
+            onTaskSelect={onTaskSelect}
+          />
+        ))}
+      </div>
+      {createPortal(
+        <DragOverlay>
+          {activeTask ? (
+            <div className="dragging-card-overlay">
+              <KanbanTaskCard task={activeTask} onTaskSelect={() => {}} />
+            </div>
+          ) : null}
+        </DragOverlay>,
+        document.body
+      )}
+    </DndContext>
   );
 }
 
@@ -16361,154 +16779,6 @@ export function KeyResultInput({ control }: KeyResultInputProps) {
     </div>
   );
 }
-// FILE: src/features/project-management/components/LeadForm.tsx
-import { useForm, FormProvider } from "react-hook-form";
-import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
-import { FormInput } from "@/components/form/FormFields";
-import { useManageLeadForms } from "../api/useManageLeadForms";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
-import { nameSchema } from "@/lib/schemas";
-
-const leadFormSchema = z.object({
-  name: nameSchema("Form"),
-});
-type LeadFormValues = z.infer<typeof leadFormSchema>;
-interface LeadFormProps {
-  initialData?: any;
-  onSuccess?: () => void;
-  projectId: string;
-}
-
-export function LeadForm({ initialData, onSuccess, projectId }: LeadFormProps) {
-  const isEditMode = !!initialData;
-  const { useCreate, useUpdate } = useManageLeadForms(projectId);
-  const createMutation = useCreate();
-  const updateMutation = useUpdate();
-  const mutation = isEditMode ? updateMutation : createMutation;
-
-  const methods = useForm<LeadFormValues>({
-    resolver: zodResolver(leadFormSchema),
-    defaultValues: { name: "" },
-  });
-
-  useEffect(() => {
-    if (isEditMode && initialData) {
-      methods.reset(initialData);
-    }
-  }, [initialData, isEditMode, methods]);
-
-  async function onSubmit(values: LeadFormValues) {
-    const payload = {
-      ...values,
-      projectId,
-      fields: initialData?.fields || [
-        { id: "name", label: "Name", type: "TEXT", required: true },
-        { id: "email", label: "Email", type: "EMAIL", required: true },
-      ],
-    };
-    if (isEditMode) {
-      await updateMutation.mutateAsync(
-        { id: initialData.id, data: payload },
-        { onSuccess }
-      );
-    } else {
-      await createMutation.mutateAsync(payload, {
-        onSuccess: () => {
-          methods.reset();
-          onSuccess?.();
-        },
-      });
-    }
-  }
-
-  return (
-    <FormProvider {...methods}>
-      <Form {...methods}>
-        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
-          <FormInput
-            name="name"
-            label="Form Name"
-            placeholder="e.g., Website Contact Form"
-          />
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={mutation.isPending}
-          >
-            {mutation.isPending
-              ? "Saving..."
-              : isEditMode
-                ? "Save Changes"
-                : "Create Form"}
-          </Button>
-        </form>
-      </Form>
-    </FormProvider>
-  );
-}
-// FILE: src/features/project-management/components/LeadFormList.tsx
-import { useState } from "react";
-import { useApiResource } from "@/hooks/useApiResource";
-import { EntityCard } from "@/components/ui/EntityCard";
-import { ClipboardList } from "lucide-react";
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
-import { LeadForm } from "./LeadForm";
-
-interface LeadFormListProps {
-  workspaceId: string;
-  projectId: string;
-}
-
-interface LeadFormQuery {
-  projectId: string;
-}
-
-export function LeadFormList({ projectId }: LeadFormListProps) {
-  const { useGetAll, useDelete } = useApiResource<any, LeadFormQuery>(
-    `projects/${projectId}/lead-forms`,
-    ["leadForms", projectId]
-  );
-  const { data, isLoading } = useGetAll({ projectId });
-  const deleteMutation = useDelete();
-  const [editingId, setEditingId] = useState<string | null>(null);
-
-  if (isLoading) return <div>Loading forms...</div>;
-  if (!data?.data || data.data.length === 0)
-    return <div>No lead forms created for this project yet.</div>;
-
-  return (
-    <>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {data.data.map((form: any) => (
-          <EntityCard
-            key={form.id}
-            title={form.name}
-            description={`${form.fields.length} fields`}
-            icon={ClipboardList}
-            onEdit={() => setEditingId(form.id)}
-            onDelete={() => deleteMutation.mutate(form.id)}
-          >
-            <></>
-          </EntityCard>
-        ))}
-      </div>
-      <ResourceCrudDialog
-        isOpen={!!editingId}
-        onOpenChange={(isOpen) => !isOpen && setEditingId(null)}
-        resourceId={editingId}
-        resourcePath={`projects/${projectId}/lead-forms`}
-        resourceKey={["leadForms", projectId]}
-        title="Edit Lead Form"
-        description="Update the name of your lead form."
-        form={LeadForm}
-        formProps={{ projectId }}
-      />
-    </>
-  );
-}
 // FILE: src/features/project-management/components/LinkDocumentForm.tsx
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -16560,6 +16830,980 @@ export function LinkDocumentForm({
         </form>
       </Form>
     </FormProvider>
+  );
+}
+
+// FILE: src/features/project-management/components/list-view/cells/ActionsCell.tsx
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { MoreHorizontal, Edit, Copy, Trash2 } from "lucide-react";
+import { useManageTasks } from "@/features/project-management/api/useManageTasks";
+import { toast } from "sonner";
+import { Task } from "@/types";
+
+interface ActionsCellProps {
+  task: Task;
+  onTaskSelect: (taskId: string) => void;
+}
+
+export function ActionsCell({ task, onTaskSelect }: ActionsCellProps) {
+  const { useDelete } = useManageTasks(task.workspaceId, task.projectId);
+  const deleteMutation = useDelete();
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (window.confirm(`Delete task "${task.title}"?`)) {
+      deleteMutation.mutate(task.id);
+    }
+  };
+
+  const handleCopyId = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(task.shortId || task.id);
+    toast.success("Task ID copied to clipboard.");
+  };
+
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onTaskSelect(task.id);
+  };
+
+  return (
+    <div className="text-right" onClick={(e) => e.stopPropagation()}>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            className="hover-action hover:bg-hover h-8 w-8 rounded-md p-1 text-muted-foreground opacity-0"
+          >
+            <MoreHorizontal className="h-5 w-5" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          <DropdownMenuItem onClick={handleEdit}>
+            <Edit className="mr-2 h-4 w-4" />
+            <span>View / Edit Details</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleCopyId}>
+            <Copy className="mr-2 h-4 w-4" />
+            <span>Copy Task ID</span>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem className="text-red-500" onClick={handleDelete}>
+            <Trash2 className="mr-2 h-4 w-4" />
+            Delete
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+}
+
+// FILE: src/features/project-management/components/list-view/cells/AssigneeCell.tsx
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getAbsoluteUrl } from "@/lib/utils";
+import { Task, TaskAssignee } from "@/types";
+import { Button } from "@/components/ui/button";
+import { UserPlus } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { AssigneeSelector } from "../../AssigneeSelector";
+import { useApiMutation } from "@/hooks/useApiMutation";
+import api from "@/lib/api";
+
+const useAssigneeMutations = (task: Task) => {
+  const isProjectTask = !!task.projectId;
+  const workspaceId = task.workspaceId;
+  const projectId = task.projectId;
+  const invalidateQueries: (string | null | undefined)[][] = [
+    ["task", task.id],
+    ["myTasks"],
+  ];
+  if (projectId) {
+    invalidateQueries.push(["tasks", projectId]);
+  }
+
+  const assignMutation = useApiMutation({
+    mutationFn: (userId: string) => {
+      const url = isProjectTask
+        ? `/workspaces/${workspaceId}/projects/${projectId}/tasks/${task.id}/assignees`
+        : `/tasks/${task.id}/assignees`;
+      return api.post(url, { userId });
+    },
+    invalidateQueries,
+  });
+
+  const unassignMutation = useApiMutation({
+    mutationFn: (userId: string) => {
+      const url = isProjectTask
+        ? `/workspaces/${workspaceId}/projects/${projectId}/tasks/${task.id}/assignees/${userId}`
+        : `/tasks/${task.id}/assignees/${userId}`;
+      return api.delete(url);
+    },
+    invalidateQueries,
+  });
+
+  return { assignMutation, unassignMutation };
+};
+
+export function AssigneeCell({ task }: { task: Task }) {
+  const { assignMutation, unassignMutation } = useAssigneeMutations(task);
+
+  const handleSelectionChange = (newIds: string[]) => {
+    const currentIds = task.assignees.map((a) => a.id);
+
+    const added = newIds.filter((id) => !currentIds.includes(id));
+    const removed = currentIds.filter((id) => !newIds.includes(id));
+
+    added.forEach((userId) => assignMutation.mutate(userId));
+    removed.forEach((userId) => unassignMutation.mutate(userId));
+  };
+
+  const MAX_VISIBLE_AVATARS = 3;
+  const visibleAssignees = task.assignees.slice(0, MAX_VISIBLE_AVATARS);
+  const hiddenCount = task.assignees.length - MAX_VISIBLE_AVATARS;
+
+  return (
+    <div className="flex items-center -space-x-2">
+      {visibleAssignees.map((assignee: TaskAssignee) => (
+        <Avatar
+          key={assignee.id}
+          className="h-7 w-7 rounded-full ring-2 ring-surface"
+        >
+          <AvatarImage
+            src={getAbsoluteUrl(assignee.avatarUrl)}
+            alt={assignee.name}
+          />
+          <AvatarFallback>{assignee.name?.charAt(0)}</AvatarFallback>
+        </Avatar>
+      ))}
+      {hiddenCount > 0 && (
+        <Avatar className="h-7 w-7 rounded-full ring-2 ring-surface">
+          <AvatarFallback className="bg-muted text-xs text-muted-foreground">
+            +{hiddenCount}
+          </AvatarFallback>
+        </Avatar>
+      )}
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={(e) => e.stopPropagation()}
+            className="hover:bg-hover h-7 w-7 flex-shrink-0 rounded-full border-2 border-dashed border-border bg-transparent text-muted-foreground hover:text-foreground"
+          >
+            <UserPlus className="h-4 w-4" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent
+          className="w-80 p-0"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <AssigneeSelector
+            projectId={task.projectId}
+            workspaceId={task.workspaceId}
+            selectedIds={task.assignees.map((a) => a.id)}
+            onSelectionChange={handleSelectionChange}
+          />
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+}
+
+// FILE: src/features/project-management/components/list-view/cells/DueDateCell.tsx
+import { format } from "date-fns";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Task } from "@/types";
+
+const isOverdue = (dueDateStr: string | null): boolean => {
+  if (!dueDateStr) return false;
+  const dueDate = new Date(dueDateStr);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return dueDate < today;
+};
+
+interface DueDateCellProps {
+  task: Task;
+  onUpdate: (taskId: string, updates: Partial<Task>) => void;
+}
+
+export function DueDateCell({ task, onUpdate }: DueDateCellProps) {
+  const dueDate = task.dueDate ? new Date(task.dueDate) : null;
+
+  const handleDateSelect = (date: Date | undefined) => {
+    onUpdate(task.id, { dueDate: date ? date.toISOString() : null });
+  };
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild onClick={(e) => e.stopPropagation()}>
+        <Button
+          variant="ghost"
+          className={`h-auto p-0 font-normal hover:bg-transparent ${
+            isOverdue(task.dueDate) ? "font-semibold text-red-500" : ""
+          }`}
+        >
+          {dueDate ? format(dueDate, "MMM d") : "-"}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent
+        className="p-0"
+        align="start"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <Calendar
+          mode="single"
+          selected={dueDate ?? undefined}
+          onSelect={handleDateSelect}
+          initialFocus
+        />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+// FILE: src/features/project-management/components/list-view/cells/index.ts
+export * from "./AssigneeCell";
+export * from "./DueDateCell";
+export * from "./PriorityCell";
+export * from "./StatusCell";
+export * from "./ActionsCell";
+export * from "./TaskTypeCell";
+
+// FILE: src/features/project-management/components/list-view/cells/PriorityCell.tsx
+import { TaskPriority, Task } from "@/types";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Flag } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+const priorityMap: Record<
+  TaskPriority,
+  { color: string; label: string } | undefined
+> = {
+  [TaskPriority.URGENT]: { color: "text-priority-urgent", label: "Urgent" },
+  [TaskPriority.HIGH]: { color: "text-priority-high", label: "High" },
+  [TaskPriority.MEDIUM]: { color: "text-priority-medium", label: "Medium" },
+  [TaskPriority.LOW]: { color: "text-blue-500", label: "Low" },
+  [TaskPriority.NONE]: { color: "text-muted-foreground", label: "None" },
+};
+
+interface PriorityCellProps {
+  task: Task;
+  onUpdate: (taskId: string, updates: Partial<Task>) => void;
+}
+
+export function PriorityCell({ task, onUpdate }: PriorityCellProps) {
+  const config = priorityMap[task.priority];
+
+  const handleUpdate = (newPriority: TaskPriority) => {
+    onUpdate(task.id, { priority: newPriority });
+  };
+
+  return (
+    <Select
+      defaultValue={task.priority}
+      onValueChange={(val) => handleUpdate(val as TaskPriority)}
+    >
+      <SelectTrigger
+        className="h-auto w-full border-none bg-transparent p-0 hover:bg-transparent focus:bg-transparent focus:ring-0 [&>svg]:hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <SelectValue asChild>
+          <div className="priority-flag flex items-center space-x-2 bg-transparent">
+            {config && <Flag className={cn("h-4 w-4", config.color)} />}
+            <span className="hidden lg:inline">{config?.label}</span>
+          </div>
+        </SelectValue>
+      </SelectTrigger>
+      <SelectContent
+        className="bg-element"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {Object.values(TaskPriority).map((p) => (
+          <SelectItem key={p} value={p}>
+            <div className="flex items-center space-x-2">
+              <Flag className={cn("h-4 w-4", priorityMap[p]?.color)} />
+              <span>{priorityMap[p]?.label}</span>
+            </div>
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
+// FILE: src/features/project-management/components/list-view/cells/StatusCell.tsx
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Task, TaskStatus } from "@/types";
+
+const statusMap: Record<TaskStatus, { text: string; dot: string }> = {
+  [TaskStatus.IN_PROGRESS]: {
+    text: "text-blue-400",
+    dot: "bg-blue-400",
+  },
+  [TaskStatus.TODO]: {
+    text: "text-slate-400",
+    dot: "bg-slate-400",
+  },
+  [TaskStatus.IN_REVIEW]: {
+    text: "text-purple-400",
+    dot: "bg-purple-400",
+  },
+  [TaskStatus.DONE]: {
+    text: "text-green-400",
+    dot: "bg-green-400",
+  },
+  [TaskStatus.BLOCKED]: {
+    text: "text-red-400",
+    dot: "bg-red-400",
+  },
+  [TaskStatus.CANCELLED]: {
+    text: "text-gray-400",
+    dot: "bg-gray-400",
+  },
+};
+
+interface StatusCellProps {
+  task: Task;
+  onUpdate: (taskId: string, updates: Partial<Task>) => void;
+}
+
+export function StatusCell({ task, onUpdate }: StatusCellProps) {
+  const config = statusMap[task.status];
+
+  const handleUpdate = (newStatus: TaskStatus) => {
+    onUpdate(task.id, { status: newStatus });
+  };
+
+  return (
+    <Select
+      defaultValue={task.status}
+      onValueChange={(val) => handleUpdate(val as TaskStatus)}
+    >
+      <SelectTrigger
+        className="h-auto border-none bg-transparent p-0 hover:bg-transparent focus:bg-transparent focus:ring-0 [&>svg]:hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <SelectValue asChild>
+          <div
+            className={`status-pill inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${config?.text}`}
+          >
+            <span className={`mr-2 h-2 w-2 ${config?.dot} rounded-full`}></span>
+            {task.status.replace(/_/g, " ")}
+          </div>
+        </SelectValue>
+      </SelectTrigger>
+      <SelectContent
+        className="bg-element"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {Object.values(TaskStatus).map((s) => (
+          <SelectItem key={s} value={s}>
+            <div className="flex items-center">
+              <span
+                className={`mr-2 h-2 w-2 ${statusMap[s].dot} rounded-full`}
+              ></span>
+              {s.replace(/_/g, " ")}
+            </div>
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
+// FILE: src/features/project-management/components/list-view/cells/TaskTypeCell.tsx
+import { Task } from "@/types";
+import { TaskTypeSelector } from "../../TaskTypeSelector";
+
+interface TaskTypeCellProps {
+  task: Task;
+  onUpdate: (taskId: string, updates: Partial<Task>) => void;
+}
+
+export function TaskTypeCell({ task, onUpdate }: TaskTypeCellProps) {
+  const handleUpdate = (newTypeId: string | null) => {
+    onUpdate(task.id, { taskTypeId: newTypeId });
+  };
+
+  return (
+    <div onClick={(e) => e.stopPropagation()}>
+      <TaskTypeSelector
+        workspaceId={task.workspaceId}
+        projectId={task.projectId}
+        value={task.taskTypeId ?? null}
+        onValueChange={handleUpdate}
+      />
+    </div>
+  );
+}
+
+// FILE: src/features/project-management/components/list-view/ColumnVisibilityToggle.tsx
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { Columns } from "lucide-react";
+
+interface Column {
+  id: string;
+  label: string;
+  visible: boolean;
+}
+
+interface ColumnVisibilityToggleProps {
+  columns: Column[];
+  onVisibilityChange: (columnId: string, visible: boolean) => void;
+}
+
+export function ColumnVisibilityToggle({
+  columns,
+  onVisibilityChange,
+}: ColumnVisibilityToggleProps) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="outline"
+          className="hover:bg-hover border-border bg-element text-foreground"
+        >
+          <Columns className="mr-2 h-4 w-4" />
+          Columns
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuLabel>Visible Columns</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {columns.map((column) => (
+          <DropdownMenuCheckboxItem
+            key={column.id}
+            checked={column.visible}
+            onCheckedChange={(checked) =>
+              onVisibilityChange(column.id, !!checked)
+            }
+          >
+            {column.label}
+          </DropdownMenuCheckboxItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+// FILE: src/features/project-management/components/list-view/ListView.tsx
+import { useMemo } from "react";
+import { Task } from "@/types";
+import { TaskStatus } from "@/types/api";
+import { ListViewHeader } from "./ListViewHeader";
+import { TaskGroup } from "./TaskGroup";
+
+interface ListViewProps {
+  tasks: Task[];
+  onTaskSelect: (taskId: string) => void;
+  onTaskUpdate: (taskId: string, updates: Partial<Task>) => void;
+  emptyState: React.ReactNode;
+  showWorkspaceColumn?: boolean;
+  showProjectColumn?: boolean;
+  showTaskTypeColumn?: boolean;
+  selectedTaskIds: string[];
+  setSelectedTaskIds: (ids: string[]) => void;
+}
+
+const statusOrder: TaskStatus[] = [
+  TaskStatus.TODO,
+  TaskStatus.IN_PROGRESS,
+  TaskStatus.IN_REVIEW,
+  TaskStatus.DONE,
+  TaskStatus.BLOCKED,
+  TaskStatus.CANCELLED,
+];
+
+const getStatusGroupName = (status: TaskStatus): string => {
+  switch (status) {
+    case TaskStatus.TODO:
+      return "To Do";
+    case TaskStatus.IN_PROGRESS:
+      return "In Progress";
+    case TaskStatus.IN_REVIEW:
+      return "In Review";
+    case TaskStatus.DONE:
+      return "Done";
+    case TaskStatus.BLOCKED:
+      return "Blocked";
+    case TaskStatus.CANCELLED:
+      return "Cancelled";
+    default:
+      return "Other";
+  }
+};
+
+export function ListView({
+  tasks,
+  onTaskSelect,
+  onTaskUpdate,
+  emptyState,
+  showWorkspaceColumn = false,
+  showProjectColumn = false,
+  showTaskTypeColumn = false,
+  selectedTaskIds,
+  setSelectedTaskIds,
+}: ListViewProps) {
+  const groupedTasks = useMemo(() => {
+    const groupMap = new Map<string, Task[]>();
+    const topLevelTasks = tasks.filter((task) => !task.parentId);
+
+    topLevelTasks.forEach((task) => {
+      const groupName = getStatusGroupName(task.status);
+      if (!groupMap.has(groupName)) {
+        groupMap.set(groupName, []);
+      }
+      groupMap.get(groupName)!.push(task);
+    });
+
+    const orderedGroups: [string, Task[]][] = [];
+    for (const status of statusOrder) {
+      const groupName = getStatusGroupName(status);
+      if (groupMap.has(groupName)) {
+        orderedGroups.push([groupName, groupMap.get(groupName)!]);
+      }
+    }
+
+    return orderedGroups;
+  }, [tasks]);
+
+  if (tasks.length === 0) {
+    return emptyState;
+  }
+
+  return (
+    <div className="rounded-lg border border-border bg-surface">
+      <ListViewHeader
+        showWorkspace={showWorkspaceColumn}
+        showProject={showProjectColumn}
+        showTaskType={showTaskTypeColumn}
+        tasks={tasks}
+        selectedTaskIds={selectedTaskIds}
+        setSelectedTaskIds={setSelectedTaskIds}
+      />
+      <div id="task-list">
+        {groupedTasks.map(([groupName, tasksInGroup]) => (
+          <TaskGroup
+            key={groupName}
+            groupName={groupName}
+            tasks={tasksInGroup}
+            onTaskSelect={onTaskSelect}
+            onTaskUpdate={onTaskUpdate}
+            showWorkspace={showWorkspaceColumn}
+            showProject={showProjectColumn}
+            showTaskType={showTaskTypeColumn}
+            selectedTaskIds={selectedTaskIds}
+            setSelectedTaskIds={setSelectedTaskIds}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// FILE: src/features/project-management/components/list-view/ListViewHeader.tsx
+import { Checkbox } from "@/components/ui/checkbox";
+import { Task } from "@/types";
+
+interface ListViewHeaderProps {
+  showWorkspace: boolean;
+  showProject: boolean;
+  showTaskType: boolean;
+  tasks: Task[];
+  selectedTaskIds: string[];
+  setSelectedTaskIds: (ids: string[]) => void;
+}
+
+export function ListViewHeader({
+  showWorkspace,
+  showProject,
+  showTaskType,
+  tasks,
+  selectedTaskIds,
+  setSelectedTaskIds,
+}: ListViewHeaderProps) {
+  const columnClasses = {
+    name: "sm:col-span-4",
+    workspace: "hidden sm:block sm:col-span-1",
+    project: "hidden sm:block sm:col-span-1",
+    type: "hidden sm:block sm:col-span-1",
+    assignee: "hidden sm:block sm:col-span-1",
+    dueDate: "hidden sm:block sm:col-span-1",
+    priority: "hidden sm:block sm:col-span-1",
+    status: "hidden sm:block sm:col-span-1",
+    actions: "hidden sm:block sm:col-span-1",
+  };
+
+  let nameSpan = 4;
+  if (!showWorkspace) nameSpan++;
+  if (!showProject) nameSpan++;
+  if (!showTaskType) nameSpan++;
+
+  const allTaskIds = tasks.map((t) => t.id);
+  const isAllSelected =
+    allTaskIds.length > 0 && selectedTaskIds.length === allTaskIds.length;
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedTaskIds(allTaskIds);
+    } else {
+      setSelectedTaskIds([]);
+    }
+  };
+
+  return (
+    <div className="grid grid-cols-12 gap-4 border-b border-border bg-surface px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+      <div
+        className={`col-span-12 sm:col-span-${nameSpan} flex items-center gap-3`}
+      >
+        <Checkbox
+          checked={isAllSelected}
+          onCheckedChange={handleSelectAll}
+          aria-label="Select all tasks"
+          className="border-border bg-element"
+        />
+        Task Name
+      </div>
+      {showWorkspace && (
+        <div className={columnClasses.workspace}>Workspace</div>
+      )}
+      {showProject && <div className={columnClasses.project}>Project</div>}
+      {showTaskType && <div className={columnClasses.type}>Type</div>}
+      <div className={columnClasses.assignee}>Assignee</div>
+      <div className={columnClasses.dueDate}>Due Date</div>
+      <div className={columnClasses.priority}>Priority</div>
+      <div className={columnClasses.status}>Status</div>
+      <div className={columnClasses.actions}></div>
+    </div>
+  );
+}
+
+// FILE: src/features/project-management/components/list-view/SortMenu.tsx
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { ArrowDownUp, ArrowUp, ArrowDown } from "lucide-react";
+import { OnChangeFn, SortingState } from "@tanstack/react-table";
+
+interface SortMenuProps {
+  sorting: SortingState;
+  setSorting: OnChangeFn<SortingState>;
+  sortableColumns: { id: string; label: string }[];
+}
+
+export function SortMenu({
+  sorting,
+  setSorting,
+  sortableColumns,
+}: SortMenuProps) {
+  const currentSort = sorting[0];
+
+  const handleSort = (columnId: string) => {
+    const isDesc = currentSort?.id === columnId && currentSort.desc;
+    setSorting(isDesc ? [] : [{ id: columnId, desc: !isDesc }]);
+  };
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="outline"
+          className="hover:bg-hover border-border bg-element text-foreground"
+        >
+          <ArrowDownUp className="mr-2 h-4 w-4" />
+          <span>Sort</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuLabel>Sort by</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {sortableColumns.map((col) => (
+          <DropdownMenuItem key={col.id} onClick={() => handleSort(col.id)}>
+            {currentSort?.id === col.id ? (
+              currentSort.desc ? (
+                <ArrowDown className="mr-2 h-4 w-4" />
+              ) : (
+                <ArrowUp className="mr-2 h-4 w-4" />
+              )
+            ) : (
+              <div className="w-6" />
+            )}
+            {col.label}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+// FILE: src/features/project-management/components/list-view/TaskGroup.tsx
+import { useState } from "react";
+import { Task } from "@/types";
+import { TaskRow } from "./TaskRow";
+import { ChevronDown } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+interface TaskGroupProps {
+  groupName: string;
+  tasks: Task[];
+  onTaskSelect: (taskId: string) => void;
+  onTaskUpdate: (taskId: string, updates: Partial<Task>) => void;
+  showWorkspace: boolean;
+  showProject: boolean;
+  showTaskType: boolean;
+  selectedTaskIds: string[];
+  setSelectedTaskIds: (ids: string[]) => void;
+}
+
+export function TaskGroup({
+  groupName,
+  tasks,
+  onTaskSelect,
+  onTaskUpdate,
+  showWorkspace,
+  showProject,
+  showTaskType,
+  selectedTaskIds,
+  setSelectedTaskIds,
+}: TaskGroupProps) {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  if (tasks.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="task-group">
+      <div
+        className={cn(
+          "group-header sticky top-0 z-10 flex cursor-pointer items-center border-b border-border bg-element px-4 py-2 backdrop-blur-sm",
+          isCollapsed && "group-collapsed"
+        )}
+        onClick={() => setIsCollapsed(!isCollapsed)}
+      >
+        <ChevronDown className="group-header-icon mr-2 h-5 w-5 text-muted-foreground" />
+        <h3 className="font-semibold text-foreground">{groupName}</h3>
+        <span className="ml-2 rounded-full bg-background px-2 py-0.5 text-xs font-medium text-muted-foreground">
+          {tasks.length}
+        </span>
+      </div>
+      <div className={cn("group-tasks", isCollapsed && "hidden")}>
+        {tasks.map((task) => (
+          <TaskRow
+            key={task.id}
+            task={task}
+            onTaskSelect={onTaskSelect}
+            onTaskUpdate={onTaskUpdate}
+            showWorkspace={showWorkspace}
+            showProject={showProject}
+            showTaskType={showTaskType}
+            selectedTaskIds={selectedTaskIds}
+            setSelectedTaskIds={setSelectedTaskIds}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// FILE: src/features/project-management/components/list-view/TaskRow.tsx
+import { useState } from "react";
+import { Task } from "@/types";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { ChevronDown, ChevronRight } from "lucide-react";
+import {
+  AssigneeCell,
+  DueDateCell,
+  PriorityCell,
+  StatusCell,
+  ActionsCell,
+  TaskTypeCell,
+} from "./cells";
+import { cn } from "@/lib/utils";
+import { TaskStatus } from "@/types/api";
+
+interface TaskRowProps {
+  task: Task;
+  level?: number;
+  onTaskSelect: (taskId: string) => void;
+  onTaskUpdate: (taskId: string, updates: Partial<Task>) => void;
+  showWorkspace: boolean;
+  showProject: boolean;
+  showTaskType: boolean;
+  selectedTaskIds: string[];
+  setSelectedTaskIds: (ids: string[]) => void;
+}
+
+export function TaskRow({
+  task,
+  level = 0,
+  onTaskSelect,
+  onTaskUpdate,
+  showWorkspace,
+  showProject,
+  showTaskType,
+  selectedTaskIds,
+  setSelectedTaskIds,
+}: TaskRowProps) {
+  const [isExpanded, setIsExpanded] = useState(true);
+  const hasSubtasks = task.subtasks && task.subtasks.length > 0;
+  const isCompleted = task.status === TaskStatus.DONE;
+
+  const handleToggleExpand = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsExpanded(!isExpanded);
+  };
+
+  const handleSelectionToggle = (checked: boolean) => {
+    setSelectedTaskIds(
+      checked
+        ? [...selectedTaskIds, task.id]
+        : selectedTaskIds.filter((id) => id !== task.id)
+    );
+  };
+
+  let nameSpan = 4;
+  if (!showWorkspace) nameSpan++;
+  if (!showProject) nameSpan++;
+  if (!showTaskType) nameSpan++;
+
+  return (
+    <div
+      data-task-id={task.id}
+      className={cn("task-wrapper", isCompleted && "task-completed")}
+    >
+      <div
+        className={cn(
+          "task-row hover:bg-hover grid cursor-pointer grid-cols-12 items-center gap-4 border-b border-border/50 px-4 py-3 transition-colors duration-150"
+        )}
+        onClick={() => onTaskSelect(task.id)}
+      >
+        <div
+          className={`col-span-12 sm:col-span-${nameSpan} flex items-center`}
+          style={{ paddingLeft: `${level * 24}px` }}
+        >
+          <Checkbox
+            className="task-checkbox mr-3 h-4 w-4 cursor-pointer rounded border-border bg-element text-primary focus:ring-primary"
+            checked={selectedTaskIds.includes(task.id)}
+            onCheckedChange={handleSelectionToggle}
+            onClick={(e) => e.stopPropagation()}
+          />
+          <div className="mr-1 w-6">
+            {hasSubtasks && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="subtask-toggle-btn hover:bg-hover h-6 w-6 rounded-md p-1"
+                onClick={handleToggleExpand}
+              >
+                {isExpanded ? (
+                  <ChevronDown className="subtask-icon h-4 w-4" />
+                ) : (
+                  <ChevronRight className="subtask-icon h-4 w-4" />
+                )}
+              </Button>
+            )}
+          </div>
+          <span className="flex-1 truncate">{task.title}</span>
+        </div>
+
+        {showWorkspace && (
+          <div className="col-span-1 hidden truncate text-sm sm:block">
+            {task.workspaceName}
+          </div>
+        )}
+        {showProject && (
+          <div className="col-span-1 hidden truncate text-sm sm:block">
+            {task.projectName}
+          </div>
+        )}
+        {showTaskType && (
+          <div className="col-span-1 hidden truncate text-sm sm:block">
+            <TaskTypeCell task={task} onUpdate={onTaskUpdate} />
+          </div>
+        )}
+        <div className="col-span-1 hidden sm:block">
+          <AssigneeCell task={task} />
+        </div>
+        <div className="col-span-1 hidden text-sm sm:block">
+          <DueDateCell task={task} onUpdate={onTaskUpdate} />
+        </div>
+        <div className="col-span-1 hidden sm:block">
+          <PriorityCell task={task} onUpdate={onTaskUpdate} />
+        </div>
+        <div className="relative col-span-1 hidden sm:block">
+          <StatusCell task={task} onUpdate={onTaskUpdate} />
+        </div>
+        <div className="col-span-1 hidden text-right sm:block">
+          <ActionsCell task={task} onTaskSelect={onTaskSelect} />
+        </div>
+      </div>
+      {hasSubtasks && isExpanded && (
+        <div className="subtasks-container">
+          {task.subtasks.map((sub) => (
+            <TaskRow
+              key={sub.id}
+              task={sub}
+              level={level + 1}
+              onTaskSelect={onTaskSelect}
+              onTaskUpdate={onTaskUpdate}
+              showWorkspace={showWorkspace}
+              showProject={showProject}
+              showTaskType={showTaskType}
+              selectedTaskIds={selectedTaskIds}
+              setSelectedTaskIds={setSelectedTaskIds}
+            />
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -16650,199 +17894,6 @@ export function MoveTaskToProjectSelector({
         Move Task
       </Button>
     </div>
-  );
-}
-
-// FILE: src/features/project-management/components/MyTasksKanbanBoard.tsx
-import { useState, useEffect } from "react";
-import {
-  DndContext,
-  DragEndEvent,
-  DragOverlay,
-  DragStartEvent,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragOverEvent,
-  closestCorners,
-} from "@dnd-kit/core";
-import { createPortal } from "react-dom";
-import { Task } from "@/types";
-import { TaskStatus } from "@/types/api";
-import { KanbanColumn } from "@/features/project-management/components/KanbanColumn";
-import { KanbanTaskCard } from "@/features/project-management/components/KanbanTaskCard";
-import { useUpdateTask } from "../api/useUpdateTask";
-import { ViewColumn } from "@/types";
-import { arrayMove } from "@dnd-kit/sortable";
-
-interface MyTasksKanbanBoardProps {
-  tasks: Task[];
-  onTaskSelect: (taskId: string) => void;
-  columns: Omit<ViewColumn, "createdAt" | "updatedAt">[];
-  columnStatusMap: Record<string, TaskStatus>;
-}
-
-export function MyTasksKanbanBoard({
-  tasks,
-  onTaskSelect,
-  columns,
-  columnStatusMap,
-}: MyTasksKanbanBoardProps) {
-  const [activeTask, setActiveTask] = useState<Task | null>(null);
-  const updateTaskMutation = useUpdateTask();
-  const [tasksByColumn, setTasksByColumn] = useState<Record<string, Task[]>>(
-    {}
-  );
-
-  useEffect(() => {
-    const grouped: Record<string, Task[]> = {};
-    columns.forEach((col) => (grouped[col.id] = []));
-
-    tasks.forEach((task) => {
-      const column = columns.find(
-        (col) => columnStatusMap[col.id] === task.status
-      );
-      if (column) {
-        grouped[column.id].push(task);
-      }
-    });
-    setTasksByColumn(grouped);
-  }, [tasks, columns, columnStatusMap]);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 10,
-      },
-    })
-  );
-
-  const findColumnForTask = (taskId: string) => {
-    return Object.keys(tasksByColumn).find((colId) =>
-      tasksByColumn[colId].some((task) => task.id === taskId)
-    );
-  };
-
-  const onDragStart = (event: DragStartEvent) => {
-    const task = tasks.find((t) => t.id === event.active.id);
-    if (task) setActiveTask(task);
-  };
-
-  const onDragOver = (event: DragOverEvent) => {
-    const { active, over } = event;
-    if (!over || !activeTask || active.id === over.id) return;
-
-    const sourceColumnId = findColumnForTask(active.id as string);
-    const destColumnId =
-      over.data.current?.type === "Column"
-        ? (over.id as string)
-        : findColumnForTask(over.id as string);
-
-    if (!sourceColumnId || !destColumnId) return;
-
-    if (sourceColumnId !== destColumnId) {
-      setTasksByColumn((prev) => {
-        const sourceItems = prev[sourceColumnId] || [];
-        const destItems = prev[destColumnId] || [];
-
-        const activeIndex = sourceItems.findIndex((t) => t.id === active.id);
-        if (activeIndex === -1) return prev;
-
-        const [movedItem] = sourceItems.splice(activeIndex, 1);
-
-        const overIsTask = over.data.current?.type === "Task";
-        let overIndex = -1;
-        if (overIsTask) {
-          overIndex = destItems.findIndex((t) => t.id === over.id);
-        }
-
-        if (overIndex !== -1) {
-          destItems.splice(overIndex, 0, movedItem);
-        } else {
-          destItems.push(movedItem);
-        }
-
-        return {
-          ...prev,
-          [sourceColumnId]: sourceItems,
-          [destColumnId]: destItems,
-        };
-      });
-    } else {
-      setTasksByColumn((prev) => {
-        const items = prev[sourceColumnId];
-        const oldIndex = items.findIndex((t) => t.id === active.id);
-        const newIndex = items.findIndex((t) => t.id === over.id);
-
-        if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-          return {
-            ...prev,
-            [sourceColumnId]: arrayMove(items, oldIndex, newIndex),
-          };
-        }
-        return prev;
-      });
-    }
-  };
-
-  const onDragEnd = (event: DragEndEvent) => {
-    setActiveTask(null);
-    const { active, over } = event;
-
-    if (!over) return;
-
-    const task = tasks.find((t) => t.id === active.id);
-    if (!task) return;
-
-    const destColumnId =
-      over.data.current?.type === "Column"
-        ? (over.id as string)
-        : findColumnForTask(over.id as string);
-
-    if (!destColumnId) return;
-
-    const originalStatus = task.status;
-    const newStatus = columnStatusMap[destColumnId];
-
-    if (newStatus && originalStatus !== newStatus) {
-      updateTaskMutation.mutate({
-        taskId: task.id,
-        workspaceId: task.workspaceId,
-        projectId: task.projectId,
-        taskData: { status: newStatus },
-      });
-    }
-  };
-
-  return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCorners}
-      onDragStart={onDragStart}
-      onDragOver={onDragOver}
-      onDragEnd={onDragEnd}
-    >
-      <div className="flex h-full gap-4 overflow-x-auto p-1">
-        {columns.map((col) => (
-          <KanbanColumn
-            key={col.id}
-            column={col as ViewColumn}
-            tasks={tasksByColumn[col.id] || []}
-            onTaskSelect={onTaskSelect}
-          />
-        ))}
-      </div>
-      {createPortal(
-        <DragOverlay>
-          {activeTask ? (
-            <div className="dragging-card-overlay">
-              <KanbanTaskCard task={activeTask} onTaskSelect={() => {}} />
-            </div>
-          ) : null}
-        </DragOverlay>,
-        document.body
-      )}
-    </DndContext>
   );
 }
 // FILE: src/features/project-management/components/ProjectAttachments.tsx
@@ -17052,7 +18103,7 @@ export function ProjectCard({ project, onEdit }: ProjectCardProps) {
       icon={Icon}
     >
       <CardContent>
-        <div className="text-muted-foreground flex justify-between text-sm">
+        <div className="flex justify-between text-sm text-muted-foreground">
           <span>Status: {project.status}</span>
           <span>
             Created: {new Date(project.createdAt).toLocaleDateString("en-US")}
@@ -17062,20 +18113,18 @@ export function ProjectCard({ project, onEdit }: ProjectCardProps) {
     </EntityCard>
   );
 }
-
 // FILE: src/features/project-management/components/ProjectDetailView.tsx
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TaskList } from "@/features/project-management/components/TaskList";
-import { KanbanBoard } from "@/features/project-management/components/KanbanBoard";
-import { BacklogView } from "@/features/project-management/components/BacklogView";
-import { GanttChartView } from "@/features/project-management/components/GanttChartView";
-import { CalendarView } from "@/features/project-management/components/CalendarView";
+import { KanbanBoard } from "@/features/project-management/components/kanban-view/KanbanBoard";
+import { GanttChartView } from "@/features/project-management/components/gantt-view/GanttChartView";
+import { CalendarView } from "@/features/project-management/components/calendar-view/CalendarView";
 import { Task } from "@/types";
 import { View } from "@/types";
 import { ActivityLog } from "@/features/analytics/components/ActivityLog";
 import { ReportingOverview } from "@/features/analytics/components/ReportingOverview";
 import { DashboardList } from "@/features/analytics/components/DashboardList";
-import { OnChangeFn, SortingState } from "@tanstack/react-table";
+import { ListView } from "./list-view/ListView";
+import React from "react";
 
 interface ProjectDetailViewProps {
   views: View[];
@@ -17086,8 +18135,6 @@ interface ProjectDetailViewProps {
   onTaskUpdate: (taskId: string, updates: Partial<Task>) => void;
   activeTab: string;
   onTabChange: (tab: string) => void;
-  sorting: SortingState;
-  setSorting: OnChangeFn<SortingState>;
   emptyState: React.ReactNode;
 }
 
@@ -17100,8 +18147,6 @@ export function ProjectDetailView({
   onTaskUpdate,
   activeTab,
   onTabChange,
-  sorting,
-  setSorting,
   emptyState,
 }: ProjectDetailViewProps) {
   return (
@@ -17120,14 +18165,14 @@ export function ProjectDetailView({
       {views.map((view) => (
         <TabsContent key={view.id} value={view.id} className="mt-0 h-full">
           {view.type === "LIST" && (
-            <TaskList
+            <ListView
               tasks={tasks}
               onTaskSelect={onTaskSelect}
+              onTaskUpdate={onTaskUpdate}
               emptyState={emptyState}
-              apiUrl={`/workspaces/${workspaceId}/projects/${projectId}/tasks`}
-              queryKey={["tasks", projectId, view.id]}
-              sorting={sorting}
-              setSorting={setSorting}
+              showTaskTypeColumn={true}
+              selectedTaskIds={[]}
+              setSelectedTaskIds={() => {}}
             />
           )}
           {view.type === "KANBAN" && (
@@ -17139,23 +18184,11 @@ export function ProjectDetailView({
               onTaskSelect={onTaskSelect}
             />
           )}
-          {view.type === "BACKLOG" && (
-            <BacklogView
-              tasks={tasks}
-              workspaceId={workspaceId}
-              projectId={projectId}
-              onTaskSelect={onTaskSelect}
-            />
-          )}
           {view.type === "GANTT" && (
             <GanttChartView tasks={tasks} onTaskSelect={onTaskSelect} />
           )}
           {view.type === "CALENDAR" && (
-            <CalendarView
-              tasks={tasks}
-              onTaskSelect={onTaskSelect}
-              onTaskUpdate={onTaskUpdate}
-            />
+            <CalendarView tasks={tasks} onTaskSelect={onTaskSelect} />
           )}
         </TabsContent>
       ))}
@@ -17174,7 +18207,6 @@ export function ProjectDetailView({
     </Tabs>
   );
 }
-
 // FILE: src/features/project-management/components/ProjectForm.tsx
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -17327,21 +18359,21 @@ export function ProjectHeader({
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-4">
-        <h1 className="text-foreground text-2xl font-bold tracking-tight">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">
           {project.name}
         </h1>
         <div className="flex -space-x-2">
           {members.slice(0, 3).map((member: any) => (
             <Avatar
               key={member.userId}
-              className="border-kanban-bg h-8 w-8 border-2"
+              className="h-8 w-8 border-2 border-background"
             >
               <AvatarImage src={getAbsoluteUrl(member.avatarUrl)} />
               <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
             </Avatar>
           ))}
           {members.length > 3 && (
-            <Avatar className="border-kanban-bg h-8 w-8 border-2">
+            <Avatar className="h-8 w-8 border-2 border-background">
               <AvatarFallback>+{members.length - 3}</AvatarFallback>
             </Avatar>
           )}
@@ -17350,13 +18382,13 @@ export function ProjectHeader({
       <div className="flex items-center gap-2">
         <Button
           variant="outline"
-          className="bg-kanban-column border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white"
+          className="hover:bg-hover border-border bg-element text-foreground"
         >
           <Filter className="mr-2 h-4 w-4" /> Filter
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button className="bg-kanban-accent hover:bg-kanban-accent/90 text-primary-foreground">
+            <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
               <Plus className="mr-2 h-4 w-4" /> New Task
             </Button>
           </DropdownMenuTrigger>
@@ -17372,7 +18404,7 @@ export function ProjectHeader({
         <Button
           variant="outline"
           size="icon"
-          className="bg-kanban-column border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white"
+          className="hover:bg-hover border-border bg-element text-foreground"
           asChild
         >
           <Link to="settings">
@@ -17383,7 +18415,6 @@ export function ProjectHeader({
     </div>
   );
 }
-
 // FILE: src/features/project-management/components/ProjectList.tsx
 import { useApiResource } from "@/hooks/useApiResource";
 import { ProjectCard } from "./ProjectCard";
@@ -17924,8 +18955,8 @@ export function RecurrenceSelector({
       <PopoverContent className="w-80">
         <div className="grid gap-4">
           <div className="space-y-2">
-            <h4 className="leading-none font-medium">Recurrence</h4>
-            <p className="text-muted-foreground text-sm">
+            <h4 className="font-medium leading-none">Recurrence</h4>
+            <p className="text-sm text-muted-foreground">
               Set how often this task should repeat.
             </p>
           </div>
@@ -18003,90 +19034,6 @@ export function RecurrenceSelector({
     </Popover>
   );
 }
-
-// FILE: src/features/project-management/components/SaveViewForm.tsx
-import { useForm, FormProvider } from "react-hook-form";
-import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
-import { FormInput, FormSwitch } from "@/components/form/FormFields";
-import { useApiResource } from "@/hooks/useApiResource";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { nameSchema } from "@/lib/schemas";
-import { ViewType } from "@/types/api";
-
-const viewSchema = z.object({
-  name: nameSchema("View"),
-  isPublic: z.boolean(),
-});
-type ViewFormValues = z.infer<typeof viewSchema>;
-
-interface SaveViewFormProps {
-  workspaceId: string;
-  projectId: string;
-  viewConfig: {
-    type: ViewType;
-    filters?: any;
-    sorting?: any;
-    grouping?: any;
-  };
-  onSuccess?: () => void;
-}
-
-export function SaveViewForm({
-  workspaceId,
-  projectId,
-  viewConfig,
-  onSuccess,
-}: SaveViewFormProps) {
-  const viewResource = useApiResource(
-    `/workspaces/${workspaceId}/projects/${projectId}/views`,
-    ["views", projectId]
-  );
-  const createMutation = viewResource.useCreate();
-
-  const methods = useForm<ViewFormValues>({
-    resolver: zodResolver(viewSchema),
-    defaultValues: { name: "", isPublic: true },
-  });
-
-  async function onSubmit(values: ViewFormValues) {
-    const payload = {
-      ...values,
-      ...viewConfig,
-    };
-    await createMutation.mutateAsync(payload, {
-      onSuccess,
-    });
-  }
-
-  return (
-    <FormProvider {...methods}>
-      <Form {...methods}>
-        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
-          <FormInput
-            name="name"
-            label="View Name"
-            placeholder="e.g., My Team's High Priority Tasks"
-          />
-          <FormSwitch
-            name="isPublic"
-            label="Public View"
-            description="Make this view visible to everyone in the project."
-          />
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={createMutation.isPending}
-          >
-            {createMutation.isPending ? "Saving..." : "Save View"}
-          </Button>
-        </form>
-      </Form>
-    </FormProvider>
-  );
-}
-
 // FILE: src/features/project-management/components/SubtaskItem.tsx
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -18161,7 +19108,7 @@ export function SubtaskItem({
   return (
     <div className="flex flex-col">
       <div
-        className="group hover:bg-accent flex items-center gap-2 rounded-md py-1 pr-2 pl-1"
+        className="hover:bg-hover group flex cursor-pointer items-center gap-2 rounded-md py-1 pl-1 pr-2"
         onClick={handleSelect}
         style={{ paddingLeft: `${level * 24}px` }}
       >
@@ -18202,7 +19149,7 @@ export function SubtaskItem({
           className="h-6 w-6 opacity-0 group-hover:opacity-100"
           onClick={handleRemove}
         >
-          <Trash2 className="text-destructive h-3.5 w-3.5" />
+          <Trash2 className="h-3.5 w-3.5 text-destructive" />
         </Button>
       </div>
       {hasSubtasks && isExpanded && (
@@ -18221,7 +19168,6 @@ export function SubtaskItem({
     </div>
   );
 }
-
 // FILE: src/features/project-management/components/SubtaskList.tsx
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -18384,7 +19330,7 @@ export function TaskAssignees({ task }: any) {
           <Badge
             key={assignee.id}
             variant="secondary"
-            className="flex items-center gap-2 rounded-full bg-gray-100 py-0.5 pr-2 pl-0.5"
+            className="flex items-center gap-2 rounded-full bg-element py-0.5 pl-0.5 pr-2"
           >
             <Avatar className="h-5 w-5">
               <AvatarImage
@@ -18401,7 +19347,7 @@ export function TaskAssignees({ task }: any) {
               onClick={() => unassignMutation.mutate(assignee.id)}
               disabled={unassignMutation.isPending}
             >
-              <X className="text-muted-foreground hover:text-primary h-3 w-3" />
+              <X className="h-3 w-3 text-muted-foreground hover:text-foreground" />
             </Button>
           </Badge>
         ))}
@@ -18585,7 +19531,7 @@ export function TaskAttachments({ task, workspaceId, projectId }: any) {
             return (
               <div
                 key={item.id}
-                className="hover:bg-accent/50 flex items-center justify-between rounded-md p-2 text-sm"
+                className="hover:bg-hover flex items-center justify-between rounded-md p-2 text-sm"
               >
                 <div className="flex min-w-0 items-center gap-2">
                   <Icon className="h-4 w-4 flex-shrink-0" />
@@ -18603,7 +19549,7 @@ export function TaskAttachments({ task, workspaceId, projectId }: any) {
             );
           })
         ) : (
-          <p className="text-muted-foreground p-2 text-center text-xs">
+          <p className="p-2 text-center text-xs text-muted-foreground">
             No attachments.
           </p>
         )}
@@ -18611,7 +19557,6 @@ export function TaskAttachments({ task, workspaceId, projectId }: any) {
     </div>
   );
 }
-
 // FILE: src/features/project-management/components/TaskChecklist.tsx
 import { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
@@ -19475,7 +20420,7 @@ function DocumentItem({
   const isExternal = !!doc.externalUrl;
 
   return (
-    <div className="hover:bg-accent/50 flex items-center justify-between rounded-md p-2 text-sm">
+    <div className="hover:bg-hover flex items-center justify-between rounded-md p-2 text-sm">
       <a
         href={isExternal ? doc.externalUrl : getAbsoluteUrl(doc.url)}
         target="_blank"
@@ -19491,7 +20436,7 @@ function DocumentItem({
           {doc.title}
         </span>
         {isPropagated && (
-          <span className="text-muted-foreground text-xs">(from subtask)</span>
+          <span className="text-xs text-muted-foreground">(from subtask)</span>
         )}
       </a>
       {!isPropagated && (
@@ -19521,7 +20466,7 @@ function DocumentList({
 }) {
   return (
     <div>
-      <h4 className="mb-1 text-xs font-semibold text-gray-500 uppercase">
+      <h4 className="mb-1 text-xs font-semibold uppercase text-muted-foreground">
         {title} ({docs.length})
       </h4>
       <div className="space-y-1 rounded-md border p-1">
@@ -19535,7 +20480,7 @@ function DocumentList({
             />
           ))
         ) : (
-          <p className="text-muted-foreground p-2 text-center text-xs">
+          <p className="p-2 text-center text-xs text-muted-foreground">
             No documents attached.
           </p>
         )}
@@ -19694,7 +20639,6 @@ export function TaskDocuments({
     </div>
   );
 }
-
 // FILE: src/features/project-management/components/TaskLinks.tsx
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -19823,257 +20767,6 @@ export function TaskLinks({ task, workspaceId, projectId }: any) {
         </Button>
       </form>
     </div>
-  );
-}
-// FILE: src/features/project-management/components/TaskList.tsx
-import {
-  DataTable,
-  DataTableWrapper,
-  ColumnDef,
-  SortingState,
-  OnChangeFn,
-} from "@/components/ui/DataTable";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Task } from "@/types";
-import { TaskStatus, TaskPriority } from "@/types/api";
-import { format } from "date-fns";
-import { toast } from "sonner";
-import { MoreHorizontal, Edit, Copy, Trash2 } from "lucide-react";
-import { useUpdateTask } from "../api/useUpdateTask";
-import { useManageTasks } from "../api/useManageTasks";
-import { useReactTable, getCoreRowModel } from "@tanstack/react-table";
-
-interface TaskListProps {
-  tasks: Task[];
-  onTaskSelect: (taskId: string) => void;
-  pagination?: {
-    page: number;
-    totalPages: number;
-    handlePageChange: (newPage: number) => void;
-  };
-  emptyState: React.ReactNode;
-  apiUrl: string;
-  queryKey: string[];
-  workspaceId?: string | null;
-  projectId?: string | null;
-  sorting?: SortingState;
-  setSorting?: OnChangeFn<SortingState>;
-}
-
-export function TaskList({
-  tasks,
-  onTaskSelect,
-  pagination,
-  emptyState,
-  workspaceId,
-  projectId,
-  sorting,
-  setSorting,
-}: TaskListProps) {
-  const { useDelete } = useManageTasks(workspaceId, projectId);
-  const deleteMutation = useDelete();
-  const updateTaskMutation = useUpdateTask();
-
-  if (tasks.length === 0) {
-    return <>{emptyState}</>;
-  }
-
-  const columns: ColumnDef<Task>[] = [
-    {
-      accessorKey: "title",
-      header: "Title",
-      cell: ({ row }) => (
-        <span
-          className="cursor-pointer font-medium hover:underline"
-          onClick={() => onTaskSelect(row.original.id)}
-        >
-          {row.original.title}
-        </span>
-      ),
-    },
-    {
-      accessorKey: "workspaceName",
-      header: "Workspace",
-      cell: ({ row }) => row.original.workspaceName,
-      enableSorting: true,
-    },
-    {
-      accessorKey: "projectName",
-      header: "Project",
-      cell: ({ row }) => row.original.projectName,
-      enableSorting: true,
-    },
-    {
-      accessorKey: "taskTypeName",
-      header: "Type",
-      cell: ({ row }) => row.original.taskType?.name,
-      enableSorting: true,
-    },
-    {
-      accessorKey: "status",
-      header: "Status",
-      cell: ({ row }) => (
-        <Select
-          defaultValue={row.original.status}
-          onValueChange={(newStatus) =>
-            updateTaskMutation.mutate({
-              taskId: row.original.id,
-              workspaceId: row.original.workspaceId,
-              projectId: row.original.projectId,
-              taskData: { status: newStatus as TaskStatus },
-            })
-          }
-        >
-          <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="Set status" />
-          </SelectTrigger>
-          <SelectContent>
-            {Object.values(TaskStatus).map((s) => (
-              <SelectItem key={s} value={s}>
-                {s}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      ),
-    },
-    {
-      accessorKey: "priority",
-      header: "Priority",
-      cell: ({ row }) => (
-        <Select
-          defaultValue={row.original.priority}
-          onValueChange={(newPriority) =>
-            updateTaskMutation.mutate({
-              taskId: row.original.id,
-              workspaceId: row.original.workspaceId,
-              projectId: row.original.projectId,
-              taskData: { priority: newPriority as TaskPriority },
-            })
-          }
-        >
-          <SelectTrigger className="w-[120px]">
-            <SelectValue placeholder="Set priority" />
-          </SelectTrigger>
-          <SelectContent>
-            {Object.values(TaskPriority).map((p) => (
-              <SelectItem key={p} value={p}>
-                {p}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      ),
-    },
-    {
-      accessorKey: "dueDate",
-      header: "Due Date",
-      cell: ({ row }) =>
-        row.original.dueDate
-          ? format(new Date(row.original.dueDate), "PPP")
-          : "None",
-    },
-    {
-      id: "actions",
-      header: "",
-      cell: ({ row }) => (
-        <div className="text-right" onClick={(e) => e.stopPropagation()}>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => onTaskSelect(row.original.id)}>
-                <Edit className="mr-2 h-4 w-4" />
-                <span>View / Edit Details</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => {
-                  navigator.clipboard.writeText(
-                    row.original.shortId || row.original.id
-                  );
-                  toast.success("Task ID copied to clipboard.");
-                }}
-              >
-                <Copy className="mr-2 h-4 w-4" />
-                <span>Copy Task ID</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="text-red-600"
-                onClick={() => {
-                  if (window.confirm(`Delete task: "${row.original.title}"?`)) {
-                    deleteMutation.mutate(row.original.id);
-                  }
-                }}
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                <span>Delete Task</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      ),
-    },
-  ];
-
-  const table = useReactTable({
-    data: tasks,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    // We need to pass the instance to DataTable, so we manage it here
-  });
-
-  return (
-    <DataTableWrapper>
-      <DataTable
-        columns={columns}
-        data={tasks}
-        pagination={pagination}
-        sorting={sorting}
-        setSorting={setSorting}
-        bulkActions={(selectedIds) => (
-          <Button
-            variant="destructive"
-            onClick={() => {
-              if (
-                window.confirm(
-                  `Delete ${selectedIds.length} selected tasks? This cannot be undone.`
-                )
-              ) {
-                deleteMutation.mutate(selectedIds, {
-                  onSuccess: () => {
-                    table.resetRowSelection();
-                  },
-                });
-              }
-            }}
-            disabled={deleteMutation.isPending}
-          >
-            <Trash2 className="mr-2 h-4 w-4" />
-            Delete ({selectedIds.length})
-          </Button>
-        )}
-      />
-    </DataTableWrapper>
   );
 }
 // FILE: src/features/project-management/components/TaskTypeForm.tsx
@@ -20313,10 +21006,10 @@ import { useManageTaskTypes } from "../api/useManageTaskTypes";
 import { TaskType } from "@/types";
 
 interface TaskTypeSelectorProps {
-  workspaceId: string;
-  projectId: string;
+  workspaceId?: string | null;
+  projectId?: string | null;
   value: string | null;
-  onValueChange: (value: string) => void;
+  onValueChange: (value: string | null) => void;
   disabled?: boolean;
 }
 
@@ -20328,35 +21021,49 @@ export function TaskTypeSelector({
   disabled,
 }: TaskTypeSelectorProps) {
   const { data: typesData, isLoading } = useManageTaskTypes(
-    workspaceId,
-    projectId
+    workspaceId ?? undefined,
+    projectId ?? undefined
   ).useGetAll();
+
+  const selectedType = typesData?.data?.find((t: TaskType) => t.id === value);
+
+  const displayValue = () => {
+    if (isLoading && value) return "Loading...";
+    if (selectedType) return selectedType.name;
+    return "None";
+  };
+
   return (
     <Select
       value={value ?? ""}
-      onValueChange={onValueChange}
+      onValueChange={(val) => onValueChange(val === "none" ? null : val)}
       disabled={disabled || isLoading}
     >
-      <SelectTrigger>
-        <SelectValue placeholder="Select a type..." />
+      <SelectTrigger
+        className="h-auto w-full justify-start border-none bg-transparent p-1 font-normal hover:bg-accent focus:ring-0"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <SelectValue placeholder="None">{displayValue()}</SelectValue>
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent onClick={(e) => e.stopPropagation()}>
         {isLoading ? (
           <SelectItem value="loading" disabled>
             Loading types...
           </SelectItem>
         ) : (
-          typesData?.data?.map((type: TaskType) => (
-            <SelectItem key={type.id} value={type.id}>
-              {type.name}
-            </SelectItem>
-          ))
+          <>
+            <SelectItem value="none">None</SelectItem>
+            {typesData?.data?.map((type: TaskType) => (
+              <SelectItem key={type.id} value={type.id}>
+                {type.name}
+              </SelectItem>
+            ))}
+          </>
         )}
       </SelectContent>
     </Select>
   );
 }
-
 // FILE: src/features/project-management/components/TemplateSelectorDialog.tsx
 import {
   Dialog,
@@ -20376,9 +21083,10 @@ import {
 import { useManageTaskTemplates } from "../api/useManageTaskTemplates";
 import { useInstantiateTaskTemplate } from "../api/useInstantiateTaskTemplate";
 import { Skeleton } from "@/components/ui/skeleton";
+
 interface TemplateSelectorDialogProps {
-  workspaceId: string;
-  projectId: string;
+  workspaceId?: string;
+  projectId?: string;
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
 }
@@ -20389,17 +21097,22 @@ export function TemplateSelectorDialog({
   isOpen,
   onOpenChange,
 }: TemplateSelectorDialogProps) {
-  const { data: templatesData, isLoading } = useManageTaskTemplates(
+  const { useGetAll } = useManageTaskTemplates(workspaceId, projectId);
+  const { data: templatesData, isLoading } = useGetAll();
+  const instantiateMutation = useInstantiateTaskTemplate(
     workspaceId,
     projectId
-  ).useGetAll();
-  const instantiateMutation = useInstantiateTaskTemplate(projectId);
+  );
+
   const handleSelect = (templateId: string) => {
-    instantiateMutation.mutate(templateId, {
-      onSuccess: () => {
-        onOpenChange(false);
-      },
-    });
+    instantiateMutation.mutate(
+      { templateId },
+      {
+        onSuccess: () => {
+          onOpenChange(false);
+        },
+      }
+    );
   };
 
   return (
@@ -20421,7 +21134,7 @@ export function TemplateSelectorDialog({
                 <Skeleton className="h-4 w-full" />
               </div>
             )}
-            <CommandEmpty>No templates found.</CommandEmpty>
+            <CommandEmpty>No templates found for this context.</CommandEmpty>
             <CommandGroup>
               {templatesData?.data?.map((template: any) => (
                 <CommandItem
@@ -20472,10 +21185,10 @@ export function TimeLogItem({
   };
 
   return (
-    <div className="hover:bg-accent/50 flex items-center justify-between rounded-md p-2 text-sm">
+    <div className="hover:bg-hover flex items-center justify-between rounded-md p-2 text-sm">
       <div className="flex-grow">
         <span>{log.description || "Time logged"}</span>
-        <p className="text-muted-foreground text-xs">
+        <p className="text-xs text-muted-foreground">
           Logged on: {new Date(log.loggedAt).toLocaleDateString()}
         </p>
       </div>
@@ -20488,13 +21201,12 @@ export function TimeLogItem({
           onClick={handleDelete}
           disabled={deleteMutation.isPending}
         >
-          <Trash2 className="text-destructive h-3 w-3" />
+          <Trash2 className="h-3 w-3 text-destructive" />
         </Button>
       </div>
     </div>
   );
 }
-
 // FILE: src/features/project-management/components/TimeLogSection.tsx
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20583,206 +21295,12 @@ export function TimeLogSection({ workspaceId, projectId, taskId }: any) {
             />
           ))
         ) : (
-          <p className="text-muted-foreground p-2 text-center text-xs">
+          <p className="p-2 text-center text-xs text-muted-foreground">
             No time logged for this task.
           </p>
         )}
       </div>
     </div>
-  );
-}
-
-// FILE: src/features/project-management/components/ViewCard.tsx
-import { EntityCard } from "@/components/ui/EntityCard";
-import { useManageViews } from "../api/useManageViews";
-import { getIcon } from "@/lib/icons";
-import { View } from "@/types";
-
-interface ViewCardProps {
-  view: View;
-  workspaceId: string;
-  projectId: string;
-  onEdit: () => void;
-}
-
-export function ViewCard({
-  view,
-  workspaceId,
-  projectId,
-  onEdit,
-}: ViewCardProps) {
-  const { useDelete } = useManageViews(workspaceId, projectId);
-  const deleteMutation = useDelete();
-
-  const handleDelete = (e: React.MouseEvent) => {
-    e.preventDefault();
-    if (
-      window.confirm(`Are you sure you want to delete the "${view.name}" view?`)
-    ) {
-      deleteMutation.mutate(view.id);
-    }
-  };
-
-  const handleEdit = (e: React.MouseEvent) => {
-    e.preventDefault();
-    onEdit();
-  };
-
-  const Icon = getIcon(view.type);
-
-  return (
-    <EntityCard
-      title={view.name}
-      description={`View Type: ${view.type}`}
-      onEdit={handleEdit}
-      onDelete={handleDelete}
-      deleteDisabled={deleteMutation.isPending}
-      icon={Icon}
-    >
-      <div className="text-muted-foreground text-sm">
-        {view.columns?.length > 0
-          ? `${view.columns.length} columns`
-          : "No specific columns configured"}
-      </div>
-    </EntityCard>
-  );
-}
-// FILE: src/features/project-management/components/ViewForm.tsx
-import { useForm, FormProvider } from "react-hook-form";
-import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
-import { FormInput, FormSelect } from "@/components/form/FormFields";
-import { useManageViews } from "../api/useManageViews";
-import { useEffect } from "react";
-import { ViewType } from "@/types/api";
-import { View } from "@/types";
-
-interface ViewFormProps {
-  workspaceId: string;
-  projectId: string;
-  initialData?: View;
-  onSuccess?: () => void;
-}
-
-export function ViewForm({
-  workspaceId,
-  projectId,
-  initialData,
-  onSuccess,
-}: ViewFormProps) {
-  const isEditMode = !!initialData;
-  const { useCreate, useUpdate } = useManageViews(workspaceId, projectId);
-  const createMutation = useCreate();
-  const updateMutation = useUpdate();
-  const mutation = isEditMode ? updateMutation : createMutation;
-
-  const methods = useForm<any>({
-    defaultValues: { name: "", type: ViewType.LIST },
-  });
-
-  useEffect(() => {
-    if (isEditMode && initialData) {
-      methods.reset(initialData);
-    }
-  }, [initialData, isEditMode, methods]);
-
-  async function onSubmit(values: any) {
-    if (isEditMode) {
-      await updateMutation.mutateAsync(
-        { id: initialData.id, data: values },
-        { onSuccess }
-      );
-    } else {
-      await createMutation.mutateAsync(values, {
-        onSuccess: () => {
-          methods.reset();
-          onSuccess?.();
-        },
-      });
-    }
-  }
-
-  const viewTypeOptions = Object.values(ViewType).map((type) => ({
-    value: type,
-    label: type,
-  }));
-
-  return (
-    <FormProvider {...methods}>
-      <Form {...methods}>
-        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
-          <FormInput
-            name="name"
-            label="View Name"
-            placeholder="e.g., Team Kanban"
-          />
-          <FormSelect
-            name="type"
-            label="View Type"
-            placeholder="Select a view type"
-            options={viewTypeOptions}
-            disabled={isEditMode}
-          />
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={mutation.isPending}
-          >
-            {mutation.isPending
-              ? "Saving..."
-              : isEditMode
-                ? "Save Changes"
-                : "Create View"}
-          </Button>
-        </form>
-      </Form>
-    </FormProvider>
-  );
-}
-// FILE: src/features/project-management/components/ViewList.tsx
-import { useState } from "react";
-import { useManageViews } from "../api/useManageViews";
-import { ViewCard } from "./ViewCard";
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
-import { ViewForm } from "./ViewForm";
-
-interface ViewListProps {
-  workspaceId: string;
-  projectId: string;
-}
-
-export function ViewList({ workspaceId, projectId }: ViewListProps) {
-  const { useGetAll } = useManageViews(workspaceId, projectId);
-  const { data: viewsData, isLoading } = useGetAll();
-  const [editingViewId, setEditingViewId] = useState<string | null>(null);
-
-  if (isLoading) return <div>Loading views...</div>;
-
-  return (
-    <>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {viewsData?.data?.map((view: any) => (
-          <ViewCard
-            key={view.id}
-            view={view}
-            workspaceId={workspaceId}
-            projectId={projectId}
-            onEdit={() => setEditingViewId(view.id)}
-          />
-        ))}
-      </div>
-      <ResourceCrudDialog
-        isOpen={!!editingViewId}
-        onOpenChange={(isOpen) => !isOpen && setEditingViewId(null)}
-        resourceId={editingViewId}
-        resourcePath={`/workspaces/${workspaceId}/projects/${projectId}/views`}
-        resourceKey={["views", projectId]}
-        title="Edit View"
-        description="Update the view's name and configuration."
-        form={ViewForm}
-        formProps={{ workspaceId, projectId }}
-      />
-    </>
   );
 }
 // FILE: src/features/project-management/components/WhiteboardView.tsx
@@ -22665,7 +23183,7 @@ export function ManageTeamMembers({
               </Badge>
             ))
           ) : (
-            <p className="text-muted-foreground px-2 text-sm">
+            <p className="px-2 text-sm text-muted-foreground">
               No members in this team.
             </p>
           )}
@@ -23121,12 +23639,12 @@ export function TeamCard({ team, onEdit }: { team: Team; onEdit: () => void }) {
       onDelete={handleDelete}
       deleteDisabled={deleteMutation.isPending}
     >
-      <h4 className="text-muted-foreground mb-2 text-sm font-medium">
+      <h4 className="mb-2 text-sm font-medium text-muted-foreground">
         Members
       </h4>
       <div className="flex items-center -space-x-2">
         {team.members.map((member: any) => (
-          <Avatar key={member.id} className="h-7 w-7 border-2 border-white">
+          <Avatar key={member.id} className="h-7 w-7 border-2 border-card">
             <AvatarImage
               src={getAbsoluteUrl(member.avatarUrl)}
               alt={member.name}
@@ -23136,13 +23654,12 @@ export function TeamCard({ team, onEdit }: { team: Team; onEdit: () => void }) {
           </Avatar>
         ))}
         {team.members.length === 0 && (
-          <p className="text-muted-foreground text-sm">No members yet.</p>
+          <p className="text-sm text-muted-foreground">No members yet.</p>
         )}
       </div>
     </EntityCard>
   );
 }
-
 // FILE: src/features/user-management/components/TeamForm.tsx
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -24377,38 +24894,45 @@ export function useUpdateTask() {
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
+    
+    /* Custom Generic Theme */
+    --surface: 220 13% 97%;
+    --element: 0 0% 100%;
+    --hover: 220 13% 94%;
+    --priority-urgent: 0 72% 51%;
+    --priority-high: 30 90% 55%;
+    --priority-medium: 60 72% 51%;
   }
 
   .dark {
-    --background: 221 39.3% 11%;
+    --background: 221 39% 11%;
     --foreground: 210 40% 98%;
-    --card: 221 39.3% 11%;
+    --card: 215 28% 17%;
     --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
+    --popover: 221 39% 11%;
     --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 221 39.3% 11%;
+    --primary: 262 59% 56%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 217 19% 27%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 217 19% 27%;
+    --muted-foreground: 215 20% 65%;
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 63% 31%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-
-    /* Your Custom Kanban Colors */
-    --kanban-bg: 221 39.3% 11%;
-    --kanban-column: 215 27.9% 16.9%;
-    --kanban-card: 217 19.1% 26.7%;
-    --kanban-card-hover: 217 19.1% 31.7%;
-    --kanban-accent: 271 81.3% 55.9%;
-    --priority-urgent: 0 72.2% 50.6%;
-    --priority-high: 30 72.2% 50.6%;
-    --priority-medium: 60 72.2% 50.6%;
+    --border: 215 14% 34%;
+    --input: 215 28% 17%;
+    --ring: 262 59% 56%;
+    
+    /* Custom Generic Theme */
+    --surface: 215 28% 17%; /* Kanban column, list view bg */
+    --element: 217 19% 27%; /* Kanban card, list group header */
+    --hover: 217 19% 32%;
+    --priority-urgent: 0 72% 51%;
+    --priority-high: 30 90% 55%;
+    --priority-medium: 60 72% 51%;
+    --priority-low: 216, 100%, 58%;
   }
 }
 
@@ -24423,13 +24947,58 @@ export function useUpdateTask() {
 
 @layer components {
   .drag-over-column {
-    @apply bg-slate-700/50 border-2 border-dashed border-slate-500;
+    @apply bg-hover border-2 border-dashed border-accent;
   }
   .dragging-card {
     @apply opacity-30;
   }
   .dragging-card-overlay {
     @apply opacity-90 rotate-3 shadow-2xl;
+  }
+
+  .task-row:hover .hover-action {
+    opacity: 1;
+  }
+  .task-completed {
+    @apply text-muted-foreground;
+  }
+  .task-completed .status-pill,
+  .task-completed .priority-flag,
+  .task-completed .assignee-avatar {
+    opacity: 0.5;
+  }
+  .group-header-icon {
+    transition: transform 0.2s ease-in-out;
+  }
+  .group-collapsed .group-header-icon {
+    transform: rotate(-90deg);
+  }
+  .subtask-icon {
+    transition: transform 0.2s ease-in-out;
+  }
+  .subtasks-collapsed .subtask-icon {
+    transform: rotate(-90deg);
+  }
+
+  
+  /* Calendar Styles */
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 1px;
+    background-color: hsl(var(--border));
+    border: 1px solid hsl(var(--border));
+  }
+  .calendar-day {
+    min-height: 140px;
+    transition: background-color 0.2s ease-in-out;
+    background-color: hsl(var(--surface));
+  }
+  .calendar-day:hover {
+    background-color: hsl(var(--hover));
+  }
+  .task-item:hover {
+    transform: translateY(-2px);
   }
 }
 // FILE: src/lib/api.ts
@@ -25469,7 +26038,6 @@ export function AnalyticsLayout() {
     </div>
   );
 }
-
 // FILE: src/pages/ChatPage.tsx
 import { ChatInterface } from "@/features/collaboration/components/ChatInterface";
 
@@ -26038,10 +26606,9 @@ export function LoginPage() {
 }
 
 // FILE: src/pages/MyTasksPage.tsx
-import { TaskList } from "@/features/project-management/components/TaskList";
 import { TaskDetailModal } from "@/features/project-management/components/TaskDetailModal";
 import { useSearchParams } from "react-router-dom";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Select,
   SelectContent,
@@ -26052,27 +26619,33 @@ import {
 import { Label } from "@/components/ui/label";
 import { ListTasksQuery, Task, ViewColumn } from "@/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MyTasksKanbanBoard } from "@/features/project-management/components/MyTasksKanbanBoard";
+import { MyTasksKanbanBoard } from "@/features/project-management/components/kanban-view/MyTasksKanbanBoard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
-import { CheckSquare, PlusCircle, Filter, Columns } from "lucide-react";
+import { CheckSquare, PlusCircle, Filter, Columns, Trash2 } from "lucide-react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { Button } from "@/components/ui/button";
 import { CreateTaskForm } from "@/features/project-management/components/CreateTaskForm";
 import { useGetMyTasks } from "@/features/project-management/api/useGetMyTasks";
-import { CalendarView } from "@/features/project-management/components/CalendarView";
-import { GanttChartView } from "@/features/project-management/components/GanttChartView";
+import { CalendarView } from "@/features/project-management/components/calendar-view/CalendarView";
+import { GanttChartView } from "@/features/project-management/components/gantt-view/GanttChartView";
 import { SortingState } from "@tanstack/react-table";
 import { useUpdateTask } from "@/features/project-management/api/useUpdateTask";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { TaskStatus } from "@/types/api";
+import { ListView } from "@/features/project-management/components/list-view/ListView";
+import { SortMenu } from "@/features/project-management/components/list-view/SortMenu";
+import { ColumnVisibilityToggle } from "@/features/project-management/components/list-view/ColumnVisibilityToggle";
+import { useManageTasks } from "@/features/project-management/api/useManageTasks";
+import { TemplateSelectorDialog } from "@/features/project-management/components/TemplateSelectorDialog";
 
 const TaskListSkeleton = () => (
   <div className="space-y-2 pt-4">
@@ -26083,12 +26656,7 @@ const TaskListSkeleton = () => (
 );
 
 const KANBAN_COLUMNS: Omit<ViewColumn, "createdAt" | "updatedAt">[] = [
-  {
-    id: "col-todo",
-    name: "To Do",
-    order: 1,
-    viewId: "my-tasks-view",
-  },
+  { id: "col-todo", name: "To Do", order: 1, viewId: "my-tasks-view" },
   {
     id: "col-in-progress",
     name: "In Progress",
@@ -26101,18 +26669,8 @@ const KANBAN_COLUMNS: Omit<ViewColumn, "createdAt" | "updatedAt">[] = [
     order: 3,
     viewId: "my-tasks-view",
   },
-  {
-    id: "col-done",
-    name: "Done",
-    order: 4,
-    viewId: "my-tasks-view",
-  },
-  {
-    id: "col-blocked",
-    name: "Blocked",
-    order: 5,
-    viewId: "my-tasks-view",
-  },
+  { id: "col-done", name: "Done", order: 4, viewId: "my-tasks-view" },
+  { id: "col-blocked", name: "Blocked", order: 5, viewId: "my-tasks-view" },
   {
     id: "col-cancelled",
     name: "Cancelled",
@@ -26130,23 +26688,44 @@ const columnStatusMap: Record<string, TaskStatus> = {
   "col-cancelled": TaskStatus.CANCELLED,
 };
 
+const listSortableColumns = [
+  { id: "title", label: "Task Name" },
+  { id: "priority", label: "Priority" },
+  { id: "dueDate", label: "Due Date" },
+  { id: "status", label: "Status" },
+  { id: "projectName", label: "Project" },
+  { id: "workspaceName", label: "Workspace" },
+];
+
+const initialListColumns = [
+  { id: "workspace", label: "Workspace", visible: true },
+  { id: "project", label: "Project", visible: true },
+  { id: "taskType", label: "Type", visible: true },
+];
+
 export function MyTasksPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedTaskId = searchParams.get("taskId");
   const activeView = searchParams.get("view") || "list";
-  const [page, setPage] = useState(1);
+  const [page] = useState(1);
   const [filter, setFilter] = useState("all_assigned");
   const [sorting, setSorting] = useState<SortingState>([
     { id: "priority", desc: true },
   ]);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [visibleColumnIds, setVisibleColumnIds] = useState<string[]>([
+  const [isTemplateSelectorOpen, setIsTemplateSelectorOpen] = useState(false);
+  const [kanbanColumnIds, setKanbanColumnIds] = useState<string[]>([
     "col-todo",
     "col-in-progress",
     "col-in-review",
     "col-done",
   ]);
+  const [listColumns, setListColumns] = useState(initialListColumns);
+  const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
+
   const updateTaskMutation = useUpdateTask();
+  const { useDelete } = useManageTasks();
+  const bulkDeleteMutation = useDelete();
 
   const handleTaskSelect = (taskId: string | null) => {
     setSearchParams(
@@ -26198,11 +26777,10 @@ export function MyTasksPage() {
   }, [filter, sorting, activeView, page]);
 
   const { data, isLoading } = useGetMyTasks(queryParams);
-  const handlePageChange = (newPage: number) => {
-    if (newPage > 0 && newPage <= (data?.totalPages || 1)) {
-      setPage(newPage);
-    }
-  };
+
+  useEffect(() => {
+    setSelectedTaskIds([]);
+  }, [data]);
 
   const handleTaskUpdate = (taskId: string, updates: Partial<Task>) => {
     updateTaskMutation.mutate({
@@ -26211,18 +26789,22 @@ export function MyTasksPage() {
     });
   };
 
-  const visibleColumns = useMemo(
-    () => KANBAN_COLUMNS.filter((c) => visibleColumnIds.includes(c.id)),
-    [visibleColumnIds]
-  );
-
-  const visibleTasks = useMemo(() => {
-    if (activeView !== "kanban" || !data?.data) {
-      return data?.data || [];
+  const handleBulkDelete = () => {
+    if (
+      window.confirm(
+        `Are you sure you want to delete ${selectedTaskIds.length} tasks?`
+      )
+    ) {
+      bulkDeleteMutation.mutate(selectedTaskIds, {
+        onSuccess: () => setSelectedTaskIds([]),
+      });
     }
-    const visibleStatuses = visibleColumnIds.map((id) => columnStatusMap[id]);
-    return data.data.filter((task) => visibleStatuses.includes(task.status));
-  }, [data?.data, visibleColumnIds, activeView]);
+  };
+
+  const visibleKanbanColumns = useMemo(
+    () => KANBAN_COLUMNS.filter((c) => kanbanColumnIds.includes(c.id)),
+    [kanbanColumnIds]
+  );
 
   const emptyState = (
     <EmptyState
@@ -26231,16 +26813,17 @@ export function MyTasksPage() {
       description="No tasks match your current filter. Try selecting a different filter or create a new task."
     />
   );
+
   return (
     <>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <header className="flex flex-col items-start justify-between sm:flex-row sm:items-center">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-foreground">
               My Tasks
             </h1>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="mt-4 flex items-center space-x-2 sm:mt-0">
             <div className="flex items-center gap-2">
               <Label htmlFor="task-filter" className="sr-only">
                 Filter tasks
@@ -26248,7 +26831,7 @@ export function MyTasksPage() {
               <Select value={filter} onValueChange={setFilter}>
                 <SelectTrigger
                   id="task-filter"
-                  className="border-slate-700 bg-kanban-column text-slate-300 hover:bg-slate-700 hover:text-white"
+                  className="hover:bg-hover border-border bg-element text-foreground [&>svg]:hidden"
                 >
                   <div className="flex items-center gap-2">
                     <Filter className="h-4 w-4" />
@@ -26273,12 +26856,29 @@ export function MyTasksPage() {
                   </SelectItem>
                 </SelectContent>
               </Select>
+              <SortMenu
+                sorting={sorting}
+                setSorting={setSorting}
+                sortableColumns={listSortableColumns}
+              />
+              {activeView === "list" && (
+                <ColumnVisibilityToggle
+                  columns={listColumns}
+                  onVisibilityChange={(columnId, visible) => {
+                    setListColumns((prev) =>
+                      prev.map((c) =>
+                        c.id === columnId ? { ...c, visible } : c
+                      )
+                    );
+                  }}
+                />
+              )}
               {activeView === "kanban" && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="outline"
-                      className="border-slate-700 bg-kanban-column text-slate-300 hover:bg-slate-700 hover:text-white"
+                      className="hover:bg-hover border-border bg-element text-foreground"
                     >
                       <Columns className="mr-2 h-4 w-4" />
                       Columns
@@ -26290,9 +26890,9 @@ export function MyTasksPage() {
                     {KANBAN_COLUMNS.map((column) => (
                       <DropdownMenuCheckboxItem
                         key={column.id}
-                        checked={visibleColumnIds.includes(column.id)}
+                        checked={kanbanColumnIds.includes(column.id)}
                         onCheckedChange={(checked) => {
-                          setVisibleColumnIds((prev) =>
+                          setKanbanColumnIds((prev) =>
                             checked
                               ? [...prev, column.id]
                               : prev.filter((id) => id !== column.id)
@@ -26306,26 +26906,43 @@ export function MyTasksPage() {
                 </DropdownMenu>
               )}
             </div>
-            <ResourceCrudDialog
-              isOpen={isCreateOpen}
-              onOpenChange={setIsCreateOpen}
-              trigger={
-                <Button
-                  className="bg-kanban-accent text-white hover:bg-kanban-accent/80"
-                  onClick={() => setIsCreateOpen(true)}
-                >
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  New Task
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+                  <PlusCircle className="mr-2 h-4 w-4" /> New Task
                 </Button>
-              }
-              title="Create a new task"
-              description="Fill in the details below to add a new task."
-              form={CreateTaskForm}
-              resourcePath="/tasks"
-              resourceKey={["myTasks"]}
-            />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => setIsCreateOpen(true)}>
+                  New Blank Task
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setIsTemplateSelectorOpen(true)}
+                >
+                  New from Template
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-        </div>
+        </header>
+
+        {selectedTaskIds.length > 0 && (
+          <div className="flex items-center justify-between rounded-lg border border-border bg-surface p-3">
+            <span className="text-sm font-medium">
+              {selectedTaskIds.length} task(s) selected
+            </span>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleBulkDelete}
+              disabled={bulkDeleteMutation.isPending}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete Selected
+            </Button>
+          </div>
+        )}
+
         <Tabs value={activeView} onValueChange={handleViewChange}>
           <TabsList>
             <TabsTrigger value="list">List</TabsTrigger>
@@ -26337,19 +26954,22 @@ export function MyTasksPage() {
             {isLoading ? (
               <TaskListSkeleton />
             ) : (
-              <TaskList
+              <ListView
                 onTaskSelect={handleTaskSelect}
                 tasks={data?.data || []}
                 emptyState={emptyState}
-                apiUrl="tasks"
-                queryKey={["myTasks"]}
-                sorting={sorting}
-                setSorting={setSorting}
-                pagination={{
-                  page: data?.page || 1,
-                  totalPages: data?.totalPages || 1,
-                  handlePageChange,
-                }}
+                onTaskUpdate={handleTaskUpdate}
+                showWorkspaceColumn={
+                  listColumns.find((c) => c.id === "workspace")?.visible ?? true
+                }
+                showProjectColumn={
+                  listColumns.find((c) => c.id === "project")?.visible ?? true
+                }
+                showTaskTypeColumn={
+                  listColumns.find((c) => c.id === "taskType")?.visible ?? true
+                }
+                selectedTaskIds={selectedTaskIds}
+                setSelectedTaskIds={setSelectedTaskIds}
               />
             )}
           </TabsContent>
@@ -26358,9 +26978,9 @@ export function MyTasksPage() {
               <TaskListSkeleton />
             ) : (
               <MyTasksKanbanBoard
-                tasks={visibleTasks}
+                tasks={data?.data || []}
                 onTaskSelect={handleTaskSelect}
-                columns={visibleColumns}
+                columns={visibleKanbanColumns}
                 columnStatusMap={columnStatusMap}
               />
             )}
@@ -26372,7 +26992,6 @@ export function MyTasksPage() {
               <CalendarView
                 tasks={data?.data || []}
                 onTaskSelect={handleTaskSelect}
-                onTaskUpdate={handleTaskUpdate}
               />
             )}
           </TabsContent>
@@ -26389,6 +27008,22 @@ export function MyTasksPage() {
         </Tabs>
       </div>
 
+      <ResourceCrudDialog
+        isOpen={isCreateOpen}
+        onOpenChange={setIsCreateOpen}
+        title="Create a new task"
+        description="Fill in the details below to add a new task."
+        form={CreateTaskForm}
+        formProps={{}}
+        resourcePath="/tasks"
+        resourceKey={["myTasks"]}
+      />
+
+      <TemplateSelectorDialog
+        isOpen={isTemplateSelectorOpen}
+        onOpenChange={setIsTemplateSelectorOpen}
+      />
+
       <TaskDetailModal
         taskId={selectedTaskId}
         isOpen={!!selectedTaskId}
@@ -26400,6 +27035,7 @@ export function MyTasksPage() {
     </>
   );
 }
+
 // FILE: src/pages/ProfilePage.tsx
 import { UserForm } from "@/features/admin/users/components/UserForm";
 import {
@@ -26687,11 +27323,10 @@ export function ProjectDetailPage() {
     workspaceId: string;
     projectId: string;
   }>();
-
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTabId = searchParams.get("view");
   const selectedTaskId = searchParams.get("taskId");
-  const [sorting, setSorting] = useState<SortingState>([
+  const [sorting] = useState<SortingState>([
     { id: "orderInColumn", desc: false },
   ]);
   const updateTaskMutation = useUpdateTask();
@@ -26785,7 +27420,7 @@ export function ProjectDetailPage() {
 
   const projectTaskEmptyState = (
     <EmptyState
-      icon={<CheckSquare className="text-primary h-10 w-10" />}
+      icon={<CheckSquare className="h-10 w-10 text-primary" />}
       title="No tasks yet"
       description="Create the first task in this project to get started."
     />
@@ -26845,8 +27480,6 @@ export function ProjectDetailPage() {
           onTaskUpdate={handleTaskUpdate}
           activeTab={activeTabId}
           onTabChange={handleTabChange}
-          sorting={sorting}
-          setSorting={setSorting}
           emptyState={projectTaskEmptyState}
         />
       </div>
@@ -26956,53 +27589,6 @@ export function ProjectGoalsPage() {
     </div>
   );
 }
-// FILE: src/pages/ProjectLeadFormsPage.tsx
-import { useParams } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
-import { useState } from "react";
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
-import { LeadForm } from "@/features/project-management/components/LeadForm";
-import { LeadFormList } from "@/features/project-management/components/LeadFormList";
-
-export function ProjectLeadFormsPage() {
-  const { workspaceId, projectId } = useParams<{
-    workspaceId: string;
-    projectId: string;
-  }>();
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  if (!workspaceId || !projectId) return <div>Missing URL parameters.</div>;
-
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-semibold">Lead Forms</h2>
-          <p className="text-muted-foreground">
-            Create and manage lead capture forms for this project.
-          </p>
-        </div>
-        <ResourceCrudDialog
-          isOpen={isCreateOpen}
-          onOpenChange={setIsCreateOpen}
-          trigger={
-            <Button onClick={() => setIsCreateOpen(true)}>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              New Form
-            </Button>
-          }
-          title="Create New Lead Form"
-          description="Build a form to capture leads directly into your project."
-          form={LeadForm}
-          formProps={{ workspaceId, projectId }}
-          resourcePath={`projects/${projectId}/lead-forms`}
-          resourceKey={["leadForms", projectId]}
-        />
-      </div>
-      <LeadFormList workspaceId={workspaceId} projectId={projectId} />
-    </div>
-  );
-}
 // FILE: src/pages/ProjectListPage.tsx
 import { ProjectList } from "@/features/project-management/components/ProjectList";
 import { useParams } from "react-router-dom";
@@ -27080,7 +27666,6 @@ export function ProjectListPage() {
     </div>
   );
 }
-
 // FILE: src/pages/ProjectSettingsPage.tsx
 import { NavLink, Outlet, useLocation, useParams } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -27225,53 +27810,6 @@ export function ProjectTemplatesPage() {
     </div>
   );
 }
-// FILE: src/pages/ProjectViewsPage.tsx
-import { ViewList } from "@/features/project-management/components/ViewList";
-import { useParams } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
-import { useState } from "react";
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
-import { ViewForm } from "@/features/project-management/components/ViewForm";
-
-export function ProjectViewsPage() {
-  const { workspaceId, projectId } = useParams<{
-    workspaceId: string;
-    projectId: string;
-  }>();
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-
-  if (!workspaceId || !projectId) return <div>Missing URL parameters.</div>;
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-semibold">Views</h2>
-          <p className="text-muted-foreground">
-            Manage the different ways to visualize your project's tasks.
-          </p>
-        </div>
-        <ResourceCrudDialog
-          isOpen={isCreateOpen}
-          onOpenChange={setIsCreateOpen}
-          trigger={
-            <Button onClick={() => setIsCreateOpen(true)}>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              New View
-            </Button>
-          }
-          title="Create New View"
-          description="Add a new List, Kanban, or other type of view to your project."
-          form={ViewForm}
-          formProps={{ workspaceId, projectId }}
-          resourcePath={`workspaces/${workspaceId}/projects/${projectId}/views`}
-          resourceKey={["views", projectId]}
-        />
-      </div>
-      <ViewList workspaceId={workspaceId} projectId={projectId} />
-    </div>
-  );
-}
 // FILE: src/pages/PublicationsPage.tsx
 import { PublicationList } from "@/features/publications/components/PublicationList";
 import { Button } from "@/components/ui/button";
@@ -27360,11 +27898,14 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 const settingsNavItems = [
   { to: "/settings/integrations", label: "Integrations" },
   { to: "/settings/security", label: "Security" },
+  { to: "/settings/task-types", label: "Task Types" },
 ];
 
 export function SettingsPage() {
   const location = useLocation();
-  const currentTab = location.pathname;
+  const currentTab =
+    settingsNavItems.find((item) => location.pathname.startsWith(item.to))
+      ?.to || "/settings/integrations";
 
   return (
     <div className="space-y-6">
@@ -27375,7 +27916,7 @@ export function SettingsPage() {
         </p>
       </div>
 
-      <Tabs defaultValue={currentTab} className="space-y-4">
+      <Tabs value={currentTab} className="space-y-4">
         <TabsList>
           {settingsNavItems.map((item) => (
             <NavLink to={item.to} key={item.to}>
@@ -27402,6 +27943,47 @@ export function SetupPasswordPage() {
     </div>
   );
 }
+// FILE: src/pages/TaskTypesSettingsPage.tsx
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { PlusCircle } from "lucide-react";
+import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { GlobalTaskTypeList } from "@/features/project-management/components/GlobalTaskTypeList";
+import { GlobalTaskTypeForm } from "@/features/project-management/components/GlobalTaskTypeForm";
+
+export function TaskTypesSettingsPage() {
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-semibold">Global Task Types</h2>
+          <p className="text-muted-foreground">
+            Manage task types available for standalone tasks (not in a project).
+          </p>
+        </div>
+        <ResourceCrudDialog
+          isOpen={isCreateOpen}
+          onOpenChange={setIsCreateOpen}
+          trigger={
+            <Button onClick={() => setIsCreateOpen(true)}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              New Type
+            </Button>
+          }
+          title="Create New Global Task Type"
+          description="This type will be available for all of your tasks that are not part of a project."
+          form={GlobalTaskTypeForm}
+          resourcePath={`task-types`}
+          resourceKey={["taskTypes", "global"]}
+        />
+      </div>
+      <GlobalTaskTypeList />
+    </div>
+  );
+}
+
 // FILE: src/pages/TeamsPage.tsx
 import { TeamList } from "@/features/user-management/components/TeamList";
 import { useParams } from "react-router-dom";
@@ -27900,66 +28482,124 @@ export const usePresenceStore = create<PresenceState>((set) => ({
     })),
 }));
 // FILE: src/styles/gantt.css
-.gantt_task_line.gantt-task-status-done {
-  background-color: #28a745;
-  border-color: #1e7e34;
-}
-.gantt_task_line.gantt-task-status-done .gantt_task_progress {
-  background-color: #218838;
+/* General Layout & Theme */
+.gantt_container {
+  border-radius: 0.5rem;
+  border: 1px solid hsl(var(--border));
 }
 
-.gantt_task_line.gantt-task-status-in_progress {
-  background-color: #17a2b8;
-  border-color: #117a8b;
+/* Grid Area (Left Panel) */
+.gantt_grid {
+  background-color: hsl(var(--surface));
 }
-.gantt_task_line.gantt-task-status-in_progress .gantt_task_progress {
-  background-color: #138496;
+.gantt_grid_scale {
+  background-color: hsl(var(--surface));
+  border-bottom: 1px solid hsl(var(--border));
 }
-
-.gantt_task_line.gantt-task-status-blocked {
-  background-color: #dc3545;
-  border-color: #b21f2d;
-}
-.gantt_task_line.gantt-task-status-blocked .gantt_task_progress {
-  background-color: #c82333;
-}
-
-.gantt_task_line.gantt-task-status-in_review {
-  background-color: #ffc107;
-  border-color: #d39e00;
-}
-.gantt_task_line.gantt-task-status-in_review .gantt_task_progress {
-  background-color: #e0a800;
-}
-
-.gantt_task_line.gantt-task-status-cancelled {
-  background-color: #6c757d;
-  border-color: #545b62;
-}
-.gantt_task_line.gantt-task-status-cancelled .gantt_task_progress {
-  background-color: #5a6268;
-}
-
-.gantt_task_line.gantt-task-status-todo {
-  background-color: #007bff;
-  border-color: #0062cc;
-}
-.gantt_task_line.gantt-task-status-todo .gantt_task_progress {
-  background-color: #0069d9;
-}
-
-.gantt_grid_scale,
-.gantt_task_scale,
-.gantt_grid_data,
-.gantt_task_content,
-.gantt_tooltip {
-  font-family: var(--font-sans), sans-serif !important;
-}
-
 .gantt_grid_head_cell {
-  font-weight: 600 !important;
+  color: hsl(var(--muted-foreground));
+  font-weight: 600;
+  border-right: 1px solid hsl(var(--border));
+}
+.gantt_row,
+.gantt_task_row {
+  background-color: hsl(var(--surface));
+  border-bottom: 1px solid hsl(var(--border));
+}
+.gantt_row.odd,
+.gantt_task_row.odd {
+  background-color: hsl(var(--background));
+}
+.gantt_cell {
+  border-right: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+.gantt_tree_content {
+  font-weight: 500;
+}
+.gantt_grid_data .gantt_cell.gantt_last_cell {
+  border-right: none;
+}
+.gantt_grid_data .gantt_row:hover, .gantt_grid_data .gantt_row.odd:hover {
+    background-color: hsl(var(--hover));
 }
 
+/* Timeline Area (Right Panel) */
+.gantt_task {
+  background-color: hsl(var(--surface));
+}
+.gantt_task_scale {
+  background-color: hsl(var(--surface));
+  border-bottom: 1px solid hsl(var(--border));
+}
+.gantt_scale_cell {
+  color: hsl(var(--muted-foreground));
+  border-right: 1px solid hsl(var(--border));
+}
+.gantt_task_line {
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  border: 1px solid;
+}
+.gantt_task_progress {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+}
+
+/* Task Status Colors */
+.gantt-status-done {
+  background-color: #10b981;
+  border-color: #059669;
+}
+.gantt-status-in_progress {
+  background-color: #3b82f6;
+  border-color: #2563eb;
+}
+.gantt-status-blocked {
+  background-color: #ef4444;
+  border-color: #dc2626;
+}
+.gantt-status-in_review {
+  background-color: #a855f7;
+  border-color: #9333ea;
+}
+.gantt-status-todo {
+  background-color: #64748b;
+  border-color: #475569;
+}
+.gantt-status-cancelled {
+  background-color: #4b5563;
+  border-color: #374151;
+}
+
+/* Links (Dependencies) */
+.gantt_link_arrow {
+  border-color: hsl(var(--primary));
+}
+.gantt_line_wrapper div {
+  background-color: hsl(var(--primary));
+}
+
+/* Tooltip */
+.gantt_tooltip {
+  background-color: hsl(var(--element));
+  border: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground));
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Today Marker */
+.gantt_today_marker {
+  background-color: hsl(var(--primary));
+  opacity: 0.5;
+}
+
+/* Milestone Marker */
+.gantt_milestone {
+  background-color: hsl(var(--priority-high)); /* amber-500 */
+  border: none;
+}
 // FILE: src/types/api.ts
 export enum SocialProvider {
   GOOGLE = "GOOGLE",
@@ -28477,6 +29117,7 @@ export interface Task {
   boardColumnId: string | null;
   orderInColumn: number | null;
   recurrenceRule?: string | null;
+  progress?: number | null;
   createdAt: string;
   updatedAt: string;
   assignees: TaskAssignee[];
@@ -28928,14 +29569,18 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        "kanban-bg": "hsl(var(--kanban-bg))",
-        "kanban-column": "hsl(var(--kanban-column))",
-        "kanban-card": "hsl(var(--kanban-card))",
-        "kanban-card-hover": "hsl(var(--kanban-card-hover))",
-        "kanban-accent": "hsl(var(--kanban-accent))",
+        surface: "hsl(var(--surface))",
+        element: "hsl(var(--element))",
+        hover: "hsl(var(--hover))",
+        "kanban-bg": "hsl(var(--background))",
+        "kanban-column": "hsl(var(--surface))",
+        "kanban-card": "hsl(var(--element))",
+        "kanban-card-hover": "hsl(var(--hover))",
+        "kanban-accent": "hsl(var(--primary))",
         "priority-urgent": "hsl(var(--priority-urgent))",
         "priority-high": "hsl(var(--priority-high))",
         "priority-medium": "hsl(var(--priority-medium))",
+        "priority-low": "hsl(var(--priority-low))",
       },
       borderRadius: {
         lg: "var(--radius)",

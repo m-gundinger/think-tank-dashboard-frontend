@@ -24,38 +24,45 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
+    
+    /* Custom Generic Theme */
+    --surface: 220 13% 97%;
+    --element: 0 0% 100%;
+    --hover: 220 13% 94%;
+    --priority-urgent: 0 72% 51%;
+    --priority-high: 30 90% 55%;
+    --priority-medium: 60 72% 51%;
   }
 
   .dark {
-    --background: 221 39.3% 11%;
+    --background: 221 39% 11%;
     --foreground: 210 40% 98%;
-    --card: 221 39.3% 11%;
+    --card: 215 28% 17%;
     --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
+    --popover: 221 39% 11%;
     --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 221 39.3% 11%;
+    --primary: 262 59% 56%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 217 19% 27%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 217 19% 27%;
+    --muted-foreground: 215 20% 65%;
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 63% 31%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-
-    /* Your Custom Kanban Colors */
-    --kanban-bg: 221 39.3% 11%;
-    --kanban-column: 215 27.9% 16.9%;
-    --kanban-card: 217 19.1% 26.7%;
-    --kanban-card-hover: 217 19.1% 31.7%;
-    --kanban-accent: 271 81.3% 55.9%;
-    --priority-urgent: 0 72.2% 50.6%;
-    --priority-high: 30 72.2% 50.6%;
-    --priority-medium: 60 72.2% 50.6%;
+    --border: 215 14% 34%;
+    --input: 215 28% 17%;
+    --ring: 262 59% 56%;
+    
+    /* Custom Generic Theme */
+    --surface: 215 28% 17%; /* Kanban column, list view bg */
+    --element: 217 19% 27%; /* Kanban card, list group header */
+    --hover: 217 19% 32%;
+    --priority-urgent: 0 72% 51%;
+    --priority-high: 30 90% 55%;
+    --priority-medium: 60 72% 51%;
+    --priority-low: 216, 100%, 58%;
   }
 }
 
@@ -70,7 +77,7 @@
 
 @layer components {
   .drag-over-column {
-    @apply bg-slate-700/50 border-2 border-dashed border-slate-500;
+    @apply bg-hover border-2 border-dashed border-accent;
   }
   .dragging-card {
     @apply opacity-30;
@@ -83,8 +90,7 @@
     opacity: 1;
   }
   .task-completed {
-    text-decoration: line-through;
-    color: #4a5568; /* slate-600 */
+    @apply text-muted-foreground;
   }
   .task-completed .status-pill,
   .task-completed .priority-flag,
@@ -102,5 +108,29 @@
   }
   .subtasks-collapsed .subtask-icon {
     transform: rotate(-90deg);
+  }
+
+  
+  /* Calendar Styles */
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 1px;
+    background-color: hsl(var(--border));
+    border: 1px solid hsl(var(--border));
+  }
+  .calendar-day {
+    min-height: 140px;
+    transition: background-color 0.2s ease-in-out;
+    background-color: hsl(var(--surface));
+  }
+  .calendar-day:hover {
+    background-color: hsl(var(--hover));
+  }
+  .drag-over-day {
+    @apply bg-hover border-2 border-dashed border-primary;
+  }
+  .task-item:hover {
+    transform: translateY(-2px);
   }
 }

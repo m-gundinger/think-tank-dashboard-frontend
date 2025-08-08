@@ -115,14 +115,12 @@ export function CreateTaskForm({
             label="Title"
             placeholder="e.g. Draft Q3 financial report"
           />
-          {projectId && workspaceId && (
-            <FormTaskTypeSelector
-              name="taskTypeId"
-              label="Task Type"
-              workspaceId={workspaceId}
-              projectId={projectId}
-            />
-          )}
+          <FormTaskTypeSelector
+            name="taskTypeId"
+            label="Task Type"
+            workspaceId={workspaceId}
+            projectId={projectId}
+          />
           <FormAssigneeSelector
             name="assigneeIds"
             label="Assignees"

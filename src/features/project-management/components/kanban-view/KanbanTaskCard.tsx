@@ -41,17 +41,19 @@ const priorityBadgeConfig: Partial<
 > = {
   [TaskPriority.URGENT]: {
     label: "Urgent",
-    className:
-      "bg-priority-urgent/20 text-priority-urgent border-priority-urgent/50",
+    className: "bg-priority-urgent text-background border-priority-urgent",
   },
   [TaskPriority.HIGH]: {
     label: "High",
-    className: "bg-priority-high/20 text-priority-high border-priority-high/50",
+    className: "bg-priority-high text-background border-priority-high",
   },
   [TaskPriority.MEDIUM]: {
     label: "Medium",
-    className:
-      "bg-priority-medium/20 text-priority-medium border-priority-medium/50",
+    className: "bg-priority-medium text-background border-priority-medium",
+  },
+  [TaskPriority.LOW]: {
+    label: "Low",
+    className: "bg-priority-low text-background border-priority-low",
   },
 };
 
@@ -121,15 +123,15 @@ export function KanbanTaskCard({
       onClick={() => onTaskSelect(task.id)}
       className={cn(isDragging && "dragging-card")}
     >
-      <Card className="mb-2 cursor-grab border-slate-700 bg-kanban-card hover:bg-kanban-card-hover active:cursor-grabbing">
-        <CardHeader className="flex flex-row items-center justify-between p-3 pb-0 pt-0">
+      <Card className="hover:bg-hover mb-2 cursor-grab border-border bg-element active:cursor-grabbing">
+        <CardHeader className="flex flex-row items-start justify-between p-3 pb-2">
           <CardTitle className="text-sm font-semibold">{task.title}</CardTitle>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-6 w-6 shrink-0 text-slate-400 hover:bg-slate-700 hover:text-white"
+                className="hover:bg-hover h-6 w-6 shrink-0 text-muted-foreground hover:text-foreground"
                 onClick={(e) => e.stopPropagation()}
               >
                 <MoreHorizontal className="h-4 w-4" />
@@ -154,8 +156,8 @@ export function KanbanTaskCard({
           </DropdownMenu>
         </CardHeader>
 
-        <CardContent className="flex flex-col gap-2 px-3 pb-0 pt-0">
-          <div className="flex items-center gap-3 text-sm text-slate-300">
+        <CardContent className="flex flex-col gap-2 px-3 pb-2">
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
             {task.dueDate && (
               <div className="flex items-center gap-1">
                 <Calendar className="h-3.5 w-3.5" />
@@ -164,7 +166,7 @@ export function KanbanTaskCard({
             )}
             {task.recurrenceRule && <Repeat className="h-3.5 w-3.5" />}
           </div>
-          <div className="flex items-center gap-3 text-sm text-slate-300">
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
             {!projectId && task.projectName && (
               <div className="flex items-center gap-1">
                 <Briefcase className="h-3.5 w-3.5" />
@@ -176,7 +178,7 @@ export function KanbanTaskCard({
           </div>
         </CardContent>
 
-        <CardFooter className="flex items-center justify-between p-3 pb-0 pt-0">
+        <CardFooter className="flex items-center justify-between p-3 pt-1">
           <div className="flex flex-wrap items-center gap-2">
             {priorityConfig && (
               <Badge
@@ -208,7 +210,7 @@ export function KanbanTaskCard({
             {task.assignees?.map((assignee) => (
               <Avatar
                 key={assignee.id}
-                className="h-6 w-6 border-2 border-kanban-bg"
+                className="h-6 w-6 border-2 border-background"
               >
                 <AvatarImage src={getAbsoluteUrl(assignee.avatarUrl)} />
                 <AvatarFallback>{assignee.name.charAt(0)}</AvatarFallback>

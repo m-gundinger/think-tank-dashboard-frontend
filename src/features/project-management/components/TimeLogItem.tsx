@@ -29,10 +29,10 @@ export function TimeLogItem({
   };
 
   return (
-    <div className="hover:bg-accent/50 flex items-center justify-between rounded-md p-2 text-sm">
+    <div className="hover:bg-hover flex items-center justify-between rounded-md p-2 text-sm">
       <div className="flex-grow">
         <span>{log.description || "Time logged"}</span>
-        <p className="text-muted-foreground text-xs">
+        <p className="text-xs text-muted-foreground">
           Logged on: {new Date(log.loggedAt).toLocaleDateString()}
         </p>
       </div>
@@ -45,7 +45,7 @@ export function TimeLogItem({
           onClick={handleDelete}
           disabled={deleteMutation.isPending}
         >
-          <Trash2 className="text-destructive h-3 w-3" />
+          <Trash2 className="h-3 w-3 text-destructive" />
         </Button>
       </div>
     </div>

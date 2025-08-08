@@ -9,10 +9,10 @@ import { useManageTaskTypes } from "../api/useManageTaskTypes";
 import { TaskType } from "@/types";
 
 interface TaskTypeSelectorProps {
-  workspaceId: string;
-  projectId: string;
+  workspaceId?: string | null;
+  projectId?: string | null;
   value: string | null;
-  onValueChange: (value: string) => void;
+  onValueChange: (value: string | null) => void;
   disabled?: boolean;
 }
 
@@ -24,29 +24,44 @@ export function TaskTypeSelector({
   disabled,
 }: TaskTypeSelectorProps) {
   const { data: typesData, isLoading } = useManageTaskTypes(
-    workspaceId,
-    projectId
+    workspaceId ?? undefined,
+    projectId ?? undefined
   ).useGetAll();
+
+  const selectedType = typesData?.data?.find((t: TaskType) => t.id === value);
+
+  const displayValue = () => {
+    if (isLoading && value) return "Loading...";
+    if (selectedType) return selectedType.name;
+    return "None";
+  };
+
   return (
     <Select
       value={value ?? ""}
-      onValueChange={onValueChange}
+      onValueChange={(val) => onValueChange(val === "none" ? null : val)}
       disabled={disabled || isLoading}
     >
-      <SelectTrigger>
-        <SelectValue placeholder="Select a type..." />
+      <SelectTrigger
+        className="h-auto w-full justify-start border-none bg-transparent p-1 font-normal hover:bg-accent focus:ring-0"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <SelectValue placeholder="None">{displayValue()}</SelectValue>
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent onClick={(e) => e.stopPropagation()}>
         {isLoading ? (
           <SelectItem value="loading" disabled>
             Loading types...
           </SelectItem>
         ) : (
-          typesData?.data?.map((type: TaskType) => (
-            <SelectItem key={type.id} value={type.id}>
-              {type.name}
-            </SelectItem>
-          ))
+          <>
+            <SelectItem value="none">None</SelectItem>
+            {typesData?.data?.map((type: TaskType) => (
+              <SelectItem key={type.id} value={type.id}>
+                {type.name}
+              </SelectItem>
+            ))}
+          </>
         )}
       </SelectContent>
     </Select>

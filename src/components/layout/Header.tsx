@@ -28,7 +28,7 @@ export function Header() {
 
   return (
     <>
-      <header className="border-border bg-card flex h-16 items-center border-b px-6">
+      <header className="flex h-16 items-center border-b border-border bg-background px-6">
         <div className="flex-1"></div>
         <div className="flex items-center gap-2">
           <Button
@@ -44,7 +44,7 @@ export function Header() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                 {isLoading ? (
-                  <div className="bg-muted h-8 w-8 animate-pulse rounded-full"></div>
+                  <div className="h-8 w-8 animate-pulse rounded-full bg-muted"></div>
                 ) : (
                   <Avatar className="h-8 w-8">
                     <AvatarImage
@@ -61,7 +61,7 @@ export function Header() {
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium">{user?.name}</p>
-                  <p className="text-muted-foreground text-xs leading-none">
+                  <p className="text-xs leading-none text-muted-foreground">
                     {user?.email}
                   </p>
                 </div>

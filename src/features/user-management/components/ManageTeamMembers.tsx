@@ -86,7 +86,7 @@ export function ManageTeamMembers({
               </Badge>
             ))
           ) : (
-            <p className="text-muted-foreground px-2 text-sm">
+            <p className="px-2 text-sm text-muted-foreground">
               No members in this team.
             </p>
           )}

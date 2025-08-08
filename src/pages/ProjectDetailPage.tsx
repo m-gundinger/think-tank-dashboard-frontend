@@ -25,11 +25,10 @@ export function ProjectDetailPage() {
     workspaceId: string;
     projectId: string;
   }>();
-
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTabId = searchParams.get("view");
   const selectedTaskId = searchParams.get("taskId");
-  const [sorting, setSorting] = useState<SortingState>([
+  const [sorting] = useState<SortingState>([
     { id: "orderInColumn", desc: false },
   ]);
   const updateTaskMutation = useUpdateTask();
@@ -123,7 +122,7 @@ export function ProjectDetailPage() {
 
   const projectTaskEmptyState = (
     <EmptyState
-      icon={<CheckSquare className="text-primary h-10 w-10" />}
+      icon={<CheckSquare className="h-10 w-10 text-primary" />}
       title="No tasks yet"
       description="Create the first task in this project to get started."
     />
@@ -183,8 +182,6 @@ export function ProjectDetailPage() {
           onTaskUpdate={handleTaskUpdate}
           activeTab={activeTabId}
           onTabChange={handleTabChange}
-          sorting={sorting}
-          setSorting={setSorting}
           emptyState={projectTaskEmptyState}
         />
       </div>

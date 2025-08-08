@@ -20,11 +20,10 @@ import { useGetProjectMembers } from "@/features/project-management/api/useGetPr
 import { useApiResource } from "@/hooks/useApiResource";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getAbsoluteUrl } from "@/lib/utils";
-import { FormControl } from "@/components/ui/form";
 
 interface AssigneeSelectorProps {
   projectId?: string | null;
-  workspaceId?: string;
+  workspaceId?: string | null;
   selectedIds: string[];
   onSelectionChange: (newIds: string[]) => void;
 }
@@ -52,7 +51,6 @@ export function AssigneeSelector({
     });
 
   const isLoading = isLoadingProjectMembers || isLoadingAllUsers;
-
   const availableUsers: SelectableUser[] = useMemo(() => {
     if (projectId) {
       return (
@@ -92,82 +90,77 @@ export function AssigneeSelector({
   };
 
   return (
-    <FormControl>
-      <div className="border-input flex min-h-9 flex-wrap items-center gap-2 rounded-md border p-1">
-        {selectedUsers.map((user) => (
-          <Badge
-            key={user.id}
-            variant="secondary"
-            className="flex items-center gap-2 rounded-full bg-gray-100 py-0.5 pr-2 pl-0.5"
+    <div className="flex min-h-9 flex-wrap items-center gap-2 rounded-md border border-input p-1">
+      {selectedUsers.map((user) => (
+        <Badge
+          key={user.id}
+          variant="secondary"
+          className="flex items-center gap-2 rounded-full bg-gray-100 py-0.5 pl-0.5 pr-2"
+        >
+          <Avatar className="h-5 w-5">
+            <AvatarImage src={getAbsoluteUrl(user.avatarUrl)} alt={user.name} />
+            <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
+          </Avatar>
+          <span className="text-sm font-normal">{user.name}</span>
+          <Button
+            size="icon"
+            variant="ghost"
+            type="button"
+            className="ml-1 h-4 w-4 rounded-full"
+            onClick={() => handleRemove(user.id)}
           >
-            <Avatar className="h-5 w-5">
-              <AvatarImage
-                src={getAbsoluteUrl(user.avatarUrl)}
-                alt={user.name}
-              />
-              <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <span className="text-sm font-normal">{user.name}</span>
-            <Button
-              size="icon"
-              variant="ghost"
-              type="button"
-              className="ml-1 h-4 w-4 rounded-full"
-              onClick={() => handleRemove(user.id)}
-            >
-              <X className="text-muted-foreground hover:text-primary h-3 w-3" />
-            </Button>
-          </Badge>
-        ))}
+            <X className="h-3 w-3 text-muted-foreground hover:text-primary" />
+          </Button>
+        </Badge>
+      ))}
 
-        <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6"
-              disabled={isLoading}
-            >
-              <UserPlus className="h-4 w-4" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-[200px] p-0">
-            <Command>
-              <CommandInput placeholder="Assign user..." />
-              <CommandList>
-                <CommandEmpty>No available users found.</CommandEmpty>
-                <CommandGroup>
-                  {unassignedUsers.map((user: SelectableUser) => (
-                    <CommandItem
-                      key={user.id}
-                      value={user.name}
-                      onSelect={() => handleSelect(user.id)}
-                      className="flex items-center"
-                    >
-                      <Avatar className="mr-2 h-5 w-5">
-                        <AvatarImage
-                          src={getAbsoluteUrl(user.avatarUrl)}
-                          alt={user.name}
-                        />
-                        <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <span className="flex-1 truncate">{user.name}</span>
-                      <Check
-                        className={cn(
-                          "ml-auto h-4 w-4",
-                          selectedIds.includes(user.id)
-                            ? "opacity-100"
-                            : "opacity-0"
-                        )}
+      <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6"
+            disabled={isLoading}
+          >
+            <UserPlus className="h-4 w-4" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-[200px] p-0">
+          <Command>
+            <CommandInput placeholder="Assign user..." />
+            <CommandList>
+              <CommandEmpty>No available users found.</CommandEmpty>
+              <CommandGroup>
+                {unassignedUsers.map((user: SelectableUser) => (
+                  <CommandItem
+                    key={user.id}
+                    value={user.name}
+                    onSelect={() => handleSelect(user.id)}
+                    className="flex items-center"
+                  >
+                    <Avatar className="mr-2 h-5 w-5">
+                      <AvatarImage
+                        src={getAbsoluteUrl(user.avatarUrl)}
+                        alt={user.name}
                       />
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
-      </div>
-    </FormControl>
+                      <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <span className="flex-1 truncate">{user.name}</span>
+                    <Check
+                      className={cn(
+                        "ml-auto h-4 w-4",
+                        selectedIds.includes(user.id)
+                          ? "opacity-100"
+                          : "opacity-0"
+                      )}
+                    />
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+    </div>
   );
 }

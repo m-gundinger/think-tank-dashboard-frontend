@@ -2,7 +2,7 @@ import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { FormInput } from "@/components/form/FormFields";
-import { useManageTaskTemplates } from "../api/useManageTaskTemplates";
+import { useApiResource } from "@/hooks/useApiResource";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
@@ -21,12 +21,14 @@ interface CreateTemplateFromTaskDialogProps {
 }
 
 export function CreateTemplateFromTaskForm({
-  workspaceId,
   projectId,
   task,
   onSuccess,
 }: CreateTemplateFromTaskDialogProps) {
-  const { useCreate } = useManageTaskTemplates(workspaceId, projectId);
+  const { useCreate } = useApiResource("task-templates", [
+    "taskTemplates",
+    projectId,
+  ]);
   const createMutation = useCreate();
 
   const methods = useForm<FormValues>({
@@ -45,7 +47,10 @@ export function CreateTemplateFromTaskForm({
       workspaceId: _wId,
       ...templateData
     } = task;
-    createMutation.mutate({ name: values.name, templateData }, { onSuccess });
+    createMutation.mutate(
+      { name: values.name, templateData, projectId },
+      { onSuccess }
+    );
   }
 
   return (

@@ -23,7 +23,7 @@ import { ProjectSettingsPage } from "./pages/ProjectSettingsPage";
 import { ProjectAccessControlPage } from "./pages/ProjectAccessControlPage";
 import { ProjectCustomFieldsPage } from "./pages/ProjectCustomFieldsPage";
 import { ProjectTaskTypesPage } from "./pages/ProjectTaskTypesPage";
-import { ProjectViewsPage } from "./pages/ProjectViewsPage";
+//import { ProjectViewsPage } from "./pages/ProjectViewsPage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 import { SetupPasswordPage } from "./pages/SetupPasswordPage";
@@ -42,12 +42,13 @@ import { GlobalKnowledgeBasePage } from "./pages/GlobalKnowledgeBasePage";
 import { WhiteboardsPage } from "./pages/WhiteboardsPage";
 import { ProjectAttachmentsPage } from "./pages/ProjectAttachmentsPage";
 import { WorkspaceAttachmentsPage } from "./pages/WorkspaceAttachmentsPage";
-import { ProjectLeadFormsPage } from "./pages/ProjectLeadFormsPage";
+//import { ProjectLeadFormsPage } from "./pages/ProjectLeadFormsPage";
 import { AnalyticsLayout } from "./pages/AnalyticsLayout";
 import { ActivitiesPage } from "./pages/analytics/ActivitiesPage";
 import { DashboardsPage } from "./pages/analytics/DashboardsPage";
 import { ReportingPage } from "./pages/analytics/ReportingPage";
 import { ReportsPage } from "./pages/analytics/ReportsPage";
+import { TaskTypesSettingsPage } from "./pages/TaskTypesSettingsPage";
 
 function App() {
   return (
@@ -119,10 +120,8 @@ function App() {
             <Route path="access" element={<ProjectAccessControlPage />} />
             <Route path="custom-fields" element={<ProjectCustomFieldsPage />} />
             <Route path="task-types" element={<ProjectTaskTypesPage />} />
-            <Route path="views" element={<ProjectViewsPage />} />
             <Route path="goals" element={<ProjectGoalsPage />} />
             <Route path="templates" element={<ProjectTemplatesPage />} />
-            <Route path="lead-forms" element={<ProjectLeadFormsPage />} />
             <Route path="attachments" element={<ProjectAttachmentsPage />} />
           </Route>
           <Route
@@ -134,6 +133,7 @@ function App() {
             <Route index element={<Navigate to="integrations" replace />} />
             <Route path="integrations" element={<IntegrationsPage />} />
             <Route path="security" element={<AccountSettingsPage />} />
+            <Route path="task-types" element={<TaskTypesSettingsPage />} />
           </Route>
           <Route path="admin" element={<AdminLayout />}>
             <Route index element={<Navigate to="/admin/users" replace />} />

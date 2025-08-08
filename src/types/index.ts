@@ -277,6 +277,7 @@ export interface Task {
   boardColumnId: string | null;
   orderInColumn: number | null;
   recurrenceRule?: string | null;
+  progress?: number | null;
   createdAt: string;
   updatedAt: string;
   assignees: TaskAssignee[];

@@ -16,9 +16,10 @@ import {
 import { useManageTaskTemplates } from "../api/useManageTaskTemplates";
 import { useInstantiateTaskTemplate } from "../api/useInstantiateTaskTemplate";
 import { Skeleton } from "@/components/ui/skeleton";
+
 interface TemplateSelectorDialogProps {
-  workspaceId: string;
-  projectId: string;
+  workspaceId?: string;
+  projectId?: string;
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
 }
@@ -29,17 +30,22 @@ export function TemplateSelectorDialog({
   isOpen,
   onOpenChange,
 }: TemplateSelectorDialogProps) {
-  const { data: templatesData, isLoading } = useManageTaskTemplates(
+  const { useGetAll } = useManageTaskTemplates(workspaceId, projectId);
+  const { data: templatesData, isLoading } = useGetAll();
+  const instantiateMutation = useInstantiateTaskTemplate(
     workspaceId,
     projectId
-  ).useGetAll();
-  const instantiateMutation = useInstantiateTaskTemplate(projectId);
+  );
+
   const handleSelect = (templateId: string) => {
-    instantiateMutation.mutate(templateId, {
-      onSuccess: () => {
-        onOpenChange(false);
-      },
-    });
+    instantiateMutation.mutate(
+      { templateId },
+      {
+        onSuccess: () => {
+          onOpenChange(false);
+        },
+      }
+    );
   };
 
   return (
@@ -61,7 +67,7 @@ export function TemplateSelectorDialog({
                 <Skeleton className="h-4 w-full" />
               </div>
             )}
-            <CommandEmpty>No templates found.</CommandEmpty>
+            <CommandEmpty>No templates found for this context.</CommandEmpty>
             <CommandGroup>
               {templatesData?.data?.map((template: any) => (
                 <CommandItem

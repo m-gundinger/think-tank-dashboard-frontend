@@ -22,7 +22,7 @@ import { Kanban, PlusCircle } from "lucide-react";
 import { arrayMove } from "@dnd-kit/sortable";
 import { Button } from "@/components/ui/button";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
-import { CreateColumnForm } from "./CreateColumnForm";
+//import { CreateColumnForm } from "./CreateColumnForm";
 
 interface KanbanBoardProps {
   workspaceId: string;
@@ -259,7 +259,7 @@ export function KanbanBoard({
         onDragOver={onDragOver}
         onDragEnd={onDragEnd}
       >
-        <div className="bg-kanban-bg flex h-full gap-4 overflow-x-auto p-1">
+        <div className="flex h-full gap-4 overflow-x-auto bg-background p-1">
           {columns.map((col: ViewColumn) => (
             <KanbanColumn
               key={col.id}
@@ -271,7 +271,7 @@ export function KanbanBoard({
           <div>
             <Button
               variant="outline"
-              className="bg-kanban-column w-72 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white"
+              className="w-72 border-slate-700 bg-surface text-slate-300 hover:bg-slate-700 hover:text-white"
               onClick={() => setIsCreateColumnOpen(true)}
             >
               <PlusCircle className="mr-2 h-4 w-4" /> Add another list
@@ -287,20 +287,6 @@ export function KanbanBoard({
           document.body
         )}
       </DndContext>
-      <ResourceCrudDialog
-        isOpen={isCreateColumnOpen}
-        onOpenChange={setIsCreateColumnOpen}
-        title="Add a new list"
-        description="Create a new column for your Kanban board."
-        form={CreateColumnForm}
-        formProps={{
-          workspaceId,
-          view: kanbanView,
-          onSuccess: () => setIsCreateColumnOpen(false),
-        }}
-        resourcePath=""
-        resourceKey={[]}
-      />
     </>
   );
 }

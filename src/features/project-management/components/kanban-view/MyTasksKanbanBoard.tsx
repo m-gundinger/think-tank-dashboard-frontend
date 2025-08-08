@@ -13,9 +13,9 @@ import {
 import { createPortal } from "react-dom";
 import { Task } from "@/types";
 import { TaskStatus } from "@/types/api";
-import { KanbanColumn } from "@/features/project-management/components/KanbanColumn";
-import { KanbanTaskCard } from "@/features/project-management/components/KanbanTaskCard";
-import { useUpdateTask } from "../api/useUpdateTask";
+import { KanbanColumn } from "@/features/project-management/components/kanban-view/KanbanColumn";
+import { KanbanTaskCard } from "@/features/project-management/components/kanban-view/KanbanTaskCard";
+import { useUpdateTask } from "@/features/project-management/api/useUpdateTask";
 import { ViewColumn } from "@/types";
 import { arrayMove } from "@dnd-kit/sortable";
 
