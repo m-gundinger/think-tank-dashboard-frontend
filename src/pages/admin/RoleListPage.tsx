@@ -2,9 +2,9 @@ import { RoleList } from "@/features/admin/roles/components/RoleList";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { useState } from "react";
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
 import { RoleForm } from "@/features/admin/roles/components/RoleForm";
-import { ListPageLayout } from "@/components/layout/ListPageLayout";
+import { ListPageLayout } from "@/components/shared/ListPageLayout";
 
 export function RoleListPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);

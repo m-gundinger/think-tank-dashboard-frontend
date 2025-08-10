@@ -28,8 +28,7 @@ export function IntegrationList() {
   const { data, isLoading, isError } = useManageIntegrations().useGetAll();
 
   const handleConnect = async (provider: string) => {
-    // Assuming workspace context is available or global
-    const workspaceId = "your-workspace-id"; // This needs to be fetched from context
+    const workspaceId = "your-workspace-id";
     await openOAuthPopup(provider, workspaceId);
     queryClient.invalidateQueries({ queryKey: ["integrations"] });
   };
@@ -79,7 +78,7 @@ export function IntegrationList() {
                       <RefreshCw className="mr-2 h-4 w-4" />
                       Reconnect
                     </Button>
-                    <p className="text-muted-foreground text-xs">
+                    <p className="text-xs text-muted-foreground">
                       Connected on{" "}
                       {new Date(integrationData.createdAt).toLocaleDateString()}
                     </p>

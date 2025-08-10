@@ -19,7 +19,6 @@ const priorityMap: Record<
   [TaskPriority.LOW]: { color: "text-blue-500", label: "Low" },
   [TaskPriority.NONE]: { color: "text-muted-foreground", label: "None" },
 };
-
 interface PriorityCellProps {
   task: Task;
   onUpdate: (taskId: string, updates: Partial<Task>) => void;

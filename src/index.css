@@ -24,7 +24,7 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
-    
+
     /* Custom Generic Theme */
     --surface: 220 13% 97%;
     --element: 0 0% 100%;
@@ -54,7 +54,7 @@
     --border: 215 14% 34%;
     --input: 215 28% 17%;
     --ring: 262 59% 56%;
-    
+
     /* Custom Generic Theme */
     --surface: 215 28% 17%; /* Kanban column, list view bg */
     --element: 217 19% 27%; /* Kanban card, list group header */
@@ -110,7 +110,6 @@
     transform: rotate(-90deg);
   }
 
-  
   /* Calendar Styles */
   .calendar-grid {
     display: grid;

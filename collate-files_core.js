@@ -8,9 +8,9 @@ const SCRIPT_CONFIG = {
     ".tsx",
     ".jsx",
     //'.html',
-    ".css",
+    //".css",
     //'.scss',
-    ".json",
+    //".json",
     //'', // For extensionless files like 'LICENSE', 'Dockerfile', or '.husky/commit-msg'
     //'.yml', // For .yml files
     //'.yaml', // Added for common YAML extension
@@ -21,7 +21,10 @@ const SCRIPT_CONFIG = {
   ],
   // Folders to always ignore by name, wherever they appear
   IGNORED_DIRS_COMMON: [
-    //"ui",
+    "ui",
+    "lib",
+    "styles",
+    "types",
     "node_modules",
     ".git",
     ".angular",

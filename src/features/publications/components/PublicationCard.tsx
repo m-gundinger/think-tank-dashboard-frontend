@@ -6,7 +6,7 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ActionMenu } from "@/components/ui/ActionMenu";
+import { ActionMenu } from "@/components/shared/ActionMenu";
 import { useManagePublications } from "../api/useManagePublications";
 
 interface PublicationCardProps {
@@ -39,7 +39,6 @@ export function PublicationCard({ publication, onEdit }: PublicationCardProps) {
     e.preventDefault();
     onEdit(publication);
   };
-
   return (
     <Card className="flex flex-col">
       <CardHeader className="flex-row items-start justify-between">

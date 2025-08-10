@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
 import { useManageDashboards } from "../api/useManageDashboards";
 import { DashboardCard } from "./DashboardCard";
 import { DashboardForm } from "./DashboardForm";

@@ -82,7 +82,6 @@ export function CalendarView({
       setActiveTask(event.active.data.current.task);
     }
   };
-
   const handleDragEnd = (event: DragEndEvent) => {
     setActiveTask(null);
     const { active, over } = event;

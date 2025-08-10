@@ -98,7 +98,6 @@ function constructUrlAndKey({
 
   resourceUrl = resourceUrl ? `${resourceUrl}/${scope}` : scope;
 
-  // Handle global admin routes
   if (!workspaceId && ["users", "roles", "permissions"].includes(scope)) {
     resourceUrl = `admin/${scope}`;
   }

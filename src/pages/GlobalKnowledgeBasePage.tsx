@@ -1,12 +1,12 @@
 import { useManageKnowledgeBases } from "@/features/collaboration/api/useManageKnowledgeBases";
 import { KnowledgeBaseCard } from "@/features/collaboration/components/KnowledgeBaseCard";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ErrorState } from "@/components/ui/error-state";
-import { EmptyState } from "@/components/ui/empty-state";
+import { ErrorState } from "@/components/shared/ErrorState";
+import { EmptyState } from "@/components/shared/EmptyState";
 import { BookOpen, PlusCircle } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useState } from "react";
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
 import { KnowledgeBaseForm } from "@/features/collaboration/components/KnowledgeBaseForm";
 import { Button } from "@/components/ui/button";
 import { KnowledgeBase } from "@/types";

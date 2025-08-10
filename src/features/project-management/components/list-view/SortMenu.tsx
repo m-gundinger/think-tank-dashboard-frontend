@@ -26,10 +26,8 @@ export function SortMenu({
   const handleSort = (columnId: string) => {
     const isCurrentlySorted = currentSort?.id === columnId;
     if (isCurrentlySorted && currentSort.desc) {
-      // Third click: remove sort
       setSorting([]);
     } else {
-      // First click: sort asc, second click: sort desc
       setSorting([
         { id: columnId, desc: isCurrentlySorted ? !currentSort.desc : false },
       ]);

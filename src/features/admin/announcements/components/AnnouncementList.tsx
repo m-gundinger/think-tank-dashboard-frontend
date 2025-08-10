@@ -6,11 +6,11 @@ import {
   DataTable,
   DataTableWrapper,
   ColumnDef,
-} from "@/components/ui/DataTable";
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+} from "@/components/shared/DataTable";
+import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
 import { AnnouncementForm } from "./AnnouncementForm";
 import { Announcement } from "@/types";
-import { ActionMenu } from "@/components/ui/ActionMenu";
+import { ActionMenu } from "@/components/shared/ActionMenu";
 import { useManageAnnouncements } from "../api/useManageAnnouncements";
 
 export function AnnouncementList() {

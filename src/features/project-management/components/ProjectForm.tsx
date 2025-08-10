@@ -2,8 +2,8 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { nameSchema, descriptionSchema } from "@/lib/schemas";
 import { useCreateView } from "@/features/project-management/api/useCreateView";
-import { ResourceForm } from "@/components/form/ResourceForm";
-import { FormInput } from "@/components/form/FormFields";
+import { ResourceForm } from "@/components/shared/form/ResourceForm";
+import { FormInput } from "@/components/shared/form/FormFields";
 import { useManageProjects } from "../api/useManageProjects";
 
 const projectSchema = z.object({

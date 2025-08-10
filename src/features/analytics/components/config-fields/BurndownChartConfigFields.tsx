@@ -1,4 +1,7 @@
-import { FormDatePicker, FormSelect } from "@/components/form/FormFields";
+import {
+  FormDatePicker,
+  FormSelect,
+} from "@/components/shared/form/FormFields";
 
 export function BurndownChartConfigFields() {
   const unitOptions = [

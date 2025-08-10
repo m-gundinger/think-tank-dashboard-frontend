@@ -25,7 +25,7 @@ import { useGetNotificationPreferences } from "../api/useGetNotificationPreferen
 import { useUpdateNotificationPreferences } from "../api/useUpdateNotificationPreferences";
 import { Skeleton } from "@/components/ui/skeleton";
 import { NotificationType, EmailDigestFrequency } from "@/types/api";
-import { FormWrapper } from "@/components/form/FormWrapper";
+import { FormWrapper } from "@/components/shared/form/FormWrapper";
 
 const notificationTypes = Object.values(NotificationType);
 const emailFrequencies = Object.values(EmailDigestFrequency);

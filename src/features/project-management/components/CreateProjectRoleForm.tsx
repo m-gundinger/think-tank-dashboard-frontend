@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { nameSchema } from "@/lib/schemas";
-import { ResourceForm } from "@/components/form/ResourceForm";
-import { FormInput } from "@/components/form/FormFields";
+import { ResourceForm } from "@/components/shared/form/ResourceForm";
+import { FormInput } from "@/components/shared/form/FormFields";
 
 const projectRoleSchema = z.object({
   name: nameSchema("Role"),

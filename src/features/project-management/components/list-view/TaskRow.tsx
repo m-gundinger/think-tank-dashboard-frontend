@@ -15,7 +15,7 @@ import { TaskStatus } from "@/types/api";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useDroppable } from "@dnd-kit/core";
-import { ActionMenu } from "@/components/ui/ActionMenu";
+import { ActionMenu } from "@/components/shared/ActionMenu";
 import { useManageTasks } from "../../api/useManageTasks";
 
 interface TaskRowProps {

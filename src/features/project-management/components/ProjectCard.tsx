@@ -1,7 +1,7 @@
 import { getIcon } from "@/lib/icons";
-import { EntityCard } from "@/components/ui/EntityCard";
+import { EntityCard } from "@/components/shared/EntityCard";
 import { CardContent } from "@/components/ui/card";
-import { ActionMenu } from "@/components/ui/ActionMenu";
+import { ActionMenu } from "@/components/shared/ActionMenu";
 import { useManageProjects } from "../api/useManageProjects";
 
 interface ProjectCardProps {

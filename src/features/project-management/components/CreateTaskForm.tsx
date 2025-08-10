@@ -8,7 +8,7 @@ import {
   FormDatePicker,
   FormAssigneeSelector,
   FormTaskTypeSelector,
-} from "@/components/form/FormFields";
+} from "@/components/shared/form/FormFields";
 import { useApiResource } from "@/hooks/useApiResource";
 import { useGetProfile } from "@/features/user-management/api/useGetProfile";
 import { AxiosError } from "axios";

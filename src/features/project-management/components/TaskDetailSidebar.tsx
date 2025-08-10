@@ -22,7 +22,7 @@ import { Calendar as CalendarIcon, X, Briefcase } from "lucide-react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { TaskDocuments } from "./TaskDocuments";
-import { EditableField } from "@/components/ui/EditableField";
+import { EditableField } from "@/components/shared/EditableField";
 import { RecurrenceSelector } from "./RecurrenceSelector";
 import { TaskTypeSelector } from "@/features/project-management/components/TaskTypeSelector";
 import { Task } from "@/types";

@@ -55,7 +55,7 @@ export function ProfileAvatar({
         toast.error("Please select a valid image file (PNG, JPEG, or GIF)");
         return;
       }
-      const maxSize = 5 * 1024 * 1024; // 5MB
+      const maxSize = 5 * 1024 * 1024;
       if (file.size > maxSize) {
         toast.error("File size must be less than 5MB");
         return;
@@ -121,7 +121,7 @@ export function ProfileAvatar({
         <DropdownMenuTrigger asChild>
           <Button
             size="icon"
-            className="absolute right-1 bottom-1 h-8 w-8 rounded-full"
+            className="absolute bottom-1 right-1 h-8 w-8 rounded-full"
             disabled={
               uploadAvatarMutation.isPending || updateProfileMutation.isPending
             }

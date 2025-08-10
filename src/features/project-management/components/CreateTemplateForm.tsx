@@ -1,7 +1,10 @@
 import { z } from "zod";
 import { nameSchema, descriptionSchema } from "@/lib/schemas";
-import { ResourceForm } from "@/components/form/ResourceForm";
-import { FormInput, FormRichTextEditor } from "@/components/form/FormFields";
+import { ResourceForm } from "@/components/shared/form/ResourceForm";
+import {
+  FormInput,
+  FormRichTextEditor,
+} from "@/components/shared/form/FormFields";
 
 const templateSchema = z.object({
   name: nameSchema("Template"),

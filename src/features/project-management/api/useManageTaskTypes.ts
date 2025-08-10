@@ -9,7 +9,6 @@ export function useManageTaskTypes(workspaceId?: string, projectId?: string) {
   });
 
   if (!workspaceId && !projectId) {
-    // This handles the global case
     const globalResource = useApiResource<TaskType>("task-types", [
       "taskTypes",
       "global",

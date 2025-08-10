@@ -17,7 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { getIcon } from "@/lib/icons";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn, getAbsoluteUrl } from "@/lib/utils";
-import { ActionMenu } from "@/components/ui/ActionMenu";
+import { ActionMenu } from "@/components/shared/ActionMenu";
 
 const priorityBadgeConfig: Partial<
   Record<TaskPriority, { label: string; className: string }>

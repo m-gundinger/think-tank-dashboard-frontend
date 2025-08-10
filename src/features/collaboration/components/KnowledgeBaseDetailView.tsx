@@ -1,9 +1,9 @@
 import { useManageKnowledgeBases } from "../api/useManageKnowledgeBases";
 import { useManageKnowledgePages } from "../api/useManageKnowledgePages";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ErrorState } from "@/components/ui/error-state";
+import { ErrorState } from "@/components/shared/ErrorState";
 import { useState, useEffect } from "react";
-import { RichTextOutput } from "@/components/ui/RichTextOutput";
+import { RichTextOutput } from "@/components/shared/RichTextOutput";
 
 function PageList({ pages, onSelectPage, selectedPageId }: any) {
   return (
@@ -92,7 +92,7 @@ export function KnowledgeBaseDetailView({
       </div>
       <div className="col-span-3">
         {selectedPage ? (
-          <article className="prose dark:prose-invert max-w-none">
+          <article className="prose max-w-none dark:prose-invert">
             <h1>{selectedPage.title}</h1>
             <RichTextOutput html={selectedPage.content} />
           </article>

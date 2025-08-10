@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
-import { EntityCard } from "@/components/ui/EntityCard";
+import { EntityCard } from "@/components/shared/EntityCard";
 import { RoleWithPermissions } from "@/types";
-import { ActionMenu } from "@/components/ui/ActionMenu";
+import { ActionMenu } from "@/components/shared/ActionMenu";
 import { useManageRoles } from "../api/useManageRoles";
 
 interface RoleCardProps {

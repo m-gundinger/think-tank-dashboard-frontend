@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { FormInput } from "@/components/form/FormFields";
+import { FormInput } from "@/components/shared/form/FormFields";
 import {
   Card,
   CardContent,
@@ -8,7 +8,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { useChangePassword } from "../api/useChangePassword";
-import { FormWrapper } from "@/components/form/FormWrapper";
+import { FormWrapper } from "@/components/shared/form/FormWrapper";
 
 const changePasswordSchema = z
   .object({

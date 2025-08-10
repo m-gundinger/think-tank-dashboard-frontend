@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { FormInput } from "@/components/form/FormFields";
+import { FormInput } from "@/components/shared/form/FormFields";
 import { useSetupPassword } from "../api/useSetupPassword";
 import { useSearchParams } from "react-router-dom";
 import { useEffect } from "react";
-import { FormWrapper } from "@/components/form/FormWrapper";
+import { FormWrapper } from "@/components/shared/form/FormWrapper";
 
 const setupPasswordSchema = z
   .object({

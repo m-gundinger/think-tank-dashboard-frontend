@@ -1,11 +1,11 @@
 import { z } from "zod";
-import { ResourceForm } from "@/components/form/ResourceForm";
+import { ResourceForm } from "@/components/shared/form/ResourceForm";
 import {
   FormInput,
   FormRichTextEditor,
   FormSelect,
   FormSwitch,
-} from "@/components/form/FormFields";
+} from "@/components/shared/form/FormFields";
 import { AnnouncementSeverity, PublicationStatus } from "@/types/api";
 import { Announcement } from "@/types";
 

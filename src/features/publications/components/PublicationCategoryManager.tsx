@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Edit, Trash2, PlusCircle } from "lucide-react";
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
 import { PublicationCategoryForm } from "./PublicationCategoryForm";
 
 export function PublicationCategoryManager() {

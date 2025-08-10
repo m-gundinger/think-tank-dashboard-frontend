@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { FormInput } from "@/components/form/FormFields";
+import { FormInput } from "@/components/shared/form/FormFields";
 import { useForgotPassword } from "../api/useForgotPassword";
 import { Link } from "react-router-dom";
-import { FormWrapper } from "@/components/form/FormWrapper";
+import { FormWrapper } from "@/components/shared/form/FormWrapper";
 
 const forgotPasswordSchema = z.object({
   email: z.string().email("Please enter a valid email address."),

@@ -1,6 +1,6 @@
 import { ReportList } from "@/features/analytics/components/ReportList";
 import { ReportForm } from "@/features/analytics/components/ReportForm";
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { useState } from "react";

@@ -1,8 +1,8 @@
-import { EntityCard } from "@/components/ui/EntityCard";
+import { EntityCard } from "@/components/shared/EntityCard";
 import { useManageReports } from "../api/useManageReports";
 import { BarChart } from "lucide-react";
 import { Report } from "@/types";
-import { ActionMenu } from "@/components/ui/ActionMenu";
+import { ActionMenu } from "@/components/shared/ActionMenu";
 
 interface ReportCardProps {
   report: Report;

@@ -1,8 +1,8 @@
-import { RichTextEditor } from "@/components/ui/RichTextEditor";
+import { RichTextEditor } from "@/components/shared/RichTextEditor";
 import { CommentSection } from "@/features/collaboration/components/CommentSection";
 import { SubtaskList } from "./SubtaskList";
 import { useState, useEffect } from "react";
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
 import { CreateTaskForm } from "@/features/project-management/components/CreateTaskForm";
 import { TaskLinks } from "./TaskLinks";
 import { TaskChecklist } from "./TaskChecklist";

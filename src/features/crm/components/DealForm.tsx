@@ -2,8 +2,8 @@ import {
   FormInput,
   FormSelect,
   FormMultiSelectPopover,
-} from "@/components/form/FormFields";
-import { ResourceForm } from "@/components/form/ResourceForm";
+} from "@/components/shared/form/FormFields";
+import { ResourceForm } from "@/components/shared/form/ResourceForm";
 import { useManageDealStages } from "../api/useManageDealStages";
 import { useManageOrganizations } from "../api/useManageOrganizations";
 import { z } from "zod";

@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ErrorState } from "@/components/ui/error-state";
-import { EmptyState } from "@/components/ui/empty-state";
+import { ErrorState } from "@/components/shared/ErrorState";
+import { EmptyState } from "@/components/shared/EmptyState";
 import { Clipboard } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
 import { WhiteboardForm } from "./WhiteboardForm";
 import { WhiteboardCard } from "./WhiteboardCard";
 import { useManageWhiteboards } from "../api/useManageWhiteboards";

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import { FormInput, FormSelect } from "@/components/form/FormFields";
+import { FormInput, FormSelect } from "@/components/shared/form/FormFields";
 import { StatsCounterConfigFields } from "./config-fields/StatsCounterConfigFields";
 import { TaskListConfigFields } from "./config-fields/TaskListConfigFields";
 import { BurndownChartConfigFields } from "./config-fields/BurndownChartConfigFields";

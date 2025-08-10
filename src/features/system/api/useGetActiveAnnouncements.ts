@@ -11,6 +11,6 @@ export function useGetActiveAnnouncements() {
   return useQuery({
     queryKey: ["activeAnnouncements"],
     queryFn: getActiveAnnouncements,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5,
   });
 }

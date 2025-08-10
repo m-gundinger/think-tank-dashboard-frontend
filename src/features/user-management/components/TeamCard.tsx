@@ -1,8 +1,8 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getAbsoluteUrl } from "@/lib/utils";
-import { EntityCard } from "@/components/ui/EntityCard";
+import { EntityCard } from "@/components/shared/EntityCard";
 import { Team } from "@/types";
-import { ActionMenu } from "@/components/ui/ActionMenu";
+import { ActionMenu } from "@/components/shared/ActionMenu";
 import { useManageTeams } from "../api/useManageTeams";
 
 export function TeamCard({ team, onEdit }: { team: Team; onEdit: () => void }) {

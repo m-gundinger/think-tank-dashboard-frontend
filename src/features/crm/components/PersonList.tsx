@@ -2,13 +2,13 @@ import { useState } from "react";
 import { useManagePeople } from "../api/useManagePeople";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { EmptyState } from "@/components/ui/empty-state";
+import { EmptyState } from "@/components/shared/EmptyState";
 import { Contact, Trash2 } from "lucide-react";
 import {
   DataTable,
   ColumnDef,
   DataTableWrapper,
-} from "@/components/ui/DataTable";
+} from "@/components/shared/DataTable";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";

@@ -3,8 +3,8 @@ import {
   FormDatePicker,
   FormMultiSelect,
   FormTextarea,
-} from "@/components/form/FormFields";
-import { ResourceForm } from "@/components/form/ResourceForm";
+} from "@/components/shared/form/FormFields";
+import { ResourceForm } from "@/components/shared/form/ResourceForm";
 import { z } from "zod";
 import { requiredStringSchema, phoneNumberSchema } from "@/lib/schemas";
 import { useGetSkills } from "@/features/crm/api/useGetSkills";

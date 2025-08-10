@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useManageReports } from "../api/useManageReports";
-import { EmptyState } from "@/components/ui/empty-state";
+import { EmptyState } from "@/components/shared/EmptyState";
 import { BarChart } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
 import { ReportForm } from "./ReportForm";
 import { ReportCard } from "./ReportCard";
 

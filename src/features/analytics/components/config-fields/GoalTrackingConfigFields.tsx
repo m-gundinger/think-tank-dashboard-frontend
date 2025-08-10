@@ -1,4 +1,4 @@
-import { FormSelect } from "@/components/form/FormFields";
+import { FormSelect } from "@/components/shared/form/FormFields";
 import { useManageGoals } from "@/features/project-management/api/useManageGoals";
 import { useParams } from "react-router-dom";
 

@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { RichTextOutput } from "@/components/ui/RichTextOutput";
+import { RichTextOutput } from "@/components/shared/RichTextOutput";
 import { getAbsoluteUrl } from "@/lib/utils";
 import { CommentAttachments } from "./CommentAttachments";
 import { useManageComments } from "../api/useManageComments";
-import { RichTextEditor } from "@/components/ui/RichTextEditor";
-import { ActionMenu } from "@/components/ui/ActionMenu";
+import { RichTextEditor } from "@/components/shared/RichTextEditor";
+import { ActionMenu } from "@/components/shared/ActionMenu";
 
 interface CommentItemProps {
   comment: any;
@@ -40,7 +40,7 @@ export function CommentItem({ comment, taskId }: CommentItemProps) {
     setIsEditing(false);
   };
 
-  const canEdit = true; // Replace with actual permission check if needed
+  const canEdit = true;
 
   return (
     <div className="flex items-start gap-3">

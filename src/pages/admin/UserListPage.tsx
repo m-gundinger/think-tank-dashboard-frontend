@@ -2,9 +2,9 @@ import { UserList } from "@/features/admin/users/components/UserList";
 import { Button } from "@/components/ui/button";
 import { UserPlus } from "lucide-react";
 import { useState } from "react";
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
 import { CreateUserForm } from "@/features/admin/users/components/CreateUserForm";
-import { ListPageLayout } from "@/components/layout/ListPageLayout";
+import { ListPageLayout } from "@/components/shared/ListPageLayout";
 
 export function UserListPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);

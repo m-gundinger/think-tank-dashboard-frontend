@@ -1,5 +1,5 @@
 import { useManageTimeLogs } from "../api/useManageTimeLogs";
-import { ActionMenu } from "@/components/ui/ActionMenu";
+import { ActionMenu } from "@/components/shared/ActionMenu";
 
 interface TimeLogItemProps {
   log: any;

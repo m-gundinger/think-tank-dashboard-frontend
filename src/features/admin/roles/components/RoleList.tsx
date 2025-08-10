@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
 import { RoleCard } from "./RoleCard";
 import { RoleForm } from "./RoleForm";
 import { ManageRolePermissions } from "./ManageRolePermissions";

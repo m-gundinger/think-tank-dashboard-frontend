@@ -2,7 +2,7 @@ import { PublicationList } from "@/features/publications/components/PublicationL
 import { Button } from "@/components/ui/button";
 import { PlusCircle, Settings } from "lucide-react";
 import { useState } from "react";
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
 import { CreatePublicationForm } from "@/features/publications/components/CreatePublicationForm";
 import {
   Dialog,
@@ -13,7 +13,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { PublicationCategoryManager } from "@/features/publications/components/PublicationCategoryManager";
-import { ListPageLayout } from "@/components/layout/ListPageLayout";
+import { ListPageLayout } from "@/components/shared/ListPageLayout";
 
 export function PublicationsPage() {
   const [dialogState, setDialogState] = useState({

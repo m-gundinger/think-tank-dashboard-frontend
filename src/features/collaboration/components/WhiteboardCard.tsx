@@ -1,7 +1,7 @@
-import { EntityCard } from "@/components/ui/EntityCard";
+import { EntityCard } from "@/components/shared/EntityCard";
 import { useManageWhiteboards } from "../api/useManageWhiteboards";
 import { LayoutDashboard } from "lucide-react";
-import { ActionMenu } from "@/components/ui/ActionMenu";
+import { ActionMenu } from "@/components/shared/ActionMenu";
 import { Whiteboard } from "@/types";
 
 interface WhiteboardCardProps {

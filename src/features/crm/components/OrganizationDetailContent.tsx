@@ -1,6 +1,6 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Globe } from "lucide-react";
-import { RichTextOutput } from "@/components/ui/RichTextOutput";
+import { RichTextOutput } from "@/components/shared/RichTextOutput";
 import { Organization } from "@/types";
 import { ManageOrganizationPeople } from "./ManageOrganizationPeople";
 import { InteractionTimeline } from "./InteractionTimeline";

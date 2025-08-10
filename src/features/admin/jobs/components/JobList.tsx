@@ -13,8 +13,8 @@ import {
   DataTable,
   DataTableWrapper,
   ColumnDef,
-} from "@/components/ui/DataTable";
-import { ActionMenu, CustomAction } from "@/components/ui/ActionMenu";
+} from "@/components/shared/DataTable";
+import { ActionMenu, CustomAction } from "@/components/shared/ActionMenu";
 import { useManageJobs } from "../api/useManageJobs";
 
 const statusVariantMap: Record<

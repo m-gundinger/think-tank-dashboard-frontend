@@ -3,9 +3,9 @@ import { BroadcastNotificationDialog } from "@/features/system/components/Broadc
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { useState } from "react";
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
 import { AnnouncementForm } from "@/features/admin/announcements/components/AnnouncementForm";
-import { ListPageLayout } from "@/components/layout/ListPageLayout";
+import { ListPageLayout } from "@/components/shared/ListPageLayout";
 
 export function AnnouncementListPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);

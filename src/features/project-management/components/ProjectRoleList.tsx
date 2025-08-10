@@ -3,7 +3,7 @@ import { useApiResource } from "@/hooks/useApiResource";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EditProjectRoleDialog } from "./EditProjectRoleDialog";
-import { ActionMenu } from "@/components/ui/ActionMenu";
+import { ActionMenu } from "@/components/shared/ActionMenu";
 
 interface Props {
   workspaceId: string;

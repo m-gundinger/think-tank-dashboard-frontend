@@ -1,7 +1,7 @@
 import { CardContent } from "@/components/ui/card";
 import { Workspace } from "@/types";
-import { ActionMenu } from "@/components/ui/ActionMenu";
-import { EntityCard } from "@/components/ui/EntityCard";
+import { ActionMenu } from "@/components/shared/ActionMenu";
+import { EntityCard } from "@/components/shared/EntityCard";
 import { useManageWorkspaces } from "../api/useManageWorkspaces";
 
 interface WorkspaceCardProps {

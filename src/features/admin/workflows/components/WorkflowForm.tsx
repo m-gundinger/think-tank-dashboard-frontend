@@ -25,7 +25,7 @@ import { ActionRepeater } from "./ActionRepeater";
 import { PlusCircle } from "lucide-react";
 import { z } from "zod";
 import { Workflow } from "@/types";
-import { ResourceForm } from "@/components/form/ResourceForm";
+import { ResourceForm } from "@/components/shared/form/ResourceForm";
 import { useFieldArray } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 

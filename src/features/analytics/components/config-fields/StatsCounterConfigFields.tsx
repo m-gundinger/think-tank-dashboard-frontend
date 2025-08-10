@@ -1,4 +1,4 @@
-import { FormInput, FormSelect } from "@/components/form/FormFields";
+import { FormInput, FormSelect } from "@/components/shared/form/FormFields";
 import { TaskStatus } from "@/types/api";
 
 export function StatsCounterConfigFields() {

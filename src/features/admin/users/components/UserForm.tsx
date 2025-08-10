@@ -3,8 +3,8 @@ import {
   FormInput,
   FormMultiSelect,
   FormTextarea,
-} from "@/components/form/FormFields";
-import { ResourceForm } from "@/components/form/ResourceForm";
+} from "@/components/shared/form/FormFields";
+import { ResourceForm } from "@/components/shared/form/ResourceForm";
 import { useGetSkills } from "@/features/crm/api/useGetSkills";
 import { phoneNumberSchema, socialLinkSchema } from "@/lib/schemas";
 import { formatDateForServer, parseServerDate } from "@/lib/utils";

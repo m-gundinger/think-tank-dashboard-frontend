@@ -48,7 +48,7 @@ export function CommentAttachments({
           return (
             <div
               key={item.id}
-              className="hover:bg-accent/50 flex items-center justify-between rounded-md border bg-slate-50 p-1 pr-2 text-xs"
+              className="flex items-center justify-between rounded-md border bg-slate-50 p-1 pr-2 text-xs hover:bg-accent/50"
             >
               <div className="flex min-w-0 items-center gap-1">
                 <Icon className="h-3 w-3 flex-shrink-0" />

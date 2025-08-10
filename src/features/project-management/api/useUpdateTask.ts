@@ -73,7 +73,6 @@ export function useUpdateTask() {
 
       const previousData = new Map<QueryKey, any>();
 
-      // Optimistically update the single task query
       const singleTaskQueryKey: QueryKey = ["task", taskId];
       const previousTask = queryClient.getQueryData<Task>(singleTaskQueryKey);
       if (previousTask) {
@@ -84,7 +83,6 @@ export function useUpdateTask() {
         });
       }
 
-      // Optimistically update all list queries
       const queryCache = queryClient.getQueryCache();
       const listQueryKeys: QueryKey[] = [["myTasks"], ["tasks"]];
       if (projectId) {
@@ -96,7 +94,6 @@ export function useUpdateTask() {
         for (const query of queries) {
           const oldData = query.state.data as any;
           if (oldData?.pages) {
-            // Handle paginated/infinite queries
             previousData.set(query.queryKey, oldData);
             const updatedPages = oldData.pages.map((page: any) => ({
               ...page,
@@ -107,7 +104,6 @@ export function useUpdateTask() {
               pages: updatedPages,
             });
           } else if (oldData?.data) {
-            // Handle regular list queries
             previousData.set(query.queryKey, oldData);
             const updatedListData = {
               ...oldData,
@@ -129,13 +125,12 @@ export function useUpdateTask() {
       }
     },
     onSettled: (_data, _error, variables) => {
-      // Invalidate all relevant queries to ensure freshness after mutation is complete
       const { taskId, projectId } = variables;
       queryClient.invalidateQueries({ queryKey: ["task", taskId] });
       if (projectId) {
         queryClient.invalidateQueries({
           queryKey: ["projects", projectId, "tasks"],
-          exact: false, // Invalidate all queries starting with this, including views
+          exact: false,
         });
         queryClient.invalidateQueries({
           queryKey: ["tasks", projectId],
@@ -174,8 +169,6 @@ export function useSetTaskParent() {
   return useApiMutation<Task, SetTaskParentParams>({
     mutationFn: setTaskParent,
     onSuccess: (updatedTask) => {
-      // Invalidate the old parent if there was one
-      // The query for the new parent will be covered by the general invalidations below
       const originalTask = queryClient.getQueryData<Task>([
         "task",
         updatedTask.id,
@@ -186,7 +179,6 @@ export function useSetTaskParent() {
         });
       }
 
-      // Invalidate the task itself, its new parent, and relevant lists
       queryClient.invalidateQueries({ queryKey: ["task", updatedTask.id] });
       if (updatedTask.parentId) {
         queryClient.invalidateQueries({

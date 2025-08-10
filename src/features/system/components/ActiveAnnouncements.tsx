@@ -3,7 +3,7 @@ import { useGetActiveAnnouncements } from "../api/useGetActiveAnnouncements";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Megaphone, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { RichTextOutput } from "@/components/ui/RichTextOutput";
+import { RichTextOutput } from "@/components/shared/RichTextOutput";
 import { Announcement } from "@/types";
 
 export function ActiveAnnouncements() {

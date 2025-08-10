@@ -1,7 +1,7 @@
-import { EntityCard } from "@/components/ui/EntityCard";
+import { EntityCard } from "@/components/shared/EntityCard";
 import { useManageProjectTemplates } from "../api/useManageProjectTemplates";
 import { FileText } from "lucide-react";
-import { ActionMenu } from "@/components/ui/ActionMenu";
+import { ActionMenu } from "@/components/shared/ActionMenu";
 
 interface ProjectTemplateCardProps {
   template: any;

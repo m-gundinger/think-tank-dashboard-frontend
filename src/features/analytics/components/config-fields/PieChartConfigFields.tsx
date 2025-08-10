@@ -1,4 +1,4 @@
-import { FormInput } from "@/components/form/FormFields";
+import { FormInput } from "@/components/shared/form/FormFields";
 
 export function PieChartConfigFields() {
   return (

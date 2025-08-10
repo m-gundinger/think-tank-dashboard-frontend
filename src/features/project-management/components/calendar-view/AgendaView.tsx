@@ -3,7 +3,7 @@ import { format, isToday, isTomorrow } from "date-fns";
 import { ListViewHeader } from "../list-view/ListViewHeader";
 import { TaskGroup } from "../list-view/TaskGroup";
 import { useMemo } from "react";
-import { EmptyState } from "@/components/ui/empty-state";
+import { EmptyState } from "@/components/shared/EmptyState";
 import { Calendar } from "lucide-react";
 
 interface AgendaViewProps {

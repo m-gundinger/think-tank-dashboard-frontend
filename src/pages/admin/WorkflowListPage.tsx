@@ -1,10 +1,10 @@
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
 import { WorkflowList } from "@/features/admin/workflows/components/WorkflowList";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { useState } from "react";
 import { WorkflowForm } from "@/features/admin/workflows/components/WorkflowForm";
-import { ListPageLayout } from "@/components/layout/ListPageLayout";
+import { ListPageLayout } from "@/components/shared/ListPageLayout";
 
 export function WorkflowListPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);

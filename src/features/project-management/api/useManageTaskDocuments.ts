@@ -2,7 +2,7 @@ import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
 import { DocumentType } from "@/types/api";
 
-// Attach (Upload)
+
 interface AttachDocumentParams {
   workspaceId?: string;
   projectId?: string;
@@ -40,7 +40,7 @@ export function useAttachDocument(
   });
 }
 
-// Detach
+
 interface DetachDocumentParams {
   workspaceId?: string;
   projectId?: string;
@@ -76,7 +76,7 @@ export function useDetachDocument(
   });
 }
 
-// Link
+
 interface LinkDocumentParams {
   workspaceId?: string;
   projectId?: string;

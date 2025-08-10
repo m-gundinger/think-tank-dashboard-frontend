@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { useState } from "react";
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
 import { ProjectForm } from "@/features/project-management/components/ProjectForm";
 import {
   DropdownMenu,
@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { CreateProjectFromTemplateForm } from "@/features/project-management/components/CreateProjectFromTemplateForm";
-import { ListPageLayout } from "@/components/layout/ListPageLayout";
+import { ListPageLayout } from "@/components/shared/ListPageLayout";
 
 export function ProjectListPage() {
   const { workspaceId } = useParams<{ workspaceId: string }>();
@@ -76,7 +76,7 @@ export function ProjectListPage() {
         description="Create a new project based on an existing template."
         form={CreateProjectFromTemplateForm}
         formProps={{ workspaceId }}
-        resourcePath={""} // Not a standard resource, mutation is custom
+        resourcePath={""}
         resourceKey={[]}
       />
     </ListPageLayout>

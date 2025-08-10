@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { PublicationCard } from "./PublicationCard";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
 import { CreatePublicationForm } from "./CreatePublicationForm";
 import { useManagePublications } from "../api/useManagePublications";
 

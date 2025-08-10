@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { descriptionSchema, requiredStringSchema } from "@/lib/schemas";
-import { ResourceForm } from "@/components/form/ResourceForm";
-import { FormInput, FormTextarea } from "@/components/form/FormFields";
+import { ResourceForm } from "@/components/shared/form/ResourceForm";
+import { FormInput, FormTextarea } from "@/components/shared/form/FormFields";
 
 const permissionSchema = z.object({
   action: requiredStringSchema("Action"),

@@ -10,7 +10,6 @@ export function HomeDashboard() {
     { i: "mentions", x: 6, y: 0, w: 6, h: 10 },
   ];
 
-  // This width is an approximation. A real implementation would use a width-aware HOC.
   const layoutWidth =
     typeof window !== "undefined"
       ? window.innerWidth > 1280

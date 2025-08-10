@@ -14,7 +14,6 @@ export function ProjectAttachmentsPage() {
     workspaceId: string;
     projectId: string;
   }>();
-
   if (!workspaceId || !projectId) {
     return <div>Missing URL parameters.</div>;
   }

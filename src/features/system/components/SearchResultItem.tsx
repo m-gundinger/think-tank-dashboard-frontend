@@ -11,11 +11,11 @@ export function SearchResultItem({ item }: { item: any }) {
         return `/workspaces/${item.workspaceId}/projects/${item.projectId}?taskId=${item.id}`;
       case "User":
       case "Person":
-        return `/profile`; // Assuming admin might search for users and link to a generic profile view.
+        return `/profile`; 
       case "Publication":
-        return `/publications`; // No detail page exists yet. Link to list.
+        return `/publications`; 
       case "Report":
-        return `/analytics/reports`; // No detail page exists yet. Link to list.
+        return `/analytics/reports`; 
       default:
         return "/";
     }

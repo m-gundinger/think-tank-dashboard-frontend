@@ -2,14 +2,14 @@ import { useState } from "react";
 import { useManageGoals } from "../api/useManageGoals";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
-import { EmptyState } from "@/components/ui/empty-state";
+import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
+import { EmptyState } from "@/components/shared/EmptyState";
 import { Target } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { GoalCard } from "./GoalCard";
 import { GoalForm } from "./GoalForm";
 import { Goal } from "@/types";
-import { ListPageLayout } from "@/components/layout/ListPageLayout";
+import { ListPageLayout } from "@/components/shared/ListPageLayout";
 
 interface GoalListProps {
   workspaceId: string;

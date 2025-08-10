@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { FormInput } from "@/components/form/FormFields";
-import { FormWrapper } from "@/components/form/FormWrapper";
+import { FormInput } from "@/components/shared/form/FormFields";
+import { FormWrapper } from "@/components/shared/form/FormWrapper";
 import { UseMutationResult } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 

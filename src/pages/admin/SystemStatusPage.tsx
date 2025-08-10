@@ -1,5 +1,5 @@
 import { SystemStatusDashboard } from "@/features/admin/system-status/components/SystemStatusDashboard";
-import { ListPageLayout } from "@/components/layout/ListPageLayout";
+import { ListPageLayout } from "@/components/shared/ListPageLayout";
 
 export function SystemStatusPage() {
   return (

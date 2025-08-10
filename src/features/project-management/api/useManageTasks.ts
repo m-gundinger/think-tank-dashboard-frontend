@@ -33,7 +33,6 @@ export function useManageTasks(
         },
       });
     };
-
     return { ...createMutation, mutate };
   };
 
@@ -52,7 +51,6 @@ export function useManageTasks(
         if (task) {
           tasksToDelete.push(task);
         } else {
-          // Fallback for list views
           const queries = queryClient.getQueryCache().findAll({
             queryKey: ["tasks"],
             exact: false,

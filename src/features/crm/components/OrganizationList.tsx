@@ -1,4 +1,4 @@
-import { EmptyState } from "@/components/ui/empty-state";
+import { EmptyState } from "@/components/shared/EmptyState";
 import { Building2 } from "lucide-react";
 import { OrganizationCard } from "./OrganizationCard";
 import { Skeleton } from "@/components/ui/skeleton";

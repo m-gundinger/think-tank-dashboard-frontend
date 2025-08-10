@@ -10,7 +10,6 @@ export function useGetActivities(
   query: Omit<ListTasksQuery, "includeSubtasks">
 ) {
   const { workspaceId, projectId, taskId } = scope;
-
   const resourceUrl = "activities";
   const resourceKey: (string | undefined)[] = [
     "activities",

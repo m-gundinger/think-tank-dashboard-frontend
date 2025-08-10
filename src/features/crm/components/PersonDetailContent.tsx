@@ -12,7 +12,7 @@ import {
   Building2,
 } from "lucide-react";
 import { format } from "date-fns";
-import { RichTextOutput } from "@/components/ui/RichTextOutput";
+import { RichTextOutput } from "@/components/shared/RichTextOutput";
 import { getAbsoluteUrl, parseServerDate } from "@/lib/utils";
 import { InteractionTimeline } from "./InteractionTimeline";
 import { CrmAttachments } from "./CrmAttachments";
@@ -40,10 +40,10 @@ function InfoItem({
   if (!value) return null;
   const content = (
     <div className="flex items-start gap-4">
-      <Icon className="text-muted-foreground mt-1 h-5 w-5 flex-shrink-0" />
+      <Icon className="mt-1 h-5 w-5 flex-shrink-0 text-muted-foreground" />
       <div className="flex-1">
         <p className="text-sm font-medium">{value}</p>
-        <p className="text-muted-foreground text-xs">{label}</p>
+        <p className="text-xs text-muted-foreground">{label}</p>
       </div>
     </div>
   );
@@ -53,7 +53,7 @@ function InfoItem({
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        className="hover:bg-accent block rounded-md p-2 transition-colors"
+        className="block rounded-md p-2 transition-colors hover:bg-accent"
       >
         {content}
       </a>
@@ -83,14 +83,14 @@ export function PersonDetailContent({ person }: { person: Person }) {
         </Avatar>
         <div>
           <h2 className="text-2xl font-bold">{name}</h2>
-          <p className="text-muted-foreground text-sm">{roles}</p>
+          <p className="text-sm text-muted-foreground">{roles}</p>
         </div>
       </div>
 
       <hr />
 
       <div className="space-y-4">
-        <h3 className="text-muted-foreground px-2 text-sm font-semibold">
+        <h3 className="px-2 text-sm font-semibold text-muted-foreground">
           Contact Information
         </h3>
         <div className="space-y-1">
@@ -118,7 +118,7 @@ export function PersonDetailContent({ person }: { person: Person }) {
         <>
           <hr />
           <div className="space-y-4">
-            <h3 className="text-muted-foreground px-2 text-sm font-semibold">
+            <h3 className="px-2 text-sm font-semibold text-muted-foreground">
               Organizations
             </h3>
             <div className="space-y-1">
@@ -139,10 +139,10 @@ export function PersonDetailContent({ person }: { person: Person }) {
         <>
           <hr />
           <div className="space-y-2 px-2">
-            <h3 className="text-muted-foreground text-sm font-semibold">
+            <h3 className="text-sm font-semibold text-muted-foreground">
               Biography
             </h3>
-            <div className="prose prose-sm dark:prose-invert max-w-none">
+            <div className="prose prose-sm max-w-none dark:prose-invert">
               <RichTextOutput html={person.biography} />
             </div>
           </div>
@@ -153,7 +153,7 @@ export function PersonDetailContent({ person }: { person: Person }) {
         <>
           <hr />
           <div className="space-y-4">
-            <h3 className="text-muted-foreground px-2 text-sm font-semibold">
+            <h3 className="px-2 text-sm font-semibold text-muted-foreground">
               On the Web
             </h3>
             <div className="space-y-1">
@@ -178,7 +178,7 @@ export function PersonDetailContent({ person }: { person: Person }) {
         <>
           <hr />
           <div className="space-y-2 px-2">
-            <h3 className="text-muted-foreground text-sm font-semibold">
+            <h3 className="text-sm font-semibold text-muted-foreground">
               Skills
             </h3>
             <div className="flex flex-wrap gap-2 pt-2">

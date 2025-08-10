@@ -4,7 +4,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { EditableField } from "@/components/ui/EditableField";
+import { EditableField } from "@/components/shared/EditableField";
 import { useApiResource } from "@/hooks/useApiResource";
 import { TaskDetailBody } from "./TaskDetailBody";
 import {

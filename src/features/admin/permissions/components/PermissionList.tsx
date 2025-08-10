@@ -3,7 +3,7 @@ import {
   DataTable,
   DataTableWrapper,
   ColumnDef,
-} from "@/components/ui/DataTable";
+} from "@/components/shared/DataTable";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { Permission } from "@/types";

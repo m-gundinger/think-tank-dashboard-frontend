@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
 import { Button } from "@/components/ui/button";
 import { Trash2, ShieldAlert } from "lucide-react";
 import {
   DataTable,
   DataTableWrapper,
   ColumnDef,
-} from "@/components/ui/DataTable";
+} from "@/components/shared/DataTable";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -18,7 +18,7 @@ import { ManageUserRoles } from "./ManageUserRoles";
 import { ProfileAvatar } from "@/features/user-management/components/ProfileAvatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { User } from "@/types";
-import { ActionMenu } from "@/components/ui/ActionMenu";
+import { ActionMenu } from "@/components/shared/ActionMenu";
 import { useManageUsers } from "../api/useManageUsers";
 
 export function UserList() {

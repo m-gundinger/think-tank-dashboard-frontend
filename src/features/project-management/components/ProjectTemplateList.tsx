@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { EmptyState } from "@/components/ui/empty-state";
+import { EmptyState } from "@/components/shared/EmptyState";
 import { FileText } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProjectTemplateCard } from "./ProjectTemplateCard";
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
 import { CreateTemplateForm } from "./CreateTemplateForm";
 import { useManageProjectTemplates } from "../api/useManageProjectTemplates";
 

@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Trash2, Edit } from "lucide-react";
 import { useState } from "react";
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
 import { OrganizationForm } from "./OrganizationForm";
 import { OrganizationDetailContent } from "./OrganizationDetailContent";
 import { useManageOrganizations } from "../api/useManageOrganizations";

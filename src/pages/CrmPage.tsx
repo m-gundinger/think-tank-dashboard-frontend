@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, Settings } from "lucide-react";
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
 import { PersonForm } from "@/features/crm/components/PersonForm";
 import { OrganizationForm } from "@/features/crm/components/OrganizationForm";
 import { PersonDetailPanel } from "@/features/crm/components/PersonDetailPanel";

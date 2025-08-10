@@ -1,8 +1,8 @@
 import { CardContent } from "@/components/ui/card";
 import { useManageDashboards } from "../api/useManageDashboards";
 import { Dashboard } from "@/types";
-import { EntityCard } from "@/components/ui/EntityCard";
-import { ActionMenu } from "@/components/ui/ActionMenu";
+import { EntityCard } from "@/components/shared/EntityCard";
+import { ActionMenu } from "@/components/shared/ActionMenu";
 
 interface DashboardCardProps {
   dashboard: Dashboard;

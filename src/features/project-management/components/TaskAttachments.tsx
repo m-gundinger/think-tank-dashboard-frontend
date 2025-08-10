@@ -121,7 +121,7 @@ export function TaskAttachments({ task, workspaceId, projectId }: any) {
             return (
               <div
                 key={item.id}
-                className="hover:bg-hover flex items-center justify-between rounded-md p-2 text-sm"
+                className="flex items-center justify-between rounded-md p-2 text-sm hover:bg-accent/50"
               >
                 <div className="flex min-w-0 items-center gap-2">
                   <Icon className="h-4 w-4 flex-shrink-0" />

@@ -1,9 +1,9 @@
 import { PlusCircle } from "lucide-react";
 import { useState } from "react";
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
 import { WhiteboardForm } from "@/features/collaboration/components/WhiteboardForm";
 import { Button } from "@/components/ui/button";
-import { ListPageLayout } from "@/components/layout/ListPageLayout";
+import { ListPageLayout } from "@/components/shared/ListPageLayout";
 import { WhiteboardList } from "@/features/collaboration/components/WhiteboardList";
 
 export function WhiteboardsPage() {

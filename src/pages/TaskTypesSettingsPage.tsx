@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
 import { GlobalTaskTypeList } from "@/features/project-management/components/GlobalTaskTypeList";
 import { GlobalTaskTypeForm } from "@/features/project-management/components/GlobalTaskTypeForm";
 

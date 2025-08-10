@@ -1,6 +1,6 @@
 import { useMarkNotificationAsRead } from "../api/useMarkNotificationAsRead";
 import { cn } from "@/lib/utils";
-import { RichTextOutput } from "@/components/ui/RichTextOutput";
+import { RichTextOutput } from "@/components/shared/RichTextOutput";
 export function NotificationItem({ notification }: { notification: any }) {
   const markAsReadMutation = useMarkNotificationAsRead();
   const handleClick = () => {

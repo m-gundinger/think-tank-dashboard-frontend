@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { ResourceForm } from "@/components/form/ResourceForm";
+import { ResourceForm } from "@/components/shared/form/ResourceForm";
 import {
   FormInput,
   FormMultiSelectPopover,
-} from "@/components/form/FormFields";
+} from "@/components/shared/form/FormFields";
 import { useManageRoles } from "../../roles/api/useManageRoles";
 
 const createUserSchema = z.object({

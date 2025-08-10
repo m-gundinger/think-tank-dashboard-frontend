@@ -3,14 +3,14 @@ import { Switch } from "@/components/ui/switch";
 import { Zap } from "lucide-react";
 import { JobSchedule } from "@/types";
 import { useTriggerJobSchedule } from "../api/useTriggerJobSchedule";
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
 import { CreateJobScheduleForm } from "./CreateJobScheduleForm";
 import {
   DataTable,
   DataTableWrapper,
   ColumnDef,
-} from "@/components/ui/DataTable";
-import { ActionMenu, CustomAction } from "@/components/ui/ActionMenu";
+} from "@/components/shared/DataTable";
+import { ActionMenu, CustomAction } from "@/components/shared/ActionMenu";
 import { useManageJobSchedules } from "../api/useManageJobSchedules";
 
 export function JobScheduleList() {

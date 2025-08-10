@@ -1,12 +1,12 @@
 import { z } from "zod";
 import { JobPriority } from "@/types/api";
-import { ResourceForm } from "@/components/form/ResourceForm";
+import { ResourceForm } from "@/components/shared/form/ResourceForm";
 import {
   FormInput,
   FormSelect,
   FormTextarea,
   FormDatePicker,
-} from "@/components/form/FormFields";
+} from "@/components/shared/form/FormFields";
 import { useGetJobTypes } from "../api/useGetJobTypes";
 
 const jobSchema = z.object({

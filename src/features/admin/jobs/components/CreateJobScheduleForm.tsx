@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { JobSchedule } from "@/types";
-import { ResourceForm } from "@/components/form/ResourceForm";
+import { ResourceForm } from "@/components/shared/form/ResourceForm";
 
 const JobScheduleFormSchema = z.object({
   name: z.string().min(1, "Schedule name is required."),

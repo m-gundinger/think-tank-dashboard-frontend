@@ -2,7 +2,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { ProtectedLayout } from "./routes/ProtectedLayout";
 import { WorkspaceLayout } from "./routes/WorkspaceLayout";
 import { LoginPage } from "./pages/Login";
-import { WorkspacesPage } from "./pages/Workspaces";
+import { WorkspacesPage } from "./pages/WorkspacesPage";
 import { ProjectListPage } from "./pages/ProjectListPage";
 import { ProjectDetailPage } from "./pages/ProjectDetailPage";
 import { AdminLayout } from "./routes/AdminLayout";

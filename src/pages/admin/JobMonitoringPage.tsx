@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { JobSystemStatus } from "@/features/admin/jobs/components/JobSystemStatus";
 import { JobList } from "@/features/admin/jobs/components/JobList";
 import { JobScheduleList } from "@/features/admin/jobs/components/JobScheduleList";
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
 import { CreateJobScheduleForm } from "@/features/admin/jobs/components/CreateJobScheduleForm";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
@@ -19,7 +19,7 @@ import {
   useCleanupJobs,
   useEmitJobStats,
 } from "@/features/admin/jobs/api/useJobSystemActions";
-import { ListPageLayout } from "@/components/layout/ListPageLayout";
+import { ListPageLayout } from "@/components/shared/ListPageLayout";
 
 export function JobMonitoringPage() {
   const [isCreateScheduleOpen, setIsCreateScheduleOpen] = useState(false);

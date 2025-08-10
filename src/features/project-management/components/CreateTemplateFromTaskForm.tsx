@@ -1,5 +1,5 @@
-import { ResourceForm } from "@/components/form/ResourceForm";
-import { FormInput } from "@/components/form/FormFields";
+import { ResourceForm } from "@/components/shared/form/ResourceForm";
+import { FormInput } from "@/components/shared/form/FormFields";
 import { z } from "zod";
 import { Task } from "@/types";
 

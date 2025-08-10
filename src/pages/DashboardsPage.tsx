@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { DashboardList } from "@/features/analytics/components/DashboardList";
 import { DashboardForm } from "@/features/analytics/components/DashboardForm";
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import {

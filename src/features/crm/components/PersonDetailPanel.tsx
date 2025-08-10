@@ -5,7 +5,7 @@ import { PersonDetailContent } from "./PersonDetailContent";
 import { Button } from "@/components/ui/button";
 import { Trash2, Edit } from "lucide-react";
 import { useState } from "react";
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
 import { PersonForm } from "./PersonForm";
 
 interface PersonDetailPanelProps {
@@ -62,7 +62,7 @@ export function PersonDetailPanel({
               <div className="flex-1 overflow-y-auto p-6">
                 <PersonDetailContent person={person} />
               </div>
-              <SheetFooter className="bg-background mt-auto border-t p-4">
+              <SheetFooter className="mt-auto border-t bg-background p-4">
                 <div className="flex w-full justify-end gap-2">
                   <Button
                     variant="outline"

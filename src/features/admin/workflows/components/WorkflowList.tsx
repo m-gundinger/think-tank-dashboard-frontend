@@ -12,7 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
 import { WorkflowForm } from "./WorkflowForm";
 import { Workflow } from "@/types";
 import { useManageWorkflows } from "../api/useManageWorkflows";

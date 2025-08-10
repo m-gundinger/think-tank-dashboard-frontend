@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import { usePresence } from "@/hooks/usePresence";
-import { ErrorState } from "@/components/ui/error-state";
+import { ErrorState } from "@/components/shared/ErrorState";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useManageProjects } from "@/features/project-management/api/useManageProjects";
 import { TasksPage } from "./TasksPage";

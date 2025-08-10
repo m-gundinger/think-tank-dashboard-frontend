@@ -1,10 +1,10 @@
 import { FormLabel } from "@/components/ui/form";
-import { FormInput } from "@/components/form/FormFields";
+import { FormInput } from "@/components/shared/form/FormFields";
 import { useLogin } from "../api/useLogin";
 import { AxiosError } from "axios";
 import { z } from "zod";
 import { Link } from "react-router-dom";
-import { FormWrapper } from "@/components/form/FormWrapper";
+import { FormWrapper } from "@/components/shared/form/FormWrapper";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address."),

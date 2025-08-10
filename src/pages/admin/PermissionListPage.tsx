@@ -1,5 +1,5 @@
 import { PermissionList } from "@/features/admin/permissions/components/PermissionList";
-import { ListPageLayout } from "@/components/layout/ListPageLayout";
+import { ListPageLayout } from "@/components/shared/ListPageLayout";
 
 export function PermissionListPage() {
   return (

@@ -22,7 +22,7 @@ export function BulkTaskTypeSelector({
   const firstSelectedTask = tasks.find((t) => t.id === selectedTaskIds[0]);
 
   if (!firstSelectedTask?.projectId) {
-    return null; // Task types are project-specific for bulk actions
+    return null;
   }
 
   return (

@@ -1,15 +1,15 @@
 import { useSearchParams } from "react-router-dom";
 import { useState, useMemo, useEffect } from "react";
 import { TaskDetailModal } from "@/features/project-management/components/TaskDetailModal";
-import { ErrorState } from "@/components/ui/error-state";
+import { ErrorState } from "@/components/shared/ErrorState";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Task, View, ViewColumn, ViewType, ListTasksQuery } from "@/types";
 import { SortingState } from "@tanstack/react-table";
 import { useUpdateTask } from "@/features/project-management/api/useUpdateTask";
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
 import { CreateTaskForm } from "@/features/project-management/components/CreateTaskForm";
 import { TemplateSelectorDialog } from "@/features/project-management/components/TemplateSelectorDialog";
-import { EmptyState } from "@/components/ui/empty-state";
+import { EmptyState } from "@/components/shared/EmptyState";
 import { CheckSquare } from "lucide-react";
 import { useGetViews } from "@/features/project-management/api/useGetViews";
 import { useGetTasks } from "@/features/project-management/api/useGetTasks";

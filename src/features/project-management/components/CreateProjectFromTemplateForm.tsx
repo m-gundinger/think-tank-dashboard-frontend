@@ -1,7 +1,7 @@
 import { useForm, FormProvider } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import { FormInput, FormSelect } from "@/components/form/FormFields";
+import { FormInput, FormSelect } from "@/components/shared/form/FormFields";
 import { useCreateProjectFromTemplate } from "../api/useCreateProjectFromTemplate";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";

@@ -3,8 +3,8 @@ import {
   FormRichTextEditor,
   FormDatePicker,
   FormSelect,
-} from "@/components/form/FormFields";
-import { ResourceForm } from "@/components/form/ResourceForm";
+} from "@/components/shared/form/FormFields";
+import { ResourceForm } from "@/components/shared/form/ResourceForm";
 import { z } from "zod";
 import { nameSchema, descriptionSchema } from "@/lib/schemas";
 import { GoalStatus, KeyResultType } from "@/types/api";

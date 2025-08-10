@@ -2,7 +2,7 @@ import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 
-// Get Channels
+
 async function getWorkspaceChannels(workspaceId: string): Promise<any[]> {
   const { data } = await api.get(`workspaces/${workspaceId}/channels`);
   return data;
@@ -29,7 +29,6 @@ export function useGetProjectChannels(projectId: string) {
   });
 }
 
-// Get Messages (Paginated)
 async function getMessages({
   channelId,
   pageParam = 1,
@@ -55,7 +54,6 @@ export function useGetMessages(channelId: string | null) {
   });
 }
 
-// Create Channel
 interface CreateChannelParams {
   context: { workspaceId?: string; projectId?: string };
   channelData: { name: string; isPrivate?: boolean; memberIds?: string[] };
@@ -86,7 +84,6 @@ export function useCreateChannel(
   });
 }
 
-// Send Message
 async function sendMessage(channelId: string, content: string): Promise<any> {
   const { data } = await api.post(`chats/${channelId}/messages`, { content });
   return data;
@@ -99,7 +96,6 @@ export function useSendMessage(channelId: string) {
   });
 }
 
-// Manage Members
 interface MemberParams {
   channelId: string;
   userId: string;
@@ -124,7 +120,7 @@ async function removeMember({ channelId, userId }: MemberParams): Promise<any> {
 }
 
 export function useManageChannelMembers(channelId: string) {
-  const invalidateQueries = [["channels"]]; // This is broad, might need refinement
+  const invalidateQueries = [["channels"]];
 
   const useAddMember = () =>
     useApiMutation<any, Omit<MemberParams, "channelId">>({

@@ -44,7 +44,7 @@ export function useOAuth() {
           if (popup && popup.closed) {
             clearInterval(checkPopupClosed);
             window.removeEventListener("message", handleMessage);
-            // Resolve without success toast if popup is closed manually
+
             resolve();
           }
         }, 1000);

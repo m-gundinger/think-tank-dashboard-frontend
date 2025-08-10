@@ -6,7 +6,7 @@ import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { useState } from "react";
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
 import { CreateProjectRoleForm } from "@/features/project-management/components/CreateProjectRoleForm";
 
 export function ProjectAccessControlPage() {

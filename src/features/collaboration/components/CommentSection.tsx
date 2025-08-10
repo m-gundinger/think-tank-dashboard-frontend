@@ -6,7 +6,7 @@ import { useState, useCallback } from "react";
 import { useSocketSubscription } from "@/hooks/useSocketSubscription";
 import { useQueryClient } from "@tanstack/react-query";
 import { CommentItem } from "./CommentItem";
-import { RichTextEditor } from "@/components/ui/RichTextEditor";
+import { RichTextEditor } from "@/components/shared/RichTextEditor";
 
 export function CommentSection({ workspaceId, projectId, taskId }: any) {
   const queryClient = useQueryClient();

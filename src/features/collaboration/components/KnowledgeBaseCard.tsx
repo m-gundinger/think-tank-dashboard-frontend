@@ -1,7 +1,7 @@
-import { EntityCard } from "@/components/ui/EntityCard";
+import { EntityCard } from "@/components/shared/EntityCard";
 import { useManageKnowledgeBases } from "../api/useManageKnowledgeBases";
 import { BookOpen } from "lucide-react";
-import { ActionMenu } from "@/components/ui/ActionMenu";
+import { ActionMenu } from "@/components/shared/ActionMenu";
 
 interface KnowledgeBaseCardProps {
   knowledgeBase: any;

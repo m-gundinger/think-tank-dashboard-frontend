@@ -50,8 +50,6 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (refreshError) {
         useAuthStore.getState().setAccessToken(null);
-        // Using window.location to force a full page reload to the login page
-        // which clears all state and avoids inconsistent states.
         const publicPathsForRedirect = [
           "/login",
           "/forgot-password",

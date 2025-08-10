@@ -2,11 +2,11 @@ import { z } from "zod";
 import {
   FormMultiSelectPopover,
   FormRichTextEditor,
-} from "@/components/form/FormFields";
+} from "@/components/shared/form/FormFields";
 import { NotificationSeverity, NotificationType } from "@/types/api";
 import { useBroadcastNotification } from "../api/useBroadcastNotification";
 import { useApiResource } from "@/hooks/useApiResource";
-import { FormWrapper } from "@/components/form/FormWrapper";
+import { FormWrapper } from "@/components/shared/form/FormWrapper";
 import {
   FormField,
   FormItem,

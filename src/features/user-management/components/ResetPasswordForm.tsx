@@ -1,12 +1,12 @@
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { FormInput } from "@/components/form/FormFields";
+import { FormInput } from "@/components/shared/form/FormFields";
 import { useResetPassword } from "../api/useResetPassword";
 import { Link, useSearchParams } from "react-router-dom";
 import { useEffect } from "react";
 import { useVerifyResetToken } from "../api/useVerifyResetToken";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FormWrapper } from "@/components/form/FormWrapper";
+import { FormWrapper } from "@/components/shared/form/FormWrapper";
 
 const resetPasswordSchema = z
   .object({

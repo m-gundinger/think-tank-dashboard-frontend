@@ -5,7 +5,7 @@ import { DealDetailContent } from "./DealDetailContent";
 import { Button } from "@/components/ui/button";
 import { Trash2, Edit } from "lucide-react";
 import { useState } from "react";
-import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
+import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
 import { DealForm } from "./DealForm";
 interface DealDetailPanelProps {
   dealId: string | null;
