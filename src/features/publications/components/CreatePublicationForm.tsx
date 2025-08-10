@@ -1,18 +1,14 @@
-import { useForm, FormProvider } from "react-hook-form";
-import { useApiResource } from "@/hooks/useApiResource";
-import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
+import { z } from "zod";
+import { ResourceForm } from "@/components/form/ResourceForm";
 import {
   FormInput,
   FormRichTextEditor,
   FormMultiSelectPopover,
   FormSelect,
 } from "@/components/form/FormFields";
-import { useEffect } from "react";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { PublicationStatus } from "@/types/api";
 import { useManagePublicationCategories } from "../api/useManagePublicationCategories";
+import { useManageUsers } from "../../admin/users/api/useManageUsers";
 
 const publicationSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters."),
@@ -24,7 +20,6 @@ const publicationSchema = z.object({
   categoryIds: z.array(z.string().uuid()).optional(),
   status: z.nativeEnum(PublicationStatus),
 });
-type PublicationFormValues = z.infer<typeof publicationSchema>;
 
 interface PublicationFormProps {
   initialData?: any;
@@ -35,52 +30,10 @@ export function CreatePublicationForm({
   initialData,
   onSuccess,
 }: PublicationFormProps) {
-  const publicationResource = useApiResource("publications", ["publications"]);
-  const userResource = useApiResource("admin/users", ["users"]);
-  const categoryResource = useManagePublicationCategories();
-
-  const isEditMode = !!initialData;
-  const createMutation = publicationResource.useCreate();
-  const updateMutation = publicationResource.useUpdate();
-  const mutation = isEditMode ? updateMutation : createMutation;
-  const { data: usersData } = userResource.useGetAll({});
-  const { data: categoriesData } = categoryResource.useGetAll();
-
-  const methods = useForm<PublicationFormValues>({
-    resolver: zodResolver(publicationSchema),
-    defaultValues: {
-      title: "",
-      slug: "",
-      excerpt: "",
-      authorIds: [],
-      categoryIds: [],
-      status: PublicationStatus.DRAFT,
-    },
-  });
-  useEffect(() => {
-    if (isEditMode && initialData) {
-      methods.reset({
-        ...initialData,
-        authorIds: initialData.authors?.map((a: any) => a.id) || [],
-        categoryIds: initialData.categories?.map((c: any) => c.id) || [],
-      });
-    }
-  }, [initialData, isEditMode, methods]);
-  async function onSubmit(values: PublicationFormValues) {
-    if (isEditMode) {
-      await updateMutation.mutateAsync(
-        { id: initialData.id, data: values },
-        { onSuccess }
-      );
-    } else {
-      await createMutation.mutateAsync(values, {
-        onSuccess: () => {
-          methods.reset();
-          onSuccess?.();
-        },
-      });
-    }
-  }
+  const { useGetAll: useGetAllUsers } = useManageUsers();
+  const { useGetAll: useGetAllCategories } = useManagePublicationCategories();
+  const { data: usersData } = useGetAllUsers({});
+  const { data: categoriesData } = useGetAllCategories();
 
   const statusOptions = Object.values(PublicationStatus).map((s) => ({
     value: s,
@@ -96,10 +49,27 @@ export function CreatePublicationForm({
       name: cat.name,
     })) || [];
 
+  const processedInitialData = initialData
+    ? {
+        ...initialData,
+        authorIds: initialData.authors?.map((a: any) => a.id) || [],
+        categoryIds: initialData.categories?.map((c: any) => c.id) || [],
+      }
+    : {
+        authorIds: [],
+        categoryIds: [],
+        status: PublicationStatus.DRAFT,
+      };
+
   return (
-    <FormProvider {...methods}>
-      <Form {...methods}>
-        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
+    <ResourceForm
+      schema={publicationSchema}
+      resourcePath="publications"
+      resourceKey={["publications"]}
+      initialData={processedInitialData}
+      onSuccess={onSuccess}
+      renderFields={() => (
+        <>
           <FormInput
             name="title"
             label="Title"
@@ -129,19 +99,8 @@ export function CreatePublicationForm({
             placeholder="Select status"
             options={statusOptions}
           />
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={mutation.isPending}
-          >
-            {mutation.isPending
-              ? "Saving..."
-              : isEditMode
-                ? "Save Changes"
-                : "Create Publication"}
-          </Button>
-        </form>
-      </Form>
-    </FormProvider>
+        </>
+      )}
+    />
   );
 }

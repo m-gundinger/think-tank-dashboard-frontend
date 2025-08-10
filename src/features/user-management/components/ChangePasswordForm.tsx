@@ -1,8 +1,4 @@
-import { useForm, FormProvider } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
 import { FormInput } from "@/components/form/FormFields";
 import {
   Card,
@@ -12,6 +8,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { useChangePassword } from "../api/useChangePassword";
+import { FormWrapper } from "@/components/form/FormWrapper";
 
 const changePasswordSchema = z
   .object({
@@ -30,14 +27,6 @@ type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;
 
 export function ChangePasswordForm() {
   const changePasswordMutation = useChangePassword();
-  const methods = useForm<ChangePasswordFormValues>({
-    resolver: zodResolver(changePasswordSchema),
-    defaultValues: {
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-    },
-  });
 
   function onSubmit(values: ChangePasswordFormValues) {
     changePasswordMutation.mutate(values);
@@ -53,12 +42,13 @@ export function ChangePasswordForm() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <FormProvider {...methods}>
-          <Form {...methods}>
-            <form
-              onSubmit={methods.handleSubmit(onSubmit)}
-              className="space-y-4"
-            >
+        <FormWrapper
+          schema={changePasswordSchema}
+          onSubmit={onSubmit}
+          mutation={changePasswordMutation}
+          submitButtonText="Change Password"
+          renderFields={() => (
+            <>
               <FormInput
                 name="currentPassword"
                 label="Current Password"
@@ -74,14 +64,9 @@ export function ChangePasswordForm() {
                 label="Confirm New Password"
                 type="password"
               />
-              <Button type="submit" disabled={changePasswordMutation.isPending}>
-                {changePasswordMutation.isPending
-                  ? "Changing Password..."
-                  : "Change Password"}
-              </Button>
-            </form>
-          </Form>
-        </FormProvider>
+            </>
+          )}
+        />
       </CardContent>
     </Card>
   );

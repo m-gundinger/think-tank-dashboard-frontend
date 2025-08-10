@@ -1,12 +1,9 @@
-import { useForm, FormProvider } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
 import { FormInput } from "@/components/form/FormFields";
 import { useSetupPassword } from "../api/useSetupPassword";
 import { useSearchParams } from "react-router-dom";
 import { useEffect } from "react";
+import { FormWrapper } from "@/components/form/FormWrapper";
 
 const setupPasswordSchema = z
   .object({
@@ -25,21 +22,6 @@ export function SetupPasswordForm() {
   const setupPasswordMutation = useSetupPassword();
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
-
-  const methods = useForm<SetupPasswordFormValues>({
-    resolver: zodResolver(setupPasswordSchema),
-    defaultValues: {
-      token: token || "",
-      newPassword: "",
-      confirmPassword: "",
-    },
-  });
-
-  useEffect(() => {
-    if (token) {
-      methods.setValue("token", token);
-    }
-  }, [token, methods]);
 
   function onSubmit(values: SetupPasswordFormValues) {
     setupPasswordMutation.mutate(values);
@@ -61,33 +43,40 @@ export function SetupPasswordForm() {
           Set up your password to activate your account.
         </p>
       </div>
-      <FormProvider {...methods}>
-        <Form {...methods}>
-          <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
-            <FormInput
-              name="newPassword"
-              label="New Password"
-              type="password"
-              placeholder="••••••••"
-            />
-            <FormInput
-              name="confirmPassword"
-              label="Confirm New Password"
-              type="password"
-              placeholder="••••••••"
-            />
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={setupPasswordMutation.isPending}
-            >
-              {setupPasswordMutation.isPending
-                ? "Setting Password..."
-                : "Set Password & Login"}
-            </Button>
-          </form>
-        </Form>
-      </FormProvider>
+      <FormWrapper
+        schema={setupPasswordSchema}
+        onSubmit={onSubmit}
+        mutation={setupPasswordMutation}
+        submitButtonText="Set Password & Login"
+        defaultValues={{
+          token: token || "",
+          newPassword: "",
+          confirmPassword: "",
+        }}
+        renderFields={({ setValue }) => {
+          useEffect(() => {
+            if (token) {
+              setValue("token", token);
+            }
+          }, [token, setValue]);
+          return (
+            <>
+              <FormInput
+                name="newPassword"
+                label="New Password"
+                type="password"
+                placeholder="••••••••"
+              />
+              <FormInput
+                name="confirmPassword"
+                label="Confirm New Password"
+                type="password"
+                placeholder="••••••••"
+              />
+            </>
+          );
+        }}
+      />
     </div>
   );
 }

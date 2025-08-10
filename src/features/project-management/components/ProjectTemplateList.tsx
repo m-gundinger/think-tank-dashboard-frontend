@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { useManageProjectTemplates } from "../api/useManageProjectTemplates";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FileText } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProjectTemplateCard } from "./ProjectTemplateCard";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { CreateTemplateForm } from "./CreateTemplateForm";
+import { useManageProjectTemplates } from "../api/useManageProjectTemplates";
 
 interface ListProps {
   workspaceId: string;

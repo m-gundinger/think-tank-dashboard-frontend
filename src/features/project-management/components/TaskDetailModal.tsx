@@ -78,7 +78,7 @@ export function TaskDetailModal({
     return (
       <>
         {task.projectId && task.workspaceId && task.projectName && (
-          <div className="text-muted-foreground flex items-center gap-1 text-sm">
+          <div className="flex items-center gap-1 text-sm text-muted-foreground">
             <Link
               to={`/workspaces/${task.workspaceId}/projects`}
               className="hover:underline"
@@ -122,7 +122,7 @@ export function TaskDetailModal({
             placeholder="Task Title"
           />
         </DialogTitle>
-        <DialogDescription className="text-muted-foreground pr-6 text-xs">
+        <DialogDescription className="pr-6 text-xs text-muted-foreground">
           Task ID: {task.shortId || task.id}
         </DialogDescription>
         <div className="flex-1 overflow-y-auto py-4">

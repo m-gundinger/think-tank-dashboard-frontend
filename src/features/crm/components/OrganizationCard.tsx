@@ -19,7 +19,7 @@ export function OrganizationCard({
 }: OrganizationCardProps) {
   return (
     <Card
-      className="hover:border-primary cursor-pointer transition-colors"
+      className="cursor-pointer transition-colors hover:border-primary"
       onClick={onSelect}
     >
       <CardHeader className="flex flex-row items-center gap-4">
@@ -34,7 +34,7 @@ export function OrganizationCard({
         </div>
       </CardHeader>
       <CardContent>
-        <p className="text-muted-foreground truncate text-sm">
+        <p className="truncate text-sm text-muted-foreground">
           {organization.description || "No description."}
         </p>
       </CardContent>

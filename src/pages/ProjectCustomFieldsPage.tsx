@@ -5,6 +5,7 @@ import { PlusCircle } from "lucide-react";
 import { useState } from "react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { CustomFieldDefinitionForm } from "@/features/project-management/components/CustomFieldDefinitionForm";
+import { ListPageLayout } from "@/components/layout/ListPageLayout";
 
 export function ProjectCustomFieldsPage() {
   const { workspaceId, projectId } = useParams<{
@@ -15,14 +16,10 @@ export function ProjectCustomFieldsPage() {
 
   if (!workspaceId || !projectId) return <div>Missing URL parameters.</div>;
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-semibold">Custom Fields</h2>
-          <p className="text-muted-foreground">
-            Add and manage custom data fields for tasks in this project.
-          </p>
-        </div>
+    <ListPageLayout
+      title="Custom Fields"
+      description="Add and manage custom data fields for tasks in this project."
+      actionButton={
         <ResourceCrudDialog
           isOpen={isCreateOpen}
           onOpenChange={setIsCreateOpen}
@@ -39,11 +36,12 @@ export function ProjectCustomFieldsPage() {
           resourcePath={`workspaces/${workspaceId}/projects/${projectId}/custom-fields`}
           resourceKey={["customFieldDefinitions", projectId]}
         />
-      </div>
+      }
+    >
       <CustomFieldDefinitionList
         workspaceId={workspaceId}
         projectId={projectId}
       />
-    </div>
+    </ListPageLayout>
   );
 }

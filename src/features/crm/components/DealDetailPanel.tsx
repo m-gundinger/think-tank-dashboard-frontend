@@ -25,7 +25,6 @@ const PanelSkeleton = () => (
     <Skeleton className="h-24 w-full" />
   </div>
 );
-
 export function DealDetailPanel({
   dealId,
   onOpenChange,

@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { KeyResultType } from "@/types/api";
 import { Target } from "lucide-react";
 import { Goal, KeyResult } from "@/types";
+import { ActionMenu } from "@/components/ui/ActionMenu";
 
 interface GoalCardProps {
   goal: Goal;
@@ -64,10 +65,14 @@ export function GoalCard({
     <EntityCard
       title={goal.name}
       description={goal.description || "No description provided."}
-      onEdit={onEdit}
-      onDelete={handleDelete}
-      deleteDisabled={deleteMutation.isPending}
       icon={Target}
+      actions={
+        <ActionMenu
+          onEdit={onEdit}
+          onDelete={handleDelete}
+          deleteDisabled={deleteMutation.isPending}
+        />
+      }
     >
       <div className="space-y-4">
         <div className="flex items-center gap-2">

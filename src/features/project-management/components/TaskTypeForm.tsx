@@ -1,19 +1,12 @@
-import { useForm, FormProvider } from "react-hook-form";
-import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
-import { FormInput } from "@/components/form/FormFields";
-import { useManageTaskTypes } from "../api/useManageTaskTypes";
 import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
+import { ResourceForm } from "@/components/form/ResourceForm";
+import { FormInput } from "@/components/form/FormFields";
 
 const CreateTaskTypeDtoSchema = z.object({
   name: z.string().min(1, "Type name is required."),
   icon: z.string().optional().nullable(),
   color: z.string().optional().nullable(),
 });
-
-type TaskTypeFormValues = z.infer<typeof CreateTaskTypeDtoSchema>;
 
 interface TaskTypeFormProps {
   workspaceId: string;
@@ -28,47 +21,15 @@ export function TaskTypeForm({
   initialData,
   onSuccess,
 }: TaskTypeFormProps) {
-  const isEditMode = !!initialData;
-  const { useCreate, useUpdate } = useManageTaskTypes(workspaceId, projectId);
-  const createMutation = useCreate();
-  const updateMutation = useUpdate();
-  const mutation = isEditMode ? updateMutation : createMutation;
-
-  const methods = useForm<TaskTypeFormValues>({
-    resolver: zodResolver(CreateTaskTypeDtoSchema),
-    defaultValues: {
-      name: "",
-      icon: "",
-      color: "",
-    },
-  });
-
-  useEffect(() => {
-    if (isEditMode && initialData) {
-      methods.reset(initialData);
-    }
-  }, [initialData, isEditMode, methods]);
-
-  async function onSubmit(values: TaskTypeFormValues) {
-    if (isEditMode) {
-      await updateMutation.mutateAsync(
-        { id: initialData.id, data: values },
-        { onSuccess }
-      );
-    } else {
-      await createMutation.mutateAsync(values, {
-        onSuccess: () => {
-          methods.reset();
-          onSuccess?.();
-        },
-      });
-    }
-  }
-
   return (
-    <FormProvider {...methods}>
-      <Form {...methods}>
-        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
+    <ResourceForm
+      schema={CreateTaskTypeDtoSchema}
+      resourcePath={`workspaces/${workspaceId}/projects/${projectId}/task-types`}
+      resourceKey={["taskTypes", projectId]}
+      initialData={initialData}
+      onSuccess={onSuccess}
+      renderFields={() => (
+        <>
           <FormInput
             name="name"
             label="Type Name"
@@ -84,19 +45,8 @@ export function TaskTypeForm({
             label="Color (Optional)"
             placeholder="e.g., #ff0000, blue.500"
           />
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={mutation.isPending}
-          >
-            {mutation.isPending
-              ? "Saving..."
-              : isEditMode
-                ? "Save Changes"
-                : "Create Type"}
-          </Button>
-        </form>
-      </Form>
-    </FormProvider>
+        </>
+      )}
+    />
   );
 }

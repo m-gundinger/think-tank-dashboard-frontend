@@ -2,6 +2,7 @@ import { EntityCard } from "@/components/ui/EntityCard";
 import { useManageReports } from "../api/useManageReports";
 import { BarChart } from "lucide-react";
 import { Report } from "@/types";
+import { ActionMenu } from "@/components/ui/ActionMenu";
 
 interface ReportCardProps {
   report: Report;
@@ -32,10 +33,14 @@ export function ReportCard({ report, onEdit }: ReportCardProps) {
     <EntityCard
       title={report.title}
       description={report.summary || "No summary provided."}
-      onEdit={handleEdit}
-      onDelete={handleDelete}
-      deleteDisabled={deleteMutation.isPending}
       icon={BarChart}
+      actions={
+        <ActionMenu
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          deleteDisabled={deleteMutation.isPending}
+        />
+      }
     >
       <></>
     </EntityCard>

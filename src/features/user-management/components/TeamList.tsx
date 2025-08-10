@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useApiResource } from "@/hooks/useApiResource";
 import { TeamCard } from "./TeamCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -9,7 +8,7 @@ import { Users } from "lucide-react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { TeamForm } from "./TeamForm";
 import { ManageTeamMembers } from "./ManageTeamMembers";
-import { Team } from "@/types";
+import { useManageTeams } from "../api/useManageTeams";
 
 const TeamListSkeleton = () => (
   <div className="grid gap-4 pt-6 md:grid-cols-2 lg:grid-cols-3">
@@ -27,11 +26,8 @@ const TeamListSkeleton = () => (
   </div>
 );
 export function TeamList({ workspaceId }: { workspaceId: string }) {
-  const teamResource = useApiResource<Team>(
-    `/workspaces/${workspaceId}/teams`,
-    ["teams", workspaceId]
-  );
-  const { data, isLoading, isError, error } = teamResource.useGetAll();
+  const { useGetAll } = useManageTeams(workspaceId);
+  const { data, isLoading, isError, error } = useGetAll();
   const [editingTeamId, setEditingTeamId] = useState<string | null>(null);
 
   if (isLoading) {
@@ -54,7 +50,7 @@ export function TeamList({ workspaceId }: { workspaceId: string }) {
     return (
       <div className="pt-6">
         <EmptyState
-          icon={<Users className="text-primary h-10 w-10" />}
+          icon={<Users className="h-10 w-10 text-primary" />}
           title="This workspace has no teams yet."
           description="Create the first team to start organizing users."
         />
@@ -75,7 +71,7 @@ export function TeamList({ workspaceId }: { workspaceId: string }) {
       </div>
       <ResourceCrudDialog
         resourceId={editingTeamId}
-        resourcePath={`/workspaces/${workspaceId}/teams`}
+        resourcePath={`workspaces/${workspaceId}/teams`}
         resourceKey={["teams", workspaceId]}
         title="Edit Team"
         description="Update team details and manage its members."

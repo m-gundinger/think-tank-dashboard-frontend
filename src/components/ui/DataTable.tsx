@@ -44,6 +44,7 @@ interface DataTableProps<TData> {
   onRowClick?: (row: TData) => void;
   sorting?: SortingState;
   setSorting?: OnChangeFn<SortingState>;
+  renderRowActions?: (row: TData) => ReactNode;
 }
 
 export function DataTable<TData extends { id: string }>({
@@ -54,8 +55,10 @@ export function DataTable<TData extends { id: string }>({
   onRowClick,
   sorting = [],
   setSorting,
+  renderRowActions,
 }: DataTableProps<TData>) {
   const [rowSelection, setRowSelection] = useState({});
+
   const tableColumns: ColumnDef<TData>[] = [
     {
       id: "select",
@@ -82,6 +85,13 @@ export function DataTable<TData extends { id: string }>({
     },
     ...columns,
   ];
+
+  if (renderRowActions) {
+    tableColumns.push({
+      id: "actions",
+      cell: ({ row }) => renderRowActions(row.original),
+    });
+  }
 
   const table = useReactTable({
     data,
@@ -122,7 +132,7 @@ export function DataTable<TData extends { id: string }>({
                       <div
                         className={
                           header.column.getCanSort()
-                            ? "flex cursor-pointer items-center select-none"
+                            ? "flex cursor-pointer select-none items-center"
                             : ""
                         }
                         onClick={header.column.getToggleSortingHandler()}

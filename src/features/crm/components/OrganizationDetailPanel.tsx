@@ -1,5 +1,4 @@
 import { Sheet, SheetContent, SheetFooter } from "@/components/ui/sheet";
-import { useApiResource } from "@/hooks/useApiResource";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Trash2, Edit } from "lucide-react";
@@ -7,6 +6,7 @@ import { useState } from "react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { OrganizationForm } from "./OrganizationForm";
 import { OrganizationDetailContent } from "./OrganizationDetailContent";
+import { useManageOrganizations } from "../api/useManageOrganizations";
 
 interface OrganizationDetailPanelProps {
   organizationId: string | null;
@@ -34,13 +34,10 @@ export function OrganizationDetailPanel({
   organizationId,
   onOpenChange,
 }: OrganizationDetailPanelProps) {
-  const organizationResource = useApiResource("organizations", [
-    "organizations",
-  ]);
+  const { useGetOne, useDelete } = useManageOrganizations();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const { data: organization, isLoading } =
-    organizationResource.useGetOne(organizationId);
-  const deleteMutation = organizationResource.useDelete();
+  const { data: organization, isLoading } = useGetOne(organizationId);
+  const deleteMutation = useDelete();
   const handleDelete = () => {
     if (
       organization &&
@@ -65,7 +62,7 @@ export function OrganizationDetailPanel({
               <div className="flex-1 overflow-y-auto p-6">
                 <OrganizationDetailContent organization={organization} />
               </div>
-              <SheetFooter className="bg-background mt-auto border-t p-4">
+              <SheetFooter className="mt-auto border-t bg-background p-4">
                 <div className="flex w-full justify-end gap-2">
                   <Button
                     variant="outline"

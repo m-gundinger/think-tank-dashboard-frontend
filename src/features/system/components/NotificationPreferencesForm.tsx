@@ -1,9 +1,5 @@
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Button } from "@/components/ui/button";
 import {
-  Form,
   FormControl,
   FormDescription,
   FormField,
@@ -27,9 +23,9 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { useGetNotificationPreferences } from "../api/useGetNotificationPreferences";
 import { useUpdateNotificationPreferences } from "../api/useUpdateNotificationPreferences";
-import { useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { NotificationType, EmailDigestFrequency } from "@/types/api";
+import { FormWrapper } from "@/components/form/FormWrapper";
 
 const notificationTypes = Object.values(NotificationType);
 const emailFrequencies = Object.values(EmailDigestFrequency);
@@ -50,17 +46,6 @@ export function NotificationPreferencesForm() {
   const { data, isLoading } = useGetNotificationPreferences();
   const updateMutation = useUpdateNotificationPreferences();
 
-  const form = useForm<PreferencesFormValues>({
-    resolver: zodResolver(preferencesSchema),
-  });
-  useEffect(() => {
-    if (data) {
-      form.reset({
-        preferences: data.preferences || {},
-        emailDigestFrequency: data.emailDigestFrequency || "DAILY",
-      });
-    }
-  }, [data, form]);
   function onSubmit(values: PreferencesFormValues) {
     updateMutation.mutate(values);
   }
@@ -90,67 +75,72 @@ export function NotificationPreferencesForm() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            {notificationTypes.map((type) => (
+        <FormWrapper
+          schema={preferencesSchema}
+          onSubmit={onSubmit}
+          mutation={updateMutation}
+          defaultValues={data}
+          className="space-y-8"
+          submitButtonText="Save Preferences"
+          renderFields={({ control }) => (
+            <>
+              {notificationTypes.map((type) => (
+                <FormField
+                  key={type}
+                  control={control}
+                  name={`preferences.${type}.inApp`}
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base capitalize">
+                          {type.replace(/_/g, " ").toLowerCase()}
+                        </FormLabel>
+                        <FormDescription>
+                          Receive in-app notifications for this event.
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              ))}
               <FormField
-                key={type}
-                control={form.control}
-                name={`preferences.${type}.inApp`}
+                control={control}
+                name="emailDigestFrequency"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
-                      <FormLabel className="text-base capitalize">
-                        {type.replace(/_/g, " ").toLowerCase()}
-                      </FormLabel>
-                      <FormDescription>
-                        Receive in-app notifications for this event.
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
+                  <FormItem>
+                    <FormLabel>Email Digest Frequency</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select email frequency" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {emailFrequencies.map((freq) => (
+                          <SelectItem key={freq} value={freq}>
+                            {freq.charAt(0) + freq.slice(1).toLowerCase()}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      Choose how often you want to receive email summaries.
+                    </FormDescription>
                   </FormItem>
                 )}
               />
-            ))}
-            <FormField
-              control={form.control}
-              name="emailDigestFrequency"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email Digest Frequency</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select email frequency" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {emailFrequencies.map((freq) => (
-                        <SelectItem key={freq} value={freq}>
-                          {freq.charAt(0) + freq.slice(1).toLowerCase()}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>
-                    Choose how often you want to receive email summaries.
-                  </FormDescription>
-                </FormItem>
-              )}
-            />
-            <Button type="submit" disabled={updateMutation.isPending}>
-              {updateMutation.isPending ? "Saving..." : "Save Preferences"}
-            </Button>
-          </form>
-        </Form>
+            </>
+          )}
+        />
       </CardContent>
     </Card>
   );

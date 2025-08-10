@@ -9,17 +9,8 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export function TimeTrackingReportWidget({
-  widget,
-  workspaceId,
-  projectId,
-}: any) {
-  const { data, isLoading } = useGetWidgetData(
-    workspaceId,
-    projectId,
-    widget.dashboardId,
-    widget.id
-  );
+export function TimeTrackingReportWidget({ widget }: any) {
+  const { data, isLoading } = useGetWidgetData(widget.dashboardId, widget.id);
   if (isLoading) {
     return (
       <div className="space-y-2">

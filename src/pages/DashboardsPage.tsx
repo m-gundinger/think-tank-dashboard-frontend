@@ -96,31 +96,29 @@ export function DashboardsPage() {
           </div>
         )}
         <div className={params.workspaceId ? "flex w-full justify-end" : ""}>
-          <ResourceCrudDialog
-            isOpen={isCreateOpen}
-            onOpenChange={setIsCreateOpen}
-            trigger={
-              <Button onClick={() => setIsCreateOpen(true)}>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                New Dashboard
-              </Button>
-            }
-            title="Create a new dashboard"
-            description="Create a dashboard to track your metrics."
-            form={DashboardForm}
-            formProps={{ scope }}
-            resourcePath={"dashboards"}
-            resourceKey={
-              scope.projectId
-                ? ["dashboards", scope.projectId]
-                : scope.workspaceId
-                  ? ["dashboards", scope.workspaceId]
-                  : ["dashboards", "user"]
-            }
-          />
+          <Button onClick={() => setIsCreateOpen(true)}>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            New Dashboard
+          </Button>
         </div>
       </div>
       <DashboardList {...scope} />
+      <ResourceCrudDialog
+        isOpen={isCreateOpen}
+        onOpenChange={setIsCreateOpen}
+        title="Create a new dashboard"
+        description="Create a dashboard to track your metrics."
+        form={DashboardForm}
+        formProps={{ scope }}
+        resourcePath={"dashboards"}
+        resourceKey={
+          scope.projectId
+            ? ["dashboards", scope.projectId]
+            : scope.workspaceId
+              ? ["dashboards", scope.workspaceId]
+              : ["dashboards", "user"]
+        }
+      />
     </div>
   );
 }

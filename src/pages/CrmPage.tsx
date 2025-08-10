@@ -38,10 +38,7 @@ export function CrmPage() {
     string | null
   >(null);
   const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
-  const [isCreatePersonOpen, setIsCreatePersonOpen] = useState(false);
-  const [isCreateOrganizationOpen, setIsCreateOrganizationOpen] =
-    useState(false);
-  const [isCreateDealOpen, setIsCreateDealOpen] = useState(false);
+  const [dialogState, setDialogState] = useState({ open: false, type: "" });
   const [workspaceId, setWorkspaceId] = useState<string | undefined>();
   const [projectId, setProjectId] = useState<string | undefined>();
 
@@ -58,52 +55,22 @@ export function CrmPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <ResourceCrudDialog
-            isOpen={isCreatePersonOpen}
-            onOpenChange={setIsCreatePersonOpen}
-            trigger={
-              <Button onClick={() => setIsCreatePersonOpen(true)}>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                New Person
-              </Button>
-            }
-            title="Create New Person"
-            description="Add a new person to the CRM. This won't create a system user account."
-            form={PersonForm}
-            resourcePath="people"
-            resourceKey={["people"]}
-          />
-          <ResourceCrudDialog
-            isOpen={isCreateOrganizationOpen}
-            onOpenChange={setIsCreateOrganizationOpen}
-            trigger={
-              <Button onClick={() => setIsCreateOrganizationOpen(true)}>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                New Organization
-              </Button>
-            }
-            title="Create New Organization"
-            description="Add a new organization or company to the CRM."
-            form={OrganizationForm}
-            resourcePath="organizations"
-            resourceKey={["organizations"]}
-          />
-          <ResourceCrudDialog
-            isOpen={isCreateDealOpen}
-            onOpenChange={setIsCreateDealOpen}
-            trigger={
-              <Button onClick={() => setIsCreateDealOpen(true)}>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                New Deal
-              </Button>
-            }
-            title="Create New Deal"
-            description="Add a new deal to your pipeline."
-            form={DealForm}
-            formProps={{ workspaceId, projectId }}
-            resourcePath="deals"
-            resourceKey={["deals"]}
-          />
+          <Button
+            onClick={() => setDialogState({ open: true, type: "person" })}
+          >
+            <PlusCircle className="mr-2 h-4 w-4" />
+            New Person
+          </Button>
+          <Button
+            onClick={() => setDialogState({ open: true, type: "organization" })}
+          >
+            <PlusCircle className="mr-2 h-4 w-4" />
+            New Organization
+          </Button>
+          <Button onClick={() => setDialogState({ open: true, type: "deal" })}>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            New Deal
+          </Button>
         </div>
       </div>
 
@@ -187,6 +154,41 @@ export function CrmPage() {
           <OrganizationList onOrganizationSelect={setSelectedOrganizationId} />
         </TabsContent>
       </Tabs>
+
+      <ResourceCrudDialog
+        isOpen={dialogState.open && dialogState.type === "person"}
+        onOpenChange={(isOpen) =>
+          setDialogState({ ...dialogState, open: isOpen })
+        }
+        title="Create New Person"
+        description="Add a new person to the CRM. This won't create a system user account."
+        form={PersonForm}
+        resourcePath="people"
+        resourceKey={["people"]}
+      />
+      <ResourceCrudDialog
+        isOpen={dialogState.open && dialogState.type === "organization"}
+        onOpenChange={(isOpen) =>
+          setDialogState({ ...dialogState, open: isOpen })
+        }
+        title="Create New Organization"
+        description="Add a new organization or company to the CRM."
+        form={OrganizationForm}
+        resourcePath="organizations"
+        resourceKey={["organizations"]}
+      />
+      <ResourceCrudDialog
+        isOpen={dialogState.open && dialogState.type === "deal"}
+        onOpenChange={(isOpen) =>
+          setDialogState({ ...dialogState, open: isOpen })
+        }
+        title="Create New Deal"
+        description="Add a new deal to your pipeline."
+        form={DealForm}
+        formProps={{ workspaceId, projectId }}
+        resourcePath="deals"
+        resourceKey={["deals"]}
+      />
 
       <PersonDetailPanel
         personId={selectedPersonId}

@@ -31,7 +31,7 @@ import { ProjectGeneralSettingsPage } from "./pages/ProjectGeneralSettingsPage";
 import { JobMonitoringPage } from "./pages/admin/JobMonitoringPage";
 import { SystemStatusPage } from "./pages/admin/SystemStatusPage";
 import { CrmPage } from "./pages/CrmPage";
-import { TasksPage } from "./pages/tasks/TasksPage";
+import { TasksPage } from "./pages/TasksPage";
 import { ProjectGoalsPage } from "./pages/ProjectGoalsPage";
 import { HomePage } from "./pages/HomePage";
 import { ChatPage } from "./pages/ChatPage";
@@ -42,10 +42,10 @@ import { WhiteboardsPage } from "./pages/WhiteboardsPage";
 import { ProjectAttachmentsPage } from "./pages/ProjectAttachmentsPage";
 import { WorkspaceAttachmentsPage } from "./pages/WorkspaceAttachmentsPage";
 import { AnalyticsLayout } from "./pages/AnalyticsLayout";
-import { ActivitiesPage } from "./pages/analytics/ActivitiesPage";
-import { DashboardsPage } from "./pages/analytics/DashboardsPage";
-import { ReportingPage } from "./pages/analytics/ReportingPage";
-import { ReportsPage } from "./pages/analytics/ReportsPage";
+import { ActivitiesPage } from "./pages/ActivitiesPage";
+import { DashboardsPage } from "./pages/DashboardsPage";
+import { ReportingPage } from "./pages/ReportingPage";
+import { ReportsPage } from "./pages/ReportsPage";
 import { TaskTypesSettingsPage } from "./pages/TaskTypesSettingsPage";
 
 function App() {

@@ -8,7 +8,6 @@ import {
   DueDateCell,
   PriorityCell,
   StatusCell,
-  ActionsCell,
   TaskTypeCell,
 } from "./cells";
 import { cn } from "@/lib/utils";
@@ -16,6 +15,8 @@ import { TaskStatus } from "@/types/api";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useDroppable } from "@dnd-kit/core";
+import { ActionMenu } from "@/components/ui/ActionMenu";
+import { useManageTasks } from "../../api/useManageTasks";
 
 interface TaskRowProps {
   task: Task;
@@ -43,6 +44,9 @@ export function TaskRow({
   const [isExpanded, setIsExpanded] = useState(true);
   const hasSubtasks = task.subtasks && task.subtasks.length > 0;
   const isCompleted = task.status === TaskStatus.DONE;
+
+  const { useDelete } = useManageTasks(task.workspaceId, task.projectId);
+  const deleteMutation = useDelete();
 
   const {
     attributes,
@@ -78,12 +82,22 @@ export function TaskRow({
     );
   };
 
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (window.confirm(`Delete task "${task.title}"?`)) {
+      deleteMutation.mutate(task.id);
+    }
+  };
+
   return (
     <div
       ref={setDraggableNodeRef}
       style={style}
       data-task-id={task.id}
-      className={cn("task-wrapper", isCompleted && "task-completed")}
+      className={cn(
+        "task-wrapper group/task-row",
+        isCompleted && "task-completed"
+      )}
     >
       <div
         ref={setDroppableNodeRef}
@@ -158,7 +172,12 @@ export function TaskRow({
           <StatusCell task={task} onUpdate={onTaskUpdate} />
         </div>
         <div className="col-span-1 text-right">
-          <ActionsCell task={task} onTaskSelect={onTaskSelect} />
+          <div className="opacity-0 group-hover/task-row:opacity-100">
+            <ActionMenu
+              onEdit={() => onTaskSelect(task.id)}
+              onDelete={handleDelete}
+            />
+          </div>
         </div>
       </div>
       {hasSubtasks && isExpanded && (

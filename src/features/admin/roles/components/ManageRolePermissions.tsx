@@ -1,4 +1,3 @@
-import { useApiResource } from "@/hooks/useApiResource";
 import { useAssignPermissionToRole } from "../api/useAssignPermissionToRole";
 import { useRevokePermissionFromRole } from "../api/useRevokePermissionFromRole";
 import { Badge } from "@/components/ui/badge";
@@ -20,12 +19,11 @@ import { Check, ChevronsUpDown, XIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { AnyValue } from "@/types";
+import { useManagePermissions } from "../../permissions/api/useManagePermissions";
 
 export function ManageRolePermissions({ role }: { role: AnyValue }) {
-  const permissionResource = useApiResource("admin/permissions", [
-    "permissions",
-  ]);
-  const { data: permissionsData, isLoading } = permissionResource.useGetAll();
+  const { data: permissionsData, isLoading } =
+    useManagePermissions().useGetAll();
   const assignMutation = useAssignPermissionToRole(role.id);
   const revokeMutation = useRevokePermissionFromRole(role.id);
   const [popoverOpen, setPopoverOpen] = useState(false);
@@ -58,7 +56,7 @@ export function ManageRolePermissions({ role }: { role: AnyValue }) {
             </Badge>
           ))
         ) : (
-          <p className="text-muted-foreground px-2 text-sm">
+          <p className="px-2 text-sm text-muted-foreground">
             No permissions assigned.
           </p>
         )}

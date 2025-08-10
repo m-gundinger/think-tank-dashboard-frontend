@@ -1,13 +1,6 @@
 import { useState } from "react";
-import { useApiResource } from "@/hooks/useApiResource";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Trash2, Edit } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   DataTable,
@@ -17,20 +10,15 @@ import {
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { AnnouncementForm } from "./AnnouncementForm";
 import { Announcement } from "@/types";
-
-interface AnnouncementQuery {
-  page?: number;
-}
+import { ActionMenu } from "@/components/ui/ActionMenu";
+import { useManageAnnouncements } from "../api/useManageAnnouncements";
 
 export function AnnouncementList() {
   const [page, setPage] = useState(1);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const announcementResource = useApiResource<Announcement, AnnouncementQuery>(
-    "announcements",
-    ["announcements"]
-  );
-  const { data, isLoading, isError } = announcementResource.useGetAll({ page });
-  const deleteMutation = announcementResource.useDelete();
+  const { useGetAll, useDelete } = useManageAnnouncements();
+  const { data, isLoading, isError } = useGetAll({ page });
+  const deleteMutation = useDelete();
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
@@ -40,73 +28,34 @@ export function AnnouncementList() {
     {
       accessorKey: "title",
       header: "Title",
-      cell: (row: Announcement) => (
-        <span className="font-medium">{row.title}</span>
+      cell: ({ row }) => (
+        <span className="font-medium">{row.original.title}</span>
       ),
     },
     {
       accessorKey: "status",
       header: "Status",
-      cell: (row: Announcement) => (
-        <Badge variant="outline">{row.status}</Badge>
-      ),
+      cell: ({ row }) => <Badge variant="outline">{row.original.status}</Badge>,
     },
     {
       accessorKey: "severity",
       header: "Severity",
-      cell: (row: Announcement) => (
-        <Badge variant="secondary">{row.severity}</Badge>
+      cell: ({ row }) => (
+        <Badge variant="secondary">{row.original.severity}</Badge>
       ),
     },
     {
       accessorKey: "isPinned",
       header: "Pinned",
-      cell: (row: Announcement) => (row.isPinned ? "Yes" : "No"),
+      cell: ({ row }) => (row.original.isPinned ? "Yes" : "No"),
     },
     {
       accessorKey: "publishedAt",
       header: "Published",
-      cell: (row: Announcement) =>
-        row.publishedAt
-          ? new Date(row.publishedAt).toLocaleDateString("en-US")
+      cell: ({ row }) =>
+        row.original.publishedAt
+          ? new Date(row.original.publishedAt).toLocaleDateString("en-US")
           : "N/A",
-    },
-    {
-      accessorKey: "actions",
-      header: "Actions",
-      cell: (row: Announcement) => {
-        const announcement = row;
-        return (
-          <div className="text-right">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setEditingId(announcement.id)}>
-                  <Edit className="mr-2 h-4 w-4" /> Edit
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="text-red-600"
-                  onClick={() => {
-                    if (
-                      window.confirm(
-                        `Delete announcement "${announcement.title}"?`
-                      )
-                    ) {
-                      deleteMutation.mutate(announcement.id);
-                    }
-                  }}
-                >
-                  <Trash2 className="mr-2 h-4 w-4" /> Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        );
-      },
     },
   ];
 
@@ -141,13 +90,23 @@ export function AnnouncementList() {
               Delete ({selectedIds.length})
             </Button>
           )}
+          renderRowActions={(row) => (
+            <ActionMenu
+              onEdit={() => setEditingId(row.id)}
+              onDelete={() => {
+                if (window.confirm(`Delete announcement "${row.title}"?`)) {
+                  deleteMutation.mutate(row.id);
+                }
+              }}
+              deleteDisabled={deleteMutation.isPending}
+            />
+          )}
         />
       </DataTableWrapper>
 
       <ResourceCrudDialog
         isOpen={!!editingId}
         onOpenChange={(isOpen) => !isOpen && setEditingId(null)}
-        trigger={<></>}
         title="Edit Announcement"
         description="Make changes to the announcement details."
         form={AnnouncementForm}

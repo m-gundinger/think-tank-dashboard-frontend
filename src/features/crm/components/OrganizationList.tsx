@@ -1,9 +1,9 @@
-import { useManageOrganizations } from "../api/useManageOrganizations";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Building2 } from "lucide-react";
 import { OrganizationCard } from "./OrganizationCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Organization } from "@/types";
+import { useManageOrganizations } from "../api/useManageOrganizations";
 
 const ListSkeleton = () => (
   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

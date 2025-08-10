@@ -1,5 +1,4 @@
 import { useParams } from "react-router-dom";
-import { useManageProjects } from "@/features/project-management/api/useManageProjects";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Card,
@@ -9,6 +8,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { ProjectAttachments } from "@/features/project-management/components/ProjectAttachments";
+import { useManageProjects } from "@/features/project-management/api/useManageProjects";
 export function ProjectAttachmentsPage() {
   const { workspaceId, projectId } = useParams<{
     workspaceId: string;

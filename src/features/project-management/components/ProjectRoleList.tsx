@@ -2,9 +2,8 @@ import { useState } from "react";
 import { useApiResource } from "@/hooks/useApiResource";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Edit, Trash2 } from "lucide-react";
 import { EditProjectRoleDialog } from "./EditProjectRoleDialog";
+import { ActionMenu } from "@/components/ui/ActionMenu";
 
 interface Props {
   workspaceId: string;
@@ -38,22 +37,11 @@ export function ProjectRoleList({ workspaceId, projectId }: Props) {
           <Card key={role.id}>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>{role.name}</CardTitle>
-              <div className="flex items-center gap-1">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setEditingRole(role)}
-                >
-                  <Edit className="mr-2 h-4 w-4" /> Manage Permissions
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleDelete(role)}
-                >
-                  <Trash2 className="text-destructive h-4 w-4" />
-                </Button>
-              </div>
+              <ActionMenu
+                onEdit={() => setEditingRole(role)}
+                onDelete={() => handleDelete(role)}
+                deleteDisabled={deleteMutation.isPending}
+              />
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-1">
@@ -64,7 +52,7 @@ export function ProjectRoleList({ workspaceId, projectId }: Props) {
                     </Badge>
                   ))
                 ) : (
-                  <span className="text-muted-foreground text-sm">
+                  <span className="text-sm text-muted-foreground">
                     No permissions assigned.
                   </span>
                 )}

@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useApiResource } from "@/hooks/useApiResource";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -34,6 +33,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { FormLabel } from "@/components/ui/form";
 import { useManageProjectMembers } from "../api/useManageProjectMembers";
+import { useManageUsers } from "../../admin/users/api/useManageUsers";
+import { useManageTeams } from "../../user-management/api/useManageTeams";
+import { useApiResource } from "@/hooks/useApiResource";
 
 interface InviteProjectMemberProps {
   workspaceId: string;
@@ -51,22 +53,17 @@ export function InviteProjectMember({
   const [isGuest, setIsGuest] = useState(false);
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
 
-  const userResource = useApiResource("admin/users", ["users"]);
-  const teamResource = useApiResource(`/workspaces/${workspaceId}/teams`, [
-    "teams",
-    workspaceId,
-  ]);
+  const { useGetAll: useGetAllUsers } = useManageUsers();
+  const { useGetAll: useGetAllTeams } = useManageTeams(workspaceId);
   const projectRoleResource = useApiResource(
     `/workspaces/${workspaceId}/projects/${projectId}/roles`,
     ["projectRoles", projectId]
   );
 
-  const { data: usersData, isLoading: isLoadingUsers } =
-    userResource.useGetAll();
+  const { data: usersData, isLoading: isLoadingUsers } = useGetAllUsers();
   const { data: rolesData, isLoading: isLoadingRoles } =
     projectRoleResource.useGetAll();
-  const { data: teamsData, isLoading: isLoadingTeams } =
-    teamResource.useGetAll();
+  const { data: teamsData, isLoading: isLoadingTeams } = useGetAllTeams();
 
   const { useAddMember, useAddTeam } = useManageProjectMembers(
     workspaceId,

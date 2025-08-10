@@ -8,17 +8,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { GlobalTaskTypeForm } from "./GlobalTaskTypeForm";
+import { ActionMenu } from "@/components/ui/ActionMenu";
 
 export function GlobalTaskTypeList() {
   const { useGetAll, useDelete } = useManageTaskTypes();
@@ -65,29 +58,11 @@ export function GlobalTaskTypeList() {
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuItem
-                          onClick={() => setEditingTypeId(type.id)}
-                        >
-                          <Edit className="mr-2 h-4 w-4" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-red-500"
-                          onClick={() => handleDelete(type)}
-                          disabled={deleteMutation.isPending}
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <ActionMenu
+                      onEdit={() => setEditingTypeId(type.id)}
+                      onDelete={() => handleDelete(type)}
+                      deleteDisabled={deleteMutation.isPending}
+                    />
                   </TableCell>
                 </TableRow>
               ))

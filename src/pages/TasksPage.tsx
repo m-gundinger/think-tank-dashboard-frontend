@@ -3,7 +3,7 @@ import { useState, useMemo, useEffect } from "react";
 import { TaskDetailModal } from "@/features/project-management/components/TaskDetailModal";
 import { ErrorState } from "@/components/ui/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ListTasksQuery, Task, View, ViewColumn, ViewType } from "@/types";
+import { Task, View, ViewColumn, ViewType, ListTasksQuery } from "@/types";
 import { SortingState } from "@tanstack/react-table";
 import { useUpdateTask } from "@/features/project-management/api/useUpdateTask";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
@@ -69,15 +69,6 @@ const columnStatusMapUser: Record<string, TaskStatus> = {
   "col-blocked": TaskStatus.BLOCKED,
   "col-cancelled": TaskStatus.CANCELLED,
 };
-
-const listSortableColumns = [
-  { id: "title", label: "Task Name" },
-  { id: "priority", label: "Priority" },
-  { id: "dueDate", label: "Due Date" },
-  { id: "status", label: "Status" },
-  { id: "projectName", label: "Project" },
-  { id: "workspaceName", label: "Workspace" },
-];
 
 function mapColumnNameToStatus(columnName: string): TaskStatus | null {
   const normalizedName = columnName.trim().toUpperCase().replace(/\s+/g, "_");

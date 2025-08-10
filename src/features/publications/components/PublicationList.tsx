@@ -1,10 +1,9 @@
 import { useState } from "react";
-import { useApiResource } from "@/hooks/useApiResource";
 import { PublicationCard } from "./PublicationCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { CreatePublicationForm } from "./CreatePublicationForm";
-import { AnyValue } from "@/types";
+import { useManagePublications } from "../api/useManagePublications";
 
 const PublicationListSkeleton = () => (
   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -21,11 +20,11 @@ const PublicationListSkeleton = () => (
 );
 
 export function PublicationList() {
-  const publicationResource = useApiResource("publications", ["publications"]);
-  const { data, isLoading, isError } = publicationResource.useGetAll();
-  const [editingPublication, setEditingPublication] = useState<AnyValue | null>(
-    null
-  );
+  const { useGetAll } = useManagePublications();
+  const { data, isLoading, isError } = useGetAll();
+  const [editingPublicationId, setEditingPublicationId] = useState<
+    string | null
+  >(null);
 
   if (isLoading) return <PublicationListSkeleton />;
   if (isError) return <div>Failed to load publications.</div>;
@@ -37,20 +36,19 @@ export function PublicationList() {
           <PublicationCard
             key={pub.id}
             publication={pub}
-            onEdit={setEditingPublication}
+            onEdit={() => setEditingPublicationId(pub.id)}
           />
         ))}
       </div>
       <ResourceCrudDialog
-        isOpen={!!editingPublication}
-        onOpenChange={(isOpen) => !isOpen && setEditingPublication(null)}
-        trigger={<></>}
+        isOpen={!!editingPublicationId}
+        onOpenChange={(isOpen) => !isOpen && setEditingPublicationId(null)}
         title="Edit Publication"
         description="Make changes to the publication details."
         form={CreatePublicationForm}
         resourcePath="publications"
         resourceKey={["publications"]}
-        resourceId={editingPublication?.id}
+        resourceId={editingPublicationId}
       />
     </>
   );

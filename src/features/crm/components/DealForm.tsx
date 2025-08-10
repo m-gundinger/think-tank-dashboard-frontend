@@ -1,25 +1,15 @@
 import {
-  useForm,
-  FormProvider,
-  type Resolver,
-  type SubmitHandler,
-} from "react-hook-form";
-import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
-import {
   FormInput,
   FormSelect,
   FormMultiSelectPopover,
 } from "@/components/form/FormFields";
-import { useManageDeals } from "../api/useManageDeals";
+import { ResourceForm } from "@/components/form/ResourceForm";
 import { useManageDealStages } from "../api/useManageDealStages";
 import { useManageOrganizations } from "../api/useManageOrganizations";
 import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
 import { requiredStringSchema } from "@/lib/schemas";
 import { useGetProjectMembers } from "@/features/project-management/api/useGetProjectMembers";
-import { useApiResource } from "@/hooks/useApiResource";
+import { useManagePeople } from "../api/useManagePeople";
 
 const dealSchema = z.object({
   name: requiredStringSchema("Deal name"),
@@ -32,8 +22,6 @@ const dealSchema = z.object({
   contactIds: z.array(z.string().uuid()).optional(),
   projectId: z.string().uuid().optional().nullable(),
 });
-
-type DealFormValues = z.infer<typeof dealSchema>;
 
 interface DealFormProps {
   initialData?: any;
@@ -48,7 +36,6 @@ export function DealForm({
   workspaceId,
   projectId,
 }: DealFormProps) {
-  const { useCreate, useUpdate } = useManageDeals();
   const { data: stagesData, isLoading: isLoadingStages } = useManageDealStages(
     projectId
   ).useGetAll({ enabled: !!projectId });
@@ -56,34 +43,11 @@ export function DealForm({
     useManageOrganizations().useGetAll();
   const { data: membersData, isLoading: isLoadingMembers } =
     useGetProjectMembers(workspaceId, projectId!, { enabled: !!projectId });
-  const { data: peopleData, isLoading: isLoadingPeople } = useApiResource(
-    "people",
-    ["people"]
-  ).useGetAll();
+  const { data: peopleData, isLoading: isLoadingPeople } =
+    useManagePeople().useGetAll();
 
-  const isEditMode = !!initialData;
-  const createMutation = useCreate();
-  const updateMutation = useUpdate();
-  const mutation = isEditMode ? updateMutation : createMutation;
-
-  const methods = useForm<DealFormValues>({
-    resolver: zodResolver(dealSchema) as unknown as Resolver<
-      DealFormValues,
-      any
-    >,
-    defaultValues: {
-      name: "",
-      value: 0,
-      stageId: "",
-      organizationId: "",
-      contactIds: [],
-      projectId: projectId ?? null,
-    },
-  });
-
-  useEffect(() => {
-    if (initialData) {
-      const formData: Partial<DealFormValues> = {
+  const processedInitialData = initialData
+    ? {
         ...initialData,
         value: initialData.value || 0,
         contactIds: initialData.contacts?.map((c: any) => c.id) || [],
@@ -91,49 +55,23 @@ export function DealForm({
           initialData.projectId !== undefined
             ? initialData.projectId
             : (projectId ?? null),
+      }
+    : {
+        projectId: projectId ?? null,
+        contactIds: [],
+        value: 0,
       };
-      methods.reset(formData as DealFormValues);
-    }
-  }, [initialData, methods, projectId]);
-
-  const onSubmit: SubmitHandler<DealFormValues> = async (values) => {
-    if (isEditMode) {
-      await updateMutation.mutateAsync(
-        { id: initialData.id, data: values },
-        { onSuccess }
-      );
-    } else {
-      await createMutation.mutateAsync(
-        { ...values, projectId },
-        {
-          onSuccess: () => {
-            methods.reset();
-            onSuccess?.();
-          },
-        }
-      );
-    }
-  };
-
-  const stageOptions =
-    stagesData?.data?.map((s: any) => ({ value: s.id, label: s.name })) || [];
-  const organizationOptions =
-    organizationsData?.data?.map((o: any) => ({
-      value: o.id,
-      label: o.name,
-    })) || [];
-  const ownerOptions =
-    membersData?.map((m: any) => ({ value: m.userId, label: m.name })) || [];
-  const contactOptions =
-    peopleData?.data.map((p: any) => ({
-      id: p.id,
-      name: `${p.firstName} ${p.lastName}`,
-    })) || [];
 
   return (
-    <FormProvider {...methods}>
-      <Form {...methods}>
-        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
+    <ResourceForm
+      schema={dealSchema}
+      resourcePath="deals"
+      resourceKey={["deals"]}
+      initialData={processedInitialData}
+      onSuccess={onSuccess}
+      processValues={(values) => ({ ...values, projectId })}
+      renderFields={() => (
+        <>
           <FormInput
             name="name"
             label="Deal Name"
@@ -151,8 +89,13 @@ export function DealForm({
             placeholder={
               isLoadingOrganizations ? "Loading..." : "Select an organization"
             }
-            options={organizationOptions}
-            disabled={isLoadingOrganizations || isEditMode}
+            options={
+              organizationsData?.data?.map((o: any) => ({
+                value: o.id,
+                label: o.name,
+              })) || []
+            }
+            disabled={isLoadingOrganizations || !!initialData}
           />
           <FormSelect
             name="stageId"
@@ -164,7 +107,12 @@ export function DealForm({
                   ? "Loading..."
                   : "Select a stage"
             }
-            options={stageOptions}
+            options={
+              stagesData?.data?.map((s: any) => ({
+                value: s.id,
+                label: s.name,
+              })) || []
+            }
             disabled={isLoadingStages || !projectId}
           />
           <FormSelect
@@ -177,28 +125,27 @@ export function DealForm({
                   ? "Loading..."
                   : "Select an owner"
             }
-            options={ownerOptions}
+            options={
+              membersData?.map((m: any) => ({
+                value: m.userId,
+                label: m.name,
+              })) || []
+            }
             disabled={isLoadingMembers || !projectId}
           />
           <FormMultiSelectPopover
             name="contactIds"
             label="Contacts"
             placeholder={isLoadingPeople ? "Loading..." : "Select contacts"}
-            options={contactOptions}
+            options={
+              peopleData?.data.map((p: any) => ({
+                id: p.id,
+                name: `${p.firstName} ${p.lastName}`,
+              })) || []
+            }
           />
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={mutation.isPending}
-          >
-            {mutation.isPending
-              ? "Saving..."
-              : isEditMode
-                ? "Save Changes"
-                : "Create Deal"}
-          </Button>
-        </form>
-      </Form>
-    </FormProvider>
+        </>
+      )}
+    />
   );
 }

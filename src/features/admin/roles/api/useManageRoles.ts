@@ -1,6 +1,6 @@
 import { useApiResource } from "@/hooks/useApiResource";
+import { RoleWithPermissions } from "@/types";
 
 export function useManageRoles() {
-  const resource = useApiResource("admin/roles", ["roles"]);
-  return resource;
+  return useApiResource<RoleWithPermissions>("admin/roles", ["roles"]);
 }

@@ -4,18 +4,15 @@ import { PlusCircle } from "lucide-react";
 import { useState } from "react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { RoleForm } from "@/features/admin/roles/components/RoleForm";
+import { ListPageLayout } from "@/components/layout/ListPageLayout";
 
 export function RoleListPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Role Management</h1>
-          <p className="text-muted-foreground">
-            View system roles and their assigned permissions.
-          </p>
-        </div>
+    <ListPageLayout
+      title="Role Management"
+      description="View system roles and their assigned permissions."
+      actionButton={
         <ResourceCrudDialog
           isOpen={isCreateOpen}
           onOpenChange={setIsCreateOpen}
@@ -31,8 +28,9 @@ export function RoleListPage() {
           resourcePath="admin/roles"
           resourceKey={["roles"]}
         />
-      </div>
+      }
+    >
       <RoleList />
-    </div>
+    </ListPageLayout>
   );
 }

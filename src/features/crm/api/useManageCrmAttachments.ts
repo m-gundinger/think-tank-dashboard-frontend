@@ -43,7 +43,7 @@ export function useManageCrmAttachments(
   entityType: CrmEntityType,
   entityId: string
 ) {
-  const invalidateQueries = [
+  const invalidateQueries: (string | null | undefined)[][] = [
     [entityType],
     [`${entityType.slice(0, -1)}`, entityId],
   ];

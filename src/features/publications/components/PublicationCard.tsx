@@ -6,15 +6,8 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
-import { useApiResource } from "@/hooks/useApiResource";
+import { ActionMenu } from "@/components/ui/ActionMenu";
+import { useManagePublications } from "../api/useManagePublications";
 
 interface PublicationCardProps {
   publication: any;
@@ -30,8 +23,9 @@ const statusVariantMap: Record<
   ARCHIVED: "outline",
 };
 export function PublicationCard({ publication, onEdit }: PublicationCardProps) {
-  const publicationResource = useApiResource("publications", ["publications"]);
-  const deleteMutation = publicationResource.useDelete();
+  const { useDelete } = useManagePublications();
+  const deleteMutation = useDelete();
+
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
@@ -55,30 +49,11 @@ export function PublicationCard({ publication, onEdit }: PublicationCardProps) {
             {publication.excerpt || "No excerpt provided."}
           </CardDescription>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 flex-shrink-0"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={handleEdit}>
-              <Edit className="mr-2 h-4 w-4" /> Edit
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="text-red-600 focus:text-red-600"
-              onClick={handleDelete}
-              disabled={deleteMutation.isPending}
-            >
-              <Trash2 className="mr-2 h-4 w-4" /> Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <ActionMenu
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          deleteDisabled={deleteMutation.isPending}
+        />
       </CardHeader>
       <CardFooter className="flex justify-between">
         <div className="flex flex-wrap gap-1">

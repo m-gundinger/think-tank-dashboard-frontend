@@ -50,7 +50,7 @@ export function KnowledgeBaseList({ workspaceId }: { workspaceId: string }) {
   if (!data || data.data.length === 0) {
     return (
       <EmptyState
-        icon={<BookOpen className="text-primary h-10 w-10" />}
+        icon={<BookOpen className="h-10 w-10 text-primary" />}
         title="No Knowledge Bases Found"
         description="Get started by creating your first knowledge base using the button above."
       />

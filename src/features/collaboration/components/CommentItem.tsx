@@ -1,18 +1,12 @@
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
 import { RichTextOutput } from "@/components/ui/RichTextOutput";
 import { getAbsoluteUrl } from "@/lib/utils";
 import { CommentAttachments } from "./CommentAttachments";
 import { useManageComments } from "../api/useManageComments";
 import { RichTextEditor } from "@/components/ui/RichTextEditor";
+import { ActionMenu } from "@/components/ui/ActionMenu";
 
 interface CommentItemProps {
   comment: any;
@@ -58,32 +52,16 @@ export function CommentItem({ comment, taskId }: CommentItemProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-sm font-semibold">{comment.author.name}</span>
-            <span className="text-muted-foreground text-xs">
+            <span className="text-xs text-muted-foreground">
               {new Date(comment.createdAt).toLocaleString("en-US")}
             </span>
           </div>
           {canEdit && !isEditing && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-6 w-6">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => setIsEditing(true)}>
-                  <Edit className="mr-2 h-4 w-4" />
-                  Edit
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="text-red-500"
-                  onClick={handleDelete}
-                  disabled={deleteCommentMutation.isPending}
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <ActionMenu
+              onEdit={() => setIsEditing(true)}
+              onDelete={handleDelete}
+              deleteDisabled={deleteCommentMutation.isPending}
+            />
           )}
         </div>
         <div className="mt-1 rounded-md bg-gray-100 p-2 text-sm">

@@ -12,17 +12,8 @@ import { useGetWidgetData } from "../api/useGetWidgetData";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 
-export function LeadCycleTimeChartWidget({
-  widget,
-  workspaceId,
-  projectId,
-}: any) {
-  const { data, isLoading } = useGetWidgetData(
-    workspaceId,
-    projectId,
-    widget.dashboardId,
-    widget.id
-  );
+export function LeadCycleTimeChartWidget({ widget }: any) {
+  const { data, isLoading } = useGetWidgetData(widget.dashboardId, widget.id);
 
   if (isLoading) return <Skeleton className="h-full w-full" />;
 
@@ -35,7 +26,7 @@ export function LeadCycleTimeChartWidget({
   if (!chartData || chartData.length === 0) {
     return (
       <div className="flex h-full items-center justify-center">
-        <p className="text-muted-foreground text-sm">
+        <p className="text-sm text-muted-foreground">
           No completed tasks in the selected range.
         </p>
       </div>

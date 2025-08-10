@@ -1,7 +1,8 @@
-import { useApiResource } from "@/hooks/useApiResource";
 import { getIcon } from "@/lib/icons";
 import { EntityCard } from "@/components/ui/EntityCard";
 import { CardContent } from "@/components/ui/card";
+import { ActionMenu } from "@/components/ui/ActionMenu";
+import { useManageProjects } from "../api/useManageProjects";
 
 interface ProjectCardProps {
   project: any;
@@ -9,11 +10,8 @@ interface ProjectCardProps {
 }
 
 export function ProjectCard({ project, onEdit }: ProjectCardProps) {
-  const projectResource = useApiResource(
-    `/workspaces/${project.workspaceId}/projects`,
-    ["projects", project.workspaceId]
-  );
-  const deleteMutation = projectResource.useDelete();
+  const { useDelete } = useManageProjects(project.workspaceId);
+  const deleteMutation = useDelete();
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -41,10 +39,14 @@ export function ProjectCard({ project, onEdit }: ProjectCardProps) {
       title={project.name}
       description={project.description}
       linkTo={projectUrl}
-      onEdit={handleEdit}
-      onDelete={handleDelete}
-      deleteDisabled={deleteMutation.isPending}
       icon={Icon}
+      actions={
+        <ActionMenu
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          deleteDisabled={deleteMutation.isPending}
+        />
+      }
     >
       <CardContent>
         <div className="flex justify-between text-sm text-muted-foreground">

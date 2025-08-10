@@ -1,6 +1,7 @@
 import { EntityCard } from "@/components/ui/EntityCard";
 import { useManageProjectTemplates } from "../api/useManageProjectTemplates";
 import { FileText } from "lucide-react";
+import { ActionMenu } from "@/components/ui/ActionMenu";
 
 interface ProjectTemplateCardProps {
   template: any;
@@ -32,12 +33,16 @@ export function ProjectTemplateCard({
     <EntityCard
       title={template.name}
       description={template.description || "No description provided."}
-      onEdit={handleEdit}
-      onDelete={handleDelete}
-      deleteDisabled={deleteMutation.isPending}
       icon={FileText}
+      actions={
+        <ActionMenu
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          deleteDisabled={deleteMutation.isPending}
+        />
+      }
     >
-      <div className="text-muted-foreground text-sm">
+      <div className="text-sm text-muted-foreground">
         Created on: {new Date(template.createdAt).toLocaleDateString("en-US")}
       </div>
     </EntityCard>

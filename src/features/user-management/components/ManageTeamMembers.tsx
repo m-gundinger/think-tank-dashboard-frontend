@@ -1,4 +1,3 @@
-import { useApiResource } from "@/hooks/useApiResource";
 import { useApiMutation } from "@/hooks/useApiMutation";
 import api from "@/lib/api";
 import {
@@ -19,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Check, UserPlus, XIcon } from "lucide-react";
 import { getAbsoluteUrl } from "@/lib/utils";
+import { useManageUsers } from "../../admin/users/api/useManageUsers";
 
 interface ManageTeamMembersProps {
   team: any;
@@ -29,10 +29,8 @@ export function ManageTeamMembers({
   team,
   workspaceId,
 }: ManageTeamMembersProps) {
-  const { data: usersData, isLoading: isLoadingUsers } = useApiResource(
-    "admin/users",
-    ["users"]
-  ).useGetAll();
+  const { useGetAll: useGetAllUsers } = useManageUsers();
+  const { data: usersData, isLoading: isLoadingUsers } = useGetAllUsers();
   const invalidateQueries = [
     ["teams", workspaceId],
     ["team", team.id],

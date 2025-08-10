@@ -1,7 +1,8 @@
 import { Badge } from "@/components/ui/badge";
-import { useApiResource } from "@/hooks/useApiResource";
 import { EntityCard } from "@/components/ui/EntityCard";
 import { RoleWithPermissions } from "@/types";
+import { ActionMenu } from "@/components/ui/ActionMenu";
+import { useManageRoles } from "../api/useManageRoles";
 
 interface RoleCardProps {
   role: RoleWithPermissions;
@@ -9,8 +10,8 @@ interface RoleCardProps {
 }
 
 export function RoleCard({ role, onEdit }: RoleCardProps) {
-  const roleResource = useApiResource("admin/roles", ["roles"]);
-  const deleteMutation = roleResource.useDelete();
+  const { useDelete } = useManageRoles();
+  const deleteMutation = useDelete();
 
   const handleDelete = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -32,9 +33,13 @@ export function RoleCard({ role, onEdit }: RoleCardProps) {
     <EntityCard
       title={role.name}
       description={role.description || "No description."}
-      onEdit={handleEdit}
-      onDelete={handleDelete}
-      deleteDisabled={deleteMutation.isPending}
+      actions={
+        <ActionMenu
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          deleteDisabled={deleteMutation.isPending}
+        />
+      }
     >
       <div className="space-y-2">
         <div className="flex flex-wrap items-center gap-1">
@@ -46,7 +51,7 @@ export function RoleCard({ role, onEdit }: RoleCardProps) {
               </Badge>
             ))
           ) : (
-            <span className="text-muted-foreground text-sm">None</span>
+            <span className="text-sm text-muted-foreground">None</span>
           )}
         </div>
       </div>

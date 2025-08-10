@@ -1,15 +1,13 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useApiResource } from "@/hooks/useApiResource";
 import { getAbsoluteUrl } from "@/lib/utils";
 import { EntityCard } from "@/components/ui/EntityCard";
 import { Team } from "@/types";
+import { ActionMenu } from "@/components/ui/ActionMenu";
+import { useManageTeams } from "../api/useManageTeams";
 
 export function TeamCard({ team, onEdit }: { team: Team; onEdit: () => void }) {
-  const teamResource = useApiResource(`/workspaces/${team.workspaceId}/teams`, [
-    "teams",
-    team.workspaceId,
-  ]);
-  const deleteMutation = teamResource.useDelete();
+  const { useDelete } = useManageTeams(team.workspaceId);
+  const deleteMutation = useDelete();
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -30,9 +28,13 @@ export function TeamCard({ team, onEdit }: { team: Team; onEdit: () => void }) {
     <EntityCard
       title={team.name}
       description={team.description || "No description provided."}
-      onEdit={handleEdit}
-      onDelete={handleDelete}
-      deleteDisabled={deleteMutation.isPending}
+      actions={
+        <ActionMenu
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          deleteDisabled={deleteMutation.isPending}
+        />
+      }
     >
       <h4 className="mb-2 text-sm font-medium text-muted-foreground">
         Members

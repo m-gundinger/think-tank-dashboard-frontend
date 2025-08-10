@@ -60,6 +60,52 @@ const deleteResource = async (
   }
 };
 
+type Scope =
+  | "workspaces"
+  | "projects"
+  | "tasks"
+  | "teams"
+  | "users"
+  | "roles"
+  | "permissions"
+  | "announcements"
+  | "dashboards"
+  | "goals"
+  | "task-types";
+
+interface UrlAndKeyOptions {
+  scope: Scope;
+  workspaceId?: string | null;
+  projectId?: string | null;
+}
+
+function constructUrlAndKey({
+  scope,
+  workspaceId,
+  projectId,
+}: UrlAndKeyOptions): { resourceUrl: string; resourceKey: QueryKey } {
+  let resourceUrl = "";
+  let resourceKey: (string | undefined | null)[] = [scope];
+
+  if (workspaceId) {
+    resourceUrl = `workspaces/${workspaceId}`;
+    resourceKey.push(workspaceId);
+    if (projectId) {
+      resourceUrl += `/projects/${projectId}`;
+      resourceKey.push(projectId);
+    }
+  }
+
+  resourceUrl = resourceUrl ? `${resourceUrl}/${scope}` : scope;
+
+  // Handle global admin routes
+  if (!workspaceId && ["users", "roles", "permissions"].includes(scope)) {
+    resourceUrl = `admin/${scope}`;
+  }
+
+  return { resourceUrl, resourceKey: resourceKey.filter(Boolean) as QueryKey };
+}
+
 export function useApiResource<TData = any, TQuery = object>(
   resourceUrl: string,
   resourceKey: QueryKey
@@ -124,3 +170,5 @@ export function useApiResource<TData = any, TQuery = object>(
     useDelete,
   };
 }
+
+useApiResource.constructUrlAndKey = constructUrlAndKey;

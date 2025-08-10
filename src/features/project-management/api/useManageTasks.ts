@@ -7,14 +7,14 @@ export function useManageTasks(
   projectId?: string | null
 ) {
   const queryClient = useQueryClient();
-  const resourceUrl =
-    workspaceId && projectId
-      ? `workspaces/${workspaceId}/projects/${projectId}/tasks`
-      : "tasks";
-  const resourceKey = projectId ? ["tasks", projectId] : ["myTasks"];
+
+  const { resourceUrl, resourceKey } = useApiResource.constructUrlAndKey({
+    scope: "tasks",
+    workspaceId,
+    projectId,
+  });
 
   const resource = useApiResource(resourceUrl, resourceKey);
-
   const useCreate = () => {
     const createMutation = resource.useCreate();
 

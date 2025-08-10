@@ -14,7 +14,9 @@ export const phoneNumberSchema = z
 
 export const nameSchema = (entity: string, min = 2) =>
   z.string().min(min, `${entity} name must be at least ${min} characters.`);
+
 export const descriptionSchema = z.string().optional().nullable();
+
 export const requiredStringSchema = (fieldName: string) =>
   z.string().min(1, `${fieldName} is required.`);
 

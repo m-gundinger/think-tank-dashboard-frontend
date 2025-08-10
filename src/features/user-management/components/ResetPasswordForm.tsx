@@ -1,14 +1,12 @@
-import { useForm, FormProvider } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
 import { FormInput } from "@/components/form/FormFields";
 import { useResetPassword } from "../api/useResetPassword";
 import { Link, useSearchParams } from "react-router-dom";
 import { useEffect } from "react";
 import { useVerifyResetToken } from "../api/useVerifyResetToken";
 import { Skeleton } from "@/components/ui/skeleton";
+import { FormWrapper } from "@/components/form/FormWrapper";
 
 const resetPasswordSchema = z
   .object({
@@ -31,21 +29,6 @@ export function ResetPasswordForm() {
   const { isLoading: isVerifying, isError: isVerificationError } =
     useVerifyResetToken(token);
 
-  const methods = useForm<ResetPasswordFormValues>({
-    resolver: zodResolver(resetPasswordSchema),
-    defaultValues: {
-      token: token || "",
-      newPassword: "",
-      confirmPassword: "",
-    },
-  });
-
-  useEffect(() => {
-    if (token) {
-      methods.setValue("token", token);
-    }
-  }, [token, methods]);
-
   function onSubmit(values: ResetPasswordFormValues) {
     resetPasswordMutation.mutate(values);
   }
@@ -64,8 +47,8 @@ export function ResetPasswordForm() {
   if (!token || isVerificationError) {
     return (
       <div className="w-full max-w-sm text-center">
-        <h2 className="text-destructive text-2xl font-bold">Invalid Token</h2>
-        <p className="text-muted-foreground mt-2">
+        <h2 className="text-2xl font-bold text-destructive">Invalid Token</h2>
+        <p className="mt-2 text-muted-foreground">
           This password reset link is invalid or has expired.
         </p>
         <Button asChild className="mt-4">
@@ -83,33 +66,40 @@ export function ResetPasswordForm() {
           Enter and confirm your new password.
         </p>
       </div>
-      <FormProvider {...methods}>
-        <Form {...methods}>
-          <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
-            <FormInput
-              name="newPassword"
-              label="New Password"
-              type="password"
-              placeholder="••••••••"
-            />
-            <FormInput
-              name="confirmPassword"
-              label="Confirm New Password"
-              type="password"
-              placeholder="••••••••"
-            />
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={resetPasswordMutation.isPending}
-            >
-              {resetPasswordMutation.isPending
-                ? "Resetting..."
-                : "Reset Password"}
-            </Button>
-          </form>
-        </Form>
-      </FormProvider>
+      <FormWrapper
+        schema={resetPasswordSchema}
+        onSubmit={onSubmit}
+        mutation={resetPasswordMutation}
+        submitButtonText="Reset Password"
+        defaultValues={{
+          token: token || "",
+          newPassword: "",
+          confirmPassword: "",
+        }}
+        renderFields={({ setValue }) => {
+          useEffect(() => {
+            if (token) {
+              setValue("token", token);
+            }
+          }, [token, setValue]);
+          return (
+            <>
+              <FormInput
+                name="newPassword"
+                label="New Password"
+                type="password"
+                placeholder="••••••••"
+              />
+              <FormInput
+                name="confirmPassword"
+                label="Confirm New Password"
+                type="password"
+                placeholder="••••••••"
+              />
+            </>
+          );
+        }}
+      />
     </div>
   );
 }

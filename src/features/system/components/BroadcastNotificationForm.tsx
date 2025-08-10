@@ -1,11 +1,17 @@
-import { useForm, FormProvider } from "react-hook-form";
-import { Button } from "@/components/ui/button";
+import { z } from "zod";
 import {
-  Form,
-  FormControl,
+  FormMultiSelectPopover,
+  FormRichTextEditor,
+} from "@/components/form/FormFields";
+import { NotificationSeverity, NotificationType } from "@/types/api";
+import { useBroadcastNotification } from "../api/useBroadcastNotification";
+import { useApiResource } from "@/hooks/useApiResource";
+import { FormWrapper } from "@/components/form/FormWrapper";
+import {
   FormField,
   FormItem,
   FormLabel,
+  FormControl,
   FormMessage,
 } from "@/components/ui/form";
 import {
@@ -15,15 +21,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  FormMultiSelectPopover,
-  FormRichTextEditor,
-} from "@/components/form/FormFields";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { NotificationSeverity, NotificationType } from "@/types/api";
-import { useBroadcastNotification } from "../api/useBroadcastNotification";
-import { useApiResource } from "@/hooks/useApiResource";
 
 const broadcastSchema = z.object({
   message: z.string().min(1, "Message is required."),
@@ -44,16 +41,13 @@ export function BroadcastNotificationForm({ onSuccess }: BroadcastFormProps) {
     ["roles"]
   ).useGetAll();
 
-  const form = useForm<BroadcastFormValues>({
-    resolver: zodResolver(broadcastSchema),
-    defaultValues: {
-      message: "",
-      severity: NotificationSeverity.MEDIUM,
-      type: NotificationType.SYSTEM_BROADCAST,
-      targetRoleIds: [],
-    },
-  });
-  async function onSubmit(values: BroadcastFormValues) {
+  const roleOptions =
+    rolesData?.data?.map((role: any) => ({
+      id: role.id,
+      name: role.name,
+    })) || [];
+
+  function onSubmit(values: BroadcastFormValues) {
     const payload: any = {
       message: values.message,
       severity: values.severity,
@@ -62,28 +56,27 @@ export function BroadcastNotificationForm({ onSuccess }: BroadcastFormProps) {
     if (values.targetRoleIds && values.targetRoleIds.length > 0) {
       payload.target = { roleIds: values.targetRoleIds };
     }
-    await broadcastMutation.mutateAsync(payload, {
-      onSuccess: () => {
-        form.reset();
-        onSuccess?.();
-      },
-    });
+    broadcastMutation.mutate(payload, { onSuccess });
   }
 
-  const roleOptions =
-    rolesData?.data?.map((role: any) => ({
-      id: role.id,
-      name: role.name,
-    })) || [];
-
   return (
-    <FormProvider {...form}>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+    <FormWrapper
+      schema={broadcastSchema}
+      onSubmit={onSubmit}
+      mutation={broadcastMutation}
+      submitButtonText="Send Broadcast"
+      defaultValues={{
+        message: "",
+        severity: NotificationSeverity.MEDIUM,
+        type: NotificationType.SYSTEM_BROADCAST,
+        targetRoleIds: [],
+      }}
+      renderFields={({ control }) => (
+        <>
           <FormRichTextEditor name="message" label="Broadcast Message" />
           <div className="grid grid-cols-2 gap-4">
             <FormField
-              control={form.control}
+              control={control}
               name="severity"
               render={({ field }) => (
                 <FormItem>
@@ -110,7 +103,7 @@ export function BroadcastNotificationForm({ onSuccess }: BroadcastFormProps) {
               )}
             />
             <FormField
-              control={form.control}
+              control={control}
               name="type"
               render={({ field }) => (
                 <FormItem>
@@ -145,15 +138,8 @@ export function BroadcastNotificationForm({ onSuccess }: BroadcastFormProps) {
             }
             options={roleOptions}
           />
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={broadcastMutation.isPending}
-          >
-            {broadcastMutation.isPending ? "Sending..." : "Send Broadcast"}
-          </Button>
-        </form>
-      </Form>
-    </FormProvider>
+        </>
+      )}
+    />
   );
 }

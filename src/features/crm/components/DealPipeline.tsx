@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
 import {
   DndContext,
   DragEndEvent,
@@ -7,6 +7,8 @@ import {
   useSensor,
   useSensors,
   DragStartEvent,
+  DragOverEvent,
+  closestCorners,
 } from "@dnd-kit/core";
 import { createPortal } from "react-dom";
 import { Deal } from "@/types";
@@ -15,6 +17,7 @@ import { DealCard } from "./DealCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useManageDealStages } from "../api/useManageDealStages";
 import { useManageDeals } from "../api/useManageDeals";
+import { arrayMove } from "@dnd-kit/sortable";
 
 interface DealPipelineProps {
   onDealSelect: (dealId: string) => void;
@@ -43,6 +46,10 @@ export function DealPipeline({ onDealSelect, projectId }: DealPipelineProps) {
   const { useUpdate } = useManageDeals();
   const updateDealMutation = useUpdate();
 
+  const [tasksByColumn, setTasksByColumn] = useState<Record<string, Deal[]>>(
+    {}
+  );
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -50,8 +57,12 @@ export function DealPipeline({ onDealSelect, projectId }: DealPipelineProps) {
       },
     })
   );
-  const dealsByStage = useMemo(() => {
-    if (!stagesData?.data || !dealsData?.data) return {};
+
+  useEffect(() => {
+    if (!stagesData?.data || !dealsData?.data) {
+      setTasksByColumn({});
+      return;
+    }
     const grouped: Record<string, Deal[]> = {};
     stagesData.data.forEach((stage: any) => (grouped[stage.id] = []));
     dealsData.data.forEach((deal: any) => {
@@ -59,12 +70,75 @@ export function DealPipeline({ onDealSelect, projectId }: DealPipelineProps) {
         grouped[deal.stageId].push(deal);
       }
     });
-    return grouped;
+    setTasksByColumn(grouped);
   }, [stagesData, dealsData]);
+
+  const findColumnForTask = (taskId: string) => {
+    return Object.keys(tasksByColumn).find((colId) =>
+      tasksByColumn[colId].some((task) => task.id === taskId)
+    );
+  };
 
   const onDragStart = (event: DragStartEvent) => {
     if (event.active.data.current?.type === "Deal") {
       setActiveDeal(event.active.data.current.deal);
+    }
+  };
+
+  const onDragOver = (event: DragOverEvent) => {
+    const { active, over } = event;
+    if (!over || !activeDeal || active.id === over.id) return;
+
+    const sourceColumnId = findColumnForTask(active.id as string);
+    const destColumnId =
+      over.data.current?.type === "DealStage"
+        ? (over.id as string)
+        : findColumnForTask(over.id as string);
+
+    if (!sourceColumnId || !destColumnId) return;
+
+    if (sourceColumnId !== destColumnId) {
+      setTasksByColumn((prev) => {
+        const sourceItems = prev[sourceColumnId] || [];
+        const destItems = prev[destColumnId] || [];
+
+        const activeIndex = sourceItems.findIndex((t) => t.id === active.id);
+        if (activeIndex === -1) return prev;
+
+        const [movedItem] = sourceItems.splice(activeIndex, 1);
+
+        const overIsTask = over.data.current?.type === "Deal";
+        let overIndex = -1;
+        if (overIsTask) {
+          overIndex = destItems.findIndex((t) => t.id === over.id);
+        }
+
+        if (overIndex !== -1) {
+          destItems.splice(overIndex, 0, movedItem);
+        } else {
+          destItems.push(movedItem);
+        }
+
+        return {
+          ...prev,
+          [sourceColumnId]: sourceItems,
+          [destColumnId]: destItems,
+        };
+      });
+    } else {
+      setTasksByColumn((prev) => {
+        const items = prev[sourceColumnId];
+        const oldIndex = items.findIndex((t) => t.id === active.id);
+        const newIndex = items.findIndex((t) => t.id === over.id);
+
+        if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+          return {
+            ...prev,
+            [sourceColumnId]: arrayMove(items, oldIndex, newIndex),
+          };
+        }
+        return prev;
+      });
     }
   };
 
@@ -74,15 +148,15 @@ export function DealPipeline({ onDealSelect, projectId }: DealPipelineProps) {
     if (!over || active.id === over.id) return;
 
     const deal = active.data.current?.deal as Deal;
-    const targetStageId = over.id as string;
+    const destColumnId =
+      over.data.current?.type === "DealStage"
+        ? (over.id as string)
+        : findColumnForTask(over.id as string);
 
-    const isMovingToDifferentColumn =
-      deal.stageId !== targetStageId && over.data.current?.type === "DealStage";
-
-    if (deal && isMovingToDifferentColumn) {
+    if (deal && destColumnId && deal.stageId !== destColumnId) {
       updateDealMutation.mutate({
         id: deal.id,
-        data: { stageId: targetStageId },
+        data: { stageId: destColumnId },
       });
     }
   };
@@ -107,6 +181,8 @@ export function DealPipeline({ onDealSelect, projectId }: DealPipelineProps) {
       sensors={sensors}
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
+      onDragOver={onDragOver}
+      collisionDetection={closestCorners}
     >
       <div className="flex h-[calc(100vh-250px)] gap-4 overflow-x-auto p-1">
         {stagesData?.data
@@ -115,7 +191,7 @@ export function DealPipeline({ onDealSelect, projectId }: DealPipelineProps) {
             <DealColumn
               key={stage.id}
               stage={stage}
-              deals={dealsByStage[stage.id] || []}
+              deals={tasksByColumn[stage.id] || []}
               onDealSelect={onDealSelect}
             />
           ))}

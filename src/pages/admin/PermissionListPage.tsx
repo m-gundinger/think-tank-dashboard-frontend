@@ -1,17 +1,13 @@
 import { PermissionList } from "@/features/admin/permissions/components/PermissionList";
+import { ListPageLayout } from "@/components/layout/ListPageLayout";
 
 export function PermissionListPage() {
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">
-          System Permissions
-        </h1>
-        <p className="text-muted-foreground">
-          A read-only list of all available permissions in the system.
-        </p>
-      </div>
+    <ListPageLayout
+      title="System Permissions"
+      description="A read-only list of all available permissions in the system."
+    >
       <PermissionList />
-    </div>
+    </ListPageLayout>
   );
 }

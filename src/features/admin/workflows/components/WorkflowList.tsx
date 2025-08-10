@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useApiResource } from "@/hooks/useApiResource";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
@@ -16,18 +15,17 @@ import {
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { WorkflowForm } from "./WorkflowForm";
 import { Workflow } from "@/types";
+import { useManageWorkflows } from "../api/useManageWorkflows";
 
 export function WorkflowList() {
-  const workflowResource = useApiResource<Workflow>("admin/workflows", [
-    "workflows",
-  ]);
-  const { data, isLoading, isError } = workflowResource.useGetAll();
+  const { useGetAll, useDelete } = useManageWorkflows();
+  const { data, isLoading, isError } = useGetAll();
   const [editingWorkflowId, setEditingWorkflowId] = useState<string | null>(
     null
   );
   const [viewingRunsFor, setViewingRunsFor] = useState<Workflow | null>(null);
   const toggleMutation = useToggleWorkflow();
-  const deleteMutation = workflowResource.useDelete();
+  const deleteMutation = useDelete();
 
   if (isLoading) return <div>Loading workflows...</div>;
   if (isError) return <div>Error loading workflows.</div>;
@@ -51,7 +49,7 @@ export function WorkflowList() {
                 <CardTitle>{workflow.name}</CardTitle>
                 <div className="flex items-center gap-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-muted-foreground text-sm">
+                    <span className="text-sm text-muted-foreground">
                       {workflow.enabled ? "Enabled" : "Disabled"}
                     </span>
                     <Switch
@@ -100,7 +98,7 @@ export function WorkflowList() {
               </div>
             </CardHeader>
             <CardContent className="space-y-2">
-              <p className="text-muted-foreground text-sm">
+              <p className="text-sm text-muted-foreground">
                 {workflow.description}
               </p>
               <div className="flex items-center gap-2 text-sm">

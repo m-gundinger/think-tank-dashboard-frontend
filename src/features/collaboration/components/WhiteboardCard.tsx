@@ -1,17 +1,8 @@
 import { EntityCard } from "@/components/ui/EntityCard";
 import { useManageWhiteboards } from "../api/useManageWhiteboards";
 import { LayoutDashboard } from "lucide-react";
-
-interface Whiteboard {
-  id: string;
-  name: string;
-  workspaceId: string;
-  projectId: string;
-  project: {
-    name: string;
-  };
-  createdAt: string;
-}
+import { ActionMenu } from "@/components/ui/ActionMenu";
+import { Whiteboard } from "@/types";
 
 interface WhiteboardCardProps {
   whiteboard: Whiteboard;
@@ -46,10 +37,14 @@ export function WhiteboardCard({ whiteboard, onEdit }: WhiteboardCardProps) {
       description={`Created: ${new Date(
         whiteboard.createdAt
       ).toLocaleDateString()}`}
-      onEdit={handleEdit}
-      onDelete={handleDelete}
-      deleteDisabled={deleteMutation.isPending}
       icon={LayoutDashboard}
+      actions={
+        <ActionMenu
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          deleteDisabled={deleteMutation.isPending}
+        />
+      }
     >
       <></>
     </EntityCard>

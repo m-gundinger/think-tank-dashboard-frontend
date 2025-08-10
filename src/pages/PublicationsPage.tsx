@@ -13,27 +13,33 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { PublicationCategoryManager } from "@/features/publications/components/PublicationCategoryManager";
+import { ListPageLayout } from "@/components/layout/ListPageLayout";
 
 export function PublicationsPage() {
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [isCategoryManagerOpen, setIsCategoryManagerOpen] = useState(false);
+  const [dialogState, setDialogState] = useState({
+    open: false,
+    type: "create",
+  });
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Publications</h1>
-          <p className="text-muted-foreground">
-            Manage your organization's articles, papers, and other publications.
-          </p>
-        </div>
+    <ListPageLayout
+      title="Publications"
+      description="Manage your organization's articles, papers, and other publications."
+      actionButton={
         <div className="flex items-center gap-2">
           <Dialog
-            open={isCategoryManagerOpen}
-            onOpenChange={setIsCategoryManagerOpen}
+            open={dialogState.open && dialogState.type === "manageCategories"}
+            onOpenChange={(isOpen) =>
+              setDialogState({ ...dialogState, open: isOpen })
+            }
           >
             <DialogTrigger asChild>
-              <Button variant="outline">
+              <Button
+                variant="outline"
+                onClick={() =>
+                  setDialogState({ open: true, type: "manageCategories" })
+                }
+              >
                 <Settings className="mr-2 h-4 w-4" /> Manage Categories
               </Button>
             </DialogTrigger>
@@ -48,24 +54,27 @@ export function PublicationsPage() {
               <PublicationCategoryManager />
             </DialogContent>
           </Dialog>
-          <ResourceCrudDialog
-            isOpen={isCreateOpen}
-            onOpenChange={setIsCreateOpen}
-            trigger={
-              <Button onClick={() => setIsCreateOpen(true)}>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                New Publication
-              </Button>
-            }
-            title="Create Publication"
-            description="Add a new article, paper, or report to the knowledge base."
-            form={CreatePublicationForm}
-            resourcePath="publications"
-            resourceKey={["publications"]}
-          />
+          <Button
+            onClick={() => setDialogState({ open: true, type: "create" })}
+          >
+            <PlusCircle className="mr-2 h-4 w-4" />
+            New Publication
+          </Button>
         </div>
-      </div>
+      }
+    >
       <PublicationList />
-    </div>
+      <ResourceCrudDialog
+        isOpen={dialogState.open && dialogState.type === "create"}
+        onOpenChange={(isOpen) =>
+          setDialogState({ ...dialogState, open: isOpen })
+        }
+        title="Create Publication"
+        description="Add a new article, paper, or report to the knowledge base."
+        form={CreatePublicationForm}
+        resourcePath="publications"
+        resourceKey={["publications"]}
+      />
+    </ListPageLayout>
   );
 }

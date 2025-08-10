@@ -1,4 +1,3 @@
-import { useApiResource } from "@/hooks/useApiResource";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ErrorState } from "@/components/ui/error-state";
@@ -8,7 +7,7 @@ import { useState } from "react";
 import { WorkspaceCard } from "./WorkspaceCard";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { WorkspaceForm } from "./WorkspaceForm";
-import { Workspace } from "@/types";
+import { useManageWorkspaces } from "../api/useManageWorkspaces";
 
 const WorkspaceListSkeleton = () => (
   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -26,10 +25,8 @@ const WorkspaceListSkeleton = () => (
   </div>
 );
 export function WorkspaceList() {
-  const workspaceResource = useApiResource<Workspace>("workspaces", [
-    "workspaces",
-  ]);
-  const { data, isLoading, isError, error } = workspaceResource.useGetAll();
+  const { useGetAll } = useManageWorkspaces();
+  const { data, isLoading, isError, error } = useGetAll();
   const [editingWorkspaceId, setEditingWorkspaceId] = useState<string | null>(
     null
   );
@@ -57,7 +54,7 @@ export function WorkspaceList() {
   if (!data || data.data.length === 0) {
     return (
       <EmptyState
-        icon={<Blocks className="text-primary h-10 w-10" />}
+        icon={<Blocks className="h-10 w-10 text-primary" />}
         title="No Workspaces Found"
         description="Get started by creating your first workspace using the button above."
       />

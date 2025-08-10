@@ -1,20 +1,16 @@
-import { useForm, FormProvider } from "react-hook-form";
-import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
 import {
   FormInput,
   FormRichTextEditor,
   FormDatePicker,
   FormSelect,
 } from "@/components/form/FormFields";
-import { useManageGoals } from "../api/useManageGoals";
+import { ResourceForm } from "@/components/form/ResourceForm";
 import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
 import { nameSchema, descriptionSchema } from "@/lib/schemas";
 import { GoalStatus, KeyResultType } from "@/types/api";
 import { KeyResultInput } from "./KeyResultInput";
 import { useGetProjectMembers } from "@/features/project-management/api/useGetProjectMembers";
+import { useManageGoals } from "../api/useManageGoals";
 
 const keyResultSchema = z.object({
   id: z.string().uuid().optional(),
@@ -34,7 +30,6 @@ const goalSchema = z.object({
   ownerId: z.string().uuid("An owner is required."),
   keyResults: z.array(keyResultSchema).optional(),
 });
-type GoalFormValues = z.infer<typeof goalSchema>;
 
 interface GoalFormProps {
   workspaceId: string;
@@ -49,65 +44,45 @@ export function GoalForm({
   initialData,
   onSuccess,
 }: GoalFormProps) {
-  const isEditMode = !!initialData;
-  const goalResource = useManageGoals(workspaceId, projectId);
   const { data: membersData, isLoading: isLoadingMembers } =
     useGetProjectMembers(workspaceId, projectId);
-  const createMutation = goalResource.useCreate();
-  const updateMutation = goalResource.useUpdate();
-  const mutation = isEditMode ? updateMutation : createMutation;
-  const methods = useForm<GoalFormValues>({
-    resolver: zodResolver(goalSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-      status: GoalStatus.NOT_STARTED,
-      startDate: null,
-      endDate: null,
-      keyResults: [],
-    },
-  });
-  useEffect(() => {
-    if (isEditMode && initialData) {
-      methods.reset({
-        ...initialData,
-        startDate: initialData.startDate
-          ? new Date(initialData.startDate)
-          : null,
-        endDate: initialData.endDate ? new Date(initialData.endDate) : null,
-      });
-    }
-  }, [initialData, isEditMode, methods]);
-  async function onSubmit(values: GoalFormValues) {
-    const payload = {
-      ...values,
-      projectId,
-    };
-    if (isEditMode) {
-      await updateMutation.mutateAsync(
-        { id: initialData.id, data: payload },
-        { onSuccess }
-      );
-    } else {
-      await createMutation.mutateAsync(payload, {
-        onSuccess: () => {
-          methods.reset();
-          onSuccess?.();
-        },
-      });
-    }
-  }
+
+  const { resourceUrl, resourceKey } = useManageGoals(workspaceId, projectId);
 
   const statusOptions = Object.values(GoalStatus).map((s) => ({
     value: s,
     label: s.replace(/_/g, " "),
   }));
+
   const memberOptions =
     membersData?.map((m: any) => ({ value: m.userId, label: m.name })) || [];
+
+  const processedInitialData = initialData
+    ? {
+        ...initialData,
+        startDate: initialData.startDate
+          ? new Date(initialData.startDate)
+          : null,
+        endDate: initialData.endDate ? new Date(initialData.endDate) : null,
+      }
+    : {
+        status: GoalStatus.NOT_STARTED,
+        startDate: null,
+        endDate: null,
+        keyResults: [],
+      };
+
   return (
-    <FormProvider {...methods}>
-      <Form {...methods}>
-        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-6">
+    <ResourceForm
+      schema={goalSchema}
+      resourcePath={resourceUrl}
+      resourceKey={resourceKey}
+      initialData={processedInitialData}
+      onSuccess={onSuccess}
+      processValues={(values) => ({ ...values, projectId })}
+      className="space-y-6"
+      renderFields={({ control }) => (
+        <>
           <FormInput
             name="name"
             label="Goal Name"
@@ -132,20 +107,9 @@ export function GoalForm({
             <FormDatePicker name="startDate" label="Start Date" />
             <FormDatePicker name="endDate" label="End Date" />
           </div>
-          <KeyResultInput control={methods.control} />
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={mutation.isPending}
-          >
-            {mutation.isPending
-              ? "Saving..."
-              : isEditMode
-                ? "Save Changes"
-                : "Create Goal"}
-          </Button>
-        </form>
-      </Form>
-    </FormProvider>
+          <KeyResultInput control={control} />
+        </>
+      )}
+    />
   );
 }

@@ -1,15 +1,21 @@
 import { useApiResource } from "@/hooks/useApiResource";
+import { TaskType } from "@/types";
 
 export function useManageTaskTypes(workspaceId?: string, projectId?: string) {
-  // Project-specific task types
-  if (workspaceId && projectId) {
-    const resource = useApiResource(
-      `workspaces/${workspaceId}/projects/${projectId}/task-types`,
-      ["taskTypes", projectId]
-    );
-    return resource;
+  const { resourceUrl, resourceKey } = useApiResource.constructUrlAndKey({
+    scope: "task-types",
+    workspaceId,
+    projectId,
+  });
+
+  if (!workspaceId && !projectId) {
+    // This handles the global case
+    const globalResource = useApiResource<TaskType>("task-types", [
+      "taskTypes",
+      "global",
+    ]);
+    return globalResource;
   }
-  // Global task types (for standalone tasks)
-  const resource = useApiResource("task-types", ["taskTypes", "global"]);
-  return resource;
+
+  return useApiResource<TaskType>(resourceUrl, resourceKey);
 }

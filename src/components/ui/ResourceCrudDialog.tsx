@@ -10,13 +10,14 @@ import { useApiResource } from "@/hooks/useApiResource";
 import { Skeleton } from "@/components/ui/skeleton";
 import React, { useState } from "react";
 import { QueryKey } from "@tanstack/react-query";
+import { cn } from "@/lib/utils";
 
 const DialogFormContent = ({
   isEditMode,
   resourceId,
   resourcePath,
   resourceKey,
-  form: FormComponent,
+  formComponent: FormComponent,
   formProps,
   onSuccess,
   children,
@@ -25,7 +26,7 @@ const DialogFormContent = ({
   resourceId: string | null;
   resourcePath: string;
   resourceKey: QueryKey;
-  form: React.ComponentType<any>;
+  formComponent: React.ElementType;
   formProps?: Record<string, any>;
   onSuccess: () => void;
   children?: (data: any) => React.ReactNode;
@@ -65,8 +66,8 @@ const DialogFormContent = ({
 
   if (children && isEditMode && data) {
     return (
-      <div className="grid grid-cols-1 gap-8 py-4 md:grid-cols-2">
-        {formContent}
+      <div className="grid grid-cols-1 gap-8 py-4 md:grid-cols-3">
+        <div className="md:col-span-2">{formContent}</div>
         {children(data)}
       </div>
     );
@@ -79,7 +80,7 @@ interface ResourceCrudDialogProps {
   trigger?: React.ReactNode;
   title: string;
   description: string;
-  form: React.ComponentType<any>;
+  form: React.ElementType;
   formProps?: Record<string, any>;
   resourcePath: string;
   resourceKey: QueryKey;
@@ -120,7 +121,7 @@ export function ResourceCrudDialog({
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
-      <DialogContent className={dialogClassName}>
+      <DialogContent className={cn(dialogClassName)}>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
@@ -131,7 +132,7 @@ export function ResourceCrudDialog({
             resourceId={resourceId ?? null}
             resourcePath={resourcePath}
             resourceKey={resourceKey}
-            form={FormComponent}
+            formComponent={FormComponent}
             formProps={formProps}
             onSuccess={handleSuccess}
             children={children}

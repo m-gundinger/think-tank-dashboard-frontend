@@ -6,10 +6,8 @@ const settingsNavItems = [
   { to: "access", label: "Access Control" },
   { to: "custom-fields", label: "Custom Fields" },
   { to: "task-types", label: "Task Types" },
-  { to: "views", label: "Views" },
   { to: "goals", label: "Goals" },
   { to: "templates", label: "Templates" },
-  { to: "lead-forms", label: "Lead Forms" },
   { to: "attachments", label: "Attachments" },
 ];
 

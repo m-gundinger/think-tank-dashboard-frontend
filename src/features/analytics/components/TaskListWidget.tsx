@@ -2,13 +2,8 @@ import { useGetWidgetData } from "../api/useGetWidgetData";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export function TaskListWidget({ widget, workspaceId, projectId }: any) {
-  const { data, isLoading } = useGetWidgetData(
-    workspaceId,
-    projectId,
-    widget.dashboardId,
-    widget.id
-  );
+export function TaskListWidget({ widget }: any) {
+  const { data, isLoading } = useGetWidgetData(widget.dashboardId, widget.id);
 
   if (isLoading) {
     return (
@@ -34,7 +29,7 @@ export function TaskListWidget({ widget, workspaceId, projectId }: any) {
           </div>
         ))
       ) : (
-        <p className="text-muted-foreground text-sm">
+        <p className="text-sm text-muted-foreground">
           No tasks match criteria.
         </p>
       )}

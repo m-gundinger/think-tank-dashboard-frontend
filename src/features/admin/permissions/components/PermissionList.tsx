@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useApiResource } from "@/hooks/useApiResource";
 import {
   DataTable,
   DataTableWrapper,
@@ -8,19 +7,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { Permission } from "@/types";
-
-interface PermissionQuery {
-  page?: number;
-}
+import { useManagePermissions } from "../api/useManagePermissions";
 
 export function PermissionList() {
   const [page, setPage] = useState(1);
-  const permissionResource = useApiResource<Permission, PermissionQuery>(
-    "admin/permissions",
-    ["permissions"]
-  );
-  const { data, isLoading, isError } = permissionResource.useGetAll({ page });
-  const deleteMutation = permissionResource.useDelete();
+  const { useGetAll, useDelete } = useManagePermissions();
+  const { data, isLoading, isError } = useGetAll({ page });
+  const deleteMutation = useDelete();
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
@@ -30,21 +23,21 @@ export function PermissionList() {
     {
       accessorKey: "action",
       header: "Action",
-      cell: (row: Permission) => (
-        <span className="font-mono">{row.action}</span>
+      cell: ({ row }) => (
+        <span className="font-mono">{row.original.action}</span>
       ),
     },
     {
       accessorKey: "subject",
       header: "Subject",
-      cell: (row: Permission) => (
-        <span className="font-mono">{row.subject}</span>
+      cell: ({ row }) => (
+        <span className="font-mono">{row.original.subject}</span>
       ),
     },
     {
       accessorKey: "description",
       header: "Description",
-      cell: (row: Permission) => row.description,
+      cell: ({ row }) => row.original.description,
     },
   ];
 

@@ -120,7 +120,7 @@ export function WorkspaceAttachments({ workspace }: { workspace: AnyValue }) {
             return (
               <div
                 key={item.id}
-                className="hover:bg-accent/50 flex items-center justify-between rounded-md p-2 text-sm"
+                className="flex items-center justify-between rounded-md p-2 text-sm hover:bg-accent/50"
               >
                 <div className="flex min-w-0 items-center gap-2">
                   <Icon className="h-4 w-4 flex-shrink-0" />
@@ -138,7 +138,7 @@ export function WorkspaceAttachments({ workspace }: { workspace: AnyValue }) {
             );
           })
         ) : (
-          <p className="text-muted-foreground p-2 text-center text-xs">
+          <p className="p-2 text-center text-xs text-muted-foreground">
             No attachments.
           </p>
         )}

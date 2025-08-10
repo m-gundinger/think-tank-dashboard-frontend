@@ -8,17 +8,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { TaskTypeForm } from "./TaskTypeForm";
+import { ActionMenu } from "@/components/ui/ActionMenu";
 
 interface ListProps {
   workspaceId: string;
@@ -30,6 +23,7 @@ export function TaskTypeList({ workspaceId, projectId }: ListProps) {
   const { data: typesData, isLoading } = useGetAll();
   const deleteMutation = useDelete();
   const [editingTypeId, setEditingTypeId] = useState<string | null>(null);
+
   const handleDelete = (type: any) => {
     if (window.confirm(`Delete task type "${type.name}"? This is permanent.`)) {
       deleteMutation.mutate(type.id);
@@ -69,29 +63,11 @@ export function TaskTypeList({ workspaceId, projectId }: ListProps) {
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuItem
-                          onClick={() => setEditingTypeId(type.id)}
-                        >
-                          <Edit className="mr-2 h-4 w-4" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-red-500"
-                          onClick={() => handleDelete(type)}
-                          disabled={deleteMutation.isPending}
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <ActionMenu
+                      onEdit={() => setEditingTypeId(type.id)}
+                      onDelete={() => handleDelete(type)}
+                      deleteDisabled={deleteMutation.isPending}
+                    />
                   </TableCell>
                 </TableRow>
               ))
@@ -109,7 +85,7 @@ export function TaskTypeList({ workspaceId, projectId }: ListProps) {
         isOpen={!!editingTypeId}
         onOpenChange={(isOpen) => !isOpen && setEditingTypeId(null)}
         resourceId={editingTypeId}
-        resourcePath={`/workspaces/${workspaceId}/projects/${projectId}/task-types`}
+        resourcePath={`workspaces/${workspaceId}/projects/${projectId}/task-types`}
         resourceKey={["taskTypes", projectId]}
         title="Edit Task Type"
         description="Change the name, icon, or color for this task type."

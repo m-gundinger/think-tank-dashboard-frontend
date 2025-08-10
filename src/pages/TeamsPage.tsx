@@ -5,6 +5,7 @@ import { PlusCircle } from "lucide-react";
 import { useState } from "react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { TeamForm } from "@/features/user-management/components/TeamForm";
+import { ListPageLayout } from "@/components/layout/ListPageLayout";
 
 export function TeamsPage() {
   const { workspaceId } = useParams<{ workspaceId: string }>();
@@ -15,14 +16,10 @@ export function TeamsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">All Teams</h2>
-          <p className="text-muted-foreground">
-            Manage teams within your workspace.
-          </p>
-        </div>
+    <ListPageLayout
+      title="All Teams"
+      description="Manage teams within your workspace."
+      actionButton={
         <ResourceCrudDialog
           isOpen={isCreateOpen}
           onOpenChange={setIsCreateOpen}
@@ -39,9 +36,9 @@ export function TeamsPage() {
           resourcePath={`workspaces/${workspaceId}/teams`}
           resourceKey={["teams", workspaceId]}
         />
-      </div>
-
+      }
+    >
       <TeamList workspaceId={workspaceId} />
-    </div>
+    </ListPageLayout>
   );
 }

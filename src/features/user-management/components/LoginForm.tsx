@@ -1,12 +1,10 @@
-import { useForm, FormProvider } from "react-hook-form";
-import { Button } from "@/components/ui/button";
-import { Form, FormLabel } from "@/components/ui/form";
+import { FormLabel } from "@/components/ui/form";
 import { FormInput } from "@/components/form/FormFields";
 import { useLogin } from "../api/useLogin";
 import { AxiosError } from "axios";
 import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Link } from "react-router-dom";
+import { FormWrapper } from "@/components/form/FormWrapper";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address."),
@@ -16,13 +14,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
   const loginMutation = useLogin();
-  const methods = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-  });
+
   function onSubmit(values: LoginFormValues) {
     loginMutation.mutate(values);
   }
@@ -43,9 +35,14 @@ export function LoginForm() {
           Enter your credentials to sign in
         </p>
       </div>
-      <FormProvider {...methods}>
-        <Form {...methods}>
-          <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
+      <FormWrapper
+        schema={loginSchema}
+        onSubmit={onSubmit}
+        mutation={loginMutation}
+        submitButtonText="Sign In"
+        defaultValues={{ email: "", password: "" }}
+        renderFields={() => (
+          <>
             <FormInput
               name="email"
               label="Email"
@@ -56,7 +53,7 @@ export function LoginForm() {
                 <FormLabel>Password</FormLabel>
                 <Link
                   to="/forgot-password"
-                  className="text-primary text-sm font-medium hover:underline"
+                  className="text-sm font-medium text-primary hover:underline"
                 >
                   Forgot Password?
                 </Link>
@@ -75,16 +72,9 @@ export function LoginForm() {
                 {getErrorMessage()}
               </div>
             )}
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={loginMutation.isPending}
-            >
-              {loginMutation.isPending ? "Signing in..." : "Sign In"}
-            </Button>
-          </form>
-        </Form>
-      </FormProvider>
+          </>
+        )}
+      />
     </div>
   );
 }

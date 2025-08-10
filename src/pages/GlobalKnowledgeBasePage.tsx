@@ -43,21 +43,10 @@ export function GlobalKnowledgeBasePage() {
             All knowledge bases you have access to across all workspaces.
           </p>
         </div>
-        <ResourceCrudDialog
-          isOpen={isCreateOpen}
-          onOpenChange={setIsCreateOpen}
-          trigger={
-            <Button onClick={() => setIsCreateOpen(true)}>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              New Knowledge Base
-            </Button>
-          }
-          title="Create New Knowledge Base"
-          description="Create a new knowledge base. You can associate it with a workspace later."
-          form={KnowledgeBaseForm}
-          resourcePath="knowledge-bases"
-          resourceKey={["knowledgeBases"]}
-        />
+        <Button onClick={() => setIsCreateOpen(true)}>
+          <PlusCircle className="mr-2 h-4 w-4" />
+          New Knowledge Base
+        </Button>
       </div>
 
       {isLoading ? (
@@ -72,7 +61,7 @@ export function GlobalKnowledgeBasePage() {
         />
       ) : !data || data.data.length === 0 ? (
         <EmptyState
-          icon={<BookOpen className="text-primary h-10 w-10" />}
+          icon={<BookOpen className="h-10 w-10 text-primary" />}
           title="No Knowledge Bases Found"
           description="You are not a member of any workspaces with knowledge bases."
         />
@@ -87,6 +76,16 @@ export function GlobalKnowledgeBasePage() {
           ))}
         </div>
       )}
+
+      <ResourceCrudDialog
+        isOpen={isCreateOpen}
+        onOpenChange={setIsCreateOpen}
+        title="Create New Knowledge Base"
+        description="Create a new knowledge base. You can associate it with a workspace later."
+        form={KnowledgeBaseForm}
+        resourcePath="knowledge-bases"
+        resourceKey={["knowledgeBases"]}
+      />
 
       {editingKb && (
         <ResourceCrudDialog

@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { GoalCard } from "./GoalCard";
 import { GoalForm } from "./GoalForm";
 import { Goal } from "@/types";
+import { ListPageLayout } from "@/components/layout/ListPageLayout";
 
 interface GoalListProps {
   workspaceId: string;
@@ -33,35 +34,19 @@ export function GoalList({ workspaceId, projectId }: GoalListProps) {
   const goals = data?.data || [];
   return (
     <>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-semibold">Goals & OKRs</h2>
-            <p className="text-muted-foreground">
-              Track your project's high-level objectives and key results.
-            </p>
-          </div>
-          <ResourceCrudDialog
-            isOpen={isCreateOpen}
-            onOpenChange={setIsCreateOpen}
-            trigger={
-              <Button onClick={() => setIsCreateOpen(true)}>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                New Goal
-              </Button>
-            }
-            title="Create a New Goal"
-            description="Define a new objective for your project."
-            form={GoalForm}
-            formProps={{ workspaceId, projectId }}
-            resourcePath={`workspaces/${workspaceId}/projects/${projectId}/goals`}
-            resourceKey={["goals", projectId]}
-            dialogClassName="sm:max-w-2xl"
-          />
-        </div>
+      <ListPageLayout
+        title="Goals & OKRs"
+        description="Track your project's high-level objectives and key results."
+        actionButton={
+          <Button onClick={() => setIsCreateOpen(true)}>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            New Goal
+          </Button>
+        }
+      >
         {goals.length === 0 ? (
           <EmptyState
-            icon={<Target className="text-primary h-10 w-10" />}
+            icon={<Target className="h-10 w-10 text-primary" />}
             title="No Goals Defined"
             description="Create your first goal to start tracking progress towards your objectives."
           />
@@ -78,8 +63,18 @@ export function GoalList({ workspaceId, projectId }: GoalListProps) {
             ))}
           </div>
         )}
-      </div>
-
+      </ListPageLayout>
+      <ResourceCrudDialog
+        isOpen={isCreateOpen}
+        onOpenChange={setIsCreateOpen}
+        title="Create a New Goal"
+        description="Define a new objective for your project."
+        form={GoalForm}
+        formProps={{ workspaceId, projectId }}
+        resourcePath={`workspaces/${workspaceId}/projects/${projectId}/goals`}
+        resourceKey={["goals", projectId]}
+        dialogClassName="sm:max-w-2xl"
+      />
       <ResourceCrudDialog
         isOpen={!!editingGoalId}
         onOpenChange={(isOpen) => !isOpen && setEditingGoalId(null)}

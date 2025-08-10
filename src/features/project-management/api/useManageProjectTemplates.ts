@@ -6,20 +6,16 @@ interface ProjectTemplateQuery {
   page?: number;
   limit?: number;
 }
-export function useManageProjectTemplates() {
-  const resource = useApiResource<ProjectTemplate, ProjectTemplateQuery>(
-    "project-templates",
-    ["projectTemplates"]
+export function useManageProjectTemplates(projectId?: string) {
+  const resourceUrl = projectId
+    ? `projects/${projectId}/templates`
+    : "project-templates";
+  const resourceKey = projectId
+    ? ["projectTemplates", projectId]
+    : ["projectTemplates"];
+
+  return useApiResource<ProjectTemplate, ProjectTemplateQuery>(
+    resourceUrl,
+    resourceKey
   );
-  return resource;
-}
-export function useManageProjectSpecificTemplates(
-  workspaceId: string,
-  projectId: string
-) {
-  const resource = useApiResource(
-    `workspaces/${workspaceId}/projects/${projectId}/templates`,
-    ["projectTemplates", projectId]
-  );
-  return resource;
 }

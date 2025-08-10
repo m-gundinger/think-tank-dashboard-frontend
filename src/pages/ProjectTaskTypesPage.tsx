@@ -5,6 +5,7 @@ import { PlusCircle } from "lucide-react";
 import { useState } from "react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { TaskTypeForm } from "@/features/project-management/components/TaskTypeForm";
+import { ListPageLayout } from "@/components/layout/ListPageLayout";
 
 export function ProjectTaskTypesPage() {
   const { workspaceId, projectId } = useParams<{
@@ -15,15 +16,10 @@ export function ProjectTaskTypesPage() {
 
   if (!workspaceId || !projectId) return <div>Missing URL parameters.</div>;
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-semibold">Task Types</h2>
-          <p className="text-muted-foreground">
-            Define custom types for tasks in this project, like 'Bug' or
-            'Story'.
-          </p>
-        </div>
+    <ListPageLayout
+      title="Task Types"
+      description="Define custom types for tasks in this project, like 'Bug' or 'Story'."
+      actionButton={
         <ResourceCrudDialog
           isOpen={isCreateOpen}
           onOpenChange={setIsCreateOpen}
@@ -40,8 +36,9 @@ export function ProjectTaskTypesPage() {
           resourcePath={`workspaces/${workspaceId}/projects/${projectId}/task-types`}
           resourceKey={["taskTypes", projectId]}
         />
-      </div>
+      }
+    >
       <TaskTypeList workspaceId={workspaceId} projectId={projectId} />
-    </div>
+    </ListPageLayout>
   );
 }

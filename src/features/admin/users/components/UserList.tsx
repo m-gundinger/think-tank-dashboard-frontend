@@ -1,24 +1,14 @@
 import { useState } from "react";
-import { useApiResource } from "@/hooks/useApiResource";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { Trash2, ShieldAlert } from "lucide-react";
 import {
   DataTable,
   DataTableWrapper,
   ColumnDef,
 } from "@/components/ui/DataTable";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { MoreHorizontal, Edit, ShieldAlert } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useSetUserStatus } from "../api/useSetUserStatus";
 import { useHardDeleteUser } from "../api/useHardDeleteUser";
@@ -28,79 +18,17 @@ import { ManageUserRoles } from "./ManageUserRoles";
 import { ProfileAvatar } from "@/features/user-management/components/ProfileAvatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { User } from "@/types";
-
-interface UserQuery {
-  page?: number;
-}
-
-const UserActionsCell = ({
-  user,
-  onEdit,
-}: {
-  user: User;
-  onEdit: (id: string) => void;
-}) => {
-  const userResource = useApiResource("admin/users", ["users"]);
-  const deleteUserMutation = userResource.useDelete();
-  const hardDeleteUserMutation = useHardDeleteUser();
-
-  const handleDelete = (isHard: boolean) => {
-    const action = isHard ? "permanently delete" : "deactivate";
-    if (
-      window.confirm(`Are you sure you want to ${action} user: ${user.name}?`)
-    ) {
-      if (isHard) {
-        hardDeleteUserMutation.mutate(user.id);
-      } else {
-        deleteUserMutation.mutate(user.id);
-      }
-    }
-  };
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="h-8 w-8 p-0">
-          <span className="sr-only">Open menu</span>
-          <MoreHorizontal className="h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-        <DropdownMenuItem onClick={() => onEdit(user.id)}>
-          <Edit className="mr-2 h-4 w-4" />
-          <span>Edit User & Roles</span>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          className="text-amber-600 focus:text-amber-600"
-          onClick={() => handleDelete(false)}
-          disabled={deleteUserMutation.isPending}
-        >
-          <Trash2 className="mr-2 h-4 w-4" />
-          <span>Deactivate (Soft Delete)</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          className="text-red-600 focus:text-red-600"
-          onClick={() => handleDelete(true)}
-          disabled={hardDeleteUserMutation.isPending}
-        >
-          <ShieldAlert className="mr-2 h-4 w-4" />
-          <span>Hard Delete</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-};
+import { ActionMenu } from "@/components/ui/ActionMenu";
+import { useManageUsers } from "../api/useManageUsers";
 
 export function UserList() {
   const [page, setPage] = useState(1);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
-  const userResource = useApiResource<User, UserQuery>("admin/users", [
-    "users",
-  ]);
-  const deleteMutation = userResource.useDelete();
+  const { useGetAll, useDelete } = useManageUsers();
+  const deleteUserMutation = useDelete();
+  const hardDeleteUserMutation = useHardDeleteUser();
   const setUserStatusMutation = useSetUserStatus();
-  const { data, isLoading, isError } = userResource.useGetAll({ page });
+  const { data, isLoading, isError } = useGetAll({ page });
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
@@ -110,8 +38,8 @@ export function UserList() {
     {
       accessorKey: "name",
       header: "Name",
-      cell: (row: User) => {
-        const user = row;
+      cell: ({ row }) => {
+        const user = row.original;
         return (
           <div className="flex items-center gap-3">
             <Avatar className="h-9 w-9">
@@ -129,13 +57,13 @@ export function UserList() {
     {
       accessorKey: "email",
       header: "Email",
-      cell: (row: User) => row.email,
+      cell: ({ row }) => row.original.email,
     },
     {
       accessorKey: "status",
       header: "Status",
-      cell: (row: User) => {
-        const user = row;
+      cell: ({ row }) => {
+        const user = row.original;
         return (
           <div className="flex items-center gap-2">
             <Switch
@@ -157,8 +85,8 @@ export function UserList() {
     {
       accessorKey: "roles",
       header: "Roles",
-      cell: (row: User) => {
-        const user = row;
+      cell: ({ row }) => {
+        const user = row.original;
         return (
           <div className="flex flex-wrap gap-1">
             {user.roles.map((role: string) => (
@@ -173,14 +101,8 @@ export function UserList() {
     {
       accessorKey: "createdAt",
       header: "Created At",
-      cell: (row: User) => new Date(row.createdAt).toLocaleDateString("en-US"),
-    },
-    {
-      accessorKey: "actions",
-      header: "Actions",
-      cell: (row: User) => (
-        <UserActionsCell user={row} onEdit={setEditingUserId} />
-      ),
+      cell: ({ row }) =>
+        new Date(row.original.createdAt).toLocaleDateString("en-US"),
     },
   ];
 
@@ -206,14 +128,52 @@ export function UserList() {
                     `Deactivate ${selectedIds.length} selected users?`
                   )
                 ) {
-                  deleteMutation.mutate(selectedIds);
+                  deleteUserMutation.mutate(selectedIds);
                 }
               }}
-              disabled={deleteMutation.isPending}
+              disabled={deleteUserMutation.isPending}
             >
               <Trash2 className="mr-2 h-4 w-4" />
               Deactivate ({selectedIds.length})
             </Button>
+          )}
+          onRowClick={(row) => setEditingUserId(row.id)}
+          renderRowActions={(row) => (
+            <ActionMenu
+              onEdit={() => setEditingUserId(row.id)}
+              customActions={[
+                {
+                  label: "Deactivate (Soft Delete)",
+                  icon: Trash2,
+                  className: "text-amber-600 focus:text-amber-600",
+                  onClick: () => {
+                    if (
+                      window.confirm(
+                        `Are you sure you want to deactivate user: ${row.name}?`
+                      )
+                    ) {
+                      deleteUserMutation.mutate(row.id);
+                    }
+                  },
+                  disabled: deleteUserMutation.isPending,
+                },
+                {
+                  label: "Hard Delete",
+                  icon: ShieldAlert,
+                  className: "text-red-600 focus:text-red-600",
+                  onClick: () => {
+                    if (
+                      window.confirm(
+                        `Are you sure you want to PERMANENTLY DELETE user: ${row.name}? This action cannot be undone.`
+                      )
+                    ) {
+                      hardDeleteUserMutation.mutate(row.id);
+                    }
+                  },
+                  disabled: hardDeleteUserMutation.isPending,
+                },
+              ]}
+            />
           )}
         />
       </DataTableWrapper>
@@ -228,7 +188,7 @@ export function UserList() {
         formProps={{ isSelfProfile: false }}
         isOpen={!!editingUserId}
         onOpenChange={(isOpen) => !isOpen && setEditingUserId(null)}
-        dialogClassName="grid h-full max-h-[90vh] grid-cols-1 gap-8 p-6 sm:max-w-4xl lg:grid-cols-3"
+        dialogClassName="sm:max-w-4xl"
       >
         {(user) => (
           <div className="space-y-6 lg:col-span-1">

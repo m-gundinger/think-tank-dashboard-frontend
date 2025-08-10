@@ -1,20 +1,15 @@
-import { useForm, FormProvider } from "react-hook-form";
-import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
-import { FormInput } from "@/components/form/FormFields";
-import { useEffect } from "react";
 import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useCreateView } from "@/features/project-management/api/useCreateView";
 import { toast } from "sonner";
 import { nameSchema, descriptionSchema } from "@/lib/schemas";
-import { useManageProjects } from "@/features/project-management/api/useManageProjects";
+import { useCreateView } from "@/features/project-management/api/useCreateView";
+import { ResourceForm } from "@/components/form/ResourceForm";
+import { FormInput } from "@/components/form/FormFields";
+import { useManageProjects } from "../api/useManageProjects";
 
 const projectSchema = z.object({
   name: nameSchema("Project"),
   description: descriptionSchema,
 });
-type ProjectFormValues = z.infer<typeof projectSchema>;
 
 interface ProjectFormProps {
   workspaceId: string;
@@ -27,69 +22,45 @@ export function ProjectForm({
   initialData,
   onSuccess,
 }: ProjectFormProps) {
-  const isEditMode = !!initialData;
-  const { useCreate, useUpdate } = useManageProjects(workspaceId);
-  const createProjectMutation = useCreate();
-  const updateMutation = useUpdate();
   const createViewMutation = useCreateView(workspaceId);
+  const resource = useManageProjects(workspaceId);
 
-  const methods = useForm<ProjectFormValues>({
-    resolver: zodResolver(projectSchema),
-    defaultValues: { name: "", description: "" },
-  });
-  useEffect(() => {
-    if (isEditMode && initialData) {
-      methods.reset({
-        name: initialData.name,
-        description: initialData.description || "",
-      });
-    }
-  }, [initialData, isEditMode, methods]);
-  async function onSubmit(values: ProjectFormValues) {
-    if (isEditMode) {
-      await updateMutation.mutateAsync(
-        { id: initialData.id, data: values },
-        { onSuccess }
-      );
-    } else {
-      createProjectMutation.mutate(
-        { ...values, workspaceId },
-        {
-          onSuccess: async (newProject) => {
-            toast.success(
-              `Project "${newProject.name}" created. Setting up default views...`
-            );
-            const listPromise = createViewMutation.mutateAsync({
-              viewData: { name: "List", type: "LIST" },
-              projectId: newProject.id,
-            });
-            const kanbanPromise = createViewMutation.mutateAsync({
-              viewData: {
-                name: "Kanban",
-                type: "KANBAN",
-                columns: [
-                  { name: "To Do" },
-                  { name: "In Progress" },
-                  { name: "In Review" },
-                  { name: "Done" },
-                ],
-              },
-              projectId: newProject.id,
-            });
-            await Promise.all([listPromise, kanbanPromise]);
-            toast.success("Default views created.");
-            onSuccess?.();
-          },
-        }
-      );
-    }
-  }
+  const handleCreateSuccess = async (newProject: any) => {
+    toast.success(
+      `Project "${newProject.name}" created. Setting up default views...`
+    );
+    const listPromise = createViewMutation.mutateAsync({
+      viewData: { name: "List", type: "LIST" },
+      projectId: newProject.id,
+    });
+    const kanbanPromise = createViewMutation.mutateAsync({
+      viewData: {
+        name: "Kanban",
+        type: "KANBAN",
+        columns: [
+          { name: "To Do" },
+          { name: "In Progress" },
+          { name: "In Review" },
+          { name: "Done" },
+        ],
+      },
+      projectId: newProject.id,
+    });
+    await Promise.all([listPromise, kanbanPromise]);
+    toast.success("Default views created.");
+    onSuccess?.();
+  };
 
-  const mutation = isEditMode ? updateMutation : createProjectMutation;
   return (
-    <FormProvider {...methods}>
-      <Form {...methods}>
-        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
+    <ResourceForm
+      schema={projectSchema}
+      resourcePath={resource.resourceUrl}
+      resourceKey={resource.resourceKey}
+      initialData={initialData}
+      onSuccess={initialData ? onSuccess : handleCreateSuccess}
+      processValues={(values) => ({ ...values, workspaceId })}
+      renderFields={() => (
+        <>
           <FormInput
             name="name"
             label="Project Name"
@@ -100,21 +71,8 @@ export function ProjectForm({
             label="Description (Optional)"
             placeholder="A short description of the project's goals"
           />
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={mutation.isPending}
-          >
-            {mutation.isPending
-              ? isEditMode
-                ? "Saving..."
-                : "Creating..."
-              : isEditMode
-                ? "Save Changes"
-                : "Create Project"}
-          </Button>
-        </form>
-      </Form>
-    </FormProvider>
+        </>
+      )}
+    />
   );
 }

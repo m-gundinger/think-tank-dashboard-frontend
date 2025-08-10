@@ -87,7 +87,7 @@ function SortableItem({ stage, onRemove, onUpdate }: any) {
       className="flex items-center gap-2 rounded-md bg-white p-2"
     >
       <span {...attributes} {...listeners} className="cursor-grab p-1">
-        <GripVertical className="text-muted-foreground h-5 w-5" />
+        <GripVertical className="h-5 w-5 text-muted-foreground" />
       </span>
       <Input
         value={name}
@@ -95,7 +95,7 @@ function SortableItem({ stage, onRemove, onUpdate }: any) {
         onBlur={() => onUpdate(stage.id, { name })}
       />
       <Button variant="ghost" size="icon" onClick={() => onRemove(stage.id)}>
-        <Trash2 className="text-destructive h-4 w-4" />
+        <Trash2 className="h-4 w-4 text-destructive" />
       </Button>
     </div>
   );
@@ -106,7 +106,7 @@ export function DealStageManager() {
 
   if (!projectId) {
     return (
-      <div className="text-muted-foreground p-4 text-center">
+      <div className="p-4 text-center text-muted-foreground">
         Deal stages are managed within a project. Please navigate to a project's
         settings to manage its deal stages.
       </div>
@@ -148,7 +148,7 @@ export function DealStageManager() {
 
   return (
     <div className="space-y-4">
-      <div className="bg-muted h-96 space-y-2 overflow-y-auto rounded-md p-2">
+      <div className="h-96 space-y-2 overflow-y-auto rounded-md bg-muted p-2">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}

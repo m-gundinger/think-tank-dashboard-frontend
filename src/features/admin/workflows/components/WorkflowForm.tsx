@@ -1,8 +1,5 @@
-import { useForm, useFieldArray } from "react-hook-form";
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
 import {
-  Form,
   FormControl,
   FormDescription,
   FormField,
@@ -24,12 +21,13 @@ import {
   TaskStatus,
   WorkflowActionType,
 } from "@/types/api";
-import { useApiResource } from "@/hooks/useApiResource";
 import { ActionRepeater } from "./ActionRepeater";
 import { PlusCircle } from "lucide-react";
 import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Workflow } from "@/types";
+import { ResourceForm } from "@/components/form/ResourceForm";
+import { useFieldArray } from "react-hook-form";
+import { Button } from "@/components/ui/button";
 
 const createTaskConfigSchema = z.object({
   title: z.string().min(1),
@@ -121,218 +119,204 @@ const workflowSchema = z
     }
   );
 
-type WorkflowFormValues = z.infer<typeof workflowSchema>;
-
 interface WorkflowFormProps {
   initialData?: Workflow;
   onSuccess?: () => void;
 }
 
 export function WorkflowForm({ initialData, onSuccess }: WorkflowFormProps) {
-  const workflowResource = useApiResource("admin/workflows", ["workflows"]);
-  const isEditMode = !!initialData;
-  const createMutation = workflowResource.useCreate();
-  const updateMutation = workflowResource.useUpdate();
-  const mutation = isEditMode ? updateMutation : createMutation;
-
   const [triggerMode, setTriggerMode] = useState(
     initialData?.cronExpression ? "schedule" : "event"
   );
 
-  const methods = useForm<WorkflowFormValues>({
-    resolver: zodResolver(workflowSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-      triggerType: ActivityActionType.TASK_CREATED,
-      cronExpression: "",
-      enabled: true,
-      actions: [],
-    },
-  });
-
-  useEffect(() => {
-    if (isEditMode && initialData) {
-      methods.reset({
+  const processedInitialData = initialData
+    ? {
         ...initialData,
         description: initialData.description ?? "",
         actions: initialData.actions as any[],
-      });
-      setTriggerMode(initialData.cronExpression ? "schedule" : "event");
-    }
-  }, [initialData, isEditMode, methods]);
+      }
+    : {
+        name: "",
+        description: "",
+        triggerType: ActivityActionType.TASK_CREATED,
+        cronExpression: "",
+        enabled: true,
+        actions: [],
+      };
 
+  return (
+    <ResourceForm
+      schema={workflowSchema}
+      resourcePath="admin/workflows"
+      resourceKey={["workflows"]}
+      initialData={processedInitialData}
+      onSuccess={onSuccess}
+      processValues={(values) => ({
+        ...values,
+        actions: values.actions.map((action, index) => ({
+          ...action,
+          order: index,
+        })),
+        triggerType: triggerMode === "event" ? values.triggerType : null,
+        cronExpression:
+          triggerMode === "schedule" ? values.cronExpression : null,
+      })}
+      className="space-y-6"
+      renderFields={({ control }) => (
+        <WorkflowFormFields
+          control={control}
+          triggerMode={triggerMode}
+          setTriggerMode={setTriggerMode}
+        />
+      )}
+    />
+  );
+}
+
+const WorkflowFormFields = ({
+  control,
+  triggerMode,
+  setTriggerMode,
+}: {
+  control: any;
+  triggerMode: string;
+  setTriggerMode: (mode: string) => void;
+}) => {
   const { fields, append, remove } = useFieldArray({
-    control: methods.control,
+    control,
     name: "actions",
   });
 
-  async function onSubmit(values: WorkflowFormValues) {
-    const finalValues = {
-      ...values,
-      actions: values.actions.map((action: any, index: any) => ({
-        ...action,
-        order: index,
-      })),
-      triggerType: triggerMode === "event" ? values.triggerType : null,
-      cronExpression: triggerMode === "schedule" ? values.cronExpression : null,
-    };
-
-    if (isEditMode) {
-      await updateMutation.mutateAsync(
-        { id: initialData.id, data: finalValues },
-        { onSuccess }
-      );
-    } else {
-      await createMutation.mutateAsync(finalValues, {
-        onSuccess: () => {
-          methods.reset();
-          onSuccess?.();
-        },
-      });
-    }
-  }
-
   return (
-    <Form {...methods}>
-      <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-6">
+    <>
+      <FormField
+        control={control}
+        name="name"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Workflow Name</FormLabel>
+            <FormControl>
+              <Input placeholder="e.g., Notify on Task Creation" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormItem className="space-y-3">
+        <FormLabel>When this happens...</FormLabel>
+        <FormControl>
+          <RadioGroup
+            onValueChange={setTriggerMode}
+            defaultValue={triggerMode}
+            className="flex items-center space-x-4"
+          >
+            <FormItem className="flex items-center space-x-2 space-y-0">
+              <FormControl>
+                <RadioGroupItem value="event" />
+              </FormControl>
+              <FormLabel className="font-normal">An event occurs</FormLabel>
+            </FormItem>
+            <FormItem className="flex items-center space-x-2 space-y-0">
+              <FormControl>
+                <RadioGroupItem value="schedule" />
+              </FormControl>
+              <FormLabel className="font-normal">
+                On a schedule (CRON)
+              </FormLabel>
+            </FormItem>
+          </RadioGroup>
+        </FormControl>
+        <FormMessage />
+      </FormItem>
+
+      {triggerMode === "event" && (
         <FormField
-          control={methods.control}
-          name="name"
+          control={control}
+          name="triggerType"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Workflow Name</FormLabel>
-              <FormControl>
-                <Input placeholder="e.g., Notify on Task Creation" {...field} />
-              </FormControl>
+              <FormLabel>Event</FormLabel>
+              <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value ?? ""}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a trigger event" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {Object.values(ActivityActionType).map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type.replace(/_/g, " ")}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
         />
+      )}
 
-        <FormItem className="space-y-3">
-          <FormLabel>When this happens...</FormLabel>
-          <FormControl>
-            <RadioGroup
-              onValueChange={setTriggerMode}
-              defaultValue={triggerMode}
-              className="flex items-center space-x-4"
-            >
-              <FormItem className="flex items-center space-y-0 space-x-2">
-                <FormControl>
-                  <RadioGroupItem value="event" />
-                </FormControl>
-                <FormLabel className="font-normal">An event occurs</FormLabel>
-              </FormItem>
-              <FormItem className="flex items-center space-y-0 space-x-2">
-                <FormControl>
-                  <RadioGroupItem value="schedule" />
-                </FormControl>
-                <FormLabel className="font-normal">
-                  On a schedule (CRON)
-                </FormLabel>
-              </FormItem>
-            </RadioGroup>
-          </FormControl>
-          <FormMessage />
-        </FormItem>
+      {triggerMode === "schedule" && (
+        <FormField
+          control={control}
+          name="cronExpression"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>CRON Expression</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="e.g., 0 2 * * *"
+                  {...field}
+                  value={field.value ?? ""}
+                />
+              </FormControl>
+              <FormDescription>
+                Define when this workflow will run. e.g., '0 2 * * *' for every
+                day at 2 AM.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      )}
 
-        {triggerMode === "event" && (
-          <FormField
-            control={methods.control}
-            name="triggerType"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Event</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value ?? ""}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a trigger event" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {Object.values(ActivityActionType).map((type) => (
-                      <SelectItem key={type} value={type}>
-                        {type.replace(/_/g, " ")}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
-
-        {triggerMode === "schedule" && (
-          <FormField
-            control={methods.control}
-            name="cronExpression"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>CRON Expression</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="e.g., 0 2 * * *"
-                    {...field}
-                    value={field.value ?? ""}
-                  />
-                </FormControl>
-                <FormDescription>
-                  Define when this workflow will run. e.g., '0 2 * * *' for
-                  every day at 2 AM.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
-
-        <div>
-          <h3 className="mb-2 text-sm font-medium">Do this...</h3>
-          <div className="space-y-4 rounded-md border p-4">
-            {fields.map((field, index) => (
-              <ActionRepeater
-                key={field.id}
-                control={methods.control}
-                index={index}
-                remove={remove}
-              />
-            ))}
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                append({
-                  type: WorkflowActionType.UPDATE_TASK_STATUS,
-                  config: { status: TaskStatus.IN_PROGRESS },
-                  order: fields.length,
-                } as any)
-              }
-            >
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Add Action
-            </Button>
-          </div>
-          <FormField
-            control={methods.control}
-            name="actions"
-            render={() => <FormMessage />}
-          />
+      <div>
+        <h3 className="mb-2 text-sm font-medium">Do this...</h3>
+        <div className="space-y-4 rounded-md border p-4">
+          {fields.map((field, index) => (
+            <ActionRepeater
+              key={field.id}
+              control={control}
+              index={index}
+              remove={remove}
+            />
+          ))}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              append({
+                type: WorkflowActionType.UPDATE_TASK_STATUS,
+                config: { status: TaskStatus.IN_PROGRESS },
+                order: fields.length,
+              } as any)
+            }
+          >
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add Action
+          </Button>
         </div>
-
-        <Button type="submit" className="w-full" disabled={mutation.isPending}>
-          {mutation.isPending
-            ? "Saving..."
-            : isEditMode
-              ? "Save Changes"
-              : "Create Workflow"}
-        </Button>
-      </form>
-    </Form>
+        <FormField
+          control={control}
+          name="actions"
+          render={() => <FormMessage />}
+        />
+      </div>
+    </>
   );
-}
+};

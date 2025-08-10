@@ -1,9 +1,8 @@
-import { useForm, FormProvider } from "react-hook-form";
-import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
-import { FormInput } from "@/components/form/FormFields";
 import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { FormInput } from "@/components/form/FormFields";
+import { FormWrapper } from "@/components/form/FormWrapper";
+import { UseMutationResult } from "@tanstack/react-query";
+import { AxiosError } from "axios";
 
 const linkSchema = z.object({
   title: z.string().min(1, "A title is required."),
@@ -12,26 +11,22 @@ const linkSchema = z.object({
 type LinkFormValues = z.infer<typeof linkSchema>;
 
 interface LinkDocumentFormProps {
-  onSubmit: (values: LinkFormValues) => Promise<void>;
-  isPending: boolean;
+  onSubmit: (values: LinkFormValues) => void;
+  mutation: UseMutationResult<any, AxiosError, any, any>;
 }
 
 export function LinkDocumentForm({
   onSubmit,
-  isPending,
+  mutation,
 }: LinkDocumentFormProps) {
-  const methods = useForm<LinkFormValues>({
-    resolver: zodResolver(linkSchema),
-    defaultValues: {
-      title: "",
-      externalUrl: "",
-    },
-  });
-
   return (
-    <FormProvider {...methods}>
-      <Form {...methods}>
-        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
+    <FormWrapper
+      schema={linkSchema}
+      onSubmit={onSubmit}
+      mutation={mutation}
+      submitButtonText="Link Document"
+      renderFields={() => (
+        <>
           <FormInput
             name="title"
             label="Title"
@@ -42,11 +37,8 @@ export function LinkDocumentForm({
             label="URL"
             placeholder="https://example.com/document"
           />
-          <Button type="submit" className="w-full" disabled={isPending}>
-            {isPending ? "Linking..." : "Link Document"}
-          </Button>
-        </form>
-      </Form>
-    </FormProvider>
+        </>
+      )}
+    />
   );
 }

@@ -1,9 +1,12 @@
 import { useApiResource } from "@/hooks/useApiResource";
 import { Announcement } from "@/types";
 
+interface AnnouncementQuery {
+  page?: number;
+}
+
 export function useManageAnnouncements() {
-  const resource = useApiResource<Announcement>("announcements", [
+  return useApiResource<Announcement, AnnouncementQuery>("announcements", [
     "announcements",
   ]);
-  return resource;
 }

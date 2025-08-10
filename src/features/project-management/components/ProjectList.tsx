@@ -1,14 +1,13 @@
-import { useApiResource } from "@/hooks/useApiResource";
-import { ProjectCard } from "./ProjectCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ErrorState } from "@/components/ui/error-state";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FolderKanban } from "lucide-react";
 import { useState } from "react";
+import { ProjectCard } from "./ProjectCard";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { ProjectForm } from "./ProjectForm";
-import { Project, ListProjectsQuery } from "@/types";
+import { useManageProjects } from "../api/useManageProjects";
 
 const ProjectListSkeleton = () => (
   <div className="grid gap-4 pt-6 md:grid-cols-2 lg:grid-cols-3">
@@ -26,11 +25,9 @@ const ProjectListSkeleton = () => (
   </div>
 );
 export function ProjectList({ workspaceId }: { workspaceId: string }) {
-  const projectResource = useApiResource<Project, ListProjectsQuery>(
-    `workspaces/${workspaceId}/projects`,
-    ["projects", workspaceId]
-  );
-  const { data, isLoading, isError, error } = projectResource.useGetAll();
+  const { useGetAll, resourceUrl, resourceKey } =
+    useManageProjects(workspaceId);
+  const { data, isLoading, isError, error } = useGetAll();
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
 
   if (isLoading) {
@@ -57,7 +54,7 @@ export function ProjectList({ workspaceId }: { workspaceId: string }) {
     return (
       <div className="pt-6">
         <EmptyState
-          icon={<FolderKanban className="text-primary h-10 w-10" />}
+          icon={<FolderKanban className="h-10 w-10 text-primary" />}
           title="This workspace has no projects yet."
           description="Create the first project in this workspace to get started."
         />
@@ -80,8 +77,8 @@ export function ProjectList({ workspaceId }: { workspaceId: string }) {
         description="Make changes to your project here. Click save when you're done."
         form={ProjectForm}
         formProps={{ workspaceId }}
-        resourcePath={`workspaces/${workspaceId}/projects`}
-        resourceKey={["projects", workspaceId]}
+        resourcePath={resourceUrl}
+        resourceKey={resourceKey}
         resourceId={editingProjectId}
       />
     </>

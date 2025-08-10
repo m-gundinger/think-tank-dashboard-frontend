@@ -1,5 +1,12 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useState, useMemo } from "react";
+import { cn, getAbsoluteUrl } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Command,
   CommandEmpty,
@@ -8,19 +15,13 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Check, UserPlus, X } from "lucide-react";
 import { useGetProjectMembers } from "@/features/project-management/api/useGetProjectMembers";
 import { useApiResource } from "@/hooks/useApiResource";
-import { Check, UserPlus, X } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useApiMutation } from "@/hooks/useApiMutation";
 import api from "@/lib/api";
-import { cn, getAbsoluteUrl } from "@/lib/utils";
-import { useMemo, useState } from "react";
-import { Badge } from "@/components/ui/badge";
+
 export function TaskAssignees({ task }: any) {
   const [popoverOpen, setPopoverOpen] = useState(false);
 

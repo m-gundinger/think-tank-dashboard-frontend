@@ -19,20 +19,15 @@ const formatKeyResultValue = (value: number, type: KeyResultType) => {
   }
 };
 
-export function GoalTrackingWidget({ widget, workspaceId, projectId }: any) {
-  const { data, isLoading } = useGetWidgetData(
-    workspaceId,
-    projectId,
-    widget.dashboardId,
-    widget.id
-  );
+export function GoalTrackingWidget({ widget }: any) {
+  const { data, isLoading } = useGetWidgetData(widget.dashboardId, widget.id);
 
   if (isLoading) return <Skeleton className="h-full w-full" />;
 
   const payload = data?.payload;
   if (!payload)
     return (
-      <div className="text-muted-foreground text-sm">
+      <div className="text-sm text-muted-foreground">
         Please configure this widget.
       </div>
     );

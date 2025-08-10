@@ -3,9 +3,9 @@ import { useManageReports } from "../api/useManageReports";
 import { EmptyState } from "@/components/ui/empty-state";
 import { BarChart } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { EntityCard } from "@/components/ui/EntityCard";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { ReportForm } from "./ReportForm";
+import { ReportCard } from "./ReportCard";
 
 const ListSkeleton = () => (
   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -42,14 +42,11 @@ export function ReportList() {
     <>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {reports.map((report: any) => (
-          <EntityCard
+          <ReportCard
             key={report.id}
-            title={report.title}
-            description="Custom report"
-            icon={BarChart}
-          >
-            <></>
-          </EntityCard>
+            report={report}
+            onEdit={() => setEditingId(report.id)}
+          />
         ))}
       </div>
       <ResourceCrudDialog

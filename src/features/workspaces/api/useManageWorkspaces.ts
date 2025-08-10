@@ -1,6 +1,6 @@
 import { useApiResource } from "@/hooks/useApiResource";
+import { Workspace } from "@/types";
 
 export function useManageWorkspaces() {
-  const resource = useApiResource("workspaces", ["workspaces"]);
-  return resource;
+  return useApiResource<Workspace>("workspaces", ["workspaces"]);
 }

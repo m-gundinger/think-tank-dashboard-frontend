@@ -8,18 +8,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { CustomFieldDefinitionForm } from "./CustomFieldDefinitionForm";
+import { ActionMenu } from "@/components/ui/ActionMenu";
 
 interface ListProps {
   workspaceId: string;
@@ -67,29 +60,11 @@ export function CustomFieldDefinitionList({
                     <Badge variant="outline">{field.type}</Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuItem
-                          onClick={() => setEditingFieldId(field.id)}
-                        >
-                          <Edit className="mr-2 h-4 w-4" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-red-500"
-                          onClick={() => handleDelete(field)}
-                          disabled={deleteMutation.isPending}
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <ActionMenu
+                      onEdit={() => setEditingFieldId(field.id)}
+                      onDelete={() => handleDelete(field)}
+                      deleteDisabled={deleteMutation.isPending}
+                    />
                   </TableCell>
                 </TableRow>
               ))

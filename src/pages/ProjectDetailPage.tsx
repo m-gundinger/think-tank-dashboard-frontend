@@ -3,7 +3,7 @@ import { usePresence } from "@/hooks/usePresence";
 import { ErrorState } from "@/components/ui/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useManageProjects } from "@/features/project-management/api/useManageProjects";
-import { TasksPage } from "./tasks/TasksPage";
+import { TasksPage } from "./TasksPage";
 import { useProjectSocket } from "@/hooks/useProjectSocket";
 
 export function ProjectDetailPage() {

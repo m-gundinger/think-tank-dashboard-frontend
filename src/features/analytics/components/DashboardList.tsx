@@ -39,7 +39,7 @@ export function DashboardList(scope: {
           <DashboardCard
             dashboard={dashboard}
             key={dashboard.id}
-            onEdit={setEditingDashboardId}
+            onEdit={() => setEditingDashboardId(dashboard.id)}
           />
         ))}
       </div>
@@ -52,7 +52,7 @@ export function DashboardList(scope: {
         title="Edit Dashboard"
         description="Make changes to your dashboard here. Click save when you're done."
         form={DashboardForm}
-        formProps={scope}
+        formProps={{ scope }}
       />
     </>
   );

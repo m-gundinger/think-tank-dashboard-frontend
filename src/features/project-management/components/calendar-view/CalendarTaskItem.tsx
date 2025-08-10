@@ -7,25 +7,15 @@ import {
 } from "@/components/ui/card";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Edit, Copy, Trash2, Briefcase } from "lucide-react";
 import { useApiResource } from "@/hooks/useApiResource";
 import { useParams } from "react-router-dom";
-import { toast } from "sonner";
 import { Task } from "@/types";
 import { TaskPriority } from "@/types/api";
 import { Badge } from "@/components/ui/badge";
 import { getIcon } from "@/lib/icons";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn, getAbsoluteUrl } from "@/lib/utils";
+import { ActionMenu } from "@/components/ui/ActionMenu";
 
 const priorityBadgeConfig: Partial<
   Record<TaskPriority, { label: string; className: string }>
@@ -87,12 +77,6 @@ export function CalendarTaskItem({
     }
   };
 
-  const handleCopyId = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    navigator.clipboard.writeText(task.shortId || task.id);
-    toast.success("Task ID copied to clipboard.");
-  };
-
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
     onTaskSelect(task.id);
@@ -117,48 +101,14 @@ export function CalendarTaskItem({
       <Card className="mb-2 cursor-grab border-border bg-element hover:bg-hover active:cursor-grabbing">
         <CardHeader className="flex flex-row items-start justify-between p-3 pb-2">
           <CardTitle className="text-sm font-semibold">{task.title}</CardTitle>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 shrink-0 text-muted-foreground hover:bg-hover hover:text-foreground"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent onClick={(e) => e.stopPropagation()}>
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem onClick={handleEdit}>
-                <Edit className="mr-2 h-4 w-4" />
-                <span>View / Edit Details</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleCopyId}>
-                <Copy className="mr-2 h-4 w-4" />
-                <span>Copy Task ID</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-red-500" onClick={handleDelete}>
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <ActionMenu
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            deleteDisabled={deleteTaskMutation.isPending}
+          />
         </CardHeader>
 
-        <CardContent className="flex flex-col gap-2 px-3 pb-2">
-          <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            {!projectId && task.projectName && (
-              <div className="flex items-center gap-1">
-                <Briefcase className="h-3.5 w-3.5" />
-                <span className="truncate">
-                  {task.workspaceName}/{task.projectName}
-                </span>
-              </div>
-            )}
-          </div>
-        </CardContent>
+        <CardContent className="flex flex-col gap-2 px-3 pb-2"></CardContent>
 
         <CardFooter className="flex items-center justify-between p-3 pt-1">
           <div className="flex flex-wrap items-center gap-2">

@@ -5,6 +5,7 @@ import { PlusCircle } from "lucide-react";
 import { useState } from "react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { CreateTemplateForm } from "@/features/project-management/components/CreateTemplateForm";
+import { ListPageLayout } from "@/components/layout/ListPageLayout";
 
 export function ProjectTemplatesPage() {
   const { workspaceId, projectId } = useParams<{
@@ -14,16 +15,11 @@ export function ProjectTemplatesPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   if (!workspaceId || !projectId) return <div>Missing URL parameters.</div>;
-
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-semibold">Project Templates</h2>
-          <p className="text-muted-foreground">
-            Save this project's structure as a template for future use.
-          </p>
-        </div>
+    <ListPageLayout
+      title="Project Templates"
+      description="Save this project's structure as a template for future use."
+      actionButton={
         <ResourceCrudDialog
           isOpen={isCreateOpen}
           onOpenChange={setIsCreateOpen}
@@ -40,8 +36,9 @@ export function ProjectTemplatesPage() {
           resourcePath={`project-templates`}
           resourceKey={["projectTemplates"]}
         />
-      </div>
+      }
+    >
       <ProjectTemplateList workspaceId={workspaceId} projectId={projectId} />
-    </div>
+    </ListPageLayout>
   );
 }

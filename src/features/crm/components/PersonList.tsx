@@ -47,7 +47,8 @@ export function PersonList({ onPersonSelect }: PersonListProps) {
     {
       accessorKey: "name",
       header: "Name",
-      cell: (person: Person) => {
+      cell: ({ row }) => {
+        const person = row.original;
         return (
           <div
             className="flex cursor-pointer items-center gap-3"
@@ -69,14 +70,17 @@ export function PersonList({ onPersonSelect }: PersonListProps) {
     {
       accessorKey: "email",
       header: "Email",
-      cell: (person: Person) => (
-        <div onClick={() => onPersonSelect(person.id)}>{person.email}</div>
+      cell: ({ row }) => (
+        <div onClick={() => onPersonSelect(row.original.id)}>
+          {row.original.email}
+        </div>
       ),
     },
     {
       accessorKey: "roles",
       header: "Roles",
-      cell: (person: Person) => {
+      cell: ({ row }) => {
+        const person = row.original;
         return (
           <div
             className="flex flex-wrap gap-1"

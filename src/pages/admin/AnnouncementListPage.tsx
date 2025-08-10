@@ -5,20 +5,15 @@ import { PlusCircle } from "lucide-react";
 import { useState } from "react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { AnnouncementForm } from "@/features/admin/announcements/components/AnnouncementForm";
+import { ListPageLayout } from "@/components/layout/ListPageLayout";
 
 export function AnnouncementListPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            System Communications
-          </h1>
-          <p className="text-muted-foreground">
-            Create and manage announcements or send real-time broadcasts.
-          </p>
-        </div>
+    <ListPageLayout
+      title="System Communications"
+      description="Create and manage announcements or send real-time broadcasts."
+      actionButton={
         <div className="flex items-center gap-2">
           <BroadcastNotificationDialog />
           <ResourceCrudDialog
@@ -37,8 +32,9 @@ export function AnnouncementListPage() {
             resourceKey={["announcements"]}
           />
         </div>
-      </div>
+      }
+    >
       <AnnouncementList />
-    </div>
+    </ListPageLayout>
   );
 }

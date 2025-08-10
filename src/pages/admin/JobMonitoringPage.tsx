@@ -19,6 +19,7 @@ import {
   useCleanupJobs,
   useEmitJobStats,
 } from "@/features/admin/jobs/api/useJobSystemActions";
+import { ListPageLayout } from "@/components/layout/ListPageLayout";
 
 export function JobMonitoringPage() {
   const [isCreateScheduleOpen, setIsCreateScheduleOpen] = useState(false);
@@ -27,14 +28,10 @@ export function JobMonitoringPage() {
   const emitStatsMutation = useEmitJobStats();
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Job Monitoring</h1>
-        <p className="text-muted-foreground">
-          Monitor and manage background jobs and schedules.
-        </p>
-      </div>
-
+    <ListPageLayout
+      title="Job Monitoring"
+      description="Monitor and manage background jobs and schedules."
+    >
       <Tabs defaultValue="status" className="space-y-4">
         <TabsList>
           <TabsTrigger value="status">System Status</TabsTrigger>
@@ -133,6 +130,6 @@ export function JobMonitoringPage() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+    </ListPageLayout>
   );
 }

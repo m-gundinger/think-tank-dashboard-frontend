@@ -4,16 +4,15 @@ import { UserPlus } from "lucide-react";
 import { useState } from "react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { CreateUserForm } from "@/features/admin/users/components/CreateUserForm";
+import { ListPageLayout } from "@/components/layout/ListPageLayout";
 
 export function UserListPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
-          <p className="text-muted-foreground">View and manage system users.</p>
-        </div>
+    <ListPageLayout
+      title="User Management"
+      description="View and manage system users."
+      actionButton={
         <ResourceCrudDialog
           isOpen={isCreateOpen}
           onOpenChange={setIsCreateOpen}
@@ -29,8 +28,9 @@ export function UserListPage() {
           resourcePath="admin/users"
           resourceKey={["users"]}
         />
-      </div>
+      }
+    >
       <UserList />
-    </div>
+    </ListPageLayout>
   );
 }

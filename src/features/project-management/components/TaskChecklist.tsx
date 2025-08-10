@@ -88,7 +88,7 @@ export function TaskChecklist({ initialItems, onSave }: TaskChecklistProps) {
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold">Checklist</h3>
         {items.length > 0 && (
-          <span className="text-muted-foreground text-xs">
+          <span className="text-xs text-muted-foreground">
             {completedCount} / {items.length}
           </span>
         )}

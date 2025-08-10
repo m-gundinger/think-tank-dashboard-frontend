@@ -167,7 +167,7 @@ export function TaskDetailSidebar({
       <div className="space-y-2">
         <h3 className="text-sm font-semibold">Dates</h3>
         <div>
-          <Label className="text-muted-foreground text-xs">Start Date</Label>
+          <Label className="text-xs text-muted-foreground">Start Date</Label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
@@ -197,7 +197,7 @@ export function TaskDetailSidebar({
           </Popover>
         </div>
         <div>
-          <Label className="text-muted-foreground text-xs">Due Date</Label>
+          <Label className="text-xs text-muted-foreground">Due Date</Label>
           <div className="flex items-center gap-1">
             <Popover>
               <PopoverTrigger asChild>

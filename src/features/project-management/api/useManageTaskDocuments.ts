@@ -93,7 +93,6 @@ async function linkDocument(params: LinkDocumentParams): Promise<any> {
       ? `workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}/documents`
       : `tasks/${taskId}/documents`;
 
-  // Sending as JSON, not multipart/form-data
   const { data } = await api.post(url, linkData, {
     headers: { "Content-Type": "application/json" },
   });

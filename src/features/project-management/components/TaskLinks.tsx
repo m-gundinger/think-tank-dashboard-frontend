@@ -16,7 +16,7 @@ function TaskLinkItem({ link, onRemove, onUpdateType }: any) {
   const target = link.targetTask ?? link.sourceTask;
 
   return (
-    <div className="hover:bg-accent/50 flex items-center justify-between rounded-md p-2 text-sm">
+    <div className="flex items-center justify-between rounded-md p-2 text-sm hover:bg-accent/50">
       <div className="flex min-w-0 items-center gap-2">
         <Link2 className="h-4 w-4 flex-shrink-0" />
         <Select
@@ -34,7 +34,7 @@ function TaskLinkItem({ link, onRemove, onUpdateType }: any) {
             ))}
           </SelectContent>
         </Select>
-        <span className="text-muted-foreground truncate" title={target.title}>
+        <span className="truncate text-muted-foreground" title={target.title}>
           {target.title}
         </span>
       </div>
@@ -94,7 +94,7 @@ export function TaskLinks({ task, workspaceId, projectId }: any) {
             />
           ))
         ) : (
-          <p className="text-muted-foreground p-2 text-center text-xs">
+          <p className="p-2 text-center text-xs text-muted-foreground">
             No linked tasks.
           </p>
         )}

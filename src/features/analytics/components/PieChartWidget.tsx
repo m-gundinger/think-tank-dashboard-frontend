@@ -11,22 +11,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8"];
 
-export function PieChartWidget({ widget, workspaceId, projectId }: any) {
-  const { data, isLoading } = useGetWidgetData(
-    workspaceId,
-    projectId,
-    widget.dashboardId,
-    widget.id
-  );
+export function PieChartWidget({ widget }: any) {
+  const { data, isLoading } = useGetWidgetData(widget.dashboardId, widget.id);
   if (isLoading) return <Skeleton className="h-full w-full" />;
-
   const payload = data?.payload;
   const chartData = payload?.data || [];
 
   if (chartData.length === 0) {
     return (
       <div className="flex h-full items-center justify-center">
-        <p className="text-muted-foreground text-sm">No data to display.</p>
+        <p className="text-sm text-muted-foreground">No data to display.</p>
       </div>
     );
   }

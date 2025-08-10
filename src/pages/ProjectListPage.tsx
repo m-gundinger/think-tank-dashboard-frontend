@@ -12,26 +12,24 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { CreateProjectFromTemplateForm } from "@/features/project-management/components/CreateProjectFromTemplateForm";
+import { ListPageLayout } from "@/components/layout/ListPageLayout";
 
 export function ProjectListPage() {
   const { workspaceId } = useParams<{ workspaceId: string }>();
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [isCreateFromTemplateOpen, setIsCreateFromTemplateOpen] =
-    useState(false);
+  const [dialogState, setDialogState] = useState({
+    open: false,
+    type: "create",
+  });
 
   if (!workspaceId) {
     return <div>Invalid Workspace ID</div>;
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">All Projects</h2>
-          <p className="text-muted-foreground">
-            A list of all projects within this workspace.
-          </p>
-        </div>
+    <ListPageLayout
+      title="All Projects"
+      description="A list of all projects within this workspace."
+      actionButton={
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button>
@@ -40,37 +38,47 @@ export function ProjectListPage() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => setIsCreateOpen(true)}>
+            <DropdownMenuItem
+              onClick={() => setDialogState({ open: true, type: "create" })}
+            >
               New Blank Project
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setIsCreateFromTemplateOpen(true)}>
+            <DropdownMenuItem
+              onClick={() =>
+                setDialogState({ open: true, type: "createFromTemplate" })
+              }
+            >
               New from Template
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-
-        <ResourceCrudDialog
-          isOpen={isCreateOpen}
-          onOpenChange={setIsCreateOpen}
-          title="Create a new project"
-          description="Projects live inside workspaces and contain your tasks."
-          form={ProjectForm}
-          formProps={{ workspaceId }}
-          resourcePath={`workspaces/${workspaceId}/projects`}
-          resourceKey={["projects", workspaceId]}
-        />
-        <ResourceCrudDialog
-          isOpen={isCreateFromTemplateOpen}
-          onOpenChange={setIsCreateFromTemplateOpen}
-          title="Create from Template"
-          description="Create a new project based on an existing template."
-          form={CreateProjectFromTemplateForm}
-          formProps={{ workspaceId }}
-          resourcePath={""}
-          resourceKey={[]}
-        />
-      </div>
+      }
+    >
       <ProjectList workspaceId={workspaceId} />
-    </div>
+      <ResourceCrudDialog
+        isOpen={dialogState.open && dialogState.type === "create"}
+        onOpenChange={(isOpen) =>
+          setDialogState({ ...dialogState, open: isOpen })
+        }
+        title="Create a new project"
+        description="Projects live inside workspaces and contain your tasks."
+        form={ProjectForm}
+        formProps={{ workspaceId }}
+        resourcePath={`workspaces/${workspaceId}/projects`}
+        resourceKey={["projects", workspaceId]}
+      />
+      <ResourceCrudDialog
+        isOpen={dialogState.open && dialogState.type === "createFromTemplate"}
+        onOpenChange={(isOpen) =>
+          setDialogState({ ...dialogState, open: isOpen })
+        }
+        title="Create from Template"
+        description="Create a new project based on an existing template."
+        form={CreateProjectFromTemplateForm}
+        formProps={{ workspaceId }}
+        resourcePath={""} // Not a standard resource, mutation is custom
+        resourceKey={[]}
+      />
+    </ListPageLayout>
   );
 }

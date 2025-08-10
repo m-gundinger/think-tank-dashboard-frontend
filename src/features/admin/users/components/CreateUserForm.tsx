@@ -1,14 +1,10 @@
-import { useForm, FormProvider } from "react-hook-form";
-import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
+import { z } from "zod";
+import { ResourceForm } from "@/components/form/ResourceForm";
 import {
   FormInput,
   FormMultiSelectPopover,
 } from "@/components/form/FormFields";
-import { useApiResource } from "@/hooks/useApiResource";
-import { AxiosError } from "axios";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useManageRoles } from "../../roles/api/useManageRoles";
 
 const createUserSchema = z.object({
   person: z.object({
@@ -18,51 +14,20 @@ const createUserSchema = z.object({
   }),
   roles: z.array(z.string()).optional(),
 });
+
 type CreateUserFormValues = z.infer<typeof createUserSchema>;
 
 interface CreateUserFormProps {
   onSuccess?: () => void;
+  initialData?: CreateUserFormValues;
 }
 
-export function CreateUserForm({ onSuccess }: CreateUserFormProps) {
-  const userResource = useApiResource("admin/users", ["users"]);
-  const roleResource = useApiResource("admin/roles", ["roles"]);
-  const createMutation = userResource.useCreate();
+export function CreateUserForm({
+  onSuccess,
+  initialData,
+}: CreateUserFormProps) {
   const { data: rolesData, isLoading: isLoadingRoles } =
-    roleResource.useGetAll();
-
-  const methods = useForm<CreateUserFormValues>({
-    resolver: zodResolver(createUserSchema),
-    defaultValues: {
-      person: {
-        firstName: "",
-        lastName: "",
-        email: "",
-      },
-      roles: [],
-    },
-  });
-
-  async function onSubmit(values: CreateUserFormValues) {
-    const roleNames =
-      rolesData?.data
-        .filter((r: any) => values.roles?.includes(r.id))
-        .map((r: any) => r.name) || [];
-
-    await createMutation.mutateAsync(
-      { ...values, roles: roleNames },
-      {
-        onSuccess: () => {
-          methods.reset();
-          onSuccess?.();
-        },
-      }
-    );
-  }
-
-  const errorMessage = (
-    createMutation.error as AxiosError<{ message?: string }>
-  )?.response?.data?.message;
+    useManageRoles().useGetAll();
 
   const roleOptions =
     rolesData?.data.map((role: any) => ({
@@ -71,9 +36,21 @@ export function CreateUserForm({ onSuccess }: CreateUserFormProps) {
     })) || [];
 
   return (
-    <FormProvider {...methods}>
-      <Form {...methods}>
-        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
+    <ResourceForm
+      schema={createUserSchema}
+      resourcePath="admin/users"
+      resourceKey={["users"]}
+      initialData={initialData}
+      onSuccess={onSuccess}
+      processValues={(values) => {
+        const roleNames =
+          rolesData?.data
+            .filter((r: any) => values.roles?.includes(r.id))
+            .map((r: any) => r.name) || [];
+        return { ...values, roles: roleNames };
+      }}
+      renderFields={() => (
+        <>
           <FormInput
             name="person.firstName"
             label="First Name"
@@ -95,23 +72,8 @@ export function CreateUserForm({ onSuccess }: CreateUserFormProps) {
             placeholder={isLoadingRoles ? "Loading roles..." : "Select roles"}
             options={roleOptions}
           />
-
-          {errorMessage && (
-            <div className="text-sm font-medium text-red-500">
-              {errorMessage}
-            </div>
-          )}
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={createMutation.isPending}
-          >
-            {createMutation.isPending
-              ? "Sending Invite..."
-              : "Create and Invite User"}
-          </Button>
-        </form>
-      </Form>
-    </FormProvider>
+        </>
+      )}
+    />
   );
 }

@@ -10,13 +10,8 @@ import {
 } from "@/components/ui/recharts";
 import { useGetWidgetData } from "../api/useGetWidgetData";
 
-export function BurndownChartWidget({ widget, workspaceId, projectId }: any) {
-  const { data, isLoading } = useGetWidgetData(
-    workspaceId,
-    projectId,
-    widget.dashboardId,
-    widget.id
-  );
+export function BurndownChartWidget({ widget }: any) {
+  const { data, isLoading } = useGetWidgetData(widget.dashboardId, widget.id);
   if (isLoading) return <div>Loading...</div>;
 
   const payload = data?.payload;

@@ -1,16 +1,13 @@
-import { useApiResource } from "@/hooks/useApiResource";
 import { useState } from "react";
 import { ResourceCrudDialog } from "@/components/ui/ResourceCrudDialog";
 import { RoleCard } from "./RoleCard";
 import { RoleForm } from "./RoleForm";
 import { ManageRolePermissions } from "./ManageRolePermissions";
-import { RoleWithPermissions } from "@/types";
+import { useManageRoles } from "../api/useManageRoles";
 
 export function RoleList() {
-  const roleResource = useApiResource<RoleWithPermissions>("admin/roles", [
-    "roles",
-  ]);
-  const { data, isLoading, isError } = roleResource.useGetAll();
+  const { useGetAll } = useManageRoles();
+  const { data, isLoading, isError } = useGetAll();
   const [editingRoleId, setEditingRoleId] = useState<string | null>(null);
 
   if (isLoading) return <div>Loading roles...</div>;

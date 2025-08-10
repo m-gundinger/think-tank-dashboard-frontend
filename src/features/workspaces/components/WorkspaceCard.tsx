@@ -1,7 +1,8 @@
-import { useApiResource } from "@/hooks/useApiResource";
-import { EntityCard } from "@/components/ui/EntityCard";
 import { CardContent } from "@/components/ui/card";
 import { Workspace } from "@/types";
+import { ActionMenu } from "@/components/ui/ActionMenu";
+import { EntityCard } from "@/components/ui/EntityCard";
+import { useManageWorkspaces } from "../api/useManageWorkspaces";
 
 interface WorkspaceCardProps {
   workspace: Workspace;
@@ -9,8 +10,9 @@ interface WorkspaceCardProps {
 }
 
 export function WorkspaceCard({ workspace, onEdit }: WorkspaceCardProps) {
-  const workspaceResource = useApiResource("workspaces", ["workspaces"]);
-  const deleteMutation = workspaceResource.useDelete();
+  const { useDelete } = useManageWorkspaces();
+  const deleteMutation = useDelete();
+
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
@@ -33,12 +35,16 @@ export function WorkspaceCard({ workspace, onEdit }: WorkspaceCardProps) {
       title={workspace.name}
       description={workspace.description || "No description provided."}
       linkTo={`/workspaces/${workspace.id}/projects`}
-      onEdit={handleEdit}
-      onDelete={handleDelete}
-      deleteDisabled={deleteMutation.isPending}
+      actions={
+        <ActionMenu
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          deleteDisabled={deleteMutation.isPending}
+        />
+      }
     >
       <CardContent>
-        <p className="text-muted-foreground text-sm">
+        <p className="text-sm text-muted-foreground">
           Created on:{" "}
           {new Date(workspace.createdAt).toLocaleDateString("en-US")}
         </p>
