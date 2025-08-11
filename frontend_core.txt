@@ -1,57 +1,4 @@
 
-// FILE: eslint.config.js
-import globals from "globals";
-import pluginJs from "@typescript-eslint/eslint-plugin";
-import parserTs from "@typescript-eslint/parser";
-import pluginReactConfig from "eslint-plugin-react/configs/recommended.js";
-import pluginReactHooks from "eslint-plugin-react-hooks";
-import pluginReactRefresh from "eslint-plugin-react-refresh";
-import configPrettier from "eslint-config-prettier";
-
-export default [
-  {
-    files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"],
-    languageOptions: {
-      parser: parserTs,
-      parserOptions: {
-        ecmaFeatures: { jsx: true },
-      },
-      globals: {
-        ...globals.browser,
-        ...globals.node,
-      },
-    },
-    plugins: {
-      "@typescript-eslint": pluginJs,
-      "react-hooks": pluginReactHooks,
-      "react-refresh": pluginReactRefresh,
-    },
-    rules: {
-      ...pluginJs.configs["eslint-recommended"].rules,
-      ...pluginJs.configs["recommended"].rules,
-      ...pluginReactConfig.rules,
-      ...pluginReactHooks.configs.recommended.rules,
-      "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
-      "react/react-in-jsx-scope": "off",
-      "react/prop-types": "off",
-    },
-    settings: {
-      react: {
-        version: "detect",
-      },
-    },
-  },
-  configPrettier,
-];
-
-// FILE: postcss.config.js
-export default {
-  plugins: {
-    tailwindcss: {},
-    autoprefixer: {},
-  },
-};
-
 // FILE: src/App.tsx
 import { Routes, Route, Navigate } from "react-router-dom";
 import { ProtectedLayout } from "./routes/ProtectedLayout";
@@ -2014,6 +1961,2829 @@ export function RichTextOutput({ html, className }: RichTextOutputProps) {
     />
   );
 }
+
+// FILE: src/components/ui/alert.tsx
+import * as React from "react"
+import { cva, type VariantProps } from "class-variance-authority"
+
+import { cn } from "@/lib/utils"
+
+const alertVariants = cva(
+  "relative w-full rounded-lg border px-4 py-3 text-sm [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground [&>svg~*]:pl-7",
+  {
+    variants: {
+      variant: {
+        default: "bg-background text-foreground",
+        destructive:
+          "border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
+  }
+)
+
+const Alert = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement> & VariantProps<typeof alertVariants>
+>(({ className, variant, ...props }, ref) => (
+  <div
+    ref={ref}
+    role="alert"
+    className={cn(alertVariants({ variant }), className)}
+    {...props}
+  />
+))
+Alert.displayName = "Alert"
+
+const AlertTitle = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLHeadingElement>
+>(({ className, ...props }, ref) => (
+  <h5
+    ref={ref}
+    className={cn("mb-1 font-medium leading-none tracking-tight", className)}
+    {...props}
+  />
+))
+AlertTitle.displayName = "AlertTitle"
+
+const AlertDescription = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("text-sm [&_p]:leading-relaxed", className)}
+    {...props}
+  />
+))
+AlertDescription.displayName = "AlertDescription"
+
+export { Alert, AlertTitle, AlertDescription }
+
+// FILE: src/components/ui/avatar.tsx
+import * as React from "react"
+import * as AvatarPrimitive from "@radix-ui/react-avatar"
+
+import { cn } from "@/lib/utils"
+
+const Avatar = React.forwardRef<
+  React.ElementRef<typeof AvatarPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root>
+>(({ className, ...props }, ref) => (
+  <AvatarPrimitive.Root
+    ref={ref}
+    className={cn(
+      "relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full",
+      className
+    )}
+    {...props}
+  />
+))
+Avatar.displayName = AvatarPrimitive.Root.displayName
+
+const AvatarImage = React.forwardRef<
+  React.ElementRef<typeof AvatarPrimitive.Image>,
+  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>
+>(({ className, ...props }, ref) => (
+  <AvatarPrimitive.Image
+    ref={ref}
+    className={cn("aspect-square h-full w-full", className)}
+    {...props}
+  />
+))
+AvatarImage.displayName = AvatarPrimitive.Image.displayName
+
+const AvatarFallback = React.forwardRef<
+  React.ElementRef<typeof AvatarPrimitive.Fallback>,
+  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Fallback>
+>(({ className, ...props }, ref) => (
+  <AvatarPrimitive.Fallback
+    ref={ref}
+    className={cn(
+      "flex h-full w-full items-center justify-center rounded-full bg-muted",
+      className
+    )}
+    {...props}
+  />
+))
+AvatarFallback.displayName = AvatarPrimitive.Fallback.displayName
+
+export { Avatar, AvatarImage, AvatarFallback }
+
+// FILE: src/components/ui/badge.tsx
+import * as React from "react"
+import { cva, type VariantProps } from "class-variance-authority"
+
+import { cn } from "@/lib/utils"
+
+const badgeVariants = cva(
+  "inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  {
+    variants: {
+      variant: {
+        default:
+          "border-transparent bg-primary text-primary-foreground shadow hover:bg-primary/80",
+        secondary:
+          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        destructive:
+          "border-transparent bg-destructive text-destructive-foreground shadow hover:bg-destructive/80",
+        outline: "text-foreground",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
+  }
+)
+
+export interface BadgeProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+    VariantProps<typeof badgeVariants> {}
+
+function Badge({ className, variant, ...props }: BadgeProps) {
+  return (
+    <div className={cn(badgeVariants({ variant }), className)} {...props} />
+  )
+}
+
+export { Badge, badgeVariants }
+
+// FILE: src/components/ui/button.tsx
+import * as React from "react"
+import { Slot } from "@radix-ui/react-slot"
+import { cva, type VariantProps } from "class-variance-authority"
+
+import { cn } from "@/lib/utils"
+
+const buttonVariants = cva(
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  {
+    variants: {
+      variant: {
+        default:
+          "bg-primary text-primary-foreground shadow hover:bg-primary/90",
+        destructive:
+          "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
+        outline:
+          "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",
+        secondary:
+          "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
+      },
+      size: {
+        default: "h-9 px-4 py-2",
+        sm: "h-8 rounded-md px-3 text-xs",
+        lg: "h-10 rounded-md px-8",
+        icon: "h-9 w-9",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  }
+)
+
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean
+}
+
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : "button"
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
+    )
+  }
+)
+Button.displayName = "Button"
+
+export { Button, buttonVariants }
+
+// FILE: src/components/ui/calendar.tsx
+import * as React from "react"
+import {
+  ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+} from "lucide-react"
+import { DayButton, DayPicker, getDefaultClassNames } from "react-day-picker"
+
+import { cn } from "@/lib/utils"
+import { Button, buttonVariants } from "@/components/ui/button"
+
+function Calendar({
+  className,
+  classNames,
+  showOutsideDays = true,
+  captionLayout = "label",
+  buttonVariant = "ghost",
+  formatters,
+  components,
+  ...props
+}: React.ComponentProps<typeof DayPicker> & {
+  buttonVariant?: React.ComponentProps<typeof Button>["variant"]
+}) {
+  const defaultClassNames = getDefaultClassNames()
+
+  return (
+    <DayPicker
+      showOutsideDays={showOutsideDays}
+      className={cn(
+        "bg-background group/calendar p-3 [--cell-size:2rem] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent",
+        String.raw`rtl:**:[.rdp-button\_next>svg]:rotate-180`,
+        String.raw`rtl:**:[.rdp-button\_previous>svg]:rotate-180`,
+        className
+      )}
+      captionLayout={captionLayout}
+      formatters={{
+        formatMonthDropdown: (date) =>
+          date.toLocaleString("default", { month: "short" }),
+        ...formatters,
+      }}
+      classNames={{
+        root: cn("w-fit", defaultClassNames.root),
+        months: cn(
+          "relative flex flex-col gap-4 md:flex-row",
+          defaultClassNames.months
+        ),
+        month: cn("flex w-full flex-col gap-4", defaultClassNames.month),
+        nav: cn(
+          "absolute inset-x-0 top-0 flex w-full items-center justify-between gap-1",
+          defaultClassNames.nav
+        ),
+        button_previous: cn(
+          buttonVariants({ variant: buttonVariant }),
+          "h-[--cell-size] w-[--cell-size] select-none p-0 aria-disabled:opacity-50",
+          defaultClassNames.button_previous
+        ),
+        button_next: cn(
+          buttonVariants({ variant: buttonVariant }),
+          "h-[--cell-size] w-[--cell-size] select-none p-0 aria-disabled:opacity-50",
+          defaultClassNames.button_next
+        ),
+        month_caption: cn(
+          "flex h-[--cell-size] w-full items-center justify-center px-[--cell-size]",
+          defaultClassNames.month_caption
+        ),
+        dropdowns: cn(
+          "flex h-[--cell-size] w-full items-center justify-center gap-1.5 text-sm font-medium",
+          defaultClassNames.dropdowns
+        ),
+        dropdown_root: cn(
+          "has-focus:border-ring border-input shadow-xs has-focus:ring-ring/50 has-focus:ring-[3px] relative rounded-md border",
+          defaultClassNames.dropdown_root
+        ),
+        dropdown: cn(
+          "bg-popover absolute inset-0 opacity-0",
+          defaultClassNames.dropdown
+        ),
+        caption_label: cn(
+          "select-none font-medium",
+          captionLayout === "label"
+            ? "text-sm"
+            : "[&>svg]:text-muted-foreground flex h-8 items-center gap-1 rounded-md pl-2 pr-1 text-sm [&>svg]:size-3.5",
+          defaultClassNames.caption_label
+        ),
+        table: "w-full border-collapse",
+        weekdays: cn("flex", defaultClassNames.weekdays),
+        weekday: cn(
+          "text-muted-foreground flex-1 select-none rounded-md text-[0.8rem] font-normal",
+          defaultClassNames.weekday
+        ),
+        week: cn("mt-2 flex w-full", defaultClassNames.week),
+        week_number_header: cn(
+          "w-[--cell-size] select-none",
+          defaultClassNames.week_number_header
+        ),
+        week_number: cn(
+          "text-muted-foreground select-none text-[0.8rem]",
+          defaultClassNames.week_number
+        ),
+        day: cn(
+          "group/day relative aspect-square h-full w-full select-none p-0 text-center [&:first-child[data-selected=true]_button]:rounded-l-md [&:last-child[data-selected=true]_button]:rounded-r-md",
+          defaultClassNames.day
+        ),
+        range_start: cn(
+          "bg-accent rounded-l-md",
+          defaultClassNames.range_start
+        ),
+        range_middle: cn("rounded-none", defaultClassNames.range_middle),
+        range_end: cn("bg-accent rounded-r-md", defaultClassNames.range_end),
+        today: cn(
+          "bg-accent text-accent-foreground rounded-md data-[selected=true]:rounded-none",
+          defaultClassNames.today
+        ),
+        outside: cn(
+          "text-muted-foreground aria-selected:text-muted-foreground",
+          defaultClassNames.outside
+        ),
+        disabled: cn(
+          "text-muted-foreground opacity-50",
+          defaultClassNames.disabled
+        ),
+        hidden: cn("invisible", defaultClassNames.hidden),
+        ...classNames,
+      }}
+      components={{
+        Root: ({ className, rootRef, ...props }) => {
+          return (
+            <div
+              data-slot="calendar"
+              ref={rootRef}
+              className={cn(className)}
+              {...props}
+            />
+          )
+        },
+        Chevron: ({ className, orientation, ...props }) => {
+          if (orientation === "left") {
+            return (
+              <ChevronLeftIcon className={cn("size-4", className)} {...props} />
+            )
+          }
+
+          if (orientation === "right") {
+            return (
+              <ChevronRightIcon
+                className={cn("size-4", className)}
+                {...props}
+              />
+            )
+          }
+
+          return (
+            <ChevronDownIcon className={cn("size-4", className)} {...props} />
+          )
+        },
+        DayButton: CalendarDayButton,
+        WeekNumber: ({ children, ...props }) => {
+          return (
+            <td {...props}>
+              <div className="flex size-[--cell-size] items-center justify-center text-center">
+                {children}
+              </div>
+            </td>
+          )
+        },
+        ...components,
+      }}
+      {...props}
+    />
+  )
+}
+
+function CalendarDayButton({
+  className,
+  day,
+  modifiers,
+  ...props
+}: React.ComponentProps<typeof DayButton>) {
+  const defaultClassNames = getDefaultClassNames()
+
+  const ref = React.useRef<HTMLButtonElement>(null)
+  React.useEffect(() => {
+    if (modifiers.focused) ref.current?.focus()
+  }, [modifiers.focused])
+
+  return (
+    <Button
+      ref={ref}
+      variant="ghost"
+      size="icon"
+      data-day={day.date.toLocaleDateString()}
+      data-selected-single={
+        modifiers.selected &&
+        !modifiers.range_start &&
+        !modifiers.range_end &&
+        !modifiers.range_middle
+      }
+      data-range-start={modifiers.range_start}
+      data-range-end={modifiers.range_end}
+      data-range-middle={modifiers.range_middle}
+      className={cn(
+        "data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground data-[range-middle=true]:bg-accent data-[range-middle=true]:text-accent-foreground data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-ring/50 flex aspect-square h-auto w-full min-w-[--cell-size] flex-col gap-1 font-normal leading-none data-[range-end=true]:rounded-md data-[range-middle=true]:rounded-none data-[range-start=true]:rounded-md group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:ring-[3px] [&>span]:text-xs [&>span]:opacity-70",
+        defaultClassNames.day,
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+export { Calendar, CalendarDayButton }
+
+// FILE: src/components/ui/card.tsx
+import * as React from "react"
+
+import { cn } from "@/lib/utils"
+
+const Card = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn(
+      "rounded-xl border bg-card text-card-foreground shadow",
+      className
+    )}
+    {...props}
+  />
+))
+Card.displayName = "Card"
+
+const CardHeader = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("flex flex-col space-y-1.5 p-6", className)}
+    {...props}
+  />
+))
+CardHeader.displayName = "CardHeader"
+
+const CardTitle = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("font-semibold leading-none tracking-tight", className)}
+    {...props}
+  />
+))
+CardTitle.displayName = "CardTitle"
+
+const CardDescription = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("text-sm text-muted-foreground", className)}
+    {...props}
+  />
+))
+CardDescription.displayName = "CardDescription"
+
+const CardContent = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
+))
+CardContent.displayName = "CardContent"
+
+const CardFooter = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("flex items-center p-6 pt-0", className)}
+    {...props}
+  />
+))
+CardFooter.displayName = "CardFooter"
+
+export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }
+
+// FILE: src/components/ui/checkbox.tsx
+import * as React from "react"
+import * as CheckboxPrimitive from "@radix-ui/react-checkbox"
+import { Check } from "lucide-react"
+
+import { cn } from "@/lib/utils"
+
+const Checkbox = React.forwardRef<
+  React.ElementRef<typeof CheckboxPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root>
+>(({ className, ...props }, ref) => (
+  <CheckboxPrimitive.Root
+    ref={ref}
+    className={cn(
+      "peer h-4 w-4 shrink-0 rounded-sm border border-primary shadow focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground",
+      className
+    )}
+    {...props}
+  >
+    <CheckboxPrimitive.Indicator
+      className={cn("flex items-center justify-center text-current")}
+    >
+      <Check className="h-4 w-4" />
+    </CheckboxPrimitive.Indicator>
+  </CheckboxPrimitive.Root>
+))
+Checkbox.displayName = CheckboxPrimitive.Root.displayName
+
+export { Checkbox }
+
+// FILE: src/components/ui/command.tsx
+"use client"
+
+import * as React from "react"
+import { type DialogProps } from "@radix-ui/react-dialog"
+import { Command as CommandPrimitive } from "cmdk"
+import { Search } from "lucide-react"
+
+import { cn } from "@/lib/utils"
+import { Dialog, DialogContent } from "@/components/ui/dialog"
+
+const Command = React.forwardRef<
+  React.ElementRef<typeof CommandPrimitive>,
+  React.ComponentPropsWithoutRef<typeof CommandPrimitive>
+>(({ className, ...props }, ref) => (
+  <CommandPrimitive
+    ref={ref}
+    className={cn(
+      "flex h-full w-full flex-col overflow-hidden rounded-md bg-popover text-popover-foreground",
+      className
+    )}
+    {...props}
+  />
+))
+Command.displayName = CommandPrimitive.displayName
+
+const CommandDialog = ({ children, ...props }: DialogProps) => {
+  return (
+    <Dialog {...props}>
+      <DialogContent className="overflow-hidden p-0">
+        <Command className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5">
+          {children}
+        </Command>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+const CommandInput = React.forwardRef<
+  React.ElementRef<typeof CommandPrimitive.Input>,
+  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>
+>(({ className, ...props }, ref) => (
+  <div className="flex items-center border-b px-3" cmdk-input-wrapper="">
+    <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+    <CommandPrimitive.Input
+      ref={ref}
+      className={cn(
+        "flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50",
+        className
+      )}
+      {...props}
+    />
+  </div>
+))
+
+CommandInput.displayName = CommandPrimitive.Input.displayName
+
+const CommandList = React.forwardRef<
+  React.ElementRef<typeof CommandPrimitive.List>,
+  React.ComponentPropsWithoutRef<typeof CommandPrimitive.List>
+>(({ className, ...props }, ref) => (
+  <CommandPrimitive.List
+    ref={ref}
+    className={cn("max-h-[300px] overflow-y-auto overflow-x-hidden", className)}
+    {...props}
+  />
+))
+
+CommandList.displayName = CommandPrimitive.List.displayName
+
+const CommandEmpty = React.forwardRef<
+  React.ElementRef<typeof CommandPrimitive.Empty>,
+  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Empty>
+>((props, ref) => (
+  <CommandPrimitive.Empty
+    ref={ref}
+    className="py-6 text-center text-sm"
+    {...props}
+  />
+))
+
+CommandEmpty.displayName = CommandPrimitive.Empty.displayName
+
+const CommandGroup = React.forwardRef<
+  React.ElementRef<typeof CommandPrimitive.Group>,
+  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Group>
+>(({ className, ...props }, ref) => (
+  <CommandPrimitive.Group
+    ref={ref}
+    className={cn(
+      "overflow-hidden p-1 text-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground",
+      className
+    )}
+    {...props}
+  />
+))
+
+CommandGroup.displayName = CommandPrimitive.Group.displayName
+
+const CommandSeparator = React.forwardRef<
+  React.ElementRef<typeof CommandPrimitive.Separator>,
+  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Separator>
+>(({ className, ...props }, ref) => (
+  <CommandPrimitive.Separator
+    ref={ref}
+    className={cn("-mx-1 h-px bg-border", className)}
+    {...props}
+  />
+))
+CommandSeparator.displayName = CommandPrimitive.Separator.displayName
+
+const CommandItem = React.forwardRef<
+  React.ElementRef<typeof CommandPrimitive.Item>,
+  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Item>
+>(({ className, ...props }, ref) => (
+  <CommandPrimitive.Item
+    ref={ref}
+    className={cn(
+      "relative flex cursor-default gap-2 select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none data-[disabled=true]:pointer-events-none data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground data-[disabled=true]:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+      className
+    )}
+    {...props}
+  />
+))
+
+CommandItem.displayName = CommandPrimitive.Item.displayName
+
+const CommandShortcut = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <span
+      className={cn(
+        "ml-auto text-xs tracking-widest text-muted-foreground",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+CommandShortcut.displayName = "CommandShortcut"
+
+export {
+  Command,
+  CommandDialog,
+  CommandInput,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+  CommandShortcut,
+  CommandSeparator,
+}
+
+// FILE: src/components/ui/dialog.tsx
+import * as React from "react"
+import * as DialogPrimitive from "@radix-ui/react-dialog"
+import { X } from "lucide-react"
+
+import { cn } from "@/lib/utils"
+
+const Dialog = DialogPrimitive.Root
+
+const DialogTrigger = DialogPrimitive.Trigger
+
+const DialogPortal = DialogPrimitive.Portal
+
+const DialogClose = DialogPrimitive.Close
+
+const DialogOverlay = React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Overlay>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
+>(({ className, ...props }, ref) => (
+  <DialogPrimitive.Overlay
+    ref={ref}
+    className={cn(
+      "fixed inset-0 z-50 bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      className
+    )}
+    {...props}
+  />
+))
+DialogOverlay.displayName = DialogPrimitive.Overlay.displayName
+
+const DialogContent = React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
+>(({ className, children, ...props }, ref) => (
+  <DialogPortal>
+    <DialogOverlay />
+    <DialogPrimitive.Content
+      ref={ref}
+      className={cn(
+        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg",
+        className
+      )}
+      {...props}
+    >
+      {children}
+      <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+        <X className="h-4 w-4" />
+        <span className="sr-only">Close</span>
+      </DialogPrimitive.Close>
+    </DialogPrimitive.Content>
+  </DialogPortal>
+))
+DialogContent.displayName = DialogPrimitive.Content.displayName
+
+const DialogHeader = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) => (
+  <div
+    className={cn(
+      "flex flex-col space-y-1.5 text-center sm:text-left",
+      className
+    )}
+    {...props}
+  />
+)
+DialogHeader.displayName = "DialogHeader"
+
+const DialogFooter = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) => (
+  <div
+    className={cn(
+      "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2",
+      className
+    )}
+    {...props}
+  />
+)
+DialogFooter.displayName = "DialogFooter"
+
+const DialogTitle = React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Title>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title>
+>(({ className, ...props }, ref) => (
+  <DialogPrimitive.Title
+    ref={ref}
+    className={cn(
+      "text-lg font-semibold leading-none tracking-tight",
+      className
+    )}
+    {...props}
+  />
+))
+DialogTitle.displayName = DialogPrimitive.Title.displayName
+
+const DialogDescription = React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Description>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description>
+>(({ className, ...props }, ref) => (
+  <DialogPrimitive.Description
+    ref={ref}
+    className={cn("text-sm text-muted-foreground", className)}
+    {...props}
+  />
+))
+DialogDescription.displayName = DialogPrimitive.Description.displayName
+
+export {
+  Dialog,
+  DialogPortal,
+  DialogOverlay,
+  DialogTrigger,
+  DialogClose,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+}
+
+// FILE: src/components/ui/drawer.tsx
+"use client"
+
+import * as React from "react"
+import { Drawer as DrawerPrimitive } from "vaul"
+
+import { cn } from "@/lib/utils"
+
+const Drawer = ({
+  shouldScaleBackground = true,
+  ...props
+}: React.ComponentProps<typeof DrawerPrimitive.Root>) => (
+  <DrawerPrimitive.Root
+    shouldScaleBackground={shouldScaleBackground}
+    {...props}
+  />
+)
+Drawer.displayName = "Drawer"
+
+const DrawerTrigger = DrawerPrimitive.Trigger
+
+const DrawerPortal = DrawerPrimitive.Portal
+
+const DrawerClose = DrawerPrimitive.Close
+
+const DrawerOverlay = React.forwardRef<
+  React.ElementRef<typeof DrawerPrimitive.Overlay>,
+  React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Overlay>
+>(({ className, ...props }, ref) => (
+  <DrawerPrimitive.Overlay
+    ref={ref}
+    className={cn("fixed inset-0 z-50 bg-black/80", className)}
+    {...props}
+  />
+))
+DrawerOverlay.displayName = DrawerPrimitive.Overlay.displayName
+
+const DrawerContent = React.forwardRef<
+  React.ElementRef<typeof DrawerPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content>
+>(({ className, children, ...props }, ref) => (
+  <DrawerPortal>
+    <DrawerOverlay />
+    <DrawerPrimitive.Content
+      ref={ref}
+      className={cn(
+        "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col rounded-t-[10px] border bg-background",
+        className
+      )}
+      {...props}
+    >
+      <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
+      {children}
+    </DrawerPrimitive.Content>
+  </DrawerPortal>
+))
+DrawerContent.displayName = "DrawerContent"
+
+const DrawerHeader = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) => (
+  <div
+    className={cn("grid gap-1.5 p-4 text-center sm:text-left", className)}
+    {...props}
+  />
+)
+DrawerHeader.displayName = "DrawerHeader"
+
+const DrawerFooter = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) => (
+  <div
+    className={cn("mt-auto flex flex-col gap-2 p-4", className)}
+    {...props}
+  />
+)
+DrawerFooter.displayName = "DrawerFooter"
+
+const DrawerTitle = React.forwardRef<
+  React.ElementRef<typeof DrawerPrimitive.Title>,
+  React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Title>
+>(({ className, ...props }, ref) => (
+  <DrawerPrimitive.Title
+    ref={ref}
+    className={cn(
+      "text-lg font-semibold leading-none tracking-tight",
+      className
+    )}
+    {...props}
+  />
+))
+DrawerTitle.displayName = DrawerPrimitive.Title.displayName
+
+const DrawerDescription = React.forwardRef<
+  React.ElementRef<typeof DrawerPrimitive.Description>,
+  React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Description>
+>(({ className, ...props }, ref) => (
+  <DrawerPrimitive.Description
+    ref={ref}
+    className={cn("text-sm text-muted-foreground", className)}
+    {...props}
+  />
+))
+DrawerDescription.displayName = DrawerPrimitive.Description.displayName
+
+export {
+  Drawer,
+  DrawerPortal,
+  DrawerOverlay,
+  DrawerTrigger,
+  DrawerClose,
+  DrawerContent,
+  DrawerHeader,
+  DrawerFooter,
+  DrawerTitle,
+  DrawerDescription,
+}
+
+// FILE: src/components/ui/dropdown-menu.tsx
+import * as React from "react"
+import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu"
+import { Check, ChevronRight, Circle } from "lucide-react"
+
+import { cn } from "@/lib/utils"
+
+const DropdownMenu = DropdownMenuPrimitive.Root
+
+const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger
+
+const DropdownMenuGroup = DropdownMenuPrimitive.Group
+
+const DropdownMenuPortal = DropdownMenuPrimitive.Portal
+
+const DropdownMenuSub = DropdownMenuPrimitive.Sub
+
+const DropdownMenuRadioGroup = DropdownMenuPrimitive.RadioGroup
+
+const DropdownMenuSubTrigger = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.SubTrigger>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.SubTrigger> & {
+    inset?: boolean
+  }
+>(({ className, inset, children, ...props }, ref) => (
+  <DropdownMenuPrimitive.SubTrigger
+    ref={ref}
+    className={cn(
+      "flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none focus:bg-accent data-[state=open]:bg-accent [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+      inset && "pl-8",
+      className
+    )}
+    {...props}
+  >
+    {children}
+    <ChevronRight className="ml-auto" />
+  </DropdownMenuPrimitive.SubTrigger>
+))
+DropdownMenuSubTrigger.displayName =
+  DropdownMenuPrimitive.SubTrigger.displayName
+
+const DropdownMenuSubContent = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.SubContent>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.SubContent>
+>(({ className, ...props }, ref) => (
+  <DropdownMenuPrimitive.SubContent
+    ref={ref}
+    className={cn(
+      "z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 origin-[--radix-dropdown-menu-content-transform-origin]",
+      className
+    )}
+    {...props}
+  />
+))
+DropdownMenuSubContent.displayName =
+  DropdownMenuPrimitive.SubContent.displayName
+
+const DropdownMenuContent = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Content>
+>(({ className, sideOffset = 4, ...props }, ref) => (
+  <DropdownMenuPrimitive.Portal>
+    <DropdownMenuPrimitive.Content
+      ref={ref}
+      sideOffset={sideOffset}
+      className={cn(
+        "z-50 max-h-[var(--radix-dropdown-menu-content-available-height)] min-w-[8rem] overflow-y-auto overflow-x-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md",
+        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 origin-[--radix-dropdown-menu-content-transform-origin]",
+        className
+      )}
+      {...props}
+    />
+  </DropdownMenuPrimitive.Portal>
+))
+DropdownMenuContent.displayName = DropdownMenuPrimitive.Content.displayName
+
+const DropdownMenuItem = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.Item>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Item> & {
+    inset?: boolean
+  }
+>(({ className, inset, ...props }, ref) => (
+  <DropdownMenuPrimitive.Item
+    ref={ref}
+    className={cn(
+      "relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&>svg]:size-4 [&>svg]:shrink-0",
+      inset && "pl-8",
+      className
+    )}
+    {...props}
+  />
+))
+DropdownMenuItem.displayName = DropdownMenuPrimitive.Item.displayName
+
+const DropdownMenuCheckboxItem = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.CheckboxItem>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.CheckboxItem>
+>(({ className, children, checked, ...props }, ref) => (
+  <DropdownMenuPrimitive.CheckboxItem
+    ref={ref}
+    className={cn(
+      "relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      className
+    )}
+    checked={checked}
+    {...props}
+  >
+    <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+      <DropdownMenuPrimitive.ItemIndicator>
+        <Check className="h-4 w-4" />
+      </DropdownMenuPrimitive.ItemIndicator>
+    </span>
+    {children}
+  </DropdownMenuPrimitive.CheckboxItem>
+))
+DropdownMenuCheckboxItem.displayName =
+  DropdownMenuPrimitive.CheckboxItem.displayName
+
+const DropdownMenuRadioItem = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.RadioItem>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.RadioItem>
+>(({ className, children, ...props }, ref) => (
+  <DropdownMenuPrimitive.RadioItem
+    ref={ref}
+    className={cn(
+      "relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      className
+    )}
+    {...props}
+  >
+    <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+      <DropdownMenuPrimitive.ItemIndicator>
+        <Circle className="h-2 w-2 fill-current" />
+      </DropdownMenuPrimitive.ItemIndicator>
+    </span>
+    {children}
+  </DropdownMenuPrimitive.RadioItem>
+))
+DropdownMenuRadioItem.displayName = DropdownMenuPrimitive.RadioItem.displayName
+
+const DropdownMenuLabel = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.Label>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Label> & {
+    inset?: boolean
+  }
+>(({ className, inset, ...props }, ref) => (
+  <DropdownMenuPrimitive.Label
+    ref={ref}
+    className={cn(
+      "px-2 py-1.5 text-sm font-semibold",
+      inset && "pl-8",
+      className
+    )}
+    {...props}
+  />
+))
+DropdownMenuLabel.displayName = DropdownMenuPrimitive.Label.displayName
+
+const DropdownMenuSeparator = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.Separator>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Separator>
+>(({ className, ...props }, ref) => (
+  <DropdownMenuPrimitive.Separator
+    ref={ref}
+    className={cn("-mx-1 my-1 h-px bg-muted", className)}
+    {...props}
+  />
+))
+DropdownMenuSeparator.displayName = DropdownMenuPrimitive.Separator.displayName
+
+const DropdownMenuShortcut = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <span
+      className={cn("ml-auto text-xs tracking-widest opacity-60", className)}
+      {...props}
+    />
+  )
+}
+DropdownMenuShortcut.displayName = "DropdownMenuShortcut"
+
+export {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuCheckboxItem,
+  DropdownMenuRadioItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuGroup,
+  DropdownMenuPortal,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuRadioGroup,
+}
+
+// FILE: src/components/ui/ErrorBoundary.tsx
+import { Component, ErrorInfo, ReactNode } from "react";
+import { Button } from "./button";
+import { AlertTriangle } from "lucide-react";
+
+interface Props {
+  children: ReactNode;
+  fallback?: ReactNode;
+}
+
+interface State {
+  hasError: boolean;
+  error?: Error;
+}
+
+export class ErrorBoundary extends Component<Props, State> {
+  constructor(props: Props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error("ErrorBoundary caught an error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      if (this.props.fallback) {
+        return this.props.fallback;
+      }
+
+      return (
+        <div className="flex min-h-[400px] w-full flex-col items-center justify-center space-y-4 rounded-lg border border-red-200 bg-red-50 p-8">
+          <AlertTriangle className="h-12 w-12 text-red-500" />
+          <div className="space-y-2 text-center">
+            <h2 className="text-xl font-semibold text-red-900">
+              Something went wrong
+            </h2>
+            <p className="text-red-700">
+              {this.state.error?.message || "An unexpected error occurred"}
+            </p>
+          </div>
+          <Button
+            onClick={() => this.setState({ hasError: false, error: undefined })}
+            variant="outline"
+            className="border-red-300 text-red-700 hover:bg-red-100"
+          >
+            Try again
+          </Button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+// FILE: src/components/ui/form.tsx
+import * as React from "react"
+import * as LabelPrimitive from "@radix-ui/react-label"
+import { Slot } from "@radix-ui/react-slot"
+import {
+  Controller,
+  FormProvider,
+  useFormContext,
+  type ControllerProps,
+  type FieldPath,
+  type FieldValues,
+} from "react-hook-form"
+
+import { cn } from "@/lib/utils"
+import { Label } from "@/components/ui/label"
+
+const Form = FormProvider
+
+type FormFieldContextValue<
+  TFieldValues extends FieldValues = FieldValues,
+  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
+> = {
+  name: TName
+}
+
+const FormFieldContext = React.createContext<FormFieldContextValue>(
+  {} as FormFieldContextValue
+)
+
+const FormField = <
+  TFieldValues extends FieldValues = FieldValues,
+  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
+>({
+  ...props
+}: ControllerProps<TFieldValues, TName>) => {
+  return (
+    <FormFieldContext.Provider value={{ name: props.name }}>
+      <Controller {...props} />
+    </FormFieldContext.Provider>
+  )
+}
+
+const useFormField = () => {
+  const fieldContext = React.useContext(FormFieldContext)
+  const itemContext = React.useContext(FormItemContext)
+  const { getFieldState, formState } = useFormContext()
+
+  const fieldState = getFieldState(fieldContext.name, formState)
+
+  if (!fieldContext) {
+    throw new Error("useFormField should be used within <FormField>")
+  }
+
+  const { id } = itemContext
+
+  return {
+    id,
+    name: fieldContext.name,
+    formItemId: `${id}-form-item`,
+    formDescriptionId: `${id}-form-item-description`,
+    formMessageId: `${id}-form-item-message`,
+    ...fieldState,
+  }
+}
+
+type FormItemContextValue = {
+  id: string
+}
+
+const FormItemContext = React.createContext<FormItemContextValue>(
+  {} as FormItemContextValue
+)
+
+const FormItem = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => {
+  const id = React.useId()
+
+  return (
+    <FormItemContext.Provider value={{ id }}>
+      <div ref={ref} className={cn("space-y-2", className)} {...props} />
+    </FormItemContext.Provider>
+  )
+})
+FormItem.displayName = "FormItem"
+
+const FormLabel = React.forwardRef<
+  React.ElementRef<typeof LabelPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root>
+>(({ className, ...props }, ref) => {
+  const { error, formItemId } = useFormField()
+
+  return (
+    <Label
+      ref={ref}
+      className={cn(error && "text-destructive", className)}
+      htmlFor={formItemId}
+      {...props}
+    />
+  )
+})
+FormLabel.displayName = "FormLabel"
+
+const FormControl = React.forwardRef<
+  React.ElementRef<typeof Slot>,
+  React.ComponentPropsWithoutRef<typeof Slot>
+>(({ ...props }, ref) => {
+  const { error, formItemId, formDescriptionId, formMessageId } = useFormField()
+
+  return (
+    <Slot
+      ref={ref}
+      id={formItemId}
+      aria-describedby={
+        !error
+          ? `${formDescriptionId}`
+          : `${formDescriptionId} ${formMessageId}`
+      }
+      aria-invalid={!!error}
+      {...props}
+    />
+  )
+})
+FormControl.displayName = "FormControl"
+
+const FormDescription = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement>
+>(({ className, ...props }, ref) => {
+  const { formDescriptionId } = useFormField()
+
+  return (
+    <p
+      ref={ref}
+      id={formDescriptionId}
+      className={cn("text-[0.8rem] text-muted-foreground", className)}
+      {...props}
+    />
+  )
+})
+FormDescription.displayName = "FormDescription"
+
+const FormMessage = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement>
+>(({ className, children, ...props }, ref) => {
+  const { error, formMessageId } = useFormField()
+  const body = error ? String(error?.message ?? "") : children
+
+  if (!body) {
+    return null
+  }
+
+  return (
+    <p
+      ref={ref}
+      id={formMessageId}
+      className={cn("text-[0.8rem] font-medium text-destructive", className)}
+      {...props}
+    >
+      {body}
+    </p>
+  )
+})
+FormMessage.displayName = "FormMessage"
+
+export {
+  useFormField,
+  Form,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormDescription,
+  FormMessage,
+  FormField,
+}
+
+// FILE: src/components/ui/input.tsx
+import * as React from "react"
+
+import { cn } from "@/lib/utils"
+
+const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
+  ({ className, type, ...props }, ref) => {
+    return (
+      <input
+        type={type}
+        className={cn(
+          "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+          className
+        )}
+        ref={ref}
+        {...props}
+      />
+    )
+  }
+)
+Input.displayName = "Input"
+
+export { Input }
+
+// FILE: src/components/ui/label.tsx
+import * as React from "react"
+import * as LabelPrimitive from "@radix-ui/react-label"
+import { cva, type VariantProps } from "class-variance-authority"
+
+import { cn } from "@/lib/utils"
+
+const labelVariants = cva(
+  "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+)
+
+const Label = React.forwardRef<
+  React.ElementRef<typeof LabelPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root> &
+    VariantProps<typeof labelVariants>
+>(({ className, ...props }, ref) => (
+  <LabelPrimitive.Root
+    ref={ref}
+    className={cn(labelVariants(), className)}
+    {...props}
+  />
+))
+Label.displayName = LabelPrimitive.Root.displayName
+
+export { Label }
+
+// FILE: src/components/ui/mention-suggestion.tsx
+import { ReactRenderer } from "@tiptap/react";
+import tippy from "tippy.js";
+import { MentionList, MentionListRef } from "./MentionList";
+import api from "@/lib/api";
+
+async function fetchUsers(
+  query: string,
+  workspaceId?: string,
+  projectId?: string
+) {
+  try {
+    const url =
+      projectId && workspaceId
+        ? `/workspaces/${workspaceId}/projects/${projectId}/members`
+        : "/admin/users";
+
+    const { data } = await api.get(url, {
+      params: { search: query, limit: 5 },
+    });
+
+    const users = projectId
+      ? data.map((member: any) => ({ id: member.userId, label: member.name }))
+      : data.data.map((user: any) => ({ id: user.id, label: user.name }));
+
+    return users;
+  } catch (error) {
+    console.error("Failed to fetch users for mentions", error);
+    return [];
+  }
+}
+
+export const suggestion = (workspaceId?: string, projectId?: string) => ({
+  items: ({ query }: { query: string }) => {
+    return fetchUsers(query, workspaceId, projectId);
+  },
+
+  render: () => {
+    let component: ReactRenderer<MentionListRef>;
+    let popup: any;
+
+    return {
+      onStart: (props: any) => {
+        component = new ReactRenderer(MentionList, {
+          props,
+          editor: props.editor,
+        });
+
+        if (!props.clientRect) {
+          return;
+        }
+
+        popup = tippy("body", {
+          getReferenceClientRect: props.clientRect,
+          appendTo: () => document.body,
+          content: component.element,
+          showOnCreate: true,
+          interactive: true,
+          trigger: "manual",
+          placement: "bottom-start",
+        });
+      },
+
+      onUpdate(props: any) {
+        component.updateProps(props);
+
+        if (!props.clientRect) {
+          return;
+        }
+
+        popup[0].setProps({
+          getReferenceClientRect: props.clientRect,
+        });
+      },
+
+      onKeyDown(props: any): boolean {
+        if (props.event.key === "Escape") {
+          popup[0].hide();
+          return true;
+        }
+        return component.ref?.onKeyDown(props) ?? false;
+      },
+
+      onExit() {
+        popup[0].destroy();
+        component.destroy();
+      },
+    };
+  },
+});
+// FILE: src/components/ui/MentionList.tsx
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useState,
+  ForwardedRef,
+} from "react";
+import { cn } from "@/lib/utils";
+
+interface MentionListProps {
+  items: { id: string; label: string }[];
+  command: (item: { id: string; label: string }) => void;
+}
+
+export interface MentionListRef {
+  onKeyDown: (props: { event: KeyboardEvent }) => boolean;
+}
+
+export const MentionList = forwardRef(
+  (props: MentionListProps, ref: ForwardedRef<MentionListRef>) => {
+    const [selectedIndex, setSelectedIndex] = useState(0);
+
+    const selectItem = (index: number) => {
+      const item = props.items[index];
+      if (item) {
+        props.command({ id: item.id, label: item.label });
+      }
+    };
+
+    const upHandler = () => {
+      setSelectedIndex(
+        (selectedIndex + props.items.length - 1) % props.items.length
+      );
+    };
+
+    const downHandler = () => {
+      setSelectedIndex((selectedIndex + 1) % props.items.length);
+    };
+
+    const enterHandler = () => {
+      selectItem(selectedIndex);
+    };
+
+    useEffect(() => setSelectedIndex(0), [props.items]);
+
+    useImperativeHandle(ref, () => ({
+      onKeyDown: ({ event }: { event: KeyboardEvent }) => {
+        if (event.key === "ArrowUp") {
+          upHandler();
+          return true;
+        }
+        if (event.key === "ArrowDown") {
+          downHandler();
+          return true;
+        }
+        if (event.key === "Enter") {
+          enterHandler();
+          return true;
+        }
+        return false;
+      },
+    }));
+
+    return (
+      <div className="bg-popover text-popover-foreground z-50 min-w-[8rem] overflow-hidden rounded-md border p-1 shadow-md">
+        {props.items.length ? (
+          props.items.map((item: any, index: number) => (
+            <button
+              className={cn(
+                "focus:bg-accent focus:text-accent-foreground relative flex w-full cursor-default items-center rounded-sm px-2 py-1.5 text-sm transition-colors outline-none select-none",
+                index === selectedIndex && "bg-accent text-accent-foreground"
+              )}
+              key={index}
+              onClick={() => selectItem(index)}
+            >
+              {item.label}
+            </button>
+          ))
+        ) : (
+          <div className="p-2 text-sm">No result</div>
+        )}
+      </div>
+    );
+  }
+);
+
+MentionList.displayName = "MentionList";
+// FILE: src/components/ui/MultiSelect.tsx
+import * as React from "react";
+import { X } from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
+import { CommandItem, CommandList } from "@/components/ui/command";
+import { Command as CommandPrimitive } from "cmdk";
+
+type Skill = {
+  id: string;
+  name: string;
+};
+
+interface MultiSelectProps {
+  options: Skill[];
+  selected: string[];
+  onChange: (value: string[]) => void;
+  placeholder?: string;
+  className?: string;
+}
+
+export function MultiSelect({
+  options,
+  selected,
+  onChange,
+  className,
+  ...props
+}: MultiSelectProps) {
+  const [open, setOpen] = React.useState(false);
+
+  const handleUnselect = (value: string) => {
+    onChange(selected.filter((s) => s !== value));
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const input = e.target as HTMLInputElement;
+    if (e.key === "Backspace" || e.key === "Delete") {
+      if (input.value === "") {
+        e.preventDefault();
+        const newSelected = [...selected];
+        newSelected.pop();
+        onChange(newSelected);
+      }
+    }
+
+    if (e.key === "Escape") {
+      input.blur();
+    }
+  };
+
+  const selectedSkills = options.filter((option) =>
+    selected.includes(option.id)
+  );
+
+  return (
+    <div className="relative">
+      <CommandPrimitive
+        onKeyDown={handleKeyDown}
+        className="overflow-visible bg-transparent"
+      >
+        <div className="group border-input ring-offset-background focus-within:ring-ring rounded-md border px-3 py-2 text-sm focus-within:ring-2 focus-within:ring-offset-2">
+          <div className="flex flex-wrap gap-1">
+            {selectedSkills.map((option) => {
+              return (
+                <Badge key={option.id} variant="secondary">
+                  {option.name}
+                  <button
+                    className="ring-offset-background focus:ring-ring ml-1 rounded-full outline-none focus:ring-2 focus:ring-offset-2"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        handleUnselect(option.id);
+                      }
+                    }}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    onClick={() => handleUnselect(option.id)}
+                  >
+                    <X className="text-muted-foreground hover:text-foreground h-3 w-3" />
+                  </button>
+                </Badge>
+              );
+            })}
+            <CommandPrimitive.Input
+              placeholder={props.placeholder || "Select..."}
+              className="placeholder:text-muted-foreground ml-2 flex-1 bg-transparent outline-none"
+              onFocus={() => setOpen(true)}
+              onBlur={() => setOpen(false)}
+            />
+          </div>
+        </div>
+        {open && options.length > 0 && (
+          <div className="bg-popover text-popover-foreground animate-in absolute top-full z-10 mt-2 w-full rounded-md border shadow-md outline-none">
+            <CommandList>
+              {options
+                .filter((option) => !selected.includes(option.id))
+                .map((option) => (
+                  <CommandItem
+                    key={option.id}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    onSelect={() => {
+                      onChange([...selected, option.id]);
+                    }}
+                    className={"cursor-pointer"}
+                  >
+                    {option.name}
+                  </CommandItem>
+                ))}
+            </CommandList>
+          </div>
+        )}
+      </CommandPrimitive>
+    </div>
+  );
+}
+
+// FILE: src/components/ui/pagination.tsx
+import * as React from "react"
+import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react"
+
+import { cn } from "@/lib/utils"
+import { ButtonProps, buttonVariants } from "@/components/ui/button"
+
+const Pagination = ({ className, ...props }: React.ComponentProps<"nav">) => (
+  <nav
+    role="navigation"
+    aria-label="pagination"
+    className={cn("mx-auto flex w-full justify-center", className)}
+    {...props}
+  />
+)
+Pagination.displayName = "Pagination"
+
+const PaginationContent = React.forwardRef<
+  HTMLUListElement,
+  React.ComponentProps<"ul">
+>(({ className, ...props }, ref) => (
+  <ul
+    ref={ref}
+    className={cn("flex flex-row items-center gap-1", className)}
+    {...props}
+  />
+))
+PaginationContent.displayName = "PaginationContent"
+
+const PaginationItem = React.forwardRef<
+  HTMLLIElement,
+  React.ComponentProps<"li">
+>(({ className, ...props }, ref) => (
+  <li ref={ref} className={cn("", className)} {...props} />
+))
+PaginationItem.displayName = "PaginationItem"
+
+type PaginationLinkProps = {
+  isActive?: boolean
+} & Pick<ButtonProps, "size"> &
+  React.ComponentProps<"a">
+
+const PaginationLink = ({
+  className,
+  isActive,
+  size = "icon",
+  ...props
+}: PaginationLinkProps) => (
+  <a
+    aria-current={isActive ? "page" : undefined}
+    className={cn(
+      buttonVariants({
+        variant: isActive ? "outline" : "ghost",
+        size,
+      }),
+      className
+    )}
+    {...props}
+  />
+)
+PaginationLink.displayName = "PaginationLink"
+
+const PaginationPrevious = ({
+  className,
+  ...props
+}: React.ComponentProps<typeof PaginationLink>) => (
+  <PaginationLink
+    aria-label="Go to previous page"
+    size="default"
+    className={cn("gap-1 pl-2.5", className)}
+    {...props}
+  >
+    <ChevronLeft className="h-4 w-4" />
+    <span>Previous</span>
+  </PaginationLink>
+)
+PaginationPrevious.displayName = "PaginationPrevious"
+
+const PaginationNext = ({
+  className,
+  ...props
+}: React.ComponentProps<typeof PaginationLink>) => (
+  <PaginationLink
+    aria-label="Go to next page"
+    size="default"
+    className={cn("gap-1 pr-2.5", className)}
+    {...props}
+  >
+    <span>Next</span>
+    <ChevronRight className="h-4 w-4" />
+  </PaginationLink>
+)
+PaginationNext.displayName = "PaginationNext"
+
+const PaginationEllipsis = ({
+  className,
+  ...props
+}: React.ComponentProps<"span">) => (
+  <span
+    aria-hidden
+    className={cn("flex h-9 w-9 items-center justify-center", className)}
+    {...props}
+  >
+    <MoreHorizontal className="h-4 w-4" />
+    <span className="sr-only">More pages</span>
+  </span>
+)
+PaginationEllipsis.displayName = "PaginationEllipsis"
+
+export {
+  Pagination,
+  PaginationContent,
+  PaginationLink,
+  PaginationItem,
+  PaginationPrevious,
+  PaginationNext,
+  PaginationEllipsis,
+}
+
+// FILE: src/components/ui/popover.tsx
+import * as React from "react"
+import * as PopoverPrimitive from "@radix-ui/react-popover"
+
+import { cn } from "@/lib/utils"
+
+const Popover = PopoverPrimitive.Root
+
+const PopoverTrigger = PopoverPrimitive.Trigger
+
+const PopoverAnchor = PopoverPrimitive.Anchor
+
+const PopoverContent = React.forwardRef<
+  React.ElementRef<typeof PopoverPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>
+>(({ className, align = "center", sideOffset = 4, ...props }, ref) => (
+  <PopoverPrimitive.Portal>
+    <PopoverPrimitive.Content
+      ref={ref}
+      align={align}
+      sideOffset={sideOffset}
+      className={cn(
+        "z-50 w-72 rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 origin-[--radix-popover-content-transform-origin]",
+        className
+      )}
+      {...props}
+    />
+  </PopoverPrimitive.Portal>
+))
+PopoverContent.displayName = PopoverPrimitive.Content.displayName
+
+export { Popover, PopoverTrigger, PopoverContent, PopoverAnchor }
+
+// FILE: src/components/ui/progress.tsx
+"use client"
+
+import * as React from "react"
+import * as ProgressPrimitive from "@radix-ui/react-progress"
+
+import { cn } from "@/lib/utils"
+
+const Progress = React.forwardRef<
+  React.ElementRef<typeof ProgressPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root>
+>(({ className, value, ...props }, ref) => (
+  <ProgressPrimitive.Root
+    ref={ref}
+    className={cn(
+      "relative h-2 w-full overflow-hidden rounded-full bg-primary/20",
+      className
+    )}
+    {...props}
+  >
+    <ProgressPrimitive.Indicator
+      className="h-full w-full flex-1 bg-primary transition-all"
+      style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
+    />
+  </ProgressPrimitive.Root>
+))
+Progress.displayName = ProgressPrimitive.Root.displayName
+
+export { Progress }
+
+// FILE: src/components/ui/radio-group.tsx
+import * as React from "react"
+import * as RadioGroupPrimitive from "@radix-ui/react-radio-group"
+import { Circle } from "lucide-react"
+
+import { cn } from "@/lib/utils"
+
+const RadioGroup = React.forwardRef<
+  React.ElementRef<typeof RadioGroupPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Root>
+>(({ className, ...props }, ref) => {
+  return (
+    <RadioGroupPrimitive.Root
+      className={cn("grid gap-2", className)}
+      {...props}
+      ref={ref}
+    />
+  )
+})
+RadioGroup.displayName = RadioGroupPrimitive.Root.displayName
+
+const RadioGroupItem = React.forwardRef<
+  React.ElementRef<typeof RadioGroupPrimitive.Item>,
+  React.ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Item>
+>(({ className, ...props }, ref) => {
+  return (
+    <RadioGroupPrimitive.Item
+      ref={ref}
+      className={cn(
+        "aspect-square h-4 w-4 rounded-full border border-primary text-primary shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
+        className
+      )}
+      {...props}
+    >
+      <RadioGroupPrimitive.Indicator className="flex items-center justify-center">
+        <Circle className="h-3.5 w-3.5 fill-primary" />
+      </RadioGroupPrimitive.Indicator>
+    </RadioGroupPrimitive.Item>
+  )
+})
+RadioGroupItem.displayName = RadioGroupPrimitive.Item.displayName
+
+export { RadioGroup, RadioGroupItem }
+
+// FILE: src/components/ui/recharts.tsx
+"use client";
+
+import * as React from "react";
+import {
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  BarChart,
+  Bar,
+} from "recharts";
+import { cn } from "@/lib/utils";
+
+const ChartContainer = React.forwardRef<
+  HTMLDivElement,
+  React.ComponentProps<"div">
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn(
+      "flex aspect-video w-full items-center justify-center [&>div]:size-full",
+      className
+    )}
+    {...props}
+  />
+));
+ChartContainer.displayName = "ChartContainer";
+
+export {
+  ChartContainer,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Line,
+  BarChart,
+  Bar,
+};
+
+// FILE: src/components/ui/scroll-area.tsx
+import * as React from "react"
+import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area"
+
+import { cn } from "@/lib/utils"
+
+const ScrollArea = React.forwardRef<
+  React.ElementRef<typeof ScrollAreaPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.Root>
+>(({ className, children, ...props }, ref) => (
+  <ScrollAreaPrimitive.Root
+    ref={ref}
+    className={cn("relative overflow-hidden", className)}
+    {...props}
+  >
+    <ScrollAreaPrimitive.Viewport className="h-full w-full rounded-[inherit]">
+      {children}
+    </ScrollAreaPrimitive.Viewport>
+    <ScrollBar />
+    <ScrollAreaPrimitive.Corner />
+  </ScrollAreaPrimitive.Root>
+))
+ScrollArea.displayName = ScrollAreaPrimitive.Root.displayName
+
+const ScrollBar = React.forwardRef<
+  React.ElementRef<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>,
+  React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>
+>(({ className, orientation = "vertical", ...props }, ref) => (
+  <ScrollAreaPrimitive.ScrollAreaScrollbar
+    ref={ref}
+    orientation={orientation}
+    className={cn(
+      "flex touch-none select-none transition-colors",
+      orientation === "vertical" &&
+        "h-full w-2.5 border-l border-l-transparent p-[1px]",
+      orientation === "horizontal" &&
+        "h-2.5 flex-col border-t border-t-transparent p-[1px]",
+      className
+    )}
+    {...props}
+  >
+    <ScrollAreaPrimitive.ScrollAreaThumb className="relative flex-1 rounded-full bg-border" />
+  </ScrollAreaPrimitive.ScrollAreaScrollbar>
+))
+ScrollBar.displayName = ScrollAreaPrimitive.ScrollAreaScrollbar.displayName
+
+export { ScrollArea, ScrollBar }
+
+// FILE: src/components/ui/select.tsx
+"use client"
+
+import * as React from "react"
+import * as SelectPrimitive from "@radix-ui/react-select"
+import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react"
+
+import { cn } from "@/lib/utils"
+
+function Select({
+  ...props
+}: React.ComponentProps<typeof SelectPrimitive.Root>) {
+  return <SelectPrimitive.Root data-slot="select" {...props} />
+}
+
+function SelectGroup({
+  ...props
+}: React.ComponentProps<typeof SelectPrimitive.Group>) {
+  return <SelectPrimitive.Group data-slot="select-group" {...props} />
+}
+
+function SelectValue({
+  ...props
+}: React.ComponentProps<typeof SelectPrimitive.Value>) {
+  return <SelectPrimitive.Value data-slot="select-value" {...props} />
+}
+
+function SelectTrigger({
+  className,
+  size = "default",
+  children,
+  ...props
+}: React.ComponentProps<typeof SelectPrimitive.Trigger> & {
+  size?: "sm" | "default"
+}) {
+  return (
+    <SelectPrimitive.Trigger
+      data-slot="select-trigger"
+      data-size={size}
+      className={cn(
+        "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive shadow-xs flex w-fit items-center justify-between gap-2 whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8 data-[placeholder]:text-muted-foreground *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 dark:bg-transparent dark:hover:bg-transparent [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0",
+        className
+      )}
+      {...props}
+    >
+      {children}
+      <SelectPrimitive.Icon asChild>
+        <ChevronDownIcon className="size-4 opacity-50" />
+      </SelectPrimitive.Icon>
+    </SelectPrimitive.Trigger>
+  );
+}
+
+function SelectContent({
+  className,
+  children,
+  position = "popper",
+  ...props
+}: React.ComponentProps<typeof SelectPrimitive.Content>) {
+  return (
+    <SelectPrimitive.Portal>
+      <SelectPrimitive.Content
+        data-slot="select-content"
+        className={cn(
+          "bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-50 max-h-(--radix-select-content-available-height) min-w-[8rem] origin-(--radix-select-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-md border shadow-md",
+          position === "popper" &&
+            "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
+          className
+        )}
+        position={position}
+        {...props}
+      >
+        <SelectScrollUpButton />
+        <SelectPrimitive.Viewport
+          className={cn(
+            "p-1",
+            position === "popper" &&
+              "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)] scroll-my-1"
+          )}
+        >
+          {children}
+        </SelectPrimitive.Viewport>
+        <SelectScrollDownButton />
+      </SelectPrimitive.Content>
+    </SelectPrimitive.Portal>
+  )
+}
+
+function SelectLabel({
+  className,
+  ...props
+}: React.ComponentProps<typeof SelectPrimitive.Label>) {
+  return (
+    <SelectPrimitive.Label
+      data-slot="select-label"
+      className={cn("text-muted-foreground px-2 py-1.5 text-xs", className)}
+      {...props}
+    />
+  )
+}
+
+function SelectItem({
+  className,
+  children,
+  ...props
+}: React.ComponentProps<typeof SelectPrimitive.Item>) {
+  return (
+    <SelectPrimitive.Item
+      data-slot="select-item"
+      className={cn(
+        "focus:bg-accent focus:text-accent-foreground [&_svg:not([class*='text-'])]:text-muted-foreground relative flex w-full cursor-default items-center gap-2 rounded-sm py-1.5 pr-8 pl-2 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2",
+        className
+      )}
+      {...props}
+    >
+      <span className="absolute right-2 flex size-3.5 items-center justify-center">
+        <SelectPrimitive.ItemIndicator>
+          <CheckIcon className="size-4" />
+        </SelectPrimitive.ItemIndicator>
+      </span>
+      <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+    </SelectPrimitive.Item>
+  )
+}
+
+function SelectSeparator({
+  className,
+  ...props
+}: React.ComponentProps<typeof SelectPrimitive.Separator>) {
+  return (
+    <SelectPrimitive.Separator
+      data-slot="select-separator"
+      className={cn("bg-border pointer-events-none -mx-1 my-1 h-px", className)}
+      {...props}
+    />
+  )
+}
+
+function SelectScrollUpButton({
+  className,
+  ...props
+}: React.ComponentProps<typeof SelectPrimitive.ScrollUpButton>) {
+  return (
+    <SelectPrimitive.ScrollUpButton
+      data-slot="select-scroll-up-button"
+      className={cn(
+        "flex cursor-default items-center justify-center py-1",
+        className
+      )}
+      {...props}
+    >
+      <ChevronUpIcon className="size-4" />
+    </SelectPrimitive.ScrollUpButton>
+  )
+}
+
+function SelectScrollDownButton({
+  className,
+  ...props
+}: React.ComponentProps<typeof SelectPrimitive.ScrollDownButton>) {
+  return (
+    <SelectPrimitive.ScrollDownButton
+      data-slot="select-scroll-down-button"
+      className={cn(
+        "flex cursor-default items-center justify-center py-1",
+        className
+      )}
+      {...props}
+    >
+      <ChevronDownIcon className="size-4" />
+    </SelectPrimitive.ScrollDownButton>
+  )
+}
+
+export {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectScrollDownButton,
+  SelectScrollUpButton,
+  SelectSeparator,
+  SelectTrigger,
+  SelectValue,
+}
+
+// FILE: src/components/ui/separator.tsx
+import * as React from "react"
+import * as SeparatorPrimitive from "@radix-ui/react-separator"
+
+import { cn } from "@/lib/utils"
+
+const Separator = React.forwardRef<
+  React.ElementRef<typeof SeparatorPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof SeparatorPrimitive.Root>
+>(
+  (
+    { className, orientation = "horizontal", decorative = true, ...props },
+    ref
+  ) => (
+    <SeparatorPrimitive.Root
+      ref={ref}
+      decorative={decorative}
+      orientation={orientation}
+      className={cn(
+        "shrink-0 bg-border",
+        orientation === "horizontal" ? "h-[1px] w-full" : "h-full w-[1px]",
+        className
+      )}
+      {...props}
+    />
+  )
+)
+Separator.displayName = SeparatorPrimitive.Root.displayName
+
+export { Separator }
+
+// FILE: src/components/ui/sheet.tsx
+"use client"
+
+import * as React from "react"
+import * as SheetPrimitive from "@radix-ui/react-dialog"
+import { cva, type VariantProps } from "class-variance-authority"
+import { X } from "lucide-react"
+
+import { cn } from "@/lib/utils"
+
+const Sheet = SheetPrimitive.Root
+
+const SheetTrigger = SheetPrimitive.Trigger
+
+const SheetClose = SheetPrimitive.Close
+
+const SheetPortal = SheetPrimitive.Portal
+
+const SheetOverlay = React.forwardRef<
+  React.ElementRef<typeof SheetPrimitive.Overlay>,
+  React.ComponentPropsWithoutRef<typeof SheetPrimitive.Overlay>
+>(({ className, ...props }, ref) => (
+  <SheetPrimitive.Overlay
+    className={cn(
+      "fixed inset-0 z-50 bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      className
+    )}
+    {...props}
+    ref={ref}
+  />
+))
+SheetOverlay.displayName = SheetPrimitive.Overlay.displayName
+
+const sheetVariants = cva(
+  "fixed z-50 gap-4 bg-background p-6 shadow-lg transition ease-in-out data-[state=closed]:duration-300 data-[state=open]:duration-500 data-[state=open]:animate-in data-[state=closed]:animate-out",
+  {
+    variants: {
+      side: {
+        top: "inset-x-0 top-0 border-b data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top",
+        bottom:
+          "inset-x-0 bottom-0 border-t data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
+        left: "inset-y-0 left-0 h-full w-3/4 border-r data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left sm:max-w-sm",
+        right:
+          "inset-y-0 right-0 h-full w-3/4 border-l data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right sm:max-w-sm",
+      },
+    },
+    defaultVariants: {
+      side: "right",
+    },
+  }
+)
+
+interface SheetContentProps
+  extends React.ComponentPropsWithoutRef<typeof SheetPrimitive.Content>,
+    VariantProps<typeof sheetVariants> {}
+
+const SheetContent = React.forwardRef<
+  React.ElementRef<typeof SheetPrimitive.Content>,
+  SheetContentProps
+>(({ side = "right", className, children, ...props }, ref) => (
+  <SheetPortal>
+    <SheetOverlay />
+    <SheetPrimitive.Content
+      ref={ref}
+      className={cn(sheetVariants({ side }), className)}
+      {...props}
+    >
+      <SheetPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
+        <X className="h-4 w-4" />
+        <span className="sr-only">Close</span>
+      </SheetPrimitive.Close>
+      {children}
+    </SheetPrimitive.Content>
+  </SheetPortal>
+))
+SheetContent.displayName = SheetPrimitive.Content.displayName
+
+const SheetHeader = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) => (
+  <div
+    className={cn(
+      "flex flex-col space-y-2 text-center sm:text-left",
+      className
+    )}
+    {...props}
+  />
+)
+SheetHeader.displayName = "SheetHeader"
+
+const SheetFooter = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) => (
+  <div
+    className={cn(
+      "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2",
+      className
+    )}
+    {...props}
+  />
+)
+SheetFooter.displayName = "SheetFooter"
+
+const SheetTitle = React.forwardRef<
+  React.ElementRef<typeof SheetPrimitive.Title>,
+  React.ComponentPropsWithoutRef<typeof SheetPrimitive.Title>
+>(({ className, ...props }, ref) => (
+  <SheetPrimitive.Title
+    ref={ref}
+    className={cn("text-lg font-semibold text-foreground", className)}
+    {...props}
+  />
+))
+SheetTitle.displayName = SheetPrimitive.Title.displayName
+
+const SheetDescription = React.forwardRef<
+  React.ElementRef<typeof SheetPrimitive.Description>,
+  React.ComponentPropsWithoutRef<typeof SheetPrimitive.Description>
+>(({ className, ...props }, ref) => (
+  <SheetPrimitive.Description
+    ref={ref}
+    className={cn("text-sm text-muted-foreground", className)}
+    {...props}
+  />
+))
+SheetDescription.displayName = SheetPrimitive.Description.displayName
+
+export {
+  Sheet,
+  SheetPortal,
+  SheetOverlay,
+  SheetTrigger,
+  SheetClose,
+  SheetContent,
+  SheetHeader,
+  SheetFooter,
+  SheetTitle,
+  SheetDescription,
+}
+
+// FILE: src/components/ui/skeleton.tsx
+import { cn } from "@/lib/utils"
+
+function Skeleton({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      className={cn("animate-pulse rounded-md bg-primary/10", className)}
+      {...props}
+    />
+  )
+}
+
+export { Skeleton }
+
+// FILE: src/components/ui/sonner.tsx
+import { useTheme } from "next-themes"
+import { Toaster as Sonner } from "sonner"
+
+type ToasterProps = React.ComponentProps<typeof Sonner>
+
+const Toaster = ({ ...props }: ToasterProps) => {
+  const { theme = "system" } = useTheme()
+
+  return (
+    <Sonner
+      theme={theme as ToasterProps["theme"]}
+      className="toaster group"
+      toastOptions={{
+        classNames: {
+          toast:
+            "group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg",
+          description: "group-[.toast]:text-muted-foreground",
+          actionButton:
+            "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
+          cancelButton:
+            "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
+        },
+      }}
+      {...props}
+    />
+  )
+}
+
+export { Toaster }
+
+// FILE: src/components/ui/switch.tsx
+"use client"
+
+import * as React from "react"
+import * as SwitchPrimitives from "@radix-ui/react-switch"
+
+import { cn } from "@/lib/utils"
+
+const Switch = React.forwardRef<
+  React.ElementRef<typeof SwitchPrimitives.Root>,
+  React.ComponentPropsWithoutRef<typeof SwitchPrimitives.Root>
+>(({ className, ...props }, ref) => (
+  <SwitchPrimitives.Root
+    className={cn(
+      "peer inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=unchecked]:bg-input",
+      className
+    )}
+    {...props}
+    ref={ref}
+  >
+    <SwitchPrimitives.Thumb
+      className={cn(
+        "pointer-events-none block h-4 w-4 rounded-full bg-background shadow-lg ring-0 transition-transform data-[state=checked]:translate-x-4 data-[state=unchecked]:translate-x-0"
+      )}
+    />
+  </SwitchPrimitives.Root>
+))
+Switch.displayName = SwitchPrimitives.Root.displayName
+
+export { Switch }
+
+// FILE: src/components/ui/table.tsx
+import * as React from "react"
+
+import { cn } from "@/lib/utils"
+
+const Table = React.forwardRef<
+  HTMLTableElement,
+  React.HTMLAttributes<HTMLTableElement>
+>(({ className, ...props }, ref) => (
+  <div className="relative w-full overflow-auto">
+    <table
+      ref={ref}
+      className={cn("w-full caption-bottom text-sm", className)}
+      {...props}
+    />
+  </div>
+))
+Table.displayName = "Table"
+
+const TableHeader = React.forwardRef<
+  HTMLTableSectionElement,
+  React.HTMLAttributes<HTMLTableSectionElement>
+>(({ className, ...props }, ref) => (
+  <thead ref={ref} className={cn("[&_tr]:border-b", className)} {...props} />
+))
+TableHeader.displayName = "TableHeader"
+
+const TableBody = React.forwardRef<
+  HTMLTableSectionElement,
+  React.HTMLAttributes<HTMLTableSectionElement>
+>(({ className, ...props }, ref) => (
+  <tbody
+    ref={ref}
+    className={cn("[&_tr:last-child]:border-0", className)}
+    {...props}
+  />
+))
+TableBody.displayName = "TableBody"
+
+const TableFooter = React.forwardRef<
+  HTMLTableSectionElement,
+  React.HTMLAttributes<HTMLTableSectionElement>
+>(({ className, ...props }, ref) => (
+  <tfoot
+    ref={ref}
+    className={cn(
+      "border-t bg-muted/50 font-medium [&>tr]:last:border-b-0",
+      className
+    )}
+    {...props}
+  />
+))
+TableFooter.displayName = "TableFooter"
+
+const TableRow = React.forwardRef<
+  HTMLTableRowElement,
+  React.HTMLAttributes<HTMLTableRowElement>
+>(({ className, ...props }, ref) => (
+  <tr
+    ref={ref}
+    className={cn(
+      "border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted",
+      className
+    )}
+    {...props}
+  />
+))
+TableRow.displayName = "TableRow"
+
+const TableHead = React.forwardRef<
+  HTMLTableCellElement,
+  React.ThHTMLAttributes<HTMLTableCellElement>
+>(({ className, ...props }, ref) => (
+  <th
+    ref={ref}
+    className={cn(
+      "h-10 px-2 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+      className
+    )}
+    {...props}
+  />
+))
+TableHead.displayName = "TableHead"
+
+const TableCell = React.forwardRef<
+  HTMLTableCellElement,
+  React.TdHTMLAttributes<HTMLTableCellElement>
+>(({ className, ...props }, ref) => (
+  <td
+    ref={ref}
+    className={cn(
+      "p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+      className
+    )}
+    {...props}
+  />
+))
+TableCell.displayName = "TableCell"
+
+const TableCaption = React.forwardRef<
+  HTMLTableCaptionElement,
+  React.HTMLAttributes<HTMLTableCaptionElement>
+>(({ className, ...props }, ref) => (
+  <caption
+    ref={ref}
+    className={cn("mt-4 text-sm text-muted-foreground", className)}
+    {...props}
+  />
+))
+TableCaption.displayName = "TableCaption"
+
+export {
+  Table,
+  TableHeader,
+  TableBody,
+  TableFooter,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableCaption,
+}
+
+// FILE: src/components/ui/tabs.tsx
+import * as React from "react"
+import * as TabsPrimitive from "@radix-ui/react-tabs"
+
+import { cn } from "@/lib/utils"
+
+function Tabs({
+  className,
+  ...props
+}: React.ComponentProps<typeof TabsPrimitive.Root>) {
+  return (
+    <TabsPrimitive.Root
+      data-slot="tabs"
+      className={cn("flex flex-col gap-2", className)}
+      {...props}
+    />
+  )
+}
+
+function TabsList({
+  className,
+  ...props
+}: React.ComponentProps<typeof TabsPrimitive.List>) {
+  return (
+    <TabsPrimitive.List
+      data-slot="tabs-list"
+      className={cn(
+        "inline-flex h-9 w-fit items-center justify-center rounded-lg bg-surface p-[3px] text-muted-foreground",
+        className
+      )}
+      {...props}
+    />
+  );
+}
+
+function TabsTrigger({
+  className,
+  ...props
+}: React.ComponentProps<typeof TabsPrimitive.Trigger>) {
+  return (
+    <TabsPrimitive.Trigger
+      data-slot="tabs-trigger"
+      className={cn(
+        "inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-md border border-transparent px-2 py-1 text-sm font-medium text-foreground transition-[color,box-shadow] focus-visible:border-ring focus-visible:outline-1 focus-visible:outline-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-element data-[state=active]:shadow-sm dark:text-muted-foreground dark:data-[state=active]:border-input dark:data-[state=active]:bg-element dark:data-[state=active]:text-foreground [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+        className
+      )}
+      {...props}
+    />
+  );
+}
+
+function TabsContent({
+  className,
+  ...props
+}: React.ComponentProps<typeof TabsPrimitive.Content>) {
+  return (
+    <TabsPrimitive.Content
+      data-slot="tabs-content"
+      className={cn("flex-1 outline-none", className)}
+      {...props}
+    />
+  )
+}
+
+export { Tabs, TabsList, TabsTrigger, TabsContent }
+
+// FILE: src/components/ui/textarea.tsx
+import * as React from "react"
+
+import { cn } from "@/lib/utils"
+
+const Textarea = React.forwardRef<
+  HTMLTextAreaElement,
+  React.ComponentProps<"textarea">
+>(({ className, ...props }, ref) => {
+  return (
+    <textarea
+      className={cn(
+        "flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+        className
+      )}
+      ref={ref}
+      {...props}
+    />
+  )
+})
+Textarea.displayName = "Textarea"
+
+export { Textarea }
+
+// FILE: src/components/ui/toggle-group.tsx
+import * as React from "react"
+import * as ToggleGroupPrimitive from "@radix-ui/react-toggle-group"
+import { type VariantProps } from "class-variance-authority"
+
+import { cn } from "@/lib/utils"
+import { toggleVariants } from "@/components/ui/toggle"
+
+const ToggleGroupContext = React.createContext<
+  VariantProps<typeof toggleVariants>
+>({
+  size: "default",
+  variant: "default",
+})
+
+const ToggleGroup = React.forwardRef<
+  React.ElementRef<typeof ToggleGroupPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof ToggleGroupPrimitive.Root> &
+    VariantProps<typeof toggleVariants>
+>(({ className, variant, size, children, ...props }, ref) => (
+  <ToggleGroupPrimitive.Root
+    ref={ref}
+    className={cn("flex items-center justify-center gap-1", className)}
+    {...props}
+  >
+    <ToggleGroupContext.Provider value={{ variant, size }}>
+      {children}
+    </ToggleGroupContext.Provider>
+  </ToggleGroupPrimitive.Root>
+))
+
+ToggleGroup.displayName = ToggleGroupPrimitive.Root.displayName
+
+const ToggleGroupItem = React.forwardRef<
+  React.ElementRef<typeof ToggleGroupPrimitive.Item>,
+  React.ComponentPropsWithoutRef<typeof ToggleGroupPrimitive.Item> &
+    VariantProps<typeof toggleVariants>
+>(({ className, children, variant, size, ...props }, ref) => {
+  const context = React.useContext(ToggleGroupContext)
+
+  return (
+    <ToggleGroupPrimitive.Item
+      ref={ref}
+      className={cn(
+        toggleVariants({
+          variant: context.variant || variant,
+          size: context.size || size,
+        }),
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </ToggleGroupPrimitive.Item>
+  )
+})
+
+ToggleGroupItem.displayName = ToggleGroupPrimitive.Item.displayName
+
+export { ToggleGroup, ToggleGroupItem }
+
+// FILE: src/components/ui/toggle.tsx
+"use client"
+
+import * as React from "react"
+import * as TogglePrimitive from "@radix-ui/react-toggle"
+import { cva, type VariantProps } from "class-variance-authority"
+
+import { cn } from "@/lib/utils"
+
+const toggleVariants = cva(
+  "inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium transition-colors hover:bg-muted hover:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 data-[state=on]:bg-accent data-[state=on]:text-accent-foreground [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  {
+    variants: {
+      variant: {
+        default: "bg-transparent",
+        outline:
+          "border border-input bg-transparent shadow-sm hover:bg-accent hover:text-accent-foreground",
+      },
+      size: {
+        default: "h-9 px-2 min-w-9",
+        sm: "h-8 px-1.5 min-w-8",
+        lg: "h-10 px-2.5 min-w-10",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  }
+)
+
+const Toggle = React.forwardRef<
+  React.ElementRef<typeof TogglePrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof TogglePrimitive.Root> &
+    VariantProps<typeof toggleVariants>
+>(({ className, variant, size, ...props }, ref) => (
+  <TogglePrimitive.Root
+    ref={ref}
+    className={cn(toggleVariants({ variant, size, className }))}
+    {...props}
+  />
+))
+
+Toggle.displayName = TogglePrimitive.Root.displayName
+
+export { Toggle, toggleVariants }
+
+// FILE: src/components/ui/tooltip.tsx
+import * as React from "react"
+import * as TooltipPrimitive from "@radix-ui/react-tooltip"
+
+import { cn } from "@/lib/utils"
+
+const TooltipProvider = TooltipPrimitive.Provider
+
+const Tooltip = TooltipPrimitive.Root
+
+const TooltipTrigger = TooltipPrimitive.Trigger
+
+const TooltipContent = React.forwardRef<
+  React.ElementRef<typeof TooltipPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>
+>(({ className, sideOffset = 4, ...props }, ref) => (
+  <TooltipPrimitive.Portal>
+    <TooltipPrimitive.Content
+      ref={ref}
+      sideOffset={sideOffset}
+      className={cn(
+        "z-50 overflow-hidden rounded-md bg-primary px-3 py-1.5 text-xs text-primary-foreground animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 origin-[--radix-tooltip-content-transform-origin]",
+        className
+      )}
+      {...props}
+    />
+  </TooltipPrimitive.Portal>
+))
+TooltipContent.displayName = TooltipPrimitive.Content.displayName
+
+export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider }
 
 // FILE: src/features/admin/announcements/api/useManageAnnouncements.ts
 import { useApiResource } from "@/hooks/useApiResource";
@@ -23061,6 +25831,237 @@ export function useSocketSubscription(
   }, [socket, contextType, contextId, queryClient, handlers]);
 }
 
+// FILE: src/lib/api.ts
+import axios, { InternalAxiosRequestConfig } from "axios";
+import { useAuthStore } from "@/store/auth";
+
+const api = axios.create({
+  baseURL: "http://localhost:3000/api/v1",
+  withCredentials: true,
+});
+
+api.interceptors.request.use(
+  (config: InternalAxiosRequestConfig) => {
+    const token = useAuthStore.getState().accessToken;
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    const publicPaths = [
+      "/auth/login",
+      "/auth/refresh-token",
+      "/auth/forgot-password",
+      "/auth/reset-password",
+      "/auth/setup-password",
+    ];
+
+    const isPublicPath = publicPaths.some((path) =>
+      originalRequest.url?.includes(path)
+    );
+
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !isPublicPath
+    ) {
+      originalRequest._retry = true;
+      try {
+        const { data } = await api.post("auth/refresh-token");
+        const { accessToken } = data;
+        useAuthStore.getState().setAccessToken(accessToken);
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        return api(originalRequest);
+      } catch (refreshError) {
+        useAuthStore.getState().setAccessToken(null);
+        const publicPathsForRedirect = [
+          "/login",
+          "/forgot-password",
+          "/reset-password",
+          "/setup-password",
+        ];
+        const isAlreadyOnPublicPage = publicPathsForRedirect.some((path) =>
+          window.location.pathname.startsWith(path)
+        );
+
+        if (!isAlreadyOnPublicPage) {
+          window.location.href = "/login";
+        }
+        return Promise.reject(refreshError);
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+
+export default api;
+// FILE: src/lib/config.ts
+const config = {
+  apiBaseUrl: "http://localhost:3000/api/v1",
+};
+
+export default config;
+
+// FILE: src/lib/icons.tsx
+import {
+  Briefcase,
+  CheckSquare,
+  FileText,
+  User,
+  type LucideIcon,
+  Book,
+  FlaskConical,
+  BarChart,
+  Target,
+  Bug,
+  Lightbulb,
+  Flame,
+  Kanban,
+  List,
+  Calendar,
+  AreaChart,
+  GitBranch,
+  LayoutDashboard,
+  Building2,
+  Contact,
+  Handshake,
+  BookOpen,
+  ClipboardList,
+} from "lucide-react";
+
+export const ICONS: Record<string, LucideIcon> = {
+  Project: Briefcase,
+  Task: CheckSquare,
+  Publication: FileText,
+  User: User,
+  Person: Contact,
+  Organization: Building2,
+  Deal: Handshake,
+  KnowledgeBase: BookOpen,
+  LeadForm: ClipboardList,
+  Book,
+  FlaskConical,
+  BarChart,
+  Target,
+  Bug,
+  Spike: Flame,
+  Story: Book,
+  Idea: Lightbulb,
+  ProjectTemplate: FileText,
+  KANBAN: Kanban,
+  LIST: List,
+  CALENDAR: Calendar,
+  GANTT: AreaChart,
+  BACKLOG: GitBranch,
+  DASHBOARD: LayoutDashboard,
+  WHITEBOARD: LayoutDashboard,
+  Default: FileText,
+};
+
+export function getIcon(typeName: string | null | undefined): LucideIcon {
+  if (!typeName) {
+    return ICONS.Default;
+  }
+
+  const foundIcon = Object.keys(ICONS).find(
+    (key) => key.toLowerCase() === typeName.toLowerCase()
+  );
+  return foundIcon ? ICONS[foundIcon] : ICONS.Default;
+}
+// FILE: src/lib/schemas.ts
+import { z } from "zod";
+import { SocialProvider } from "../types/api";
+
+
+export const phoneRegex = /^[+]*[(]?[0-9]{1,4}[)]?[-\s./0-9]*$/;
+export const phoneNumberSchema = z
+  .string()
+  .refine((val) => {
+    if (!val || val.length === 0) return true;
+    return phoneRegex.test(val);
+  }, "Invalid phone number format.")
+  .optional()
+  .nullable();
+
+export const nameSchema = (entity: string, min = 2) =>
+  z.string().min(min, `${entity} name must be at least ${min} characters.`);
+
+export const descriptionSchema = z.string().optional().nullable();
+
+export const requiredStringSchema = (fieldName: string) =>
+  z.string().min(1, `${fieldName} is required.`);
+
+
+export const socialLinkSchema = z.object({
+  id: z.string().uuid().optional(),
+  provider: z.nativeEnum(SocialProvider),
+  url: z.string().url("Please enter a valid URL."),
+});
+// FILE: src/lib/utils.ts
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+import config from "./config";
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+
+export function getAbsoluteUrl(
+  relativePath?: string | null
+): string | undefined {
+  if (!relativePath) {
+    return undefined;
+  }
+  if (
+    relativePath.startsWith("http://") ||
+    relativePath.startsWith("https://")
+  ) {
+    return relativePath;
+  }
+  const backendUrl = new URL(config.apiBaseUrl).origin;
+  return `${backendUrl}${relativePath}`;
+}
+
+export const parseServerDate = (
+  dateString: string | null | undefined
+): Date | null => {
+  if (!dateString) return null;
+  const date = new Date(dateString);
+  return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+};
+
+export const formatDateForServer = (
+  date: Date | null | undefined
+): string | null => {
+  if (!date) return null;
+  return date.toISOString();
+};
+
+export function stripHtml(html: string | null | undefined): string {
+  if (!html) return "";
+  return html.replace(/<[^>]*>?/gm, "");
+}
+
+export function truncate(text: string, length: number): string {
+  if (!text) {
+    return "";
+  }
+  if (text.length <= length) {
+    return text;
+  }
+  return text.substring(0, length) + "...";
+}
 // FILE: src/main.tsx
 import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
@@ -26174,110 +29175,928 @@ export const usePresenceStore = create<PresenceState>((set) => ({
       members: state.members.filter((m) => m.socketId !== socketId),
     })),
 }));
+// FILE: src/types/api.ts
+export enum SocialProvider {
+  GOOGLE = "GOOGLE",
+  LINKEDIN = "LINKEDIN",
+  TWITTER = "TWITTER",
+  FACEBOOK = "FACEBOOK",
+  NEXTCLOUD = "NEXTCLOUD",
+  TELEGRAM = "TELEGRAM",
+  GITHUB = "GITHUB",
+  WEBSITE = "WEBSITE",
+  OTHER = "OTHER",
+  WORDPRESS = "WORDPRESS",
+  CANVA = "CANVA",
+  INSTAGRAM = "INSTAGRAM",
+  WHATSAPP = "WHATSAPP",
+  OPEN_ROUTER = "OPEN_ROUTER",
+  BREVO = "BREVO",
+  GOOGLE_DOCS = "GOOGLE_DOCS",
+  GOOGLE_SHEETS = "GOOGLE_SHEETS",
+  GOOGLE_SLIDES = "GOOGLE_SLIDES",
+  GOOGLE_YOUTUBE = "GOOGLE_YOUTUBE",
+}
+
+export enum SkillCategory {
+  TECHNICAL = "TECHNICAL",
+  SOFT_SKILL = "SOFT_SKILL",
+  LANGUAGE = "LANGUAGE",
+  OTHER = "OTHER",
+}
+
+export enum PublicationStatus {
+  DRAFT = "DRAFT",
+  PUBLISHED = "PUBLISHED",
+  ARCHIVED = "ARCHIVED",
+}
+
+export enum DocumentType {
+  INPUT = "INPUT",
+  OUTPUT = "OUTPUT",
+}
+
+export enum AnnouncementSeverity {
+  INFO = "INFO",
+  LOW = "LOW",
+  MEDIUM = "MEDIUM",
+  HIGH = "HIGH",
+  CRITICAL = "CRITICAL",
+}
+
+export enum ProjectStatus {
+  PLANNING = "PLANNING",
+  IN_PROGRESS = "IN_PROGRESS",
+  ON_HOLD = "ON_HOLD",
+  COMPLETED = "COMPLETED",
+  CANCELLED = "CANCELLED",
+}
+
+export enum TaskStatus {
+  TODO = "TODO",
+  IN_PROGRESS = "IN_PROGRESS",
+  IN_REVIEW = "IN_REVIEW",
+  DONE = "DONE",
+  BLOCKED = "BLOCKED",
+  CANCELLED = "CANCELLED",
+}
+
+export enum TaskPriority {
+  NONE = "NONE",
+  LOW = "LOW",
+  MEDIUM = "MEDIUM",
+  HIGH = "HIGH",
+  URGENT = "URGENT",
+}
+
+export enum TaskLinkType {
+  RELATES_TO = "RELATES_TO",
+  BLOCKS = "BLOCKS",
+  IS_BLOCKED_BY = "IS_BLOCKED_BY",
+}
+
+export enum CustomFieldType {
+  TEXT = "TEXT",
+  NUMBER = "NUMBER",
+  DATE = "DATE",
+  SELECT = "SELECT",
+}
+
+export enum ActivityActionType {
+  TASK_CREATED = "TASK_CREATED",
+  TASK_UPDATED = "TASK_UPDATED",
+  TASK_DELETED = "TASK_DELETED",
+  TASK_MOVED = "TASK_MOVED",
+  COMMENT_CREATED = "COMMENT_CREATED",
+  COMMENT_UPDATED = "COMMENT_UPDATED",
+  COMMENT_DELETED = "COMMENT_DELETED",
+  PROJECT_CREATED = "PROJECT_CREATED",
+  PROJECT_UPDATED = "PROJECT_UPDATED",
+}
+
+export enum JobStatus {
+  PENDING = "PENDING",
+  RUNNING = "RUNNING",
+  COMPLETED = "COMPLETED",
+  FAILED = "FAILED",
+  CANCELLED = "CANCELLED",
+}
+
+export enum JobPriority {
+  LOW = "LOW",
+  NORMAL = "NORMAL",
+  HIGH = "HIGH",
+  CRITICAL = "CRITICAL",
+}
+
+export enum NotificationType {
+  SYSTEM_BROADCAST = "SYSTEM_BROADCAST",
+  TASK_ASSIGNMENT = "TASK_ASSIGNMENT",
+  COMMENT_MENTION = "COMMENT_MENTION",
+  PROJECT_INVITE = "PROJECT_INVITE",
+  INTEGRATION_HEALTH_ALERT = "INTEGRATION_HEALTH_ALERT",
+}
+
+export enum NotificationSeverity {
+  LOW = "LOW",
+  MEDIUM = "MEDIUM",
+  HIGH = "HIGH",
+  CRITICAL = "CRITICAL",
+}
+
+export enum EmailDigestFrequency {
+  NONE = "NONE",
+  DAILY = "DAILY",
+  WEEKLY = "WEEKLY",
+  IMMEDIATELY = "IMMEDIATELY",
+}
+
+export enum WorkflowActionType {
+  CREATE_TASK = "CREATE_TASK",
+  UPDATE_TASK_STATUS = "UPDATE_TASK_STATUS",
+  ADD_COMMENT = "ADD_COMMENT",
+  ASSIGN_TASK = "ASSIGN_TASK",
+  SEND_TELEGRAM_MESSAGE = "SEND_TELEGRAM_MESSAGE",
+  SEND_EMAIL_BREVO = "SEND_EMAIL_BREVO",
+  SEND_WEBHOOK = "SEND_WEBHOOK",
+  SEND_GOOGLE_CHAT_MESSAGE = "SEND_GOOGLE_CHAT_MESSAGE",
+}
+
+export enum WorkflowRunStatus {
+  RUNNING = "RUNNING",
+  SUCCESS = "SUCCESS",
+  FAILED = "FAILED",
+}
+
+export enum ViewType {
+  KANBAN = "KANBAN",
+  LIST = "LIST",
+  CALENDAR = "CALENDAR",
+  GANTT = "GANTT",
+  BACKLOG = "BACKLOG",
+  WHITEBOARD = "WHITEBOARD",
+}
+
+export enum WidgetType {
+  STATS_COUNTER = "STATS_COUNTER",
+  TASK_LIST = "TASK_LIST",
+  BURNDOWN_CHART = "BURNDOWN_CHART",
+  TIME_TRACKING_REPORT = "TIME_TRACKING_REPORT",
+  PIE_CHART = "PIE_CHART",
+  GOAL_TRACKING = "GOAL_TRACKING",
+  LEAD_CYCLE_TIME_CHART = "LEAD_CYCLE_TIME_CHART",
+}
+
+export enum GoalStatus {
+  ON_TRACK = "ON_TRACK",
+  AT_RISK = "AT_RISK",
+  OFF_TRACK = "OFF_TRACK",
+  ACHIEVED = "ACHIEVED",
+  NOT_STARTED = "NOT_STARTED",
+}
+
+export enum KeyResultType {
+  NUMBER = "NUMBER",
+  PERCENTAGE = "PERCENTAGE",
+  CURRENCY = "CURRENCY",
+  BOOLEAN = "BOOLEAN",
+}
+
+export enum InteractionType {
+  EMAIL = "EMAIL",
+  CALL = "CALL",
+  MEETING = "MEETING",
+  SOCIAL = "SOCIAL",
+}
+
+export enum IntegrationProvider {
+  GOOGLE = "GOOGLE",
+  LINKEDIN = "LINKEDIN",
+  TWITTER = "TWITTER",
+  FACEBOOK = "FACEBOOK",
+  NEXTCLOUD = "NEXTCLOUD",
+  TELEGRAM = "TELEGRAM",
+  GITHUB = "GITHUB",
+  WEBSITE = "WEBSITE",
+  WORDPRESS = "WORDPRESS",
+  CANVA = "CANVA",
+  INSTAGRAM = "INSTAGRAM",
+  WHATSAPP = "WHATSAPP",
+  OPEN_ROUTER = "OPEN_ROUTER",
+  BREVO = "BREVO",
+}
+
+export enum IntegrationHealthStatus {
+  OK = "OK",
+  ERROR = "ERROR",
+  DISABLED = "DISABLED",
+}
+
+export enum ApiCallStatus {
+  SUCCESS = "SUCCESS",
+  FAILED = "FAILED",
+}
+
+export enum WebhookAction {
+  CREATE_TASK = "CREATE_TASK",
+}
+
+export enum IntegrationCategory {
+  OAUTH = "OAUTH",
+  API_KEY = "API_KEY",
+  WEBHOOK = "WEBHOOK",
+}
+
+export enum AccessRole {
+  OWNER = "OWNER",
+  EDITOR = "EDITOR",
+  VIEWER = "VIEWER",
+}
+// FILE: src/types/index.ts
+import {
+  ViewType,
+  ProjectStatus,
+  TaskStatus,
+  TaskPriority,
+  TaskLinkType,
+  CustomFieldType,
+  SocialProvider,
+  DocumentType,
+  GoalStatus,
+  KeyResultType,
+  InteractionType,
+  JobStatus,
+  PublicationStatus,
+  AnnouncementSeverity,
+  SkillCategory,
+  ActivityActionType,
+  WidgetType,
+  AccessRole,
+  NotificationType,
+  NotificationSeverity,
+  WorkflowRunStatus,
+} from "./api";
+
+export * from "./api";
+
+export type AnyValue = Record<string, any>;
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface User {
+  id: string;
+  name: string;
+  firstName: string;
+  lastName: string;
+  email: string | null;
+  avatarUrl: string | null;
+  isActive: boolean;
+  roles: string[];
+  createdAt: string;
+  updatedAt: string;
+  biography?: string | null;
+  phoneNumber?: string | null;
+  birthday?: string | null;
+  socialLinks?: SocialLink[];
+  skills?: Skill[];
+  workspaceId?: string;
+}
+
+export interface RoleWithPermissions {
+  id: string;
+  name: string;
+  description: string | null;
+  permissions: Permission[];
+}
+
+export interface Permission {
+  id: string;
+  action: string;
+  subject: string;
+  description: string | null;
+}
+
+export interface Announcement {
+  id: string;
+  title: string;
+  content: { message: string };
+  status: PublicationStatus;
+  severity: AnnouncementSeverity;
+  isPinned: boolean;
+  publishedAt: string | null;
+  author: {
+    id: string;
+    name: string;
+  };
+}
+
+export interface Job {
+  id: string;
+  type: string;
+  status: JobStatus;
+  attempts: number;
+  maxAttempts: number;
+  createdAt: string;
+}
+
+export interface JobSchedule {
+  id: string;
+  name: string;
+  jobType: string;
+  cronExpression: string;
+  payload: any;
+  isActive: boolean;
+  lastRunAt: string | null;
+  nextRunAt: string | null;
+}
+
+export interface Notification {
+  id: string;
+  type: NotificationType;
+  severity: NotificationSeverity;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
+export interface PaginatedNotificationsResponse
+  extends PaginatedResponse<Notification> {
+  unreadCount: number;
+}
+
+export interface SearchResults {
+  projects: Project[];
+  tasks: Task[];
+  publications: Publication[];
+  users: User[];
+  reports: Report[];
+}
+
+export interface Workflow {
+  id: string;
+  name: string;
+  description: string | null;
+  triggerType: ActivityActionType | null;
+  cronExpression: string | null;
+  enabled: boolean;
+  actions: WorkflowAction[];
+}
+
+export interface WorkflowAction {
+  id: string;
+  type: string;
+  config: any;
+  order: number;
+}
+
+export interface WorkflowRun {
+  id: string;
+  workflowId: string;
+  status: WorkflowRunStatus;
+  context: any;
+  logs: any;
+  startedAt: string;
+  completedAt: string | null;
+}
+
+export interface Workspace {
+  id: string;
+  name: string;
+  description: string | null;
+  logoUrl: string | null;
+  ownerId: string;
+  createdAt: string;
+  updatedAt: string;
+  knowledgeBases?: KnowledgeBase[];
+  whiteboards?: Whiteboard[];
+  publications?: Publication[];
+  channels?: Channel[];
+}
+
+export interface Project {
+  id: string;
+  name: string;
+  description: string | null;
+  icon: string | null;
+  status: ProjectStatus;
+  isPrivate: boolean;
+  workspaceId: string;
+  leadId: string | null;
+  startDate: string | null;
+  endDate: string | null;
+  createdAt: string;
+  updatedAt: string;
+  members?: ProjectMember[];
+  knowledgeBases?: KnowledgeBase[];
+  whiteboards?: Whiteboard[];
+  publications?: Publication[];
+  channels?: Channel[];
+}
+
+export interface Team {
+  id: string;
+  name: string;
+  description: string | null;
+  workspaceId: string;
+  members: {
+    id: string;
+    name: string;
+    avatarUrl: string | null;
+  }[];
+}
+
+export interface TaskType {
+  id: string;
+  name: string;
+  icon: string | null;
+  color: string | null;
+}
+
+export interface TaskAssignee {
+  id: string;
+  name: string;
+  avatarUrl: string | null;
+}
+
+export interface TaskLink {
+  id: string;
+  type: TaskLinkType;
+  targetTask?: {
+    id: string;
+    title: string;
+    status: TaskStatus;
+  };
+  sourceTask?: {
+    id: string;
+    title: string;
+    status: TaskStatus;
+  };
+}
+
+export interface CustomFieldDefinitionForTask {
+  id: string;
+  name: string;
+  type: CustomFieldType;
+  options: any | null;
+}
+
+export interface TaskCustomField {
+  fieldId: string;
+  value: any;
+  definition: CustomFieldDefinitionForTask;
+}
+
+export interface TaskDocument {
+  documentId: string;
+  type: DocumentType;
+  title: string;
+  url: string;
+  fileType: string | null;
+  createdAt: string;
+  externalUrl: string | null;
+  provider: SocialProvider | null;
+}
+
+export interface ChecklistItem {
+  id: string;
+  text: string;
+  completed: boolean;
+}
+
+export interface Task {
+  id: string;
+  shortId: string | null;
+  title: string;
+  description: string | null;
+  status: TaskStatus;
+  priority: TaskPriority;
+  projectId: string | null;
+  workspaceId: string | null;
+  workspaceName?: string | null;
+  projectName: string | null;
+  taskTypeId?: string | null;
+  taskType?: TaskType | null;
+  ownerId: string | null;
+  creatorId: string | null;
+  startDate: string | null;
+  dueDate: string | null;
+  completedAt: string | null;
+  timeEstimate: number | null;
+  storyPoints: number | null;
+  boardColumnId: string | null;
+  orderInColumn: number | null;
+  recurrenceRule?: string | null;
+  progress?: number | null;
+  createdAt: string;
+  updatedAt: string;
+  assignees: TaskAssignee[];
+  watchers: TaskAssignee[];
+  links: TaskLink[];
+  linkedToBy: TaskLink[];
+  customFields: TaskCustomField[];
+  documents: TaskDocument[];
+  parentId: string | null;
+  subtasks: Task[];
+  checklist?: ChecklistItem[] | null;
+  publications?: Publication[];
+  whiteboards?: Whiteboard[];
+  knowledgeBases?: KnowledgeBase[];
+  _count?: {
+    comments: number;
+    documents: number;
+    subtasks: number;
+  };
+}
+
+export interface ViewColumn {
+  id: string;
+  name: string;
+  order: number;
+  viewId: string;
+  status?: TaskStatus;
+}
+
+export interface View {
+  id: string;
+  name: string;
+  type: ViewType;
+  projectId: string;
+  columns: ViewColumn[];
+  config?: any;
+  filters?: any;
+  sorting?: any;
+  grouping?: any;
+  isPublic: boolean;
+}
+
+export interface Goal {
+  id: string;
+  name: string;
+  description: string | null;
+  status: GoalStatus;
+  workspaceId?: string;
+  projectId?: string;
+  keyResults: KeyResult[];
+}
+
+export interface KeyResult {
+  id: string;
+  name: string;
+  type: KeyResultType;
+  startValue: number;
+  targetValue: number;
+  currentValue: number;
+}
+
+export interface Interaction {
+  id: string;
+  type: InteractionType;
+  notes: string;
+  date: string;
+  actor?: { name: string | null } | null;
+}
+
+export interface Person {
+  id: string;
+  firstName: string;
+  lastName: string;
+  name: string;
+  email: string | null;
+  avatarUrl: string | null;
+  biography: string | null;
+  phoneNumber: string | null;
+  birthday: string | null;
+  socialLinks: SocialLink[];
+  skills: Skill[];
+  roles: string[];
+  organizations: {
+    organizationId: string;
+    organization: { name: string };
+    role: string | null;
+  }[];
+  roleInOrganization?: string | null;
+}
+
+export interface Organization {
+  id: string;
+  name: string;
+  description: string | null;
+  domain: string | null;
+  logoUrl: string | null;
+  people: Person[];
+  publications?: Publication[];
+}
+
+export interface Deal {
+  id: string;
+  name: string;
+  value: number;
+  stageId: string;
+  stage: DealStage;
+  organization: {
+    id: string;
+    name: string;
+  };
+  ownerId: string;
+  ownerName: string;
+  workspaceId: string;
+  projectId: string | null;
+  contacts: { id: string; name: string; email: string | null }[];
+}
+
+export interface DealStage {
+  id: string;
+  name: string;
+  order: number;
+}
+
+export interface Skill {
+  id: string;
+  name: string;
+  category: SkillCategory;
+}
+
+export interface SocialLink {
+  id: string;
+  provider: SocialProvider;
+  url: string;
+}
+
+export interface Report {
+  id: string;
+  title: string;
+  summary: string | null;
+  content: any | null;
+  isPublic: boolean;
+  status: PublicationStatus;
+  ownerId: string;
+  workspaceId: string | null;
+  projectId: string | null;
+  taskId: string | null;
+}
+
+export interface Activity {
+  id: string;
+  workspaceId: string | null;
+  projectId: string | null;
+  taskId: string | null;
+  actionType: ActivityActionType;
+  details: any;
+  actorId: string;
+  actor: {
+    id: string;
+    name: string;
+    avatarUrl: string | null;
+  };
+  createdAt: string;
+}
+
+export interface Widget {
+  id: string;
+  title: string;
+  type: WidgetType;
+  config: any;
+  layout: {
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+  };
+}
+
+export interface Dashboard {
+  id: string;
+  name: string;
+  description: string | null;
+  projectId: string | null;
+  workspaceId: string | null;
+  userId: string | null;
+  widgets: Widget[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ListTasksQuery {
+  page?: number;
+  limit?: number;
+  status?: TaskStatus;
+  priority?: TaskPriority;
+  search?: string;
+  startDate?: Date;
+  endDate?: Date;
+  includeSubtasks?: boolean;
+  sortBy?:
+    | "createdAt"
+    | "updatedAt"
+    | "title"
+    | "status"
+    | "priority"
+    | "dueDate"
+    | "orderInColumn"
+    | "projectName"
+    | "workspaceName"
+    | "taskTypeName";
+  sortOrder?: "asc" | "desc";
+  taskOrigin?: "project" | "standalone";
+  userRole?: "creator" | "assignee";
+}
+
+export interface BulkUpdateTasksDto {
+  taskIds: string[];
+  updates: {
+    status?: TaskStatus;
+    priority?: TaskPriority;
+    projectId?: string;
+    assigneeIds?: string[];
+  };
+}
+
+export interface ListProjectsQuery {
+  page?: number;
+  limit?: number;
+  status?: ProjectStatus;
+  search?: string;
+  sortBy?: "createdAt" | "updatedAt" | "name" | "status";
+  sortOrder?: "asc" | "desc";
+  workspaceId?: string;
+}
+
+export interface ListPeopleQuery {
+  page?: number;
+  limit?: number;
+  sortBy?: "createdAt" | "updatedAt" | "firstName" | "lastName";
+  sortOrder?: "asc" | "desc";
+  search?: string;
+}
+
+export interface Comment {
+  id: string;
+  content: string;
+  entityId: string;
+  entityType: string;
+  authorId: string;
+  author: {
+    id: string;
+    name: string;
+    avatarUrl: string | null;
+  };
+  createdAt: string;
+  updatedAt: string;
+  publications?: Publication[];
+  whiteboards?: Whiteboard[];
+  knowledgeBases?: KnowledgeBase[];
+}
+
+export interface Publication {
+  id: string;
+  title: string;
+  slug: string;
+  status: PublicationStatus;
+  excerpt: string | null;
+  authors: Person[];
+  categories: { id: string; name: string }[];
+}
+
+export interface PublicationCategory {
+  id: string;
+  name: string;
+}
+
+export interface ChannelMember {
+  userId: string;
+  role: AccessRole;
+  name: string;
+  avatarUrl: string | null;
+}
+
+export interface Channel {
+  id: string;
+  name: string;
+  isPrivate: boolean;
+  workspaceId: string | null;
+  projectId: string | null;
+  createdAt: string;
+  updatedAt: string;
+  members?: ChannelMember[];
+}
+
+export interface Message {
+  id: string;
+  content: string;
+  authorId: string;
+  channelId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface KnowledgeBase {
+  id: string;
+  name: string;
+  description: string | null;
+  ownerId: string;
+  isPublic: boolean;
+  parentKnowledgeBaseId: string | null;
+  createdAt: string;
+  updatedAt: string;
+  members?: {
+    userId: string;
+    role: AccessRole;
+    name: string;
+    avatarUrl: string | null;
+  }[];
+  workspaceId?: string;
+}
+
+export interface KnowledgePage {
+  id: string;
+  title: string;
+  content: any | null;
+  contentJson: any | null;
+  knowledgeBaseId: string;
+  authorId: string;
+  lastEditorId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Whiteboard {
+  id: string;
+  name: string;
+  content: any | null;
+  ownerId: string;
+  parentWhiteboardId: string | null;
+  createdAt: string;
+  updatedAt: string;
+  members?: {
+    userId: string;
+    role: AccessRole;
+    name: string;
+    avatarUrl: string | null;
+  }[];
+}
+
+export interface LeadForm {
+  id: string;
+  name: string;
+  fields: any;
+  projectId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProjectTemplate {
+  id: string;
+  name: string;
+  description: string | null;
+  sourceProjectId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TaskTemplate {
+  id: string;
+  name: string;
+  description: string | null;
+  projectId: string;
+  templateData: any;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TimeLog {
+  id: string;
+  userId: string;
+  taskId: string;
+  duration: number;
+  description: string | null;
+  loggedAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProjectMember {
+  userId: string;
+  projectId: string;
+  roleId: string;
+  isGuest: boolean;
+  roleName: string;
+  name: string;
+  email: string | null;
+  avatarUrl: string | null;
+  createdAt: string;
+}
+
+export interface ProjectRole {
+  id: string;
+  name: string;
+  projectId: string;
+  permissions: Permission[];
+}
 // FILE: src/vite-env.d.ts
 /// <reference types="vite/client" />
-
-// FILE: tailwind.config.js
-/** @type {import('tailwindcss').Config} */
-export default {
-  darkMode: ["class"],
-  content: [
-    "./pages/**/*.{ts,tsx}",
-    "./components/**/*.{ts,tsx}",
-    "./app/**/*.{ts,tsx}",
-    "./src/**/*.{ts,tsx}",
-  ],
-  prefix: "",
-  theme: {
-    container: {
-      center: true,
-      padding: "2rem",
-      screens: {
-        "2xl": "1400px",
-      },
-    },
-    extend: {
-      colors: {
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
-        primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
-        },
-        secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
-        },
-        destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
-        },
-        muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
-        },
-        accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
-        },
-        popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
-        },
-        card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
-        },
-        surface: "hsl(var(--surface))",
-        element: "hsl(var(--element))",
-        hover: "hsl(var(--hover))",
-        "kanban-bg": "hsl(var(--background))",
-        "kanban-column": "hsl(var(--surface))",
-        "kanban-card": "hsl(var(--element))",
-        "kanban-card-hover": "hsl(var(--hover))",
-        "kanban-accent": "hsl(var(--primary))",
-        "priority-urgent": "hsl(var(--priority-urgent))",
-        "priority-high": "hsl(var(--priority-high))",
-        "priority-medium": "hsl(var(--priority-medium))",
-        "priority-low": "hsl(var(--priority-low))",
-      },
-      borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
-      },
-      keyframes: {
-        "accordion-down": {
-          from: { height: "0" },
-          to: { height: "var(--radix-accordion-content-height)" },
-        },
-        "accordion-up": {
-          from: { height: "var(--radix-accordion-content-height)" },
-          to: { height: "0" },
-        },
-      },
-      animation: {
-        "accordion-down": "accordion-down 0.2s ease-out",
-        "accordion-up": "accordion-up 0.2s ease-out",
-      },
-    },
-  },
-  plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
-};
-// FILE: vite.config.ts
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
-import path from "path";
-
-
-export default defineConfig({
-  plugins: [react()],
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
-  },
-});

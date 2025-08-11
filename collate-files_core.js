@@ -21,10 +21,10 @@ const SCRIPT_CONFIG = {
   ],
   // Folders to always ignore by name, wherever they appear
   IGNORED_DIRS_COMMON: [
-    "ui",
-    "lib",
-    "styles",
-    "types",
+    //"ui",
+    //"lib",
+    //"styles",
+    //"types",
     "node_modules",
     ".git",
     ".angular",
@@ -35,6 +35,10 @@ const SCRIPT_CONFIG = {
   ],
   // Specific files to ignore by name, wherever they appear
   IGNORED_FILES: [
+    "eslint.config.js",
+    "postcss.config.js",
+    "vite.config.ts",
+    "tailwind.config.js",
     "backend.txt",
     "collate-files.js", // The script itself
     "collate-files_core.js",
