@@ -2,6 +2,7 @@ import { z } from "zod";
 import { nameSchema, descriptionSchema } from "@/lib/schemas";
 import { ResourceForm } from "@/components/shared/form/ResourceForm";
 import { FormInput, FormTextarea } from "@/components/shared/form/FormFields";
+import { useManageTeams } from "../api/useManageTeams";
 
 const teamSchema = z.object({
   name: nameSchema("Team"),
@@ -19,11 +20,12 @@ export function TeamForm({
   initialData,
   onSuccess,
 }: TeamFormProps) {
+  const { resourceUrl, resourceKey } = useManageTeams(workspaceId);
   return (
     <ResourceForm
       schema={teamSchema}
-      resourcePath={`workspaces/${workspaceId}/teams`}
-      resourceKey={["teams", workspaceId]}
+      resourcePath={resourceUrl}
+      resourceKey={resourceKey}
       initialData={initialData}
       onSuccess={onSuccess}
       renderFields={() => (

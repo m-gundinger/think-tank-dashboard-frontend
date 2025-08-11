@@ -26,7 +26,7 @@ const TeamListSkeleton = () => (
   </div>
 );
 export function TeamList({ workspaceId }: { workspaceId: string }) {
-  const { useGetAll } = useManageTeams(workspaceId);
+  const { useGetAll, resourceUrl, resourceKey } = useManageTeams(workspaceId);
   const { data, isLoading, isError, error } = useGetAll();
   const [editingTeamId, setEditingTeamId] = useState<string | null>(null);
 
@@ -71,8 +71,8 @@ export function TeamList({ workspaceId }: { workspaceId: string }) {
       </div>
       <ResourceCrudDialog
         resourceId={editingTeamId}
-        resourcePath={`workspaces/${workspaceId}/teams`}
-        resourceKey={["teams", workspaceId]}
+        resourcePath={resourceUrl}
+        resourceKey={resourceKey}
         title="Edit Team"
         description="Update team details and manage its members."
         form={TeamForm}

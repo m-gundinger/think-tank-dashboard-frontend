@@ -1,14 +1,7 @@
 import api from "@/lib/api";
 import { useQuery, QueryKey } from "@tanstack/react-query";
 import { useApiMutation } from "./useApiMutation";
-
-export interface PaginatedResponse<T> {
-  data: T[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
+import { PaginatedResponse } from "@/types";
 
 const fetchResourceList = async <T>(
   resourceUrl: string,
@@ -71,7 +64,18 @@ type Scope =
   | "announcements"
   | "dashboards"
   | "goals"
-  | "task-types";
+  | "task-types"
+  | "publications"
+  | "publications/categories"
+  | "whiteboards"
+  | "project-templates"
+  | "task-templates"
+  | "people"
+  | "organizations"
+  | "deals"
+  | "deal-stages"
+  | "skills"
+  | "interactions";
 
 interface UrlAndKeyOptions {
   scope: Scope;
@@ -98,7 +102,10 @@ function constructUrlAndKey({
 
   resourceUrl = resourceUrl ? `${resourceUrl}/${scope}` : scope;
 
-  if (!workspaceId && ["users", "roles", "permissions"].includes(scope)) {
+  if (
+    !workspaceId &&
+    ["users", "roles", "permissions", "announcements"].includes(scope)
+  ) {
     resourceUrl = `admin/${scope}`;
   }
 
@@ -111,7 +118,7 @@ export function useApiResource<TData = any, TQuery = object>(
 ) {
   const resourceName =
     String(resourceKey[0]).charAt(0).toUpperCase() +
-    String(resourceKey[0]).slice(1);
+    String(resourceKey[0]).slice(1).replace(/s$/, "");
 
   const useGetAll = (query?: TQuery & { enabled?: boolean }) => {
     const { enabled = true, ...queryParams } = query || {};
@@ -167,6 +174,8 @@ export function useApiResource<TData = any, TQuery = object>(
     useCreate,
     useUpdate,
     useDelete,
+    resourceUrl,
+    resourceKey,
   };
 }
 

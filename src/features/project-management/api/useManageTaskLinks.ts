@@ -1,6 +1,6 @@
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
-import { TaskLinkType } from "@/types/api";
+import { TaskLinkType } from "@/types";
 
 interface AddLinkParams {
   workspaceId?: string | null;

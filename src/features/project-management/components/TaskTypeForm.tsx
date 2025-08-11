@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { ResourceForm } from "@/components/shared/form/ResourceForm";
 import { FormInput } from "@/components/shared/form/FormFields";
+import { useManageTaskTypes } from "../api/useManageTaskTypes";
 
 const CreateTaskTypeDtoSchema = z.object({
   name: z.string().min(1, "Type name is required."),
@@ -21,11 +22,15 @@ export function TaskTypeForm({
   initialData,
   onSuccess,
 }: TaskTypeFormProps) {
+  const { resourceUrl, resourceKey } = useManageTaskTypes(
+    workspaceId,
+    projectId
+  );
   return (
     <ResourceForm
       schema={CreateTaskTypeDtoSchema}
-      resourcePath={`workspaces/${workspaceId}/projects/${projectId}/task-types`}
-      resourceKey={["taskTypes", projectId]}
+      resourcePath={resourceUrl}
+      resourceKey={resourceKey}
       initialData={initialData}
       onSuccess={onSuccess}
       renderFields={() => (

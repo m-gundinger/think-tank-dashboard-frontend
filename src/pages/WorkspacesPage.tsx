@@ -1,10 +1,10 @@
-import { WorkspaceList } from "@/features/workspaces/components/WorkspaceList";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
-import { useState } from "react";
 import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
 import { WorkspaceForm } from "@/features/workspaces/components/WorkspaceForm";
 import { ListPageLayout } from "@/components/shared/ListPageLayout";
+import { WorkspaceList } from "@/features/workspaces/components/WorkspaceList";
 
 export function WorkspacesPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);

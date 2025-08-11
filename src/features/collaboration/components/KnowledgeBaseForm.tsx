@@ -1,18 +1,13 @@
-import { useForm, FormProvider } from "react-hook-form";
-import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
+import { z } from "zod";
+import { nameSchema, descriptionSchema } from "@/lib/schemas";
+import { ResourceForm } from "@/components/shared/form/ResourceForm";
 import { FormInput } from "@/components/shared/form/FormFields";
 import { useManageKnowledgeBases } from "../api/useManageKnowledgeBases";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
-import { nameSchema, descriptionSchema } from "@/lib/schemas";
 
 const kbSchema = z.object({
   name: nameSchema("Knowledge base"),
   description: descriptionSchema,
 });
-type KBFormValues = z.infer<typeof kbSchema>;
 
 interface KBFormProps {
   workspaceId?: string;
@@ -25,48 +20,17 @@ export function KnowledgeBaseForm({
   initialData,
   onSuccess,
 }: KBFormProps) {
-  const isEditMode = !!initialData;
   const kbResource = useManageKnowledgeBases();
-  const createMutation = kbResource.useCreate();
-  const updateMutation = kbResource.useUpdate();
-  const mutation = isEditMode ? updateMutation : createMutation;
-  const methods = useForm<KBFormValues>({
-    resolver: zodResolver(kbSchema),
-    defaultValues: { name: "", description: "" },
-  });
-  useEffect(() => {
-    if (isEditMode && initialData) {
-      methods.reset({
-        name: initialData.name,
-        description: initialData.description || "",
-      });
-    }
-  }, [initialData, isEditMode, methods]);
-  async function onSubmit(values: KBFormValues) {
-    const payload: any = { ...values };
-    if (workspaceId) {
-      payload.workspaceId = workspaceId;
-    }
-
-    if (isEditMode) {
-      await updateMutation.mutateAsync(
-        { id: initialData.id, data: payload },
-        { onSuccess }
-      );
-    } else {
-      await createMutation.mutateAsync(payload, {
-        onSuccess: () => {
-          methods.reset();
-          onSuccess?.();
-        },
-      });
-    }
-  }
-
   return (
-    <FormProvider {...methods}>
-      <Form {...methods}>
-        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
+    <ResourceForm
+      schema={kbSchema}
+      resourcePath={kbResource.resourceUrl}
+      resourceKey={kbResource.resourceKey}
+      initialData={initialData}
+      onSuccess={onSuccess}
+      processValues={(values) => ({ ...values, workspaceId })}
+      renderFields={() => (
+        <>
           <FormInput
             name="name"
             label="Knowledge Base Name"
@@ -77,19 +41,8 @@ export function KnowledgeBaseForm({
             label="Description (Optional)"
             placeholder="A short summary of this knowledge base"
           />
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={mutation.isPending}
-          >
-            {mutation.isPending
-              ? "Saving..."
-              : isEditMode
-                ? "Save Changes"
-                : "Create Knowledge Base"}
-          </Button>
-        </form>
-      </Form>
-    </FormProvider>
+        </>
+      )}
+    />
   );
 }

@@ -43,7 +43,6 @@ export function PermissionList() {
 
   if (isLoading) return <div>Loading permissions...</div>;
   if (isError) return <div>Error loading permissions.</div>;
-
   return (
     <DataTableWrapper>
       <DataTable

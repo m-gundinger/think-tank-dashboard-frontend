@@ -7,7 +7,7 @@ import {
 import { ResourceForm } from "@/components/shared/form/ResourceForm";
 import { z } from "zod";
 import { nameSchema, descriptionSchema } from "@/lib/schemas";
-import { GoalStatus, KeyResultType } from "@/types/api";
+import { GoalStatus, KeyResultType } from "@/types";
 import { KeyResultInput } from "./KeyResultInput";
 import { useGetProjectMembers } from "@/features/project-management/api/useGetProjectMembers";
 import { useManageGoals } from "../api/useManageGoals";

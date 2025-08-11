@@ -93,6 +93,7 @@ function App() {
               <Route path="activity" element={<ActivitiesPage />} />
             </Route>
           </Route>
+
           <Route
             path="workspaces/:workspaceId/knowledge-bases/:knowledgeBaseId"
             element={<KnowledgeBaseDetailPage />}

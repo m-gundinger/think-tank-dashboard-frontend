@@ -95,7 +95,6 @@ function App() {
               <Route path="activity" element={<ActivitiesPage />} />
             </Route>
           </Route>
-
           <Route
             path="workspaces/:workspaceId/knowledge-bases/:knowledgeBaseId"
             element={<KnowledgeBaseDetailPage />}
@@ -4892,6 +4891,126 @@ export function AnnouncementForm({
     />
   );
 }
+// FILE: src/features/admin/announcements/components/AnnouncementList.tsx
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import {
+  DataTable,
+  DataTableWrapper,
+  ColumnDef,
+} from "@/components/shared/DataTable";
+import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
+import { AnnouncementForm } from "./AnnouncementForm";
+import { Announcement } from "@/types";
+import { ActionMenu } from "@/components/shared/ActionMenu";
+import { useManageAnnouncements } from "../api/useManageAnnouncements";
+
+export function AnnouncementList() {
+  const [page, setPage] = useState(1);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const { useGetAll, useDelete } = useManageAnnouncements();
+  const { data, isLoading, isError } = useGetAll({ page });
+  const deleteMutation = useDelete();
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+  };
+
+  const columns: ColumnDef<Announcement>[] = [
+    {
+      accessorKey: "title",
+      header: "Title",
+      cell: ({ row }) => (
+        <span className="font-medium">{row.original.title}</span>
+      ),
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => <Badge variant="outline">{row.original.status}</Badge>,
+    },
+    {
+      accessorKey: "severity",
+      header: "Severity",
+      cell: ({ row }) => (
+        <Badge variant="secondary">{row.original.severity}</Badge>
+      ),
+    },
+    {
+      accessorKey: "isPinned",
+      header: "Pinned",
+      cell: ({ row }) => (row.original.isPinned ? "Yes" : "No"),
+    },
+    {
+      accessorKey: "publishedAt",
+      header: "Published",
+      cell: ({ row }) =>
+        row.original.publishedAt
+          ? new Date(row.original.publishedAt).toLocaleDateString("en-US")
+          : "N/A",
+    },
+  ];
+
+  if (isLoading) return <div>Loading announcements...</div>;
+  if (isError) return <div>Error loading announcements.</div>;
+  return (
+    <>
+      <DataTableWrapper>
+        <DataTable
+          columns={columns}
+          data={data?.data || []}
+          pagination={{
+            page: data?.page || 1,
+            totalPages: data?.totalPages || 1,
+            handlePageChange,
+          }}
+          bulkActions={(selectedIds) => (
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (
+                  window.confirm(
+                    `Delete ${selectedIds.length} selected announcements?`
+                  )
+                ) {
+                  deleteMutation.mutate(selectedIds);
+                }
+              }}
+              disabled={deleteMutation.isPending}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete ({selectedIds.length})
+            </Button>
+          )}
+          renderRowActions={(row) => (
+            <ActionMenu
+              onEdit={() => setEditingId(row.id)}
+              onDelete={() => {
+                if (window.confirm(`Delete announcement "${row.title}"?`)) {
+                  deleteMutation.mutate(row.id);
+                }
+              }}
+              deleteDisabled={deleteMutation.isPending}
+            />
+          )}
+        />
+      </DataTableWrapper>
+
+      <ResourceCrudDialog
+        isOpen={!!editingId}
+        onOpenChange={(isOpen) => !isOpen && setEditingId(null)}
+        title="Edit Announcement"
+        description="Make changes to the announcement details."
+        form={AnnouncementForm}
+        resourcePath="announcements"
+        resourceKey={["announcements"]}
+        resourceId={editingId}
+      />
+    </>
+  );
+}
 // FILE: src/features/admin/jobs/api/useGetJobSystemStatus.ts
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
@@ -5673,14 +5792,145 @@ export function PermissionForm({
   );
 }
 
+// FILE: src/features/admin/permissions/components/PermissionList.tsx
+import { useState } from "react";
+import {
+  DataTable,
+  DataTableWrapper,
+  ColumnDef,
+} from "@/components/shared/DataTable";
+import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
+import { Permission } from "@/types";
+import { useManagePermissions } from "../api/useManagePermissions";
+
+export function PermissionList() {
+  const [page, setPage] = useState(1);
+  const { useGetAll, useDelete } = useManagePermissions();
+  const { data, isLoading, isError } = useGetAll({ page });
+  const deleteMutation = useDelete();
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+  };
+
+  const columns: ColumnDef<Permission>[] = [
+    {
+      accessorKey: "action",
+      header: "Action",
+      cell: ({ row }) => (
+        <span className="font-mono">{row.original.action}</span>
+      ),
+    },
+    {
+      accessorKey: "subject",
+      header: "Subject",
+      cell: ({ row }) => (
+        <span className="font-mono">{row.original.subject}</span>
+      ),
+    },
+    {
+      accessorKey: "description",
+      header: "Description",
+      cell: ({ row }) => row.original.description,
+    },
+  ];
+
+  if (isLoading) return <div>Loading permissions...</div>;
+  if (isError) return <div>Error loading permissions.</div>;
+
+  return (
+    <DataTableWrapper>
+      <DataTable
+        columns={columns}
+        data={data?.data || []}
+        pagination={{
+          page: data?.page || 1,
+          totalPages: data?.totalPages || 1,
+          handlePageChange,
+        }}
+        bulkActions={(selectedIds) => (
+          <Button
+            variant="destructive"
+            onClick={() => {
+              if (
+                window.confirm(
+                  `Delete ${selectedIds.length} selected permissions?`
+                )
+              ) {
+                deleteMutation.mutate(selectedIds);
+              }
+            }}
+            disabled={deleteMutation.isPending}
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Delete ({selectedIds.length})
+          </Button>
+        )}
+      />
+    </DataTableWrapper>
+  );
+}
+// FILE: src/features/admin/roles/api/useAssignPermissionToRole.ts
+import api from "@/lib/api";
+import { useApiMutation } from "@/hooks/useApiMutation";
+
+async function assignPermission({
+  roleId,
+  permissionId,
+}: {
+  roleId: string;
+  permissionId: string;
+}): Promise<any> {
+  const { data } = await api.post(`admin/roles/${roleId}/permissions`, {
+    permissionId,
+  });
+  return data;
+}
+
+export function useAssignPermissionToRole(roleId: string) {
+  return useApiMutation({
+    mutationFn: (permissionId: string) =>
+      assignPermission({ roleId, permissionId }),
+    successMessage: "Permission assigned to role.",
+    invalidateQueries: [["roles"], ["role", roleId]],
+  });
+}
 // FILE: src/features/admin/roles/api/useManageRoles.ts
 import { useApiResource } from "@/hooks/useApiResource";
-import { Role } from "@/types";
+import { RoleWithPermissions } from "@/types";
 
 export function useManageRoles() {
-  return useApiResource<Role>("admin/roles", ["roles"]);
+  return useApiResource<RoleWithPermissions>("admin/roles", ["roles"]);
+}
+// FILE: src/features/admin/roles/api/useRevokePermissionFromRole.ts
+import api from "@/lib/api";
+import { useApiMutation } from "@/hooks/useApiMutation";
+
+async function revokePermission({
+  roleId,
+  permissionId,
+}: {
+  roleId: string;
+  permissionId: string;
+}): Promise<any> {
+  const { data } = await api.delete(
+    `admin/roles/${roleId}/permissions/${permissionId}`
+  );
+  return data;
+}
+
+export function useRevokePermissionFromRole(roleId: string) {
+  return useApiMutation({
+    mutationFn: (permissionId: string) =>
+      revokePermission({ roleId, permissionId }),
+    successMessage: "Permission revoked from role.",
+    invalidateQueries: [["roles"], ["role", roleId]],
+  });
 }
 // FILE: src/features/admin/roles/components/ManageRolePermissions.tsx
+import { useAssignPermissionToRole } from "../api/useAssignPermissionToRole";
+import { useRevokePermissionFromRole } from "../api/useRevokePermissionFromRole";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -5701,53 +5951,12 @@ import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { AnyValue } from "@/types";
 import { useManagePermissions } from "../../permissions/api/useManagePermissions";
-import { useApiMutation } from "@/hooks/useApiMutation";
-import api from "@/lib/api";
-
-async function assignPermission({
-  roleId,
-  permissionId,
-}: {
-  roleId: string;
-  permissionId: string;
-}): Promise<any> {
-  const { data } = await api.post(`admin/roles/${roleId}/permissions`, {
-    permissionId,
-  });
-  return data;
-}
-
-async function revokePermission({
-  roleId,
-  permissionId,
-}: {
-  roleId: string;
-  permissionId: string;
-}): Promise<any> {
-  const { data } = await api.delete(
-    `admin/roles/${roleId}/permissions/${permissionId}`
-  );
-  return data;
-}
 
 export function ManageRolePermissions({ role }: { role: AnyValue }) {
   const { data: permissionsData, isLoading } =
     useManagePermissions().useGetAll();
-
-  const assignMutation = useApiMutation({
-    mutationFn: (permissionId: string) =>
-      assignPermission({ roleId: role.id, permissionId }),
-    successMessage: "Permission assigned to role.",
-    invalidateQueries: [["roles"], ["role", role.id]],
-  });
-
-  const revokeMutation = useApiMutation({
-    mutationFn: (permissionId: string) =>
-      revokePermission({ roleId: role.id, permissionId }),
-    successMessage: "Permission revoked from role.",
-    invalidateQueries: [["roles"], ["role", role.id]],
-  });
-
+  const assignMutation = useAssignPermissionToRole(role.id);
+  const revokeMutation = useRevokePermissionFromRole(role.id);
   const [popoverOpen, setPopoverOpen] = useState(false);
 
   const rolePermissionIds = new Set(role.permissions.map((p: any) => p.id));
@@ -5823,16 +6032,15 @@ export function ManageRolePermissions({ role }: { role: AnyValue }) {
     </div>
   );
 }
-
 // FILE: src/features/admin/roles/components/RoleCard.tsx
 import { Badge } from "@/components/ui/badge";
 import { EntityCard } from "@/components/shared/EntityCard";
-import { Role } from "@/types";
+import { RoleWithPermissions } from "@/types";
 import { ActionMenu } from "@/components/shared/ActionMenu";
 import { useManageRoles } from "../api/useManageRoles";
 
 interface RoleCardProps {
-  role: Role;
+  role: RoleWithPermissions;
   onEdit: (roleId: string) => void;
 }
 
@@ -5931,6 +6139,47 @@ export function RoleForm({ initialData, onSuccess }: RoleFormProps) {
         </>
       )}
     />
+  );
+}
+// FILE: src/features/admin/roles/components/RoleList.tsx
+import { useState } from "react";
+import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
+import { RoleCard } from "./RoleCard";
+import { RoleForm } from "./RoleForm";
+import { ManageRolePermissions } from "./ManageRolePermissions";
+import { useManageRoles } from "../api/useManageRoles";
+
+export function RoleList() {
+  const { useGetAll } = useManageRoles();
+  const { data, isLoading, isError } = useGetAll();
+  const [editingRoleId, setEditingRoleId] = useState<string | null>(null);
+
+  if (isLoading) return <div>Loading roles...</div>;
+  if (isError) return <div>Error loading roles.</div>;
+
+  return (
+    <>
+      <div className="grid gap-4 md:grid-cols-2">
+        {data?.data?.map((role) => (
+          <RoleCard key={role.id} role={role} onEdit={setEditingRoleId} />
+        ))}
+      </div>
+      <ResourceCrudDialog
+        resourceId={editingRoleId}
+        resourcePath="admin/roles"
+        resourceKey={["roles"]}
+        title="Edit Role"
+        description="Update role details and manage assigned permissions."
+        form={RoleForm}
+        isOpen={!!editingRoleId}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) setEditingRoleId(null);
+        }}
+        dialogClassName="sm:max-w-4xl"
+      >
+        {(role) => <ManageRolePermissions role={role} />}
+      </ResourceCrudDialog>
+    </>
   );
 }
 // FILE: src/features/admin/system-status/api/useGetSystemStatus.ts
@@ -6064,6 +6313,41 @@ export function SystemStatusDashboard() {
     </div>
   );
 }
+// FILE: src/features/admin/users/api/useAdminUploadAvatar.ts
+import api from "@/lib/api";
+import { useApiMutation } from "@/hooks/useApiMutation";
+
+async function uploadAvatar(userId: string, formData: FormData): Promise<any> {
+  const { data } = await api.patch(`admin/users/${userId}/avatar`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+  return data;
+}
+
+export function useAdminUploadAvatar(userId: string) {
+  return useApiMutation({
+    mutationFn: (formData: FormData) => uploadAvatar(userId, formData),
+    successMessage: "Avatar updated successfully!",
+    invalidateQueries: [["users"], ["user", userId]],
+  });
+}
+// FILE: src/features/admin/users/api/useHardDeleteUser.ts
+import api from "@/lib/api";
+import { useApiMutation } from "@/hooks/useApiMutation";
+
+async function hardDeleteUser(userId: string): Promise<void> {
+  await api.delete(`admin/users/${userId}/hard`);
+}
+
+export function useHardDeleteUser() {
+  return useApiMutation({
+    mutationFn: hardDeleteUser,
+    successMessage: "User permanently deleted.",
+    invalidateQueries: [["users"]],
+  });
+}
 // FILE: src/features/admin/users/api/useManageUsers.ts
 import { useApiResource } from "@/hooks/useApiResource";
 import { useApiMutation } from "@/hooks/useApiMutation";
@@ -6087,6 +6371,35 @@ export function useManageUsers() {
     ...resource,
     useBulkDelete,
   };
+}
+// FILE: src/features/admin/users/api/useSetUserStatus.ts
+import api from "@/lib/api";
+import { useApiMutation } from "@/hooks/useApiMutation";
+
+interface SetStatusParams {
+  userId: string;
+  isActive: boolean;
+}
+
+async function setUserStatus({
+  userId,
+  isActive,
+}: SetStatusParams): Promise<any> {
+  const { data } = await api.patch(`admin/users/${userId}/status`, {
+    isActive,
+  });
+  return data;
+}
+
+export function useSetUserStatus() {
+  return useApiMutation<any, SetStatusParams>({
+    mutationFn: setUserStatus,
+    successMessage: (data) =>
+      `User ${data.person.firstName} has been ${
+        data.isActive ? "activated" : "deactivated"
+      }.`,
+    invalidateQueries: (data) => [["users"], ["user", data.id]],
+  });
 }
 // FILE: src/features/admin/users/components/CreateUserForm.tsx
 import { z } from "zod";
@@ -6474,6 +6787,8 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { useSetUserStatus } from "../api/useSetUserStatus";
+import { useHardDeleteUser } from "../api/useHardDeleteUser";
 import { cn, getAbsoluteUrl } from "@/lib/utils";
 import { UserForm } from "./UserForm";
 import { ManageUserRoles } from "./ManageUserRoles";
@@ -6482,46 +6797,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { User } from "@/types";
 import { ActionMenu } from "@/components/shared/ActionMenu";
 import { useManageUsers } from "../api/useManageUsers";
-import { useApiMutation } from "@/hooks/useApiMutation";
-import api from "@/lib/api";
-
-async function hardDeleteUser(userId: string): Promise<void> {
-  await api.delete(`admin/users/${userId}/hard`);
-}
-
-function useHardDeleteUser() {
-  return useApiMutation({
-    mutationFn: hardDeleteUser,
-    successMessage: "User permanently deleted.",
-    invalidateQueries: [["users"]],
-  });
-}
-
-interface SetStatusParams {
-  userId: string;
-  isActive: boolean;
-}
-
-async function setUserStatus({
-  userId,
-  isActive,
-}: SetStatusParams): Promise<any> {
-  const { data } = await api.patch(`admin/users/${userId}/status`, {
-    isActive,
-  });
-  return data;
-}
-
-function useSetUserStatus() {
-  return useApiMutation<any, SetStatusParams>({
-    mutationFn: setUserStatus,
-    successMessage: (data) =>
-      `User ${data.person.firstName} has been ${
-        data.isActive ? "activated" : "deactivated"
-      }.`,
-    invalidateQueries: (data) => [["users"], ["user", data.id]],
-  });
-}
 
 export function UserList() {
   const [page, setPage] = useState(1);
@@ -6710,6 +6985,7 @@ export function UserList() {
     </>
   );
 }
+
 // FILE: src/features/admin/workflows/api/useGetWorkflowRuns.ts
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
@@ -8606,17 +8882,23 @@ export function DashboardCard({ dashboard, onEdit }: DashboardCardProps) {
     </EntityCard>
   );
 }
+
 // FILE: src/features/analytics/components/DashboardForm.tsx
+import { useForm, FormProvider } from "react-hook-form";
+import { Button } from "@/components/ui/button";
+import { Form } from "@/components/ui/form";
+import { FormInput } from "@/components/shared/form/FormFields";
+import { useEffect } from "react";
 import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { nameSchema, descriptionSchema } from "@/lib/schemas";
 import { useManageDashboards } from "../api/useManageDashboards";
-import { ResourceForm } from "@/components/shared/form/ResourceForm";
-import { FormInput } from "@/components/shared/form/FormFields";
 
 const dashboardSchema = z.object({
   name: nameSchema("Dashboard"),
   description: descriptionSchema,
 });
+type DashboardFormValues = z.infer<typeof dashboardSchema>;
 
 interface DashboardFormProps {
   scope?: {
@@ -8632,21 +8914,52 @@ export function DashboardForm({
   initialData,
   onSuccess,
 }: DashboardFormProps) {
+  const isEditMode = !!initialData;
+
   const dashboardResource = useManageDashboards(scope);
 
+  const createMutation = dashboardResource.useCreate();
+  const updateMutation = dashboardResource.useUpdate();
+  const mutation = isEditMode ? updateMutation : createMutation;
+  const methods = useForm<DashboardFormValues>({
+    resolver: zodResolver(dashboardSchema),
+    defaultValues: { name: "", description: "" },
+  });
+  useEffect(() => {
+    if (isEditMode && initialData) {
+      methods.reset({
+        name: initialData.name,
+        description: initialData.description || "",
+      });
+    }
+  }, [initialData, isEditMode, methods]);
+  async function onSubmit(values: DashboardFormValues) {
+    const payload = {
+      ...values,
+      ...scope,
+    };
+    if (isEditMode) {
+      await updateMutation.mutateAsync(
+        {
+          id: initialData.id,
+          data: { name: values.name, description: values.description },
+        },
+        { onSuccess }
+      );
+    } else {
+      await createMutation.mutateAsync(payload, {
+        onSuccess: () => {
+          methods.reset();
+          onSuccess?.();
+        },
+      });
+    }
+  }
+
   return (
-    <ResourceForm
-      schema={dashboardSchema}
-      resourcePath={dashboardResource.resourceUrl}
-      resourceKey={dashboardResource.resourceKey}
-      initialData={initialData}
-      onSuccess={onSuccess}
-      processValues={(values) => ({
-        ...values,
-        ...scope,
-      })}
-      renderFields={() => (
-        <>
+    <FormProvider {...methods}>
+      <Form {...methods}>
+        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
           <FormInput
             name="name"
             label="Dashboard Name"
@@ -8657,12 +8970,82 @@ export function DashboardForm({
             label="Description (Optional)"
             placeholder="A summary of what this dashboard tracks"
           />
-        </>
-      )}
-    />
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={mutation.isPending}
+          >
+            {mutation.isPending
+              ? "Saving..."
+              : isEditMode
+                ? "Save Changes"
+                : "Create Dashboard"}
+          </Button>
+        </form>
+      </Form>
+    </FormProvider>
   );
 }
+// FILE: src/features/analytics/components/DashboardList.tsx
+import { useState } from "react";
+import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
+import { useManageDashboards } from "../api/useManageDashboards";
+import { DashboardCard } from "./DashboardCard";
+import { DashboardForm } from "./DashboardForm";
+import { Dashboard } from "@/types";
 
+export function DashboardList(scope: {
+  workspaceId?: string;
+  projectId?: string;
+}) {
+  const dashboardResource = useManageDashboards(scope);
+
+  const { data, isLoading, isError } = dashboardResource.useGetAll();
+  const [editingDashboardId, setEditingDashboardId] = useState<string | null>(
+    null
+  );
+
+  if (isLoading) return <div>Loading dashboards...</div>;
+  if (isError) return <div>Error loading dashboards.</div>;
+  if (!data || data.data.length === 0) {
+    return (
+      <p className="text-muted-foreground">
+        No dashboards have been created yet. Create one to begin!
+      </p>
+    );
+  }
+
+  const resourceKey = scope.projectId
+    ? ["dashboards", scope.projectId]
+    : scope.workspaceId
+      ? ["dashboards", scope.workspaceId]
+      : ["dashboards", "user"];
+
+  return (
+    <>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {data.data.map((dashboard: Dashboard) => (
+          <DashboardCard
+            dashboard={dashboard}
+            key={dashboard.id}
+            onEdit={() => setEditingDashboardId(dashboard.id)}
+          />
+        ))}
+      </div>
+      <ResourceCrudDialog
+        isOpen={!!editingDashboardId}
+        onOpenChange={(isOpen) => !isOpen && setEditingDashboardId(null)}
+        resourceId={editingDashboardId}
+        resourcePath={"dashboards"}
+        resourceKey={resourceKey}
+        title="Edit Dashboard"
+        description="Make changes to your dashboard here. Click save when you're done."
+        form={DashboardForm}
+        formProps={{ scope }}
+      />
+    </>
+  );
+}
 // FILE: src/features/analytics/components/GoalTrackingWidget.tsx
 import { useGetWidgetData } from "../api/useGetWidgetData";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -9064,6 +9447,71 @@ export function ReportingOverview({ scope }: ReportingOverviewProps) {
         {renderContent()}
       </CardContent>
     </Card>
+  );
+}
+// FILE: src/features/analytics/components/ReportList.tsx
+import { useState } from "react";
+import { useManageReports } from "../api/useManageReports";
+import { EmptyState } from "@/components/shared/EmptyState";
+import { BarChart } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
+import { ReportForm } from "./ReportForm";
+import { ReportCard } from "./ReportCard";
+
+const ListSkeleton = () => (
+  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+    {Array.from({ length: 3 }).map((_, i) => (
+      <Skeleton key={i} className="h-36 w-full" />
+    ))}
+  </div>
+);
+
+export function ReportList() {
+  const { useGetAll } = useManageReports();
+  const { data, isLoading, isError } = useGetAll({
+    sortBy: "title",
+    sortOrder: "asc",
+  });
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  if (isLoading) return <ListSkeleton />;
+  if (isError) return <div>Error loading reports.</div>;
+
+  const reports = data?.data || [];
+
+  if (reports.length === 0) {
+    return (
+      <EmptyState
+        icon={<BarChart className="h-10 w-10" />}
+        title="No Reports Found"
+        description="Get started by creating your first report."
+      />
+    );
+  }
+
+  return (
+    <>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {reports.map((report: any) => (
+          <ReportCard
+            key={report.id}
+            report={report}
+            onEdit={() => setEditingId(report.id)}
+          />
+        ))}
+      </div>
+      <ResourceCrudDialog
+        isOpen={!!editingId}
+        onOpenChange={(isOpen) => !isOpen && setEditingId(null)}
+        title="Edit Report"
+        description="Update the details of your report."
+        form={ReportForm}
+        resourcePath="reports"
+        resourceKey={["reports"]}
+        resourceId={editingId}
+      />
+    </>
   );
 }
 // FILE: src/features/analytics/components/StatsCounterWidget.tsx
@@ -9590,13 +10038,12 @@ export function useManageKnowledgeBases() {
 }
 // FILE: src/features/collaboration/api/useManageKnowledgePages.ts
 import { useApiResource } from "@/hooks/useApiResource";
-import { KnowledgePage } from "@/types";
 
 export function useManageKnowledgePages(knowledgeBaseId: string) {
-  const resource = useApiResource<KnowledgePage>(
-    `knowledge-bases/${knowledgeBaseId}/pages`,
-    ["knowledgePages", knowledgeBaseId]
-  );
+  const resource = useApiResource(`knowledge-bases/${knowledgeBaseId}/pages`, [
+    "knowledgePages",
+    knowledgeBaseId,
+  ]);
   return resource;
 }
 // FILE: src/features/collaboration/api/useManageWhiteboards.ts
@@ -10038,6 +10485,7 @@ export function KnowledgeBaseCard({
     </EntityCard>
   );
 }
+
 // FILE: src/features/collaboration/components/KnowledgeBaseDetailView.tsx
 import { useManageKnowledgeBases } from "../api/useManageKnowledgeBases";
 import { useManageKnowledgePages } from "../api/useManageKnowledgePages";
@@ -10149,16 +10597,21 @@ export function KnowledgeBaseDetailView({
   );
 }
 // FILE: src/features/collaboration/components/KnowledgeBaseForm.tsx
-import { z } from "zod";
-import { nameSchema, descriptionSchema } from "@/lib/schemas";
-import { ResourceForm } from "@/components/shared/form/ResourceForm";
+import { useForm, FormProvider } from "react-hook-form";
+import { Button } from "@/components/ui/button";
+import { Form } from "@/components/ui/form";
 import { FormInput } from "@/components/shared/form/FormFields";
 import { useManageKnowledgeBases } from "../api/useManageKnowledgeBases";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect } from "react";
+import { nameSchema, descriptionSchema } from "@/lib/schemas";
 
 const kbSchema = z.object({
   name: nameSchema("Knowledge base"),
   description: descriptionSchema,
 });
+type KBFormValues = z.infer<typeof kbSchema>;
 
 interface KBFormProps {
   workspaceId?: string;
@@ -10171,17 +10624,48 @@ export function KnowledgeBaseForm({
   initialData,
   onSuccess,
 }: KBFormProps) {
+  const isEditMode = !!initialData;
   const kbResource = useManageKnowledgeBases();
+  const createMutation = kbResource.useCreate();
+  const updateMutation = kbResource.useUpdate();
+  const mutation = isEditMode ? updateMutation : createMutation;
+  const methods = useForm<KBFormValues>({
+    resolver: zodResolver(kbSchema),
+    defaultValues: { name: "", description: "" },
+  });
+  useEffect(() => {
+    if (isEditMode && initialData) {
+      methods.reset({
+        name: initialData.name,
+        description: initialData.description || "",
+      });
+    }
+  }, [initialData, isEditMode, methods]);
+  async function onSubmit(values: KBFormValues) {
+    const payload: any = { ...values };
+    if (workspaceId) {
+      payload.workspaceId = workspaceId;
+    }
+
+    if (isEditMode) {
+      await updateMutation.mutateAsync(
+        { id: initialData.id, data: payload },
+        { onSuccess }
+      );
+    } else {
+      await createMutation.mutateAsync(payload, {
+        onSuccess: () => {
+          methods.reset();
+          onSuccess?.();
+        },
+      });
+    }
+  }
+
   return (
-    <ResourceForm
-      schema={kbSchema}
-      resourcePath={kbResource.resourceUrl}
-      resourceKey={kbResource.resourceKey}
-      initialData={initialData}
-      onSuccess={onSuccess}
-      processValues={(values) => ({ ...values, workspaceId })}
-      renderFields={() => (
-        <>
+    <FormProvider {...methods}>
+      <Form {...methods}>
+        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
           <FormInput
             name="name"
             label="Knowledge Base Name"
@@ -10192,12 +10676,108 @@ export function KnowledgeBaseForm({
             label="Description (Optional)"
             placeholder="A short summary of this knowledge base"
           />
-        </>
-      )}
-    />
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={mutation.isPending}
+          >
+            {mutation.isPending
+              ? "Saving..."
+              : isEditMode
+                ? "Save Changes"
+                : "Create Knowledge Base"}
+          </Button>
+        </form>
+      </Form>
+    </FormProvider>
   );
 }
+// FILE: src/features/collaboration/components/KnowledgeBaseList.tsx
+import { useManageKnowledgeBases } from "../api/useManageKnowledgeBases";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { ErrorState } from "@/components/shared/ErrorState";
+import { EmptyState } from "@/components/shared/EmptyState";
+import { BookOpen } from "lucide-react";
+import { useState } from "react";
+import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
+import { KnowledgeBaseCard } from "./KnowledgeBaseCard";
+import { KnowledgeBaseForm } from "./KnowledgeBaseForm";
 
+const ListSkeleton = () => (
+  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+    {Array.from({ length: 3 }).map((_, i) => (
+      <Card key={i}>
+        <CardHeader>
+          <Skeleton className="h-6 w-3/4" />
+          <Skeleton className="mt-2 h-4 w-full" />
+        </CardHeader>
+        <CardContent>
+          <Skeleton className="h-4 w-1/2" />
+        </CardContent>
+      </Card>
+    ))}
+  </div>
+);
+export function KnowledgeBaseList({ workspaceId }: { workspaceId: string }) {
+  const kbResource = useManageKnowledgeBases();
+  const { data, isLoading, isError, error } = kbResource.useGetAll({
+    workspaceId,
+  });
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  if (isLoading) {
+    return <ListSkeleton />;
+  }
+
+  if (isError) {
+    return (
+      <ErrorState
+        title="Failed to Load Knowledge Bases"
+        message={
+          (error as any)?.response?.data?.message ||
+          "There was a problem fetching your knowledge bases."
+        }
+      />
+    );
+  }
+
+  if (!data || data.data.length === 0) {
+    return (
+      <EmptyState
+        icon={<BookOpen className="h-10 w-10 text-primary" />}
+        title="No Knowledge Bases Found"
+        description="Get started by creating your first knowledge base using the button above."
+      />
+    );
+  }
+
+  return (
+    <>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {data.data.map((kb: any) => (
+          <KnowledgeBaseCard
+            key={kb.id}
+            knowledgeBase={{ ...kb, workspaceId }}
+            onEdit={() => setEditingId(kb.id)}
+          />
+        ))}
+      </div>
+
+      <ResourceCrudDialog
+        isOpen={!!editingId}
+        onOpenChange={(isOpen) => !isOpen && setEditingId(null)}
+        title="Edit Knowledge Base"
+        description="Make changes to your knowledge base here."
+        form={KnowledgeBaseForm}
+        formProps={{ workspaceId }}
+        resourcePath={`knowledge-bases`}
+        resourceKey={["knowledgeBases", workspaceId]}
+        resourceId={editingId}
+      />
+    </>
+  );
+}
 // FILE: src/features/collaboration/components/MessageInput.tsx
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -10364,6 +10944,7 @@ export function WhiteboardCard({ whiteboard, onEdit }: WhiteboardCardProps) {
     </EntityCard>
   );
 }
+
 // FILE: src/features/collaboration/components/WhiteboardForm.tsx
 import { z } from "zod";
 import { nameSchema } from "@/lib/schemas";
@@ -10398,6 +10979,88 @@ export function WhiteboardForm({
         />
       )}
     />
+  );
+}
+// FILE: src/features/collaboration/components/WhiteboardList.tsx
+import { useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorState } from "@/components/shared/ErrorState";
+import { EmptyState } from "@/components/shared/EmptyState";
+import { Clipboard } from "lucide-react";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
+import { WhiteboardForm } from "./WhiteboardForm";
+import { WhiteboardCard } from "./WhiteboardCard";
+import { useManageWhiteboards } from "../api/useManageWhiteboards";
+
+const ListSkeleton = () => (
+  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+    {Array.from({ length: 6 }).map((_, i) => (
+      <Card key={i}>
+        <CardHeader>
+          <Skeleton className="h-6 w-3/4" />
+          <Skeleton className="mt-2 h-4 w-full" />
+        </CardHeader>
+        <CardContent>
+          <Skeleton className="h-4 w-1/2" />
+        </CardContent>
+      </Card>
+    ))}
+  </div>
+);
+
+export function WhiteboardList() {
+  const { useGetAll } = useManageWhiteboards();
+  const { data, isLoading, isError, error } = useGetAll();
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  if (isLoading) return <ListSkeleton />;
+  if (isError) {
+    return (
+      <ErrorState
+        title="Failed to Load Whiteboards"
+        message={
+          (error as any)?.response?.data?.message ||
+          "There was a problem fetching your whiteboards."
+        }
+      />
+    );
+  }
+
+  const whiteboards = data?.data || [];
+
+  if (whiteboards.length === 0) {
+    return (
+      <EmptyState
+        icon={<Clipboard className="h-10 w-10 text-primary" />}
+        title="No Whiteboards Found"
+        description="Get started by creating your first whiteboard."
+      />
+    );
+  }
+
+  return (
+    <>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {whiteboards.map((wb: any) => (
+          <WhiteboardCard
+            key={wb.id}
+            whiteboard={wb}
+            onEdit={() => setEditingId(wb.id)}
+          />
+        ))}
+      </div>
+      <ResourceCrudDialog
+        isOpen={!!editingId}
+        onOpenChange={(isOpen) => !isOpen && setEditingId(null)}
+        title="Edit Whiteboard"
+        description="Update the name of your whiteboard."
+        form={WhiteboardForm}
+        resourcePath="whiteboards"
+        resourceKey={["whiteboards"]}
+        resourceId={editingId}
+      />
+    </>
   );
 }
 // FILE: src/features/crm/api/useGetSkills.ts
@@ -12201,6 +12864,7 @@ export function OrganizationList({
     </div>
   );
 }
+
 // FILE: src/features/crm/components/PersonDetailContent.tsx
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -13666,7 +14330,7 @@ export function useLinkDocument(
 // FILE: src/features/project-management/api/useManageTaskLinks.ts
 import api from "@/lib/api";
 import { useApiMutation } from "@/hooks/useApiMutation";
-import { TaskLinkType } from "@/types";
+import { TaskLinkType } from "@/types/api";
 
 interface AddLinkParams {
   workspaceId?: string | null;
@@ -15297,6 +15961,7 @@ import { TaskStatus, TaskPriority } from "@/types/api";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
+
 const taskSchema = z.object({
   title: z.string().min(1, "Title is required."),
   description: z.string().optional(),
@@ -15497,6 +16162,7 @@ export function CreateTemplateForm({
     />
   );
 }
+
 // FILE: src/features/project-management/components/CreateTemplateFromTaskForm.tsx
 import { ResourceForm } from "@/components/shared/form/ResourceForm";
 import { FormInput } from "@/components/shared/form/FormFields";
@@ -15547,8 +16213,9 @@ export function CreateTemplateFromTaskForm({
     />
   );
 }
+
 // FILE: src/features/project-management/components/CustomFieldDefinitionForm.tsx
-import { CustomFieldType } from "@/types";
+import { CustomFieldType } from "@/types/api";
 import {
   FormInput,
   FormSelect,
@@ -15650,7 +16317,6 @@ export function CustomFieldDefinitionForm({
     />
   );
 }
-
 // FILE: src/features/project-management/components/CustomFieldDefinitionList.tsx
 import { useState } from "react";
 import { useApiResource } from "@/hooks/useApiResource";
@@ -16188,7 +16854,7 @@ import { EntityCard } from "@/components/shared/EntityCard";
 import { Progress } from "@/components/ui/progress";
 import { useManageGoals } from "../api/useManageGoals";
 import { Badge } from "@/components/ui/badge";
-import { KeyResultType } from "@/types";
+import { KeyResultType } from "@/types/api";
 import { Target } from "lucide-react";
 import { Goal, KeyResult } from "@/types";
 import { ActionMenu } from "@/components/shared/ActionMenu";
@@ -16285,6 +16951,7 @@ export function GoalCard({
     </EntityCard>
   );
 }
+
 // FILE: src/features/project-management/components/GoalForm.tsx
 import {
   FormInput,
@@ -16295,7 +16962,7 @@ import {
 import { ResourceForm } from "@/components/shared/form/ResourceForm";
 import { z } from "zod";
 import { nameSchema, descriptionSchema } from "@/lib/schemas";
-import { GoalStatus, KeyResultType } from "@/types";
+import { GoalStatus, KeyResultType } from "@/types/api";
 import { KeyResultInput } from "./KeyResultInput";
 import { useGetProjectMembers } from "@/features/project-management/api/useGetProjectMembers";
 import { useManageGoals } from "../api/useManageGoals";
@@ -16750,6 +17417,7 @@ export function InviteProjectMember({
     </Card>
   );
 }
+
 // FILE: src/features/project-management/components/kanban-view/KanbanBoard.tsx
 import { useState, useEffect } from "react";
 import {
@@ -19121,6 +19789,93 @@ export function ProjectForm({
     />
   );
 }
+// FILE: src/features/project-management/components/ProjectList.tsx
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { ErrorState } from "@/components/shared/ErrorState";
+import { EmptyState } from "@/components/shared/EmptyState";
+import { FolderKanban } from "lucide-react";
+import { useState } from "react";
+import { ProjectCard } from "./ProjectCard";
+import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
+import { ProjectForm } from "./ProjectForm";
+import { useManageProjects } from "../api/useManageProjects";
+
+const ProjectListSkeleton = () => (
+  <div className="grid gap-4 pt-6 md:grid-cols-2 lg:grid-cols-3">
+    {Array.from({ length: 3 }).map((_, i) => (
+      <Card key={i}>
+        <CardHeader>
+          <Skeleton className="h-6 w-3/4" />
+          <Skeleton className="mt-2 h-4 w-full" />
+        </CardHeader>
+        <CardContent>
+          <Skeleton className="h-4 w-1/2" />
+        </CardContent>
+      </Card>
+    ))}
+  </div>
+);
+export function ProjectList({ workspaceId }: { workspaceId: string }) {
+  const { useGetAll, resourceUrl, resourceKey } =
+    useManageProjects(workspaceId);
+  const { data, isLoading, isError, error } = useGetAll();
+  const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
+
+  if (isLoading) {
+    return <ProjectListSkeleton />;
+  }
+
+  if (isError) {
+    return (
+      <ErrorState
+        title="Failed to Load Projects"
+        message={
+          (error as any)?.response?.data?.message ||
+          "There was a problem fetching projects for this workspace. Please try again later."
+        }
+      />
+    );
+  }
+
+  const handleEdit = (projectId: string) => {
+    setEditingProjectId(projectId);
+  };
+
+  if (!data || data.data.length === 0) {
+    return (
+      <div className="pt-6">
+        <EmptyState
+          icon={<FolderKanban className="h-10 w-10 text-primary" />}
+          title="This workspace has no projects yet."
+          description="Create the first project in this workspace to get started."
+        />
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="grid gap-4 pt-6 md:grid-cols-2 lg:grid-cols-3">
+        {data.data.map((project: any) => (
+          <ProjectCard project={project} key={project.id} onEdit={handleEdit} />
+        ))}
+      </div>
+
+      <ResourceCrudDialog
+        isOpen={!!editingProjectId}
+        onOpenChange={(isOpen) => !isOpen && setEditingProjectId(null)}
+        title="Edit Project"
+        description="Make changes to your project here. Click save when you're done."
+        form={ProjectForm}
+        formProps={{ workspaceId }}
+        resourcePath={resourceUrl}
+        resourceKey={resourceKey}
+        resourceId={editingProjectId}
+      />
+    </>
+  );
+}
 // FILE: src/features/project-management/components/ProjectMemberList.tsx
 import { useGetProjectMembers } from "../api/useGetProjectMembers";
 import { useApiResource } from "@/hooks/useApiResource";
@@ -19392,6 +20147,7 @@ export function ProjectTemplateCard({
     </EntityCard>
   );
 }
+
 // FILE: src/features/project-management/components/ProjectTemplateList.tsx
 import { useState } from "react";
 import { EmptyState } from "@/components/shared/EmptyState";
@@ -19798,6 +20554,7 @@ export function SubtaskList({
   const queryClient = useQueryClient();
   const { useDelete } = useManageTasks(task.workspaceId, task.projectId);
   const deleteTaskMutation = useDelete();
+
   const handleRemoveSubtask = (taskId: string) => {
     if (window.confirm("Are you sure you want to delete this sub-task?")) {
       deleteTaskMutation.mutate(taskId, {
@@ -20534,6 +21291,7 @@ export function TaskDetailBody({
     </div>
   );
 }
+
 // FILE: src/features/project-management/components/TaskDetailModal.tsx
 import {
   Dialog,
@@ -21260,7 +22018,7 @@ import {
 } from "@/components/ui/select";
 import { Link2, Trash2 } from "lucide-react";
 import { useManageTaskLinks } from "../api/useManageTaskLinks";
-import { TaskLinkType } from "@/types";
+import { TaskLinkType } from "@/types/api";
 
 function TaskLinkItem({ link, onRemove, onUpdateType }: any) {
   const target = link.targetTask ?? link.sourceTask;
@@ -21381,7 +22139,6 @@ export function TaskLinks({ task, workspaceId, projectId }: any) {
 import { z } from "zod";
 import { ResourceForm } from "@/components/shared/form/ResourceForm";
 import { FormInput } from "@/components/shared/form/FormFields";
-import { useManageTaskTypes } from "../api/useManageTaskTypes";
 
 const CreateTaskTypeDtoSchema = z.object({
   name: z.string().min(1, "Type name is required."),
@@ -21402,15 +22159,11 @@ export function TaskTypeForm({
   initialData,
   onSuccess,
 }: TaskTypeFormProps) {
-  const { resourceUrl, resourceKey } = useManageTaskTypes(
-    workspaceId,
-    projectId
-  );
   return (
     <ResourceForm
       schema={CreateTaskTypeDtoSchema}
-      resourcePath={resourceUrl}
-      resourceKey={resourceKey}
+      resourcePath={`workspaces/${workspaceId}/projects/${projectId}/task-types`}
+      resourceKey={["taskTypes", projectId]}
       initialData={initialData}
       onSuccess={onSuccess}
       renderFields={() => (
@@ -21872,7 +22625,7 @@ import {
   FormMultiSelectPopover,
   FormSelect,
 } from "@/components/shared/form/FormFields";
-import { PublicationStatus } from "@/types";
+import { PublicationStatus } from "@/types/api";
 import { useManagePublicationCategories } from "../api/useManagePublicationCategories";
 import { useManageUsers } from "../../admin/users/api/useManageUsers";
 
@@ -22194,6 +22947,62 @@ export function PublicationCategoryManager() {
         resourcePath="publications/categories"
         resourceKey={["publicationCategories"]}
         resourceId={editingId}
+      />
+    </>
+  );
+}
+// FILE: src/features/publications/components/PublicationList.tsx
+import { useState } from "react";
+import { PublicationCard } from "./PublicationCard";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
+import { CreatePublicationForm } from "./CreatePublicationForm";
+import { useManagePublications } from "../api/useManagePublications";
+
+const PublicationListSkeleton = () => (
+  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+    {Array.from({ length: 6 }).map((_, i) => (
+      <div key={i} className="flex flex-col space-y-3">
+        <Skeleton className="h-[125px] w-full rounded-xl" />
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-3/4" />
+          <Skeleton className="h-4 w-1/2" />
+        </div>
+      </div>
+    ))}
+  </div>
+);
+
+export function PublicationList() {
+  const { useGetAll } = useManagePublications();
+  const { data, isLoading, isError } = useGetAll();
+  const [editingPublicationId, setEditingPublicationId] = useState<
+    string | null
+  >(null);
+
+  if (isLoading) return <PublicationListSkeleton />;
+  if (isError) return <div>Failed to load publications.</div>;
+  if (!data || data.data.length === 0) return <div>No publications found.</div>;
+  return (
+    <>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {data.data.map((pub: any) => (
+          <PublicationCard
+            key={pub.id}
+            publication={pub}
+            onEdit={() => setEditingPublicationId(pub.id)}
+          />
+        ))}
+      </div>
+      <ResourceCrudDialog
+        isOpen={!!editingPublicationId}
+        onOpenChange={(isOpen) => !isOpen && setEditingPublicationId(null)}
+        title="Edit Publication"
+        description="Make changes to the publication details."
+        form={CreatePublicationForm}
+        resourcePath="publications"
+        resourceKey={["publications"]}
+        resourceId={editingPublicationId}
       />
     </>
   );
@@ -23068,11 +23877,10 @@ import { useApiResource } from "@/hooks/useApiResource";
 import { Team } from "@/types";
 
 export function useManageTeams(workspaceId: string) {
-  const { resourceUrl, resourceKey } = useApiResource.constructUrlAndKey({
-    scope: "teams",
+  return useApiResource<Team>(`workspaces/${workspaceId}/teams`, [
+    "teams",
     workspaceId,
-  });
-  return useApiResource<Team>(resourceUrl, resourceKey);
+  ]);
 }
 // FILE: src/features/user-management/api/useResetPassword.ts
 import api from "@/lib/api";
@@ -23540,29 +24348,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useUpdateProfile } from "../api/useUpdateProfile";
+import { useAdminUploadAvatar } from "@/features/admin/users/api/useAdminUploadAvatar";
 import { useApiResource } from "@/hooks/useApiResource";
-import api from "@/lib/api";
-import { useApiMutation } from "@/hooks/useApiMutation";
-
-async function adminUploadAvatar(
-  userId: string,
-  formData: FormData
-): Promise<any> {
-  const { data } = await api.patch(`admin/users/${userId}/avatar`, formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
-  return data;
-}
-
-function useAdminUploadAvatar(userId: string) {
-  return useApiMutation({
-    mutationFn: (formData: FormData) => adminUploadAvatar(userId, formData),
-    successMessage: "Avatar updated successfully!",
-    invalidateQueries: [["users"], ["user", userId]],
-  });
-}
 
 interface ProfileAvatarProps {
   user: any;
@@ -23952,12 +24739,12 @@ export function TeamCard({ team, onEdit }: { team: Team; onEdit: () => void }) {
     </EntityCard>
   );
 }
+
 // FILE: src/features/user-management/components/TeamForm.tsx
 import { z } from "zod";
 import { nameSchema, descriptionSchema } from "@/lib/schemas";
 import { ResourceForm } from "@/components/shared/form/ResourceForm";
 import { FormInput, FormTextarea } from "@/components/shared/form/FormFields";
-import { useManageTeams } from "../api/useManageTeams";
 
 const teamSchema = z.object({
   name: nameSchema("Team"),
@@ -23975,12 +24762,11 @@ export function TeamForm({
   initialData,
   onSuccess,
 }: TeamFormProps) {
-  const { resourceUrl, resourceKey } = useManageTeams(workspaceId);
   return (
     <ResourceForm
       schema={teamSchema}
-      resourcePath={resourceUrl}
-      resourceKey={resourceKey}
+      resourcePath={`workspaces/${workspaceId}/teams`}
+      resourceKey={["teams", workspaceId]}
       initialData={initialData}
       onSuccess={onSuccess}
       renderFields={() => (
@@ -24000,6 +24786,99 @@ export function TeamForm({
     />
   );
 }
+
+// FILE: src/features/user-management/components/TeamList.tsx
+import { useState } from "react";
+import { TeamCard } from "./TeamCard";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { ErrorState } from "@/components/shared/ErrorState";
+import { EmptyState } from "@/components/shared/EmptyState";
+import { Users } from "lucide-react";
+import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
+import { TeamForm } from "./TeamForm";
+import { ManageTeamMembers } from "./ManageTeamMembers";
+import { useManageTeams } from "../api/useManageTeams";
+
+const TeamListSkeleton = () => (
+  <div className="grid gap-4 pt-6 md:grid-cols-2 lg:grid-cols-3">
+    {Array.from({ length: 3 }).map((_, i) => (
+      <Card key={i}>
+        <CardHeader>
+          <Skeleton className="h-6 w-3/4" />
+          <Skeleton className="mt-2 h-4 w-full" />
+        </CardHeader>
+        <CardContent>
+          <Skeleton className="h-4 w-1/2" />
+        </CardContent>
+      </Card>
+    ))}
+  </div>
+);
+export function TeamList({ workspaceId }: { workspaceId: string }) {
+  const { useGetAll } = useManageTeams(workspaceId);
+  const { data, isLoading, isError, error } = useGetAll();
+  const [editingTeamId, setEditingTeamId] = useState<string | null>(null);
+
+  if (isLoading) {
+    return <TeamListSkeleton />;
+  }
+
+  if (isError) {
+    return (
+      <ErrorState
+        title="Failed to Load Teams"
+        message={
+          (error as any)?.response?.data?.message ||
+          "There was a problem fetching teams for this workspace."
+        }
+      />
+    );
+  }
+
+  if (!data || data.data.length === 0) {
+    return (
+      <div className="pt-6">
+        <EmptyState
+          icon={<Users className="h-10 w-10 text-primary" />}
+          title="This workspace has no teams yet."
+          description="Create the first team to start organizing users."
+        />
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="grid gap-4 pt-6 md:grid-cols-2 lg:grid-cols-3">
+        {data.data.map((team) => (
+          <TeamCard
+            team={{ ...team, workspaceId }}
+            key={team.id}
+            onEdit={() => setEditingTeamId(team.id)}
+          />
+        ))}
+      </div>
+      <ResourceCrudDialog
+        resourceId={editingTeamId}
+        resourcePath={`workspaces/${workspaceId}/teams`}
+        resourceKey={["teams", workspaceId]}
+        title="Edit Team"
+        description="Update team details and manage its members."
+        form={TeamForm}
+        formProps={{ workspaceId }}
+        isOpen={!!editingTeamId}
+        onOpenChange={(isOpen: any) => !isOpen && setEditingTeamId(null)}
+        dialogClassName="sm:max-w-3xl"
+      >
+        {(team: any) => (
+          <ManageTeamMembers team={team} workspaceId={workspaceId} />
+        )}
+      </ResourceCrudDialog>
+    </>
+  );
+}
+
 // FILE: src/features/workspaces/api/useGetWorkspaces.ts
 import { useApiResource } from "@/hooks/useApiResource";
 import { Workspace } from "@/types";
@@ -24496,7 +25375,14 @@ export function useApiMutation<
 import api from "@/lib/api";
 import { useQuery, QueryKey } from "@tanstack/react-query";
 import { useApiMutation } from "./useApiMutation";
-import { PaginatedResponse } from "@/types";
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
 
 const fetchResourceList = async <T>(
   resourceUrl: string,
@@ -24559,18 +25445,7 @@ type Scope =
   | "announcements"
   | "dashboards"
   | "goals"
-  | "task-types"
-  | "publications"
-  | "publications/categories"
-  | "whiteboards"
-  | "project-templates"
-  | "task-templates"
-  | "people"
-  | "organizations"
-  | "deals"
-  | "deal-stages"
-  | "skills"
-  | "interactions";
+  | "task-types";
 
 interface UrlAndKeyOptions {
   scope: Scope;
@@ -24597,10 +25472,7 @@ function constructUrlAndKey({
 
   resourceUrl = resourceUrl ? `${resourceUrl}/${scope}` : scope;
 
-  if (
-    !workspaceId &&
-    ["users", "roles", "permissions", "announcements"].includes(scope)
-  ) {
+  if (!workspaceId && ["users", "roles", "permissions"].includes(scope)) {
     resourceUrl = `admin/${scope}`;
   }
 
@@ -24613,7 +25485,7 @@ export function useApiResource<TData = any, TQuery = object>(
 ) {
   const resourceName =
     String(resourceKey[0]).charAt(0).toUpperCase() +
-    String(resourceKey[0]).slice(1).replace(/s$/, "");
+    String(resourceKey[0]).slice(1);
 
   const useGetAll = (query?: TQuery & { enabled?: boolean }) => {
     const { enabled = true, ...queryParams } = query || {};
@@ -24669,8 +25541,6 @@ export function useApiResource<TData = any, TQuery = object>(
     useCreate,
     useUpdate,
     useDelete,
-    resourceUrl,
-    resourceKey,
   };
 }
 
@@ -25312,66 +26182,17 @@ export function ActivitiesPage() {
   );
 }
 // FILE: src/pages/admin/AnnouncementListPage.tsx
-import { ListPageLayout } from "@/components/shared/ListPageLayout";
-import { AnnouncementForm } from "@/features/admin/announcements/components/AnnouncementForm";
-import { useManageAnnouncements } from "@/features/admin/announcements/api/useManageAnnouncements";
-import { Announcement } from "@/types";
-import {
-  DataTable,
-  ColumnDef,
-  DataTableWrapper,
-} from "@/components/shared/DataTable";
-import { ActionMenu } from "@/components/shared/ActionMenu";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
-import { PlusCircle, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { AnnouncementList } from "@/features/admin/announcements/components/AnnouncementList";
 import { BroadcastNotificationDialog } from "@/features/system/components/BroadcastNotificationDialog";
+import { Button } from "@/components/ui/button";
+import { PlusCircle } from "lucide-react";
+import { useState } from "react";
+import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
+import { AnnouncementForm } from "@/features/admin/announcements/components/AnnouncementForm";
+import { ListPageLayout } from "@/components/shared/ListPageLayout";
 
 export function AnnouncementListPage() {
-  const [page, setPage] = useState(1);
-  const [editingId, setEditingId] = useState<string | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const { useGetAll, useDelete } = useManageAnnouncements();
-  const { data, isLoading, isError } = useGetAll({ page });
-  const deleteMutation = useDelete();
-
-  const columns: ColumnDef<Announcement>[] = [
-    {
-      accessorKey: "title",
-      header: "Title",
-      cell: ({ row }) => (
-        <span className="font-medium">{row.original.title}</span>
-      ),
-    },
-    {
-      accessorKey: "status",
-      header: "Status",
-      cell: ({ row }) => <Badge variant="outline">{row.original.status}</Badge>,
-    },
-    {
-      accessorKey: "severity",
-      header: "Severity",
-      cell: ({ row }) => (
-        <Badge variant="secondary">{row.original.severity}</Badge>
-      ),
-    },
-    {
-      accessorKey: "isPinned",
-      header: "Pinned",
-      cell: ({ row }) => (row.original.isPinned ? "Yes" : "No"),
-    },
-    {
-      accessorKey: "publishedAt",
-      header: "Published",
-      cell: ({ row }) =>
-        row.original.publishedAt
-          ? new Date(row.original.publishedAt).toLocaleDateString("en-US")
-          : "N/A",
-    },
-  ];
-
   return (
     <ListPageLayout
       title="System Communications"
@@ -25397,64 +26218,10 @@ export function AnnouncementListPage() {
         </div>
       }
     >
-      {isLoading && <div>Loading announcements...</div>}
-      {isError && <div>Error loading announcements.</div>}
-      {data && (
-        <DataTableWrapper>
-          <DataTable
-            columns={columns}
-            data={data.data || []}
-            pagination={{
-              page: data.page || 1,
-              totalPages: data.totalPages || 1,
-              handlePageChange: (newPage) => setPage(newPage),
-            }}
-            bulkActions={(selectedIds) => (
-              <Button
-                variant="destructive"
-                onClick={() => {
-                  if (
-                    window.confirm(
-                      `Delete ${selectedIds.length} selected announcements?`
-                    )
-                  ) {
-                    deleteMutation.mutate(selectedIds);
-                  }
-                }}
-                disabled={deleteMutation.isPending}
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete ({selectedIds.length})
-              </Button>
-            )}
-            renderRowActions={(row) => (
-              <ActionMenu
-                onEdit={() => setEditingId(row.id)}
-                onDelete={() => {
-                  if (window.confirm(`Delete announcement "${row.title}"?`)) {
-                    deleteMutation.mutate(row.id);
-                  }
-                }}
-                deleteDisabled={deleteMutation.isPending}
-              />
-            )}
-          />
-        </DataTableWrapper>
-      )}
-      <ResourceCrudDialog
-        isOpen={!!editingId}
-        onOpenChange={(isOpen) => !isOpen && setEditingId(null)}
-        title="Edit Announcement"
-        description="Make changes to the announcement details."
-        form={AnnouncementForm}
-        resourcePath="announcements"
-        resourceKey={["announcements"]}
-        resourceId={editingId}
-      />
+      <AnnouncementList />
     </ListPageLayout>
   );
 }
-
 // FILE: src/pages/admin/JobMonitoringPage.tsx
 import {
   Card,
@@ -25592,105 +26359,30 @@ export function JobMonitoringPage() {
   );
 }
 // FILE: src/pages/admin/PermissionListPage.tsx
+import { PermissionList } from "@/features/admin/permissions/components/PermissionList";
 import { ListPageLayout } from "@/components/shared/ListPageLayout";
-import { useState } from "react";
-import {
-  DataTable,
-  DataTableWrapper,
-  ColumnDef,
-} from "@/components/shared/DataTable";
-import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
-import { Permission } from "@/types";
-import { useManagePermissions } from "@/features/admin/permissions/api/useManagePermissions";
 
 export function PermissionListPage() {
-  const [page, setPage] = useState(1);
-  const { useGetAll, useDelete } = useManagePermissions();
-  const { data, isLoading, isError } = useGetAll({ page });
-  const deleteMutation = useDelete();
-
-  const columns: ColumnDef<Permission>[] = [
-    {
-      accessorKey: "action",
-      header: "Action",
-      cell: ({ row }) => (
-        <span className="font-mono">{row.original.action}</span>
-      ),
-    },
-    {
-      accessorKey: "subject",
-      header: "Subject",
-      cell: ({ row }) => (
-        <span className="font-mono">{row.original.subject}</span>
-      ),
-    },
-    {
-      accessorKey: "description",
-      header: "Description",
-      cell: ({ row }) => row.original.description,
-    },
-  ];
-
   return (
     <ListPageLayout
       title="System Permissions"
       description="A read-only list of all available permissions in the system."
     >
-      {isLoading && <div>Loading permissions...</div>}
-      {isError && <div>Error loading permissions.</div>}
-      {data && (
-        <DataTableWrapper>
-          <DataTable
-            columns={columns}
-            data={data.data || []}
-            pagination={{
-              page: data.page || 1,
-              totalPages: data.totalPages || 1,
-              handlePageChange: (newPage) => setPage(newPage),
-            }}
-            bulkActions={(selectedIds) => (
-              <Button
-                variant="destructive"
-                onClick={() => {
-                  if (
-                    window.confirm(
-                      `Delete ${selectedIds.length} selected permissions?`
-                    )
-                  ) {
-                    deleteMutation.mutate(selectedIds);
-                  }
-                }}
-                disabled={deleteMutation.isPending}
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete ({selectedIds.length})
-              </Button>
-            )}
-          />
-        </DataTableWrapper>
-      )}
+      <PermissionList />
     </ListPageLayout>
   );
 }
-
 // FILE: src/pages/admin/RoleListPage.tsx
-import { ListPageLayout } from "@/components/shared/ListPageLayout";
-import { RoleCard } from "@/features/admin/roles/components/RoleCard";
-import { RoleForm } from "@/features/admin/roles/components/RoleForm";
-import { useManageRoles } from "@/features/admin/roles/api/useManageRoles";
-import { ManageRolePermissions } from "@/features/admin/roles/components/ManageRolePermissions";
+import { RoleList } from "@/features/admin/roles/components/RoleList";
 import { Button } from "@/components/ui/button";
-import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
 import { PlusCircle } from "lucide-react";
 import { useState } from "react";
+import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
+import { RoleForm } from "@/features/admin/roles/components/RoleForm";
+import { ListPageLayout } from "@/components/shared/ListPageLayout";
 
 export function RoleListPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const { useGetAll } = useManageRoles();
-  const { data, isLoading, isError } = useGetAll();
-  const [editingRoleId, setEditingRoleId] = useState<string | null>(null);
-
   return (
     <ListPageLayout
       title="Role Management"
@@ -25713,34 +26405,10 @@ export function RoleListPage() {
         />
       }
     >
-      {isLoading && <div>Loading roles...</div>}
-      {isError && <div>Error loading roles.</div>}
-      {data && (
-        <div className="grid gap-4 md:grid-cols-2">
-          {data.data?.map((role) => (
-            <RoleCard key={role.id} role={role} onEdit={setEditingRoleId} />
-          ))}
-        </div>
-      )}
-      <ResourceCrudDialog
-        resourceId={editingRoleId}
-        resourcePath="admin/roles"
-        resourceKey={["roles"]}
-        title="Edit Role"
-        description="Update role details and manage assigned permissions."
-        form={RoleForm}
-        isOpen={!!editingRoleId}
-        onOpenChange={(isOpen) => {
-          if (!isOpen) setEditingRoleId(null);
-        }}
-        dialogClassName="sm:max-w-4xl"
-      >
-        {(role) => <ManageRolePermissions role={role} />}
-      </ResourceCrudDialog>
+      <RoleList />
     </ListPageLayout>
   );
 }
-
 // FILE: src/pages/admin/SystemStatusPage.tsx
 import { SystemStatusDashboard } from "@/features/admin/system-status/components/SystemStatusDashboard";
 import { ListPageLayout } from "@/components/shared/ListPageLayout";
@@ -26238,6 +26906,7 @@ export function DashboardDetailPage() {
 }
 // FILE: src/pages/DashboardsPage.tsx
 import { useState, useEffect } from "react";
+import { DashboardList } from "@/features/analytics/components/DashboardList";
 import { DashboardForm } from "@/features/analytics/components/DashboardForm";
 import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
 import { Button } from "@/components/ui/button";
@@ -26253,16 +26922,10 @@ import { useGetWorkspaces } from "@/features/workspaces/api/useGetWorkspaces";
 import { useGetProjects } from "@/features/project-management/api/useGetProjects";
 import { Label } from "@/components/ui/label";
 import { useParams } from "react-router-dom";
-import { useManageDashboards } from "@/features/analytics/api/useManageDashboards";
-import { DashboardCard } from "@/features/analytics/components/DashboardCard";
-import { Dashboard } from "@/types";
 
 export function DashboardsPage() {
   const params = useParams<{ workspaceId?: string; projectId?: string }>();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [editingDashboardId, setEditingDashboardId] = useState<string | null>(
-    null
-  );
   const [workspaceId, setWorkspaceId] = useState<string | undefined>(
     params.workspaceId
   );
@@ -26292,15 +26955,6 @@ export function DashboardsPage() {
     workspaceId: workspaceId,
     projectId: projectId,
   };
-
-  const dashboardResource = useManageDashboards(scope);
-  const { data, isLoading, isError } = dashboardResource.useGetAll();
-
-  const resourceKey = scope.projectId
-    ? ["dashboards", scope.projectId]
-    : scope.workspaceId
-      ? ["dashboards", scope.workspaceId]
-      : ["dashboards", "user"];
 
   return (
     <div className="space-y-4">
@@ -26355,28 +27009,7 @@ export function DashboardsPage() {
           </Button>
         </div>
       </div>
-      {isLoading && <div>Loading dashboards...</div>}
-      {isError && <div>Error loading dashboards.</div>}
-      {!isLoading && !isError && (
-        <>
-          {data && data.data.length > 0 ? (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {data.data.map((dashboard: Dashboard) => (
-                <DashboardCard
-                  dashboard={dashboard}
-                  key={dashboard.id}
-                  onEdit={() => setEditingDashboardId(dashboard.id)}
-                />
-              ))}
-            </div>
-          ) : (
-            <p className="text-muted-foreground">
-              No dashboards have been created yet. Create one to begin!
-            </p>
-          )}
-        </>
-      )}
-
+      <DashboardList {...scope} />
       <ResourceCrudDialog
         isOpen={isCreateOpen}
         onOpenChange={setIsCreateOpen}
@@ -26385,23 +27018,17 @@ export function DashboardsPage() {
         form={DashboardForm}
         formProps={{ scope }}
         resourcePath={"dashboards"}
-        resourceKey={resourceKey}
-      />
-      <ResourceCrudDialog
-        isOpen={!!editingDashboardId}
-        onOpenChange={(isOpen) => !isOpen && setEditingDashboardId(null)}
-        resourceId={editingDashboardId}
-        resourcePath={"dashboards"}
-        resourceKey={resourceKey}
-        title="Edit Dashboard"
-        description="Make changes to your dashboard here. Click save when you're done."
-        form={DashboardForm}
-        formProps={{ scope }}
+        resourceKey={
+          scope.projectId
+            ? ["dashboards", scope.projectId]
+            : scope.workspaceId
+              ? ["dashboards", scope.workspaceId]
+              : ["dashboards", "user"]
+        }
       />
     </div>
   );
 }
-
 // FILE: src/pages/ForgotPasswordPage.tsx
 import { ForgotPasswordForm } from "@/features/user-management/components/ForgotPasswordForm";
 
@@ -27014,6 +27641,7 @@ export function ProjectGoalsPage() {
   );
 }
 // FILE: src/pages/ProjectListPage.tsx
+import { ProjectList } from "@/features/project-management/components/ProjectList";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
@@ -27028,29 +27656,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { CreateProjectFromTemplateForm } from "@/features/project-management/components/CreateProjectFromTemplateForm";
 import { ListPageLayout } from "@/components/shared/ListPageLayout";
-import { useManageProjects } from "@/features/project-management/api/useManageProjects";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { ErrorState } from "@/components/shared/ErrorState";
-import { EmptyState } from "@/components/shared/EmptyState";
-import { FolderKanban } from "lucide-react";
-import { ProjectCard } from "@/features/project-management/components/ProjectCard";
-
-const ProjectListSkeleton = () => (
-  <div className="grid gap-4 pt-6 md:grid-cols-2 lg:grid-cols-3">
-    {Array.from({ length: 3 }).map((_, i) => (
-      <Card key={i}>
-        <CardHeader>
-          <Skeleton className="h-6 w-3/4" />
-          <Skeleton className="mt-2 h-4 w-full" />
-        </CardHeader>
-        <CardContent>
-          <Skeleton className="h-4 w-1/2" />
-        </CardContent>
-      </Card>
-    ))}
-  </div>
-);
 
 export function ProjectListPage() {
   const { workspaceId } = useParams<{ workspaceId: string }>();
@@ -27058,53 +27663,10 @@ export function ProjectListPage() {
     open: false,
     type: "create",
   });
-  const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
-  const { useGetAll, resourceUrl, resourceKey } =
-    useManageProjects(workspaceId);
-  const { data, isLoading, isError, error } = useGetAll();
 
   if (!workspaceId) {
     return <div>Invalid Workspace ID</div>;
   }
-
-  const handleEdit = (projectId: string) => {
-    setEditingProjectId(projectId);
-  };
-
-  const renderContent = () => {
-    if (isLoading) {
-      return <ProjectListSkeleton />;
-    }
-    if (isError) {
-      return (
-        <ErrorState
-          title="Failed to Load Projects"
-          message={
-            (error as any)?.response?.data?.message ||
-            "There was a problem fetching projects for this workspace. Please try again later."
-          }
-        />
-      );
-    }
-    if (!data || data.data.length === 0) {
-      return (
-        <div className="pt-6">
-          <EmptyState
-            icon={<FolderKanban className="h-10 w-10 text-primary" />}
-            title="This workspace has no projects yet."
-            description="Create the first project in this workspace to get started."
-          />
-        </div>
-      );
-    }
-    return (
-      <div className="grid gap-4 pt-6 md:grid-cols-2 lg:grid-cols-3">
-        {data.data.map((project: any) => (
-          <ProjectCard project={project} key={project.id} onEdit={handleEdit} />
-        ))}
-      </div>
-    );
-  };
 
   return (
     <ListPageLayout
@@ -27135,7 +27697,7 @@ export function ProjectListPage() {
         </DropdownMenu>
       }
     >
-      {renderContent()}
+      <ProjectList workspaceId={workspaceId} />
       <ResourceCrudDialog
         isOpen={dialogState.open && dialogState.type === "create"}
         onOpenChange={(isOpen) =>
@@ -27145,8 +27707,8 @@ export function ProjectListPage() {
         description="Projects live inside workspaces and contain your tasks."
         form={ProjectForm}
         formProps={{ workspaceId }}
-        resourcePath={resourceUrl}
-        resourceKey={resourceKey}
+        resourcePath={`workspaces/${workspaceId}/projects`}
+        resourceKey={["projects", workspaceId]}
       />
       <ResourceCrudDialog
         isOpen={dialogState.open && dialogState.type === "createFromTemplate"}
@@ -27160,21 +27722,9 @@ export function ProjectListPage() {
         resourcePath={""}
         resourceKey={[]}
       />
-      <ResourceCrudDialog
-        isOpen={!!editingProjectId}
-        onOpenChange={(isOpen) => !isOpen && setEditingProjectId(null)}
-        title="Edit Project"
-        description="Make changes to your project here. Click save when you're done."
-        form={ProjectForm}
-        formProps={{ workspaceId }}
-        resourcePath={resourceUrl}
-        resourceKey={resourceKey}
-        resourceId={editingProjectId}
-      />
     </ListPageLayout>
   );
 }
-
 // FILE: src/pages/ProjectSettingsPage.tsx
 import { NavLink, Outlet, useLocation, useParams } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -27312,6 +27862,7 @@ export function ProjectTemplatesPage() {
   );
 }
 // FILE: src/pages/PublicationsPage.tsx
+import { PublicationList } from "@/features/publications/components/PublicationList";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, Settings } from "lucide-react";
 import { useState } from "react";
@@ -27327,34 +27878,12 @@ import {
 } from "@/components/ui/dialog";
 import { PublicationCategoryManager } from "@/features/publications/components/PublicationCategoryManager";
 import { ListPageLayout } from "@/components/shared/ListPageLayout";
-import { PublicationCard } from "@/features/publications/components/PublicationCard";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useManagePublications } from "@/features/publications/api/useManagePublications";
-
-const PublicationListSkeleton = () => (
-  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-    {Array.from({ length: 6 }).map((_, i) => (
-      <div key={i} className="flex flex-col space-y-3">
-        <Skeleton className="h-[125px] w-full rounded-xl" />
-        <div className="space-y-2">
-          <Skeleton className="h-4 w-3/4" />
-          <Skeleton className="h-4 w-1/2" />
-        </div>
-      </div>
-    ))}
-  </div>
-);
 
 export function PublicationsPage() {
   const [dialogState, setDialogState] = useState({
     open: false,
     type: "create",
   });
-  const [editingPublicationId, setEditingPublicationId] = useState<
-    string | null
-  >(null);
-  const { useGetAll } = useManagePublications();
-  const { data, isLoading, isError } = useGetAll();
 
   return (
     <ListPageLayout
@@ -27398,24 +27927,7 @@ export function PublicationsPage() {
         </div>
       }
     >
-      {isLoading ? (
-        <PublicationListSkeleton />
-      ) : isError ? (
-        <div>Failed to load publications.</div>
-      ) : !data || data.data.length === 0 ? (
-        <div>No publications found.</div>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {data.data.map((pub: any) => (
-            <PublicationCard
-              key={pub.id}
-              publication={pub}
-              onEdit={() => setEditingPublicationId(pub.id)}
-            />
-          ))}
-        </div>
-      )}
-
+      <PublicationList />
       <ResourceCrudDialog
         isOpen={dialogState.open && dialogState.type === "create"}
         onOpenChange={(isOpen) =>
@@ -27427,20 +27939,9 @@ export function PublicationsPage() {
         resourcePath="publications"
         resourceKey={["publications"]}
       />
-      <ResourceCrudDialog
-        isOpen={!!editingPublicationId}
-        onOpenChange={(isOpen) => !isOpen && setEditingPublicationId(null)}
-        title="Edit Publication"
-        description="Make changes to the publication details."
-        form={CreatePublicationForm}
-        resourcePath="publications"
-        resourceKey={["publications"]}
-        resourceId={editingPublicationId}
-      />
     </ListPageLayout>
   );
 }
-
 // FILE: src/pages/ReportingPage.tsx
 import { useState, useEffect } from "react";
 import { ReportingOverview } from "@/features/analytics/components/ReportingOverview";
@@ -27529,59 +28030,14 @@ export function ReportingPage() {
   );
 }
 // FILE: src/pages/ReportsPage.tsx
+import { ReportList } from "@/features/analytics/components/ReportList";
 import { ReportForm } from "@/features/analytics/components/ReportForm";
 import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, BarChart } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 import { useState } from "react";
-import { useManageReports } from "@/features/analytics/api/useManageReports";
-import { ReportCard } from "@/features/analytics/components/ReportCard";
-import { Skeleton } from "@/components/ui/skeleton";
-import { EmptyState } from "@/components/shared/EmptyState";
-
-const ListSkeleton = () => (
-  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-    {Array.from({ length: 3 }).map((_, i) => (
-      <Skeleton key={i} className="h-36 w-full" />
-    ))}
-  </div>
-);
-
 export function ReportsPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const { useGetAll } = useManageReports();
-  const { data, isLoading, isError } = useGetAll({
-    sortBy: "title",
-    sortOrder: "asc",
-  });
-  const [editingId, setEditingId] = useState<string | null>(null);
-
-  const renderContent = () => {
-    if (isLoading) return <ListSkeleton />;
-    if (isError) return <div>Error loading reports.</div>;
-
-    const reports = data?.data || [];
-    if (reports.length === 0) {
-      return (
-        <EmptyState
-          icon={<BarChart className="h-10 w-10" />}
-          title="No Reports Found"
-          description="Get started by creating your first report."
-        />
-      );
-    }
-    return (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {reports.map((report: any) => (
-          <ReportCard
-            key={report.id}
-            report={report}
-            onEdit={() => setEditingId(report.id)}
-          />
-        ))}
-      </div>
-    );
-  };
 
   return (
     <div className="space-y-4">
@@ -27591,7 +28047,7 @@ export function ReportsPage() {
           New Report
         </Button>
       </div>
-      {renderContent()}
+      <ReportList />
       <ResourceCrudDialog
         isOpen={isCreateOpen}
         onOpenChange={setIsCreateOpen}
@@ -27601,20 +28057,9 @@ export function ReportsPage() {
         resourcePath="reports"
         resourceKey={["reports"]}
       />
-      <ResourceCrudDialog
-        isOpen={!!editingId}
-        onOpenChange={(isOpen) => !isOpen && setEditingId(null)}
-        title="Edit Report"
-        description="Update the details of your report."
-        form={ReportForm}
-        resourcePath="reports"
-        resourceKey={["reports"]}
-        resourceId={editingId}
-      />
     </div>
   );
 }
-
 // FILE: src/pages/ResetPasswordPage.tsx
 import { ResetPasswordForm } from "@/features/user-management/components/ResetPasswordForm";
 
@@ -28125,6 +28570,7 @@ export function TasksPage({
     </>
   );
 }
+
 // FILE: src/pages/TasksPageHeader.tsx
 import {
   DropdownMenu,
@@ -28338,6 +28784,7 @@ export function TasksPageHeader({
     </header>
   );
 }
+
 // FILE: src/pages/TaskTypesSettingsPage.tsx
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -28379,6 +28826,7 @@ export function TaskTypesSettingsPage() {
   );
 }
 // FILE: src/pages/TeamsPage.tsx
+import { TeamList } from "@/features/user-management/components/TeamList";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
@@ -28386,83 +28834,14 @@ import { useState } from "react";
 import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
 import { TeamForm } from "@/features/user-management/components/TeamForm";
 import { ListPageLayout } from "@/components/shared/ListPageLayout";
-import { useManageTeams } from "@/features/user-management/api/useManageTeams";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { ErrorState } from "@/components/shared/ErrorState";
-import { EmptyState } from "@/components/shared/EmptyState";
-import { Users } from "lucide-react";
-import { TeamCard } from "@/features/user-management/components/TeamCard";
-import { ManageTeamMembers } from "@/features/user-management/components/ManageTeamMembers";
-
-const TeamListSkeleton = () => (
-  <div className="grid gap-4 pt-6 md:grid-cols-2 lg:grid-cols-3">
-    {Array.from({ length: 3 }).map((_, i) => (
-      <Card key={i}>
-        <CardHeader>
-          <Skeleton className="h-6 w-3/4" />
-          <Skeleton className="mt-2 h-4 w-full" />
-        </CardHeader>
-        <CardContent>
-          <Skeleton className="h-4 w-1/2" />
-        </CardContent>
-      </Card>
-    ))}
-  </div>
-);
 
 export function TeamsPage() {
   const { workspaceId } = useParams<{ workspaceId: string }>();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const { useGetAll, resourceUrl, resourceKey } = useManageTeams(workspaceId!);
-  const { data, isLoading, isError, error } = useGetAll();
-  const [editingTeamId, setEditingTeamId] = useState<string | null>(null);
 
   if (!workspaceId) {
     return <div>Invalid Workspace ID</div>;
   }
-
-  const renderContent = () => {
-    if (isLoading) {
-      return <TeamListSkeleton />;
-    }
-
-    if (isError) {
-      return (
-        <ErrorState
-          title="Failed to Load Teams"
-          message={
-            (error as any)?.response?.data?.message ||
-            "There was a problem fetching teams for this workspace."
-          }
-        />
-      );
-    }
-
-    if (!data || data.data.length === 0) {
-      return (
-        <div className="pt-6">
-          <EmptyState
-            icon={<Users className="h-10 w-10 text-primary" />}
-            title="This workspace has no teams yet."
-            description="Create the first team to start organizing users."
-          />
-        </div>
-      );
-    }
-
-    return (
-      <div className="grid gap-4 pt-6 md:grid-cols-2 lg:grid-cols-3">
-        {data.data.map((team) => (
-          <TeamCard
-            team={{ ...team, workspaceId }}
-            key={team.id}
-            onEdit={() => setEditingTeamId(team.id)}
-          />
-        ))}
-      </div>
-    );
-  };
 
   return (
     <ListPageLayout
@@ -28482,105 +28861,26 @@ export function TeamsPage() {
           description="Teams help you group users within a workspace."
           form={TeamForm}
           formProps={{ workspaceId }}
-          resourcePath={resourceUrl}
-          resourceKey={resourceKey}
+          resourcePath={`workspaces/${workspaceId}/teams`}
+          resourceKey={["teams", workspaceId]}
         />
       }
     >
-      {renderContent()}
-      <ResourceCrudDialog
-        resourceId={editingTeamId}
-        resourcePath={resourceUrl}
-        resourceKey={resourceKey}
-        title="Edit Team"
-        description="Update team details and manage its members."
-        form={TeamForm}
-        formProps={{ workspaceId }}
-        isOpen={!!editingTeamId}
-        onOpenChange={(isOpen: any) => !isOpen && setEditingTeamId(null)}
-        dialogClassName="sm:max-w-3xl"
-      >
-        {(team: any) => (
-          <ManageTeamMembers team={team} workspaceId={workspaceId} />
-        )}
-      </ResourceCrudDialog>
+      <TeamList workspaceId={workspaceId} />
     </ListPageLayout>
   );
 }
-
 // FILE: src/pages/WhiteboardsPage.tsx
-import { PlusCircle, Clipboard } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 import { useState } from "react";
 import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
 import { WhiteboardForm } from "@/features/collaboration/components/WhiteboardForm";
 import { Button } from "@/components/ui/button";
 import { ListPageLayout } from "@/components/shared/ListPageLayout";
-import { useManageWhiteboards } from "@/features/collaboration/api/useManageWhiteboards";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { ErrorState } from "@/components/shared/ErrorState";
-import { EmptyState } from "@/components/shared/EmptyState";
-import { WhiteboardCard } from "@/features/collaboration/components/WhiteboardCard";
-
-const ListSkeleton = () => (
-  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-    {Array.from({ length: 6 }).map((_, i) => (
-      <Card key={i}>
-        <CardHeader>
-          <Skeleton className="h-6 w-3/4" />
-          <Skeleton className="mt-2 h-4 w-full" />
-        </CardHeader>
-        <CardContent>
-          <Skeleton className="h-4 w-1/2" />
-        </CardContent>
-      </Card>
-    ))}
-  </div>
-);
+import { WhiteboardList } from "@/features/collaboration/components/WhiteboardList";
 
 export function WhiteboardsPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const { useGetAll } = useManageWhiteboards();
-  const { data, isLoading, isError, error } = useGetAll();
-  const [editingId, setEditingId] = useState<string | null>(null);
-
-  const renderContent = () => {
-    if (isLoading) return <ListSkeleton />;
-    if (isError) {
-      return (
-        <ErrorState
-          title="Failed to Load Whiteboards"
-          message={
-            (error as any)?.response?.data?.message ||
-            "There was a problem fetching your whiteboards."
-          }
-        />
-      );
-    }
-
-    const whiteboards = data?.data || [];
-    if (whiteboards.length === 0) {
-      return (
-        <EmptyState
-          icon={<Clipboard className="h-10 w-10 text-primary" />}
-          title="No Whiteboards Found"
-          description="Get started by creating your first whiteboard."
-        />
-      );
-    }
-
-    return (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {whiteboards.map((wb: any) => (
-          <WhiteboardCard
-            key={wb.id}
-            whiteboard={wb}
-            onEdit={() => setEditingId(wb.id)}
-          />
-        ))}
-      </div>
-    );
-  };
 
   return (
     <ListPageLayout
@@ -28604,21 +28904,10 @@ export function WhiteboardsPage() {
         />
       }
     >
-      {renderContent()}
-      <ResourceCrudDialog
-        isOpen={!!editingId}
-        onOpenChange={(isOpen) => !isOpen && setEditingId(null)}
-        title="Edit Whiteboard"
-        description="Update the name of your whiteboard."
-        form={WhiteboardForm}
-        resourcePath="whiteboards"
-        resourceKey={["whiteboards"]}
-        resourceId={editingId}
-      />
+      <WhiteboardList />
     </ListPageLayout>
   );
 }
-
 // FILE: src/pages/WorkspaceAttachmentsPage.tsx
 import { useParams } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -28677,13 +28966,13 @@ export function WorkspaceAttachmentsPage() {
 }
 
 // FILE: src/pages/WorkspacesPage.tsx
-import { useState } from "react";
+import { WorkspaceList } from "@/features/workspaces/components/WorkspaceList";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
+import { useState } from "react";
 import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
 import { WorkspaceForm } from "@/features/workspaces/components/WorkspaceForm";
 import { ListPageLayout } from "@/components/shared/ListPageLayout";
-import { WorkspaceList } from "@/features/workspaces/components/WorkspaceList";
 
 export function WorkspacesPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -28714,7 +29003,6 @@ export function WorkspacesPage() {
     </ListPageLayout>
   );
 }
-
 // FILE: src/providers/AuthProvider.tsx
 import { useAuthStore } from "@/store/auth";
 import { ReactNode, useEffect } from "react";
@@ -29124,30 +29412,32 @@ export enum AccessRole {
   EDITOR = "EDITOR",
   VIEWER = "VIEWER",
 }
-// FILE: src/types/entities.ts
+// FILE: src/types/index.ts
 import {
-  AccessRole,
-  ActivityActionType,
-  AnnouncementSeverity,
+  ViewType,
+  ProjectStatus,
+  TaskStatus,
+  TaskPriority,
+  TaskLinkType,
   CustomFieldType,
+  SocialProvider,
   DocumentType,
   GoalStatus,
+  KeyResultType,
   InteractionType,
   JobStatus,
-  KeyResultType,
-  NotificationSeverity,
-  NotificationType,
-  ProjectStatus,
   PublicationStatus,
+  AnnouncementSeverity,
   SkillCategory,
-  SocialProvider,
-  TaskLinkType,
-  TaskPriority,
-  TaskStatus,
-  ViewType,
+  ActivityActionType,
   WidgetType,
+  AccessRole,
+  NotificationType,
+  NotificationSeverity,
   WorkflowRunStatus,
 } from "./api";
+
+export * from "./api";
 
 export type AnyValue = Record<string, any>;
 
@@ -29178,7 +29468,7 @@ export interface User {
   workspaceId?: string;
 }
 
-export interface Role {
+export interface RoleWithPermissions {
   id: string;
   name: string;
   description: string | null;
@@ -29592,6 +29882,59 @@ export interface Dashboard {
   updatedAt: string;
 }
 
+export interface ListTasksQuery {
+  page?: number;
+  limit?: number;
+  status?: TaskStatus;
+  priority?: TaskPriority;
+  search?: string;
+  startDate?: Date;
+  endDate?: Date;
+  includeSubtasks?: boolean;
+  sortBy?:
+    | "createdAt"
+    | "updatedAt"
+    | "title"
+    | "status"
+    | "priority"
+    | "dueDate"
+    | "orderInColumn"
+    | "projectName"
+    | "workspaceName"
+    | "taskTypeName";
+  sortOrder?: "asc" | "desc";
+  taskOrigin?: "project" | "standalone";
+  userRole?: "creator" | "assignee";
+}
+
+export interface BulkUpdateTasksDto {
+  taskIds: string[];
+  updates: {
+    status?: TaskStatus;
+    priority?: TaskPriority;
+    projectId?: string;
+    assigneeIds?: string[];
+  };
+}
+
+export interface ListProjectsQuery {
+  page?: number;
+  limit?: number;
+  status?: ProjectStatus;
+  search?: string;
+  sortBy?: "createdAt" | "updatedAt" | "name" | "status";
+  sortOrder?: "asc" | "desc";
+  workspaceId?: string;
+}
+
+export interface ListPeopleQuery {
+  page?: number;
+  limit?: number;
+  sortBy?: "createdAt" | "updatedAt" | "firstName" | "lastName";
+  sortOrder?: "asc" | "desc";
+  search?: string;
+}
+
 export interface Comment {
   id: string;
   content: string;
@@ -29755,53 +30098,5 @@ export interface ProjectRole {
   projectId: string;
   permissions: Permission[];
 }
-
-export interface ListTasksQuery {
-  page?: number;
-  limit?: number;
-  status?: TaskStatus;
-  priority?: TaskPriority;
-  search?: string;
-  startDate?: Date;
-  endDate?: Date;
-  includeSubtasks?: boolean;
-  sortBy?:
-    | "createdAt"
-    | "updatedAt"
-    | "title"
-    | "status"
-    | "priority"
-    | "dueDate"
-    | "orderInColumn"
-    | "projectName"
-    | "workspaceName"
-    | "taskTypeName";
-  sortOrder?: "asc" | "desc";
-  taskOrigin?: "project" | "standalone";
-  userRole?: "creator" | "assignee";
-}
-
-export interface BulkUpdateTasksDto {
-  taskIds: string[];
-  updates: {
-    status?: TaskStatus;
-    priority?: TaskPriority;
-    projectId?: string;
-    assigneeIds?: string[];
-  };
-}
-
-export interface ListPeopleQuery {
-  page?: number;
-  limit?: number;
-  sortBy?: "createdAt" | "updatedAt" | "firstName" | "lastName";
-  sortOrder?: "asc" | "desc";
-  search?: string;
-}
-
-// FILE: src/types/index.ts
-export * from "./api";
-export * from "./entities";
-
 // FILE: src/vite-env.d.ts
 /// <reference types="vite/client" />

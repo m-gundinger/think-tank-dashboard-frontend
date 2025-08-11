@@ -1,11 +1,11 @@
 import { Badge } from "@/components/ui/badge";
 import { EntityCard } from "@/components/shared/EntityCard";
-import { RoleWithPermissions } from "@/types";
+import { Role } from "@/types";
 import { ActionMenu } from "@/components/shared/ActionMenu";
 import { useManageRoles } from "../api/useManageRoles";
 
 interface RoleCardProps {
-  role: RoleWithPermissions;
+  role: Role;
   onEdit: (roleId: string) => void;
 }
 

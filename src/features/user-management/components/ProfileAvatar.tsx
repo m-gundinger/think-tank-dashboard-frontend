@@ -13,8 +13,29 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useUpdateProfile } from "../api/useUpdateProfile";
-import { useAdminUploadAvatar } from "@/features/admin/users/api/useAdminUploadAvatar";
 import { useApiResource } from "@/hooks/useApiResource";
+import api from "@/lib/api";
+import { useApiMutation } from "@/hooks/useApiMutation";
+
+async function adminUploadAvatar(
+  userId: string,
+  formData: FormData
+): Promise<any> {
+  const { data } = await api.patch(`admin/users/${userId}/avatar`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+  return data;
+}
+
+function useAdminUploadAvatar(userId: string) {
+  return useApiMutation({
+    mutationFn: (formData: FormData) => adminUploadAvatar(userId, formData),
+    successMessage: "Avatar updated successfully!",
+    invalidateQueries: [["users"], ["user", userId]],
+  });
+}
 
 interface ProfileAvatarProps {
   user: any;

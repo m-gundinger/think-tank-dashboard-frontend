@@ -1,4 +1,4 @@
-import { CustomFieldType } from "@/types/api";
+import { CustomFieldType } from "@/types";
 import {
   FormInput,
   FormSelect,

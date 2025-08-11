@@ -1,5 +1,3 @@
-import { useAssignPermissionToRole } from "../api/useAssignPermissionToRole";
-import { useRevokePermissionFromRole } from "../api/useRevokePermissionFromRole";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,12 +18,53 @@ import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { AnyValue } from "@/types";
 import { useManagePermissions } from "../../permissions/api/useManagePermissions";
+import { useApiMutation } from "@/hooks/useApiMutation";
+import api from "@/lib/api";
+
+async function assignPermission({
+  roleId,
+  permissionId,
+}: {
+  roleId: string;
+  permissionId: string;
+}): Promise<any> {
+  const { data } = await api.post(`admin/roles/${roleId}/permissions`, {
+    permissionId,
+  });
+  return data;
+}
+
+async function revokePermission({
+  roleId,
+  permissionId,
+}: {
+  roleId: string;
+  permissionId: string;
+}): Promise<any> {
+  const { data } = await api.delete(
+    `admin/roles/${roleId}/permissions/${permissionId}`
+  );
+  return data;
+}
 
 export function ManageRolePermissions({ role }: { role: AnyValue }) {
   const { data: permissionsData, isLoading } =
     useManagePermissions().useGetAll();
-  const assignMutation = useAssignPermissionToRole(role.id);
-  const revokeMutation = useRevokePermissionFromRole(role.id);
+
+  const assignMutation = useApiMutation({
+    mutationFn: (permissionId: string) =>
+      assignPermission({ roleId: role.id, permissionId }),
+    successMessage: "Permission assigned to role.",
+    invalidateQueries: [["roles"], ["role", role.id]],
+  });
+
+  const revokeMutation = useApiMutation({
+    mutationFn: (permissionId: string) =>
+      revokePermission({ roleId: role.id, permissionId }),
+    successMessage: "Permission revoked from role.",
+    invalidateQueries: [["roles"], ["role", role.id]],
+  });
+
   const [popoverOpen, setPopoverOpen] = useState(false);
 
   const rolePermissionIds = new Set(role.permissions.map((p: any) => p.id));

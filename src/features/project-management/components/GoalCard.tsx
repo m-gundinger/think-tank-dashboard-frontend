@@ -2,7 +2,7 @@ import { EntityCard } from "@/components/shared/EntityCard";
 import { Progress } from "@/components/ui/progress";
 import { useManageGoals } from "../api/useManageGoals";
 import { Badge } from "@/components/ui/badge";
-import { KeyResultType } from "@/types/api";
+import { KeyResultType } from "@/types";
 import { Target } from "lucide-react";
 import { Goal, KeyResult } from "@/types";
 import { ActionMenu } from "@/components/shared/ActionMenu";

@@ -6,7 +6,7 @@ import {
   FormMultiSelectPopover,
   FormSelect,
 } from "@/components/shared/form/FormFields";
-import { PublicationStatus } from "@/types/api";
+import { PublicationStatus } from "@/types";
 import { useManagePublicationCategories } from "../api/useManagePublicationCategories";
 import { useManageUsers } from "../../admin/users/api/useManageUsers";
 

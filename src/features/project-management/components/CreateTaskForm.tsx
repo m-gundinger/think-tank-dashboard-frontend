@@ -16,7 +16,6 @@ import { TaskStatus, TaskPriority } from "@/types/api";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
-
 const taskSchema = z.object({
   title: z.string().min(1, "Title is required."),
   description: z.string().optional(),

@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { DashboardList } from "@/features/analytics/components/DashboardList";
 import { DashboardForm } from "@/features/analytics/components/DashboardForm";
 import { ResourceCrudDialog } from "@/components/shared/ResourceCrudDialog";
 import { Button } from "@/components/ui/button";
@@ -15,10 +14,16 @@ import { useGetWorkspaces } from "@/features/workspaces/api/useGetWorkspaces";
 import { useGetProjects } from "@/features/project-management/api/useGetProjects";
 import { Label } from "@/components/ui/label";
 import { useParams } from "react-router-dom";
+import { useManageDashboards } from "@/features/analytics/api/useManageDashboards";
+import { DashboardCard } from "@/features/analytics/components/DashboardCard";
+import { Dashboard } from "@/types";
 
 export function DashboardsPage() {
   const params = useParams<{ workspaceId?: string; projectId?: string }>();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [editingDashboardId, setEditingDashboardId] = useState<string | null>(
+    null
+  );
   const [workspaceId, setWorkspaceId] = useState<string | undefined>(
     params.workspaceId
   );
@@ -48,6 +53,15 @@ export function DashboardsPage() {
     workspaceId: workspaceId,
     projectId: projectId,
   };
+
+  const dashboardResource = useManageDashboards(scope);
+  const { data, isLoading, isError } = dashboardResource.useGetAll();
+
+  const resourceKey = scope.projectId
+    ? ["dashboards", scope.projectId]
+    : scope.workspaceId
+      ? ["dashboards", scope.workspaceId]
+      : ["dashboards", "user"];
 
   return (
     <div className="space-y-4">
@@ -102,7 +116,28 @@ export function DashboardsPage() {
           </Button>
         </div>
       </div>
-      <DashboardList {...scope} />
+      {isLoading && <div>Loading dashboards...</div>}
+      {isError && <div>Error loading dashboards.</div>}
+      {!isLoading && !isError && (
+        <>
+          {data && data.data.length > 0 ? (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {data.data.map((dashboard: Dashboard) => (
+                <DashboardCard
+                  dashboard={dashboard}
+                  key={dashboard.id}
+                  onEdit={() => setEditingDashboardId(dashboard.id)}
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="text-muted-foreground">
+              No dashboards have been created yet. Create one to begin!
+            </p>
+          )}
+        </>
+      )}
+
       <ResourceCrudDialog
         isOpen={isCreateOpen}
         onOpenChange={setIsCreateOpen}
@@ -111,13 +146,18 @@ export function DashboardsPage() {
         form={DashboardForm}
         formProps={{ scope }}
         resourcePath={"dashboards"}
-        resourceKey={
-          scope.projectId
-            ? ["dashboards", scope.projectId]
-            : scope.workspaceId
-              ? ["dashboards", scope.workspaceId]
-              : ["dashboards", "user"]
-        }
+        resourceKey={resourceKey}
+      />
+      <ResourceCrudDialog
+        isOpen={!!editingDashboardId}
+        onOpenChange={(isOpen) => !isOpen && setEditingDashboardId(null)}
+        resourceId={editingDashboardId}
+        resourcePath={"dashboards"}
+        resourceKey={resourceKey}
+        title="Edit Dashboard"
+        description="Make changes to your dashboard here. Click save when you're done."
+        form={DashboardForm}
+        formProps={{ scope }}
       />
     </div>
   );

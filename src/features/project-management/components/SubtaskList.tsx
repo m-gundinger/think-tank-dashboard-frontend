@@ -19,7 +19,6 @@ export function SubtaskList({
   const queryClient = useQueryClient();
   const { useDelete } = useManageTasks(task.workspaceId, task.projectId);
   const deleteTaskMutation = useDelete();
-
   const handleRemoveSubtask = (taskId: string) => {
     if (window.confirm("Are you sure you want to delete this sub-task?")) {
       deleteTaskMutation.mutate(taskId, {

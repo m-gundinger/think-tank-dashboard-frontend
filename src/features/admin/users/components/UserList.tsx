@@ -10,8 +10,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { useSetUserStatus } from "../api/useSetUserStatus";
-import { useHardDeleteUser } from "../api/useHardDeleteUser";
 import { cn, getAbsoluteUrl } from "@/lib/utils";
 import { UserForm } from "./UserForm";
 import { ManageUserRoles } from "./ManageUserRoles";
@@ -20,6 +18,46 @@ import { Card, CardContent } from "@/components/ui/card";
 import { User } from "@/types";
 import { ActionMenu } from "@/components/shared/ActionMenu";
 import { useManageUsers } from "../api/useManageUsers";
+import { useApiMutation } from "@/hooks/useApiMutation";
+import api from "@/lib/api";
+
+async function hardDeleteUser(userId: string): Promise<void> {
+  await api.delete(`admin/users/${userId}/hard`);
+}
+
+function useHardDeleteUser() {
+  return useApiMutation({
+    mutationFn: hardDeleteUser,
+    successMessage: "User permanently deleted.",
+    invalidateQueries: [["users"]],
+  });
+}
+
+interface SetStatusParams {
+  userId: string;
+  isActive: boolean;
+}
+
+async function setUserStatus({
+  userId,
+  isActive,
+}: SetStatusParams): Promise<any> {
+  const { data } = await api.patch(`admin/users/${userId}/status`, {
+    isActive,
+  });
+  return data;
+}
+
+function useSetUserStatus() {
+  return useApiMutation<any, SetStatusParams>({
+    mutationFn: setUserStatus,
+    successMessage: (data) =>
+      `User ${data.person.firstName} has been ${
+        data.isActive ? "activated" : "deactivated"
+      }.`,
+    invalidateQueries: (data) => [["users"], ["user", data.id]],
+  });
+}
 
 export function UserList() {
   const [page, setPage] = useState(1);
